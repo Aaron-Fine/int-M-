@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-`int-M-` is a small, focused interactive atlas of the Mandelbrot set's interior.
+Mandelbrot Interiority (repository `int-M-`) is a small, focused interactive atlas of the Mandelbrot set's interior.
 
 The project is not trying to win the usual Mandelbrot-viewer contest of maximum zoom depth, maximum palette count, or maximum feature count. Its value is a legible view of attracting dynamics: what component a parameter appears to belong to, its period, its multiplier, how strongly it attracts, how the result was established, and how selected components are identified combinatorially.
 
@@ -43,7 +43,6 @@ Mathematical outcome and computational evidence are orthogonal:
 ```ts
 type DynamicsStatus =
   | "escaped"
-  | "interior"
   | "attracting-cycle"
   | "unresolved";
 
@@ -118,13 +117,14 @@ These are retained in the research plan but excluded from the first-release defi
 
 ### 5.1 Application shape
 
-The preferred application shape remains a pure TypeScript web application:
+The preferred application shape is a Vite application using strict TypeScript and vanilla DOM/CSS:
 
 - a small UI layer on the main thread;
 - a rendering coordinator in a worker;
 - numerical kernels that can run on worker CPU or WebGPU;
 - a shared semantic result model consumed by palettes and the inspector; and
-- static, versioned catalog and validation fixtures.
+- static, versioned catalog and validation fixtures; and
+- Playwright browser tests plus linting and static analysis in the development workflow.
 
 TypeScript is appropriate for the product shell, worker orchestration, state, inspection, and WebGPU integration. It does not imply that every future high-precision operation must be handwritten in TypeScript. A small WebAssembly numerical module remains an option if later measurements justify it.
 
@@ -241,6 +241,10 @@ Accessibility is part of the first slice because color carries meaning:
 
 The period view will not assign dozens of equally prominent categorical colors. It will emphasize selected periods, families, boundaries, or catalog entries appropriate to the current story.
 
+### 8.1 UX requirements and traceability
+
+The normative first-release UX requirements are `MI-UX-001` through `MI-UX-016` in [the SysML v2 system model](../model/MandelbrotInteriority.sysml). They cover the first-use render and defaults, progressive and truthful feedback, focused controls, responsive bounded navigation, semantic legends, evidence-bounded inspection, resilient renderer fallback, keyboard operation, and accessible presentation. The same model traces each requirement to a responsible logical component and to a verification objective; [the model guide](../model/README.md) explains the organization and validation baseline.
+
 ## 9. Delivery phases
 
 ### Phase 0 — decisions, provenance, and disposable experiments
@@ -257,7 +261,7 @@ Phase 0 ends uncertainty before production architecture hardens.
 
 #### Data and licensing
 
-- Choose and record licenses for code, documentation, and project-generated catalog data.
+- Record GPL-3.0-only for application code and documentation, and CC0-1.0 for independently generated catalog data and numerical fixtures.
 - Treat the published period-41 center database as unavailable for redistribution unless its rightsholder supplies an explicit compatible data license.
 - Define the catalog schema, stable identifier convention, exact rational-angle representation, provenance fields, and schema version.
 - Specify a reproducible high-precision catalog-generation and exact-period-validation procedure.
@@ -306,7 +310,7 @@ Phase 0 is complete when:
 
 Build the smallest end-to-end atlas:
 
-- TypeScript application shell;
+- Vite application shell with strict TypeScript and vanilla DOM/CSS;
 - all orbit and render work off the main thread;
 - pan and bounded zoom;
 - the Phase 0-selected renderer;
@@ -315,8 +319,10 @@ Build the smallest end-to-end atlas:
 - selected-point inspector;
 - the initial catalog and identifiers;
 - progressive rendering, cancellation, and resolution cap;
-- one guided first-run path; and
-- basic keyboard and color-vision accessibility.
+- one guided first-run path;
+- basic keyboard and color-vision accessibility;
+- Playwright coverage, linting, and static analysis; and
+- a production deployment on Cloudflare Pages with pull-request previews.
 
 The slice should be deployable and useful on its own.
 
@@ -359,7 +365,6 @@ Explore independently, promoting only work that reinforces the interior-atlas th
 
 Phase 0 must resolve:
 
-- code, documentation, and generated-data licenses;
 - the exact first catalog entries and naming convention;
 - the initial renderer selected by the three experiments;
 - preliminary zoom, resolution, period, and iteration bounds;
@@ -383,7 +388,8 @@ The first release is complete when:
 - the initial catalog is reproducible, versioned, and provenance-complete;
 - internal and angled addresses are represented correctly;
 - CPU, GPU, and high-precision fixtures agree within declared tolerances;
-- keyboard and color-vision accessibility checks pass; and
-- the deployed application communicates its deliberate zoom bound.
+- keyboard and color-vision accessibility checks pass;
+- the `MI-UX-001` through `MI-UX-016` verification objectives pass in supported current Firefox and Chrome releases; and
+- the Cloudflare Pages deployment communicates its deliberate zoom bound.
 
 Overlays, perturbation, renormalization coordinates, and an exhaustive catalog are not required for this milestone.
