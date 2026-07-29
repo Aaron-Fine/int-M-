@@ -128,7 +128,7 @@ The catalog should not claim the stronger meaning of “certified” unless its 
 
 ### External database licensing decision
 
-The period-41 database described by Vigneron and Gauthier is scientifically important, but the available licensing evidence does not authorize redistribution of the data in this project.
+The period-41 database described by Nicolae Mihalache and François Vigneron is scientifically important, but the available licensing evidence does not authorize redistribution of the data in this project.
 
 - The accompanying [`fvigneron/Mandelbrot`](https://github.com/fvigneron/Mandelbrot) repository uses a BSD-3-Clause-Attribution license whose text applies to the software.
 - The [database paper](https://ar5iv.labs.arxiv.org/html/2402.06083) describes scientific availability, but no separate, explicit database-reuse license was identified.
