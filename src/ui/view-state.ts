@@ -16,7 +16,7 @@ export const SEMANTIC_VIEWS = [
   },
 ] as const;
 
-import type { SemanticView, Viewport } from '../domain';
+import type { RenderQuality, SemanticView, Viewport } from '../domain';
 import { DEFAULT_VIEWPORT, MAX_VIEWPORT_SPAN_Y, MIN_VIEWPORT_SPAN_Y } from '../domain/viewport';
 
 export type { SemanticView, Viewport };
@@ -25,6 +25,51 @@ export { DEFAULT_VIEWPORT };
 export const MIN_SCALE = MIN_VIEWPORT_SPAN_Y;
 export const MAX_SCALE = MAX_VIEWPORT_SPAN_Y;
 export const ZOOM_FACTOR = 1.7;
+export const DEFAULT_QUALITY_PROFILE_ID = 'balanced';
+
+export type QualityProfileId = 'quick' | 'balanced' | 'detailed';
+
+export interface QualityProfile {
+  readonly id: QualityProfileId;
+  readonly label: string;
+  readonly description: string;
+  readonly quality: RenderQuality;
+  readonly maxRenderEdge: number;
+}
+
+/**
+ * Named finite search budgets keep the UI understandable and ensure the
+ * renderer and point inspector use the same evidence limits.
+ */
+export const QUALITY_PROFILES: readonly QualityProfile[] = Object.freeze([
+  {
+    id: 'quick',
+    label: 'Quick',
+    description: 'Faster exploration; more points may remain unresolved.',
+    quality: Object.freeze({ maxIterations: 256, maxPeriod: 16, coarseStride: 12 }),
+    maxRenderEdge: 768,
+  },
+  {
+    id: DEFAULT_QUALITY_PROFILE_ID,
+    label: 'Balanced',
+    description: 'Recommended balance of detail and render time.',
+    quality: Object.freeze({ maxIterations: 512, maxPeriod: 32, coarseStride: 8 }),
+    maxRenderEdge: 1024,
+  },
+  {
+    id: 'detailed',
+    label: 'Detailed',
+    description: 'Checks longer and higher-period cycles; renders more slowly.',
+    quality: Object.freeze({ maxIterations: 1024, maxPeriod: 64, coarseStride: 8 }),
+    maxRenderEdge: 1024,
+  },
+]);
+
+export function getQualityProfile(id: QualityProfileId): QualityProfile {
+  const profile = QUALITY_PROFILES.find((candidate) => candidate.id === id);
+  if (!profile) throw new Error(`Unknown quality profile: ${id}`);
+  return profile;
+}
 
 export function isDefaultViewport(viewport: Viewport): boolean {
   return (

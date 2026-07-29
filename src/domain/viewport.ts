@@ -136,3 +136,52 @@ export const zoomViewportAt = (
     spanY,
   };
 };
+
+export interface PixelRect {
+  readonly x1: number;
+  readonly y1: number;
+  readonly x2: number;
+  readonly y2: number;
+}
+
+/**
+ * Fits a screen-space selection inside the next viewport while preserving
+ * square complex-plane pixels. The longer selected fraction determines the
+ * zoom so the entire box remains visible at any canvas aspect ratio.
+ */
+export const zoomViewportToRect = (
+  viewport: Viewport,
+  size: RasterSize,
+  rect: PixelRect,
+): Viewport => {
+  validateRasterSize(size);
+  for (const [name, value] of Object.entries(rect)) {
+    if (!Number.isFinite(value)) {
+      throw new RangeError(`${name} must be finite`);
+    }
+  }
+
+  const left = Math.max(0, Math.min(size.width, Math.min(rect.x1, rect.x2)));
+  const right = Math.max(0, Math.min(size.width, Math.max(rect.x1, rect.x2)));
+  const top = Math.max(0, Math.min(size.height, Math.min(rect.y1, rect.y2)));
+  const bottom = Math.max(0, Math.min(size.height, Math.max(rect.y1, rect.y2)));
+  const width = right - left;
+  const height = bottom - top;
+  if (width <= 0 || height <= 0) {
+    throw new RangeError('zoom rectangle must have positive width and height');
+  }
+
+  const bounded = clampViewport(viewport);
+  const factor = Math.max(width / size.width, height / size.height);
+  const spanY = Math.max(MIN_VIEWPORT_SPAN_Y, bounded.spanY * factor);
+  if (spanY === bounded.spanY) return bounded;
+
+  const spanX = bounded.spanY * (size.width / size.height);
+  return {
+    center: {
+      re: bounded.center.re + ((left + right) / 2 / size.width - 0.5) * spanX,
+      im: bounded.center.im - ((top + bottom) / 2 / size.height - 0.5) * bounded.spanY,
+    },
+    spanY,
+  };
+};

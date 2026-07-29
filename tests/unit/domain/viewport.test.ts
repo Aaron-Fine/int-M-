@@ -9,6 +9,7 @@ import {
   panViewport,
   pixelToComplex,
   zoomViewportAt,
+  zoomViewportToRect,
 } from '../../../src/domain';
 
 describe('viewport mapping', () => {
@@ -58,5 +59,98 @@ describe('viewport mapping', () => {
 
     expect(panned.center.re).toBeCloseTo(-0.875);
     expect(panned.center.im).toBeCloseTo(0.25);
+  });
+
+  it('fits a box selection while preserving the viewport aspect ratio', () => {
+    const selected = zoomViewportToRect(
+      DEFAULT_VIEWPORT,
+      { width: 800, height: 500 },
+      {
+        x1: 200,
+        y1: 100,
+        x2: 600,
+        y2: 300,
+      },
+    );
+
+    expect(selected.center.re).toBeCloseTo(-0.75);
+    expect(selected.center.im).toBeCloseTo(0.25);
+    expect(selected.spanY).toBeCloseTo(1.25);
+  });
+
+  it('normalizes a reverse-direction box selection', () => {
+    const forward = zoomViewportToRect(
+      DEFAULT_VIEWPORT,
+      { width: 800, height: 500 },
+      {
+        x1: 200,
+        y1: 100,
+        x2: 600,
+        y2: 300,
+      },
+    );
+    const reverse = zoomViewportToRect(
+      DEFAULT_VIEWPORT,
+      { width: 800, height: 500 },
+      {
+        x1: 600,
+        y1: 300,
+        x2: 200,
+        y2: 100,
+      },
+    );
+
+    expect(reverse).toEqual(forward);
+  });
+
+  it('clamps box selections to the raster boundary', () => {
+    const selected = zoomViewportToRect(
+      DEFAULT_VIEWPORT,
+      { width: 800, height: 500 },
+      {
+        x1: -100,
+        y1: 125,
+        x2: 400,
+        y2: 375,
+      },
+    );
+
+    expect(selected.center.re).toBeCloseTo(-1.75);
+    expect(selected.center.im).toBeCloseTo(0);
+    expect(selected.spanY).toBeCloseTo(1.25);
+  });
+
+  it('keeps the existing center when already at the deliberate minimum span', () => {
+    const minimum = {
+      center: { re: -0.12, im: 0.74 },
+      spanY: MIN_VIEWPORT_SPAN_Y,
+    };
+    expect(
+      zoomViewportToRect(
+        minimum,
+        { width: 800, height: 500 },
+        {
+          x1: 300,
+          y1: 200,
+          x2: 500,
+          y2: 300,
+        },
+      ),
+    ).toEqual(minimum);
+  });
+
+  it('rejects degenerate box selections', () => {
+    expect(() =>
+      zoomViewportToRect(
+        DEFAULT_VIEWPORT,
+        { width: 800, height: 500 },
+        {
+          x1: 100,
+          y1: 100,
+          x2: 100,
+          y2: 200,
+        },
+      ),
+    ).toThrow(/positive width and height/);
   });
 });

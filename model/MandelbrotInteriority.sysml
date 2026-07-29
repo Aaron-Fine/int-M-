@@ -31,7 +31,14 @@ package MandelbrotInteriority {
         }
 
         enum def QualityProfile {
+            quick;
             balanced;
+            detailed;
+        }
+
+        enum def PointerTool {
+            pan;
+            zoomArea;
         }
 
         enum def RendererSelection {
@@ -79,6 +86,7 @@ package MandelbrotInteriority {
             attribute viewport : ViewportPreset = ViewportPreset::fullSet;
             attribute semanticView : SemanticView = SemanticView::stability;
             attribute qualityProfile : QualityProfile = QualityProfile::balanced;
+            attribute pointerTool : PointerTool = PointerTool::pan;
             attribute renderer : RendererSelection = RendererSelection::automatic;
             attribute catalogOverlay : CatalogOverlaySelection =
                 CatalogOverlaySelection::essentialComponents;
@@ -202,17 +210,19 @@ package MandelbrotInteriority {
         requirement <'MI-UX-006'> FocusedPrimaryControls {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * The initially visible controls shall be limited to view
-             * selection, zoom, reset, catalog visibility, and inspection.
-             * Advanced numerical controls shall not be required for normal use.
+             * The initially visible controls shall provide semantic and named
+             * quality selection, pointer tools, zoom, reset, catalog
+             * visibility, and inspection. They shall not require raw numerical
+             * parameters or unrelated advanced controls for normal use.
              */
         }
 
         requirement <'MI-UX-007'> ResponsiveNavigation {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Pan and zoom actions shall provide immediate visual feedback
-             * while superseded rendering work is cancelled and replaced.
+             * Pan, point zoom, and area-selection zoom actions shall provide
+             * immediate visual feedback while superseded rendering work is
+             * cancelled and replaced.
              */
         }
 
@@ -235,9 +245,9 @@ package MandelbrotInteriority {
         requirement <'MI-UX-010'> SemanticLegend {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Every semantic view shall display a legend explaining the
-             * represented quantity, scale, units or normalization, and
-             * unresolved treatment.
+             * Every semantic view shall display a legend and discoverable
+             * plain-language definitions explaining the represented quantity,
+             * scale, units or normalization, and unresolved treatment.
              */
         }
 
@@ -246,7 +256,8 @@ package MandelbrotInteriority {
             doc /*
              * Escaped, attracting-cycle, unresolved, selected, and
              * catalog-identified states shall remain distinguishable without
-             * relying exclusively on hue.
+             * relying exclusively on hue. Selected and zoom-relevant catalog
+             * labels shall remain readable.
              */
         }
 
@@ -254,8 +265,8 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * Selecting a point shall reveal canonical c, status, evidence,
-             * and available dynamical values without reporting precision
-             * unsupported by the evidence.
+             * and available dynamical values with discoverable definitions,
+             * without reporting precision unsupported by the evidence.
              */
         }
 
@@ -280,8 +291,9 @@ package MandelbrotInteriority {
         requirement <'MI-UX-015'> KeyboardOperation {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Primary navigation, view selection, reset, catalog selection,
-             * and inspection shall be keyboard operable with visible focus.
+             * Primary navigation, view and quality selection, reset, catalog
+             * selection, inspection, and explanatory disclosures shall be
+             * keyboard operable with visible focus.
              */
         }
 
@@ -355,8 +367,9 @@ package MandelbrotInteriority {
         verification def <'MI-VER-UX-002'> NavigationInteractionTest {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Exercise pointer and keyboard navigation, cancellation, reset,
-             * and both boundaries of the permitted zoom range.
+             * Exercise pointer and keyboard navigation, point and
+             * area-selection zoom, cancellation, reset, and both boundaries
+             * of the permitted zoom range.
              */
             objective navigationInteraction {
                 verify UserExperienceRequirements::ResponsiveNavigation;
@@ -368,7 +381,8 @@ package MandelbrotInteriority {
         verification def <'MI-VER-UX-003'> SemanticComprehensionTest {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Inspect every semantic view and golden-fixture point, including
+             * Inspect every semantic view, its plain-language definitions,
+             * adaptive catalog labels, and golden-fixture point, including
              * simulated color-vision deficiencies and unresolved results.
              */
             objective semanticComprehension {
