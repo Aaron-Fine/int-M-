@@ -1,45 +1,40 @@
-# int(M)
+# int-M-
 
-**An atlas of dynamics inside the Mandelbrot set**
+An interactive atlas of the Mandelbrot set's interior.
 
-int(M) is a bounded, interactive exploration of the structure that conventional Mandelbrot renderers usually flatten into a black silhouette. It will visualize attracting-cycle periods, multiplier coordinates, convergence behavior, and mathematically meaningful component identifiers.
+Most Mandelbrot viewers emphasize escape-time coloring and ever-deeper zooms. This project takes a deliberately different path: bounded navigation, mathematically meaningful interior coloring, honest uncertainty, and a small catalog of named hyperbolic components.
 
-The name uses the standard notation `int(M)` for the interior of the Mandelbrot set.
+The first release will focus on:
 
-## Status
+- multiplier coordinates inside detected attracting components;
+- intrinsic stability, using the per-iterate exponent `κ = -log|λ| / p`;
+- period as a secondary structural view;
+- a precise inspector that separates the computed outcome from the evidence supporting it;
+- a small, reproducibly generated catalog with internal and angled addresses; and
+- smooth interaction with rendering and numerical work kept off the main UI thread.
 
-Research and planning. Implementation has intentionally not started.
-
-- [Project plan](docs/PLAN.md)
-- [Research notes](docs/RESEARCH.md)
-
-## Project thesis
-
-Most Mandelbrot viewers emphasize exterior coloring or unlimited zoom depth. int(M) instead focuses on the dynamics of hyperbolic components:
-
-- multiplier magnitude and phase as internal coordinates;
-- attracting-cycle period and convergence behavior;
-- internal and angled internal addresses;
-- curated analytic curves and component-ordering overlays;
-- explicit distinction between escaped, analytically known, attractor-detected, and unresolved points.
-
-Zoom will be bounded on purpose. The goal is an understandable and trustworthy atlas, not an extreme-zoom benchmark.
+Significant Curves, Sharkovsky-order overlays, perturbation rendering, and renormalization coordinates remain research extensions. The architecture will preserve room for them without making the first release carry their complexity.
 
 ## Design principles
 
-1. **Mathematical honesty.** Failure to escape is not automatically classified as interior.
-2. **Focused scope.** Prefer a few well-explained views over a general fractal laboratory.
-3. **Responsive interaction.** Rendering and numerical work stay off the main UI thread.
-4. **Separated concerns.** Orbit calculation, classification, coloring, overlays, and presentation remain independent.
-5. **Progressive computation.** Fast GPU estimates may be refined or verified by CPU workers.
-6. **Small, readable implementation.** Minimize dependencies and abstractions that do not earn their complexity.
+- **Interiority first.** The inside of the set is the subject, not empty space behind an escape-time image.
+- **Bounded on purpose.** The useful zoom range is a product constraint to be measured, documented, and tested.
+- **Meaning before decoration.** Colors represent declared mathematical quantities and always have a legend.
+- **Evidence is explicit.** `interior`, `escaped`, and `unresolved` are outcomes; CPU, GPU, analytic, and catalog checks are evidence.
+- **Canonical parameters stay canonical.** Coordinate systems are chart layers around the Mandelbrot parameter `c`, never replacements for it.
+- **Measure before adding machinery.** WebGPU and perturbation are adopted only when small Phase 0 experiments justify their cost.
+- **Small, reproducible data.** The initial catalog is generated and validated by this project rather than copied from a large externally published database.
 
-## Planned technology
+## Technical direction
 
-The application is expected to use TypeScript, Web Workers, Canvas/OffscreenCanvas, and WebGPU where available. A CPU-worker renderer will remain the correctness reference and compatibility fallback.
+The application is planned as a TypeScript web project with all rendering and orbit work performed away from the main UI thread. Phase 0 will compare a worker-based CPU renderer, direct WebGPU computation, and a small CPU-reference/GPU-perturbation experiment before the production renderer is selected.
 
-No implementation choices in these documents are irreversible. The plan identifies validation gates where measurements should decide between alternatives.
+The orbit engine will consume canonical complex parameters. Pixel-to-parameter and other coordinate conversions will live at an isolated chart boundary, leaving a clean seam for later experiments with multiplier, Böttcher, or straightening coordinates.
 
-## License
+See [the project plan](docs/PLAN.md) and [the research notes](docs/RESEARCH.md).
 
-No license has been selected yet.
+## Status
+
+Research and planning. Production implementation has not started.
+
+License selection for the code and project-generated catalog is a Phase 0 decision. External catalog data will not be imported without an explicit compatible data license.
