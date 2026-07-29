@@ -20,14 +20,17 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "catalog:check": "python3 tools/generate_catalog.py --check catalog/components.v1.json",
+    "fixtures:check": "python3 tools/generate_orbit_fixtures.py --check fixtures/orbits.v1.json",
+    "evidence:cpu": "vite build --ssr tools/measure_cpu.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/measure_cpu.js",
     "test": "npm run test:unit && npm run test:browser",
     "test:unit": "vitest run --passWithNoTests",
     "test:unit:watch": "vitest",
     "test:browser": "playwright test --pass-with-no-tests",
     "test:browser:headed": "playwright test --headed",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run test:unit && npm run build:assets"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.62.0",
     "@types/node": "24.13.3",

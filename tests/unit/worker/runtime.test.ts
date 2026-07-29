@@ -125,6 +125,48 @@ describe('RenderWorkerRuntime', () => {
     expect(transfer).toHaveLength(1);
   });
 
+  it('reports a render failure and remains available for later requests', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const renderer: Renderer = {
+      inspect: () => ({
+        status: 'unresolved',
+        iterations: 8,
+        evidence: ['iteration-limit'],
+      }),
+      render: () => Promise.reject(new Error('injected render failure')),
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      renderer,
+    );
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 'failed-render',
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 1, height: 1 },
+      semanticView: 'stability',
+    });
+    await runtime.handle({
+      type: 'inspect',
+      requestId: 'later-inspection',
+      point: { re: 0, im: 0 },
+    });
+
+    expect(messages).toContainEqual({
+      type: 'error',
+      requestId: 'failed-render',
+      message: 'injected render failure',
+    });
+    expect(messages).toContainEqual(
+      expect.objectContaining({
+        type: 'inspection',
+        requestId: 'later-inspection',
+      }),
+    );
+  });
+
   it('recolors a cached semantic frame without recomputing dynamics', async () => {
     const messages: WorkerToMainMessage[] = [];
     const render = vi.fn(

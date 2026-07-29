@@ -1,4 +1,22 @@
-import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+
+const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+const expectNoAccessibilityViolations = async (page: Page): Promise<void> => {
+  const results = await new AxeBuilder({ page }).withTags(wcagTags).analyze();
+  expect(
+    results.violations,
+    results.violations
+      .map(
+        (violation) =>
+          `${violation.id}: ${violation.help} (${violation.nodes
+            .map((node) => node.target.join(' '))
+            .join(', ')})`,
+      )
+      .join('\n'),
+  ).toEqual([]);
+};
 
 test.describe('Mandelbrot Interiority explorer', () => {
   test('starts with a useful, explained semantic view', async ({ page }) => {
@@ -67,6 +85,13 @@ test.describe('Mandelbrot Interiority explorer', () => {
 
   test('changes semantic views and updates their explanation', async ({ page }) => {
     await page.goto('/');
+
+    await page.getByLabel('Interior view').selectOption('multiplier');
+    await expect(
+      page.getByText('The strength and angle of attraction around a detected cycle.'),
+    ).toBeVisible();
+    await expect(page.getByText(/Hue shows rotation/)).toBeVisible();
+    await expect(page.getByText('Multiplier angle', { exact: true })).toBeVisible();
 
     await page.getByLabel('Interior view').selectOption('period');
     await expect(page.getByText('The detected attracting-cycle period.')).toBeVisible();
@@ -137,5 +162,20 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await quality.selectOption('detailed');
     await expect(page.getByText(/Detailed quality selected · 1024 iterations/)).toBeVisible();
     await expect(page.getByText(/Checks longer and higher-period cycles/)).toBeVisible();
+  });
+
+  test('has no automated WCAG A or AA violations in primary states', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
+    await expectNoAccessibilityViolations(page);
+
+    await page.getByRole('button', { name: 'Explore' }).click();
+    const mainCardioid = page.getByRole('button', {
+      name: 'Inspect Main cardioid, period 1',
+    });
+    await expect(mainCardioid).toBeVisible({ timeout: 20_000 });
+    await mainCardioid.click();
+    await expect(page.getByRole('heading', { name: 'Main cardioid' })).toBeVisible();
+    await expectNoAccessibilityViolations(page);
   });
 });

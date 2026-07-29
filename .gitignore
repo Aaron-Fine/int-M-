@@ -9,6 +9,7 @@ test-results/
 
 # Tool caches
 .eslintcache
+.evidence-build/
 .vite/
 *.tsbuildinfo
 __pycache__/
