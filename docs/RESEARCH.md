@@ -74,7 +74,6 @@ A useful result model separates:
 ```ts
 type DynamicsStatus =
   | "escaped"
-  | "interior"
   | "attracting-cycle"
   | "unresolved";
 
@@ -142,7 +141,7 @@ The conservative resolution is:
 4. retain computation and provenance records; and
 5. reconsider external data only if an explicit compatible license is supplied by the rightsholder.
 
-This removes the external database as a Phase 0 dependency. A permissive code license and a separate CC0 dedication for independently generated catalog data are plausible choices, but the project owner must select and record them.
+This removes the external database as a Phase 0 dependency. Application code and documentation use GPL-3.0-only; independently generated catalog data and numerical fixtures use CC0-1.0.
 
 ## 6. Significant Curves
 

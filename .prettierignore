@@ -1,0 +1,10 @@
+coverage/
+catalog/
+dist/
+docs/PLAN.md
+docs/RESEARCH.md
+node_modules/
+playwright-report/
+test-results/
+model/
+package-lock.json
