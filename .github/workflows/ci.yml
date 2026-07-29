@@ -68,6 +68,9 @@ jobs:
     name: Browser tests
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.0-noble
+      options: --user 1001
 
     steps:
       - name: Check out repository
@@ -81,9 +84,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install browser test dependencies
-        run: npx playwright install --with-deps chromium firefox
 
       - name: Run Chromium and Firefox tests
         run: npm run test:browser
