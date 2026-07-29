@@ -57,7 +57,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.getByText('Attracting cycle', { exact: true })).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByText('Stability exponent κ')).toBeVisible();
+    await expect(page.locator('.facts').getByText('Stability exponent κ')).toBeVisible();
 
     const catalog = page.getByRole('button', { name: /Catalog/ });
     await catalog.click();
@@ -71,7 +71,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByLabel('Interior view').selectOption('period');
     await expect(page.getByText('The detected attracting-cycle period.')).toBeVisible();
     await expect(
-      page.getByText('Color categories represent the exact detected attracting-cycle period.'),
+      page.getByText(
+        'Each color category represents the exact detected attracting-cycle period p.',
+      ),
     ).toBeVisible();
     await expect(page.getByText('Period 1', { exact: true })).toBeVisible();
     await expect(page.getByText('Period 3+', { exact: true })).toBeVisible();
@@ -100,7 +102,17 @@ test.describe('Mandelbrot Interiority explorer', () => {
 
     await expect(page.getByText('Zoomed to selected area.')).toBeVisible();
     await expect(page.locator('.zoom-selection')).not.toBeVisible();
-    await expect(page.getByLabel('Magnification')).toHaveText('2.00×');
+    await expect
+      .poll(async () =>
+        Number.parseFloat((await page.getByLabel('Magnification').textContent()) ?? '0'),
+      )
+      .toBeGreaterThanOrEqual(1.9);
+    await expect
+      .poll(async () =>
+        Number.parseFloat((await page.getByLabel('Magnification').textContent()) ?? '0'),
+      )
+      .toBeLessThanOrEqual(2.1);
+    await expect(page.getByRole('button', { name: 'Reset' })).toBeEnabled();
 
     await page.getByRole('button', { name: 'Reset' }).click();
     await page.getByRole('button', { name: 'Zoom in' }).click();

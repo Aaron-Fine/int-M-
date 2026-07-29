@@ -76,6 +76,14 @@ should satisfy the same protocol rather than leak renderer-specific state into t
 
 ## Testing boundaries
 
+- Verification is layered. Pure domain mathematics uses deterministic inputs
+  and declared numerical tolerances; worker tests verify message ordering,
+  cancellation, and evidence-budget propagation; browser tests verify
+  user-visible invariants rather than incidental pixel-perfect values. For
+  example, rectangle fitting is checked numerically in unit tests, while
+  Playwright checks that a visible selection meaningfully increases
+  magnification, enables reset, reveals the appropriate labels, and starts a
+  replacement render.
 - Unit tests should cover pure complex arithmetic, viewport transforms, orbit/classification rules,
   catalog matching, cancellation state, and protocol validation.
 - Worker tests should verify progressive/coarse-to-stable messages and rejection of superseded work.
