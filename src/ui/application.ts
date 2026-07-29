@@ -387,7 +387,15 @@ export function mountApplication(host: HTMLElement): () => void {
     renderTimer = setTimeout(requestRender, immediate ? 0 : RENDER_DELAY_MS);
   }
 
+  function requestSemanticView(): void {
+    if (renderTimer !== undefined) clearTimeout(renderTimer);
+    status.className = 'status status--working';
+    statusText.textContent = 'Applying interior view…';
+    requestRender();
+  }
+
   function requestRender(): void {
+    renderTimer = undefined;
     const size = dimensions();
     state.requestId += 1;
     state.activeRequestId = state.requestId;
@@ -575,7 +583,7 @@ export function mountApplication(host: HTMLElement): () => void {
     const selected = SEMANTIC_VIEWS.find((view) => view.id === state.semanticView);
     semanticDescription.textContent = selected?.description ?? '';
     legend.update(state.semanticView);
-    scheduleRender(true);
+    requestSemanticView();
   });
 
   qualitySelect.addEventListener('change', () => {

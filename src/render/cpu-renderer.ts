@@ -1,6 +1,8 @@
 import {
   classifyOrbit,
-  colorForOrbit,
+  colorForAttracting,
+  colorForEscaped,
+  colorForUnresolved,
   createViewportTransform,
   OrbitClassifier,
   OrbitScratch,
@@ -9,20 +11,20 @@ import {
   type OrbitOptions,
   type OrbitResult,
   type RenderQuality,
+  type Rgba,
+  type SemanticView,
 } from '../domain';
-import type {
-  FrameConsumer,
-  RasterFrame,
-  RasterRenderRequest,
-  RenderStage,
-  Renderer,
+import {
+  DEFAULT_RENDER_QUALITY,
+  resolveRenderQuality,
+  type DynamicsRenderRequest,
+  type RasterFrame,
+  type Renderer,
+  type RenderStage,
+  type SemanticFrame,
+  type SemanticFrameConsumer,
+  type SemanticStatusCode,
 } from './renderer';
-
-export const DEFAULT_RENDER_QUALITY: RenderQuality = Object.freeze({
-  maxIterations: 512,
-  maxPeriod: 32,
-  coarseStride: 8,
-});
 
 export class RenderCancelledError extends Error {
   public constructor() {
@@ -30,21 +32,6 @@ export class RenderCancelledError extends Error {
     this.name = 'RenderCancelledError';
   }
 }
-
-const resolveQuality = (quality: Partial<RenderQuality> | undefined): RenderQuality => {
-  const resolved = { ...DEFAULT_RENDER_QUALITY, ...quality };
-  if (
-    !Number.isInteger(resolved.maxIterations) ||
-    resolved.maxIterations < 1 ||
-    !Number.isInteger(resolved.maxPeriod) ||
-    resolved.maxPeriod < 1 ||
-    !Number.isInteger(resolved.coarseStride) ||
-    resolved.coarseStride < 1
-  ) {
-    throw new RangeError('render quality values must be positive integers');
-  }
-  return resolved;
-};
 
 const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) {
@@ -58,49 +45,86 @@ const yieldToWorkerEventLoop = async (): Promise<void> => {
   });
 };
 
-const writeBlock = (
-  rgba: Uint8ClampedArray,
-  width: number,
-  height: number,
+const writeSemanticBlock = (
+  frame: SemanticFrame,
   x: number,
   y: number,
   stride: number,
-  color: readonly [number, number, number, number],
+  result: OrbitResult,
 ): void => {
-  const limitY = Math.min(height, y + stride);
-  const limitX = Math.min(width, x + stride);
+  let status: SemanticStatusCode = 0;
+  let period = 0;
+  let primary = 0;
+  let secondary = 0;
+
+  if (result.status === 'escaped') {
+    status = 1;
+    primary = result.smoothIteration;
+  } else if (result.status === 'attracting-cycle') {
+    status = 2;
+    period = result.period;
+    primary = result.multiplierMagnitude;
+    secondary = result.multiplierAngle;
+  }
+
+  const limitY = Math.min(frame.size.height, y + stride);
+  const limitX = Math.min(frame.size.width, x + stride);
   for (let writeY = y; writeY < limitY; writeY += 1) {
     for (let writeX = x; writeX < limitX; writeX += 1) {
-      const offset = (writeY * width + writeX) * 4;
-      rgba[offset] = color[0];
-      rgba[offset + 1] = color[1];
-      rgba[offset + 2] = color[2];
-      rgba[offset + 3] = color[3];
+      const offset = writeY * frame.size.width + writeX;
+      frame.status[offset] = status;
+      frame.period[offset] = period;
+      frame.smoothIterationOrMultiplierMagnitude[offset] = primary;
+      frame.multiplierAngle[offset] = secondary;
     }
   }
 };
 
-const textureUnresolved = (
-  color: readonly [number, number, number, number],
-  x: number,
-  y: number,
-  stride: number,
-): readonly [number, number, number, number] => {
+const textureUnresolved = (color: Rgba, x: number, y: number, stride: number): Rgba => {
   const cellSize = stride === 1 ? 4 : stride;
   const alternate = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0;
   const offset = alternate ? -12 : 12;
   return [color[0] + offset, color[1] + offset, color[2] + offset, color[3]];
 };
 
-const stageRaster = async (
-  request: RasterRenderRequest,
+const colorForSemanticPixel = (frame: SemanticFrame, offset: number, view: SemanticView): Rgba => {
+  switch (frame.status[offset]) {
+    case 1:
+      return colorForEscaped(frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0, view);
+    case 2:
+      return colorForAttracting(
+        frame.period[offset] ?? 0,
+        frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0,
+        frame.multiplierAngle[offset] ?? 0,
+        view,
+      );
+    default: {
+      const x = offset % frame.size.width;
+      const y = Math.floor(offset / frame.size.width);
+      return textureUnresolved(colorForUnresolved(), x, y, frame.sampleStride);
+    }
+  }
+};
+
+const stageSemantics = async (
+  request: DynamicsRenderRequest,
   quality: RenderQuality,
   stride: number,
   stage: RenderStage,
   signal: AbortSignal,
-): Promise<RasterFrame> => {
+): Promise<SemanticFrame> => {
   const { width, height } = request.size;
-  const rgba = new Uint8ClampedArray(width * height * 4);
+  const pixelCount = width * height;
+  const frame: SemanticFrame = {
+    stage,
+    size: request.size,
+    sampleStride: stride,
+    status: new Uint8Array(pixelCount),
+    period: new Uint32Array(pixelCount),
+    smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
+    multiplierAngle: new Float64Array(pixelCount),
+    progress: stage === 'coarse' ? 0.2 : 1,
+  };
   const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
@@ -116,13 +140,7 @@ const stageRaster = async (
       const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
       const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
       const point = viewportTransform.pixelToComplex(sampleX, sampleY);
-      const result = classifier.classify(point);
-      const semanticColor = colorForOrbit(result, request.semanticView);
-      const color =
-        result.status === 'unresolved'
-          ? textureUnresolved(semanticColor, x, y, stride)
-          : semanticColor;
-      writeBlock(rgba, width, height, x, y, stride, color);
+      writeSemanticBlock(frame, x, y, stride, classifier.classify(point));
     }
 
     // Browser messages, including cancel, cannot be processed during a long
@@ -133,22 +151,17 @@ const stageRaster = async (
   }
 
   throwIfAborted(signal);
-  return {
-    stage,
-    size: request.size,
-    rgba,
-    progress: stage === 'coarse' ? 0.2 : 1,
-  };
+  return frame;
 };
 
 export class CpuRenderer implements Renderer {
   public async render(
-    request: RasterRenderRequest,
+    request: DynamicsRenderRequest,
     signal: AbortSignal,
-    onFrame: FrameConsumer,
+    onFrame: SemanticFrameConsumer,
   ): Promise<void> {
     validateRasterSize(request.size);
-    const quality = resolveQuality(request.quality);
+    const quality = resolveRenderQuality(request.quality);
     const coarseStride = Math.max(2, quality.coarseStride);
     const coarseQuality: RenderQuality = {
       maxIterations: Math.min(quality.maxIterations, 256),
@@ -156,19 +169,37 @@ export class CpuRenderer implements Renderer {
       coarseStride,
     };
 
-    const coarse = await stageRaster(request, coarseQuality, coarseStride, 'coarse', signal);
+    const coarse = await stageSemantics(request, coarseQuality, coarseStride, 'coarse', signal);
     await onFrame(coarse);
     throwIfAborted(signal);
 
-    const stable = await stageRaster(request, quality, 1, 'stable', signal);
+    const stable = await stageSemantics(request, quality, 1, 'stable', signal);
     await onFrame(stable);
   }
 
   public inspect(point: Complex, quality?: Partial<RenderQuality>): OrbitResult {
-    const resolved = resolveQuality(quality);
+    const resolved = resolveRenderQuality(quality);
     return classifyOrbit(point, {
       maxIterations: resolved.maxIterations,
       maxPeriod: resolved.maxPeriod,
     });
+  }
+
+  public colorize(frame: SemanticFrame, view: SemanticView): RasterFrame {
+    const rgba = new Uint8ClampedArray(frame.size.width * frame.size.height * 4);
+    for (let pixel = 0; pixel < frame.status.length; pixel += 1) {
+      const color = colorForSemanticPixel(frame, pixel, view);
+      const offset = pixel * 4;
+      rgba[offset] = color[0];
+      rgba[offset + 1] = color[1];
+      rgba[offset + 2] = color[2];
+      rgba[offset + 3] = color[3];
+    }
+    return {
+      stage: frame.stage,
+      size: frame.size,
+      rgba,
+      progress: frame.progress,
+    };
   }
 }

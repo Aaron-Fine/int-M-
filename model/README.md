@@ -47,6 +47,20 @@ Users may switch among Quick, Balanced, and Detailed numerical budgets.
 Balanced remains the first-use default; unresolved always means that the
 selected budget did not support a stronger claim.
 
+## Semantic tile boundary
+
+`SemanticTile` is the worker-internal, palette-independent result of numerical
+classification. The model explicitly carries it from `OrbitEngine` through
+`SemanticTileStore` to `PaletteMapper`. The store retains the current stable
+result so a change of interior view can recolor existing semantics instead of
+recomputing the orbit data.
+
+`PaletteMapper` converts that semantic data into a `ColorizedFrame`. Only the
+colorized frame crosses `UIWorkerPort` to the main-thread UI; the larger typed
+semantic buffers remain off the UI thread. The Phase 1 implementation may use
+one full-viewport semantic tile. The same boundary permits later subdivision
+into multiple tiles without requiring that complexity now.
+
 ## Language baseline
 
 The textual model targets OMG SysML v2 and the

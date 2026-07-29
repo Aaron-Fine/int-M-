@@ -61,11 +61,13 @@ package MandelbrotInteriority {
             open;
         }
 
-        item def ViewportRequest;
+        item def RenderRequest;
 
         item def CancelRequest;
 
         item def SemanticTile;
+
+        item def ColorizedFrame;
 
         item def RenderStatus;
 
@@ -73,11 +75,15 @@ package MandelbrotInteriority {
 
         item def InspectorResult;
 
+        port def SemanticTilePort {
+            out item semanticTile : SemanticTile;
+        }
+
         port def UIWorkerPort {
-            out item viewportRequest : ViewportRequest;
+            out item renderRequest : RenderRequest;
             out item cancelRequest : CancelRequest;
             out item inspectorRequest : InspectorRequest;
-            in item semanticTile : SemanticTile;
+            in item colorizedFrame : ColorizedFrame;
             in item renderStatus : RenderStatus;
             in item inspectorResult : InspectorResult;
         }
@@ -119,13 +125,29 @@ package MandelbrotInteriority {
 
         part def CoordinateMapper;
 
-        part def OrbitEngine;
+        part def OrbitEngine {
+            port semanticTileOutput : SemanticTilePort;
+        }
 
         part def NumericalKernel;
 
-        part def SemanticTileStore;
+        part def SemanticTileStore {
+            doc /*
+             * Retains the current stable, view-independent semantic tile.
+             * Identity includes viewport, raster size, quality limits, and
+             * semantic-algorithm version, but excludes palette selection.
+             */
+            port semanticTileInput : ~SemanticTilePort;
+            port semanticTileOutput : SemanticTilePort;
+        }
 
-        part def PaletteMapper;
+        part def PaletteMapper {
+            doc /*
+             * Maps worker-local semantic tiles to colorized frames. A semantic
+             * view change reuses cached or in-progress dynamics results.
+             */
+            port semanticTileInput : ~SemanticTilePort;
+        }
 
         part def CatalogMatcher;
 
@@ -140,6 +162,11 @@ package MandelbrotInteriority {
             part paletteMapper : PaletteMapper;
             part catalogMatcher : CatalogMatcher;
             port userInterface : ~UIWorkerPort;
+
+            connect orbitEngine.semanticTileOutput
+                to semanticTileStore.semanticTileInput;
+            connect semanticTileStore.semanticTileOutput
+                to paletteMapper.semanticTileInput;
         }
 
         part def CatalogData;
@@ -384,6 +411,8 @@ package MandelbrotInteriority {
              * Inspect every semantic view, its plain-language definitions,
              * adaptive catalog labels, and golden-fixture point, including
              * simulated color-vision deficiencies and unresolved results.
+             * Worker tests confirm that view changes reuse cached or
+             * in-progress semantic evidence.
              */
             objective semanticComprehension {
                 verify UserExperienceRequirements::SemanticLegend;

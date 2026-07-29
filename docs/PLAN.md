@@ -160,19 +160,16 @@ Future nonlinear charts may provide a precomputed per-pixel parameter buffer wit
 
 ### 5.4 Semantic render data
 
-Rendering should produce semantic values rather than final aesthetic colors wherever practical. Candidate fields include:
+Rendering produces semantic values before final aesthetic colors. The Phase 1 worker retains a compact full-raster representation containing:
 
 - outcome/status;
-- evidence flags;
 - detected period;
-- iterations used;
-- multiplier real and imaginary parts;
-- convergence or residual measure; and
-- catalog match.
+- smooth escape iteration for escaped pixels; and
+- multiplier magnitude and angle for detected attracting cycles.
 
-Palettes and legends then map those values to display color. This keeps visual design separate from dynamics and makes later views cheaper to add.
+These fields support every current interior view, so palettes and legends can map the same classified frame to stability, multiplier, or period color without repeating orbit work. The semantic arrays remain worker-local; only RGBA output crosses to the main thread.
 
-The final buffer layout must be chosen from measured memory and bandwidth costs; this list is a semantic contract, not a requirement to allocate a full-size texture for every field.
+Evidence flags, convergence diagnostics, catalog matches, and other richer values are computed for selected-point inspection or offline validation rather than allocated for every pixel. A later view that genuinely needs another per-pixel field must make that addition explicit and advance the semantic-algorithm version.
 
 ### 5.5 Numerical paths
 
@@ -193,11 +190,13 @@ A navigation action should produce:
 3. progressively refined tiles or passes; and
 4. a stable final frame within the configured numerical budget.
 
-Cache keys include the canonical viewport, resolution, selected quality
-profile and numerical limits, semantic view inputs, and kernel version. A
-profile change cancels stale work; raster rendering and point inspection use
-the same profile. Cosmetic palette changes should not invalidate dynamics data
-when the required semantic fields already exist.
+The bounded Phase 1 cache retains one stable semantic frame. Its key includes
+the canonical viewport, resolution, selected quality profile and numerical
+limits, and semantic-algorithm version. It excludes the selected interior view
+and cosmetic palette inputs. A profile, navigation, resolution, or algorithm
+change cancels stale work; a view change recolors the cached frame, or updates
+the requested palette while the same dynamics computation continues. Raster
+rendering and point inspection use the same quality profile.
 
 ### 5.7 Bounded zoom
 
@@ -340,6 +339,7 @@ Build the smallest end-to-end atlas:
 - Quick, Balanced, and Detailed numerical quality profiles with truthful
   unresolved treatment;
 - the initial catalog and identifiers;
+- worker-local semantic-frame reuse across stability, multiplier, and period views;
 - progressive rendering, cancellation, and resolution cap;
 - one guided first-run path;
 - basic keyboard and color-vision accessibility;
@@ -390,7 +390,6 @@ Phase 0 must resolve:
 - the exact first catalog entries and naming convention;
 - the initial renderer selected by the three experiments;
 - preliminary zoom, resolution, period, and iteration bounds;
-- which semantic fields are stored versus recomputed;
 - how catalog matching confidence is expressed; and
 - the initial accessible palette and unresolved-region treatment.
 
