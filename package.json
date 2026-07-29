@@ -5,9 +5,10 @@
   "type": "module",
   "description": "An evidence-aware explorer for the interior dynamics of the Mandelbrot set.",
   "license": "GPL-3.0-only",
+  "packageManager": "npm@11.16.0",
   "engines": {
-    "node": ">=22.13.0 <25",
-    "npm": ">=10"
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
   },
   "scripts": {
     "dev": "vite",
@@ -29,7 +30,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.62.0",
-    "@types/node": "26.1.2",
+    "@types/node": "24.13.3",
     "eslint": "10.8.0",
     "globals": "17.8.0",
     "prettier": "3.9.6",
