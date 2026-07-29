@@ -1,6 +1,6 @@
 export * from './complex';
 export { classifyOrbit, DEFAULT_ORBIT_OPTIONS, OrbitClassifier, OrbitScratch } from './orbit';
-export { colorForOrbit } from './semantic';
+export { colorForAttracting, colorForEscaped, colorForOrbit, colorForUnresolved } from './semantic';
 export type { Rgba } from './semantic';
 export type {
   AttractingCycleOrbitResult,

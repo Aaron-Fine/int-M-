@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { colorForOrbit, type OrbitResult } from '../../../src/domain';
+import {
+  colorForAttracting,
+  colorForEscaped,
+  colorForOrbit,
+  type OrbitResult,
+  type SemanticView,
+} from '../../../src/domain';
 
 const attracting: OrbitResult = {
   status: 'attracting-cycle',
@@ -52,5 +58,29 @@ describe('semantic coloring', () => {
     expect(escaped).not.toEqual([96, 96, 96, 255]);
     expect(escaped[0]).toBe(escaped[1]);
     expect(escaped[1]).toBe(escaped[2]);
+  });
+
+  it('maps compact semantic-frame fields exactly like structured orbit results', () => {
+    const views: readonly SemanticView[] = ['stability', 'multiplier', 'period'];
+    for (const view of views) {
+      expect(
+        colorForAttracting(
+          attracting.period,
+          attracting.multiplierMagnitude,
+          attracting.multiplierAngle,
+          view,
+        ),
+      ).toEqual(colorForOrbit(attracting, view));
+
+      const escaped: OrbitResult = {
+        status: 'escaped',
+        iterations: 5,
+        evidence: ['escape-radius'],
+        escapeIteration: 5,
+        smoothIteration: 4.5,
+        magnitudeSquared: 12,
+      };
+      expect(colorForEscaped(escaped.smoothIteration, view)).toEqual(colorForOrbit(escaped, view));
+    }
   });
 });

@@ -29,39 +29,54 @@ const hslToRgba = (hue: number, saturation: number, lightness: number): Rgba => 
   ];
 };
 
-const escapedColor = (result: Extract<OrbitResult, { status: 'escaped' }>): Rgba => {
-  const band = (((result.smoothIteration * 0.037) % 1) + 1) % 1;
+const escapeBand = (smoothIteration: number): number => (((smoothIteration * 0.037) % 1) + 1) % 1;
+
+export const colorForUnresolved = (): Rgba => [96, 96, 96, 255];
+
+export const colorForEscaped = (smoothIteration: number, view: SemanticView): Rgba => {
+  const band = escapeBand(smoothIteration);
+  if (view === 'stability') {
+    const value = clampByte(18 + 42 * band);
+    return [value, value, value, 255];
+  }
   return hslToRgba(210 + 35 * band, 0.55, 0.12 + 0.16 * band);
 };
 
-export const colorForOrbit = (result: OrbitResult, view: SemanticView): Rgba => {
-  if (result.status === 'unresolved') {
-    return [96, 96, 96, 255];
-  }
-  if (result.status === 'escaped') {
-    if (view === 'stability') {
-      const band = (((result.smoothIteration * 0.037) % 1) + 1) % 1;
-      const value = clampByte(18 + 42 * band);
-      return [value, value, value, 255];
-    }
-    return escapedColor(result);
-  }
-
+export const colorForAttracting = (
+  period: number,
+  multiplierMagnitude: number,
+  multiplierAngle: number,
+  view: SemanticView,
+): Rgba => {
   switch (view) {
     case 'period':
-      return hslToRgba((result.period * 137.508) % 360, 0.72, 0.54);
+      return hslToRgba((period * 137.508) % 360, 0.72, 0.54);
     case 'multiplier':
       return hslToRgba(
-        ((result.multiplierAngle / (2 * Math.PI)) * 360 + 360) % 360,
+        ((multiplierAngle / (2 * Math.PI)) * 360 + 360) % 360,
         0.72,
-        0.3 + 0.35 * (1 - result.multiplierMagnitude),
+        0.3 + 0.35 * (1 - multiplierMagnitude),
       );
     case 'stability': {
-      const normalized = Number.isFinite(result.stabilityExponent)
-        ? 1 - Math.exp(-result.stabilityExponent)
-        : 1;
+      const stabilityExponent = -Math.log(multiplierMagnitude) / period;
+      const normalized = Number.isFinite(stabilityExponent) ? 1 - Math.exp(-stabilityExponent) : 1;
       const value = clampByte(35 + 205 * normalized);
       return [value, value, value, 255];
     }
   }
+};
+
+export const colorForOrbit = (result: OrbitResult, view: SemanticView): Rgba => {
+  if (result.status === 'unresolved') {
+    return colorForUnresolved();
+  }
+  if (result.status === 'escaped') {
+    return colorForEscaped(result.smoothIteration, view);
+  }
+  return colorForAttracting(
+    result.period,
+    result.multiplierMagnitude,
+    result.multiplierAngle,
+    view,
+  );
 };

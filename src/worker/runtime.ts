@@ -1,6 +1,16 @@
-import { CpuRenderer, RenderCancelledError, type Renderer } from '../render';
+import {
+  CpuRenderer,
+  RenderCancelledError,
+  SemanticFrameStore,
+  semanticRequestKey,
+  type DynamicsRenderRequest,
+  type Renderer,
+  type SemanticFrame,
+} from '../render';
+import type { SemanticView } from '../domain';
 import type {
   MainToWorkerMessage,
+  RenderMessage,
   RequestId,
   WorkerErrorMessage,
   WorkerToMainMessage,
@@ -10,16 +20,31 @@ export interface WorkerMessagePort {
   postMessage(message: WorkerToMainMessage, transfer?: readonly ArrayBuffer[]): void;
 }
 
+interface ActiveRender {
+  readonly controller: AbortController;
+  readonly key: string;
+  readonly request: DynamicsRenderRequest;
+  requestId: RequestId;
+  semanticView: SemanticView;
+  lastFrame?: SemanticFrame;
+}
+
 const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage => ({
   type: 'error',
   requestId,
   message: error instanceof Error ? error.message : 'unknown rendering error',
 });
 
+const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest =>
+  message.quality === undefined
+    ? { viewport: message.viewport, size: message.size }
+    : { viewport: message.viewport, size: message.size, quality: message.quality };
+
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;
   readonly #port: WorkerMessagePort;
-  readonly #activeRenders = new Map<RequestId, AbortController>();
+  readonly #semanticStore = new SemanticFrameStore();
+  #activeRender: ActiveRender | undefined;
 
   public constructor(port: WorkerMessagePort, renderer: Renderer = new CpuRenderer()) {
     this.#port = port;
@@ -29,7 +54,9 @@ export class RenderWorkerRuntime {
   public async handle(message: MainToWorkerMessage): Promise<void> {
     switch (message.type) {
       case 'cancel':
-        this.#activeRenders.get(message.requestId)?.abort();
+        if (this.#activeRender?.requestId === message.requestId) {
+          this.#activeRender.controller.abort();
+        }
         return;
 
       case 'inspect':
@@ -50,46 +77,76 @@ export class RenderWorkerRuntime {
     }
   }
 
-  async #render(message: Extract<MainToWorkerMessage, { type: 'render' }>): Promise<void> {
-    for (const active of this.#activeRenders.values()) {
-      active.abort();
-    }
-    this.#activeRenders.clear();
+  #postFrame(requestId: RequestId, frame: SemanticFrame, view: SemanticView): void {
+    const raster = this.#renderer.colorize(frame, view);
+    const response: WorkerToMainMessage = {
+      type: 'frame',
+      requestId,
+      stage: raster.stage,
+      width: raster.size.width,
+      height: raster.size.height,
+      rgba: raster.rgba,
+      progress: raster.progress,
+    };
+    this.#port.postMessage(response, [raster.rgba.buffer]);
+  }
 
-    const controller = new AbortController();
-    this.#activeRenders.set(message.requestId, controller);
+  async #render(message: RenderMessage): Promise<void> {
+    const request = dynamicsRequest(message);
+    const key = semanticRequestKey(request);
+    const cached = this.#semanticStore.get(request);
+    if (cached !== undefined) {
+      if (this.#activeRender !== undefined && this.#activeRender.key !== key) {
+        this.#activeRender.controller.abort();
+      }
+      this.#postFrame(message.requestId, cached, message.semanticView);
+      return;
+    }
+
+    if (
+      this.#activeRender !== undefined &&
+      !this.#activeRender.controller.signal.aborted &&
+      this.#activeRender.key === key
+    ) {
+      this.#activeRender.requestId = message.requestId;
+      this.#activeRender.semanticView = message.semanticView;
+      if (this.#activeRender.lastFrame !== undefined) {
+        this.#postFrame(message.requestId, this.#activeRender.lastFrame, message.semanticView);
+      }
+      return;
+    }
+
+    this.#activeRender?.controller.abort();
+    const active: ActiveRender = {
+      controller: new AbortController(),
+      key,
+      request,
+      requestId: message.requestId,
+      semanticView: message.semanticView,
+    };
+    this.#activeRender = active;
 
     try {
-      await this.#renderer.render(message, controller.signal, (frame) => {
-        if (
-          controller.signal.aborted ||
-          this.#activeRenders.get(message.requestId) !== controller
-        ) {
+      await this.#renderer.render(request, active.controller.signal, (frame) => {
+        if (active.controller.signal.aborted || this.#activeRender !== active) {
           return;
         }
-        const response: WorkerToMainMessage = {
-          type: 'frame',
-          requestId: message.requestId,
-          stage: frame.stage,
-          width: frame.size.width,
-          height: frame.size.height,
-          rgba: frame.rgba,
-          progress: frame.progress,
-        };
-        this.#port.postMessage(response, [frame.rgba.buffer]);
+        active.lastFrame = frame;
+        this.#semanticStore.put(active.request, frame);
+        this.#postFrame(active.requestId, frame, active.semanticView);
       });
-      if (controller.signal.aborted) {
-        this.#port.postMessage({ type: 'cancelled', requestId: message.requestId });
+      if (active.controller.signal.aborted) {
+        this.#port.postMessage({ type: 'cancelled', requestId: active.requestId });
       }
     } catch (error: unknown) {
-      if (error instanceof RenderCancelledError || controller.signal.aborted) {
-        this.#port.postMessage({ type: 'cancelled', requestId: message.requestId });
+      if (error instanceof RenderCancelledError || active.controller.signal.aborted) {
+        this.#port.postMessage({ type: 'cancelled', requestId: active.requestId });
       } else {
-        this.#port.postMessage(errorMessage(message.requestId, error));
+        this.#port.postMessage(errorMessage(active.requestId, error));
       }
     } finally {
-      if (this.#activeRenders.get(message.requestId) === controller) {
-        this.#activeRenders.delete(message.requestId);
+      if (this.#activeRender === active) {
+        this.#activeRender = undefined;
       }
     }
   }

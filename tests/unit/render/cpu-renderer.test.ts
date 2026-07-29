@@ -1,31 +1,37 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_VIEWPORT } from '../../../src/domain';
-import { CpuRenderer, RenderCancelledError } from '../../../src/render';
+import { CpuRenderer, RenderCancelledError, type SemanticFrame } from '../../../src/render';
 
 describe('CpuRenderer', () => {
-  it('emits a complete coarse preview followed by a stable raster', async () => {
+  it('emits complete coarse and stable semantic frames that can be recolored', async () => {
     const renderer = new CpuRenderer();
-    const frames: string[] = [];
+    const frames: SemanticFrame[] = [];
 
     await renderer.render(
       {
         viewport: DEFAULT_VIEWPORT,
         size: { width: 12, height: 8 },
-        semanticView: 'period',
         quality: { maxIterations: 32, maxPeriod: 4, coarseStride: 4 },
       },
       new AbortController().signal,
       (frame) => {
-        frames.push(frame.stage);
-        expect(frame.rgba).toHaveLength(12 * 8 * 4);
-        for (let alpha = 3; alpha < frame.rgba.length; alpha += 4) {
-          expect(frame.rgba[alpha]).toBe(255);
-        }
+        frames.push(frame);
+        expect(frame.status).toHaveLength(12 * 8);
+        expect(frame.period).toHaveLength(12 * 8);
+        expect(frame.smoothIterationOrMultiplierMagnitude).toHaveLength(12 * 8);
+        expect(frame.multiplierAngle).toHaveLength(12 * 8);
       },
     );
 
-    expect(frames).toEqual(['coarse', 'stable']);
+    expect(frames.map((frame) => frame.stage)).toEqual(['coarse', 'stable']);
+    for (const frame of frames) {
+      const raster = renderer.colorize(frame, 'period');
+      expect(raster.rgba).toHaveLength(12 * 8 * 4);
+      for (let alpha = 3; alpha < raster.rgba.length; alpha += 4) {
+        expect(raster.rgba[alpha]).toBe(255);
+      }
+    }
   });
 
   it('honors cancellation before doing work', async () => {
@@ -38,7 +44,6 @@ describe('CpuRenderer', () => {
         {
           viewport: DEFAULT_VIEWPORT,
           size: { width: 4, height: 4 },
-          semanticView: 'stability',
         },
         controller.signal,
         () => undefined,
@@ -46,28 +51,27 @@ describe('CpuRenderer', () => {
     ).rejects.toBeInstanceOf(RenderCancelledError);
   });
 
-  it('textures unresolved regions without relying on hue', async () => {
+  it('textures unresolved regions during colorization without relying on hue', async () => {
     const renderer = new CpuRenderer();
-    const frames: Uint8ClampedArray<ArrayBuffer>[] = [];
+    const frames: SemanticFrame[] = [];
 
     await renderer.render(
       {
         viewport: { center: { re: 0, im: 1 }, spanY: 0.1 },
         size: { width: 8, height: 4 },
-        semanticView: 'stability',
         quality: { maxIterations: 1, maxPeriod: 4, coarseStride: 2 },
       },
       new AbortController().signal,
       (frame) => {
-        frames.push(frame.rgba);
+        frames.push(frame);
       },
     );
 
-    const coarse = frames[0];
-    const stable = frames[1];
-    expect(coarse?.[0]).not.toBe(coarse?.[2 * 4]);
-    expect(stable?.[0]).not.toBe(stable?.[4 * 4]);
-    expect(coarse?.[0]).toBe(coarse?.[1]);
-    expect(coarse?.[1]).toBe(coarse?.[2]);
+    const coarse = frames[0] === undefined ? undefined : renderer.colorize(frames[0], 'stability');
+    const stable = frames[1] === undefined ? undefined : renderer.colorize(frames[1], 'stability');
+    expect(coarse?.rgba[0]).not.toBe(coarse?.rgba[2 * 4]);
+    expect(stable?.rgba[0]).not.toBe(stable?.rgba[4 * 4]);
+    expect(coarse?.rgba[0]).toBe(coarse?.rgba[1]);
+    expect(coarse?.rgba[1]).toBe(coarse?.rgba[2]);
   });
 });

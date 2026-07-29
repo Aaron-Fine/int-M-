@@ -46,26 +46,39 @@ Install Playwright's managed browsers once on a development machine:
 npx playwright install chromium firefox
 ```
 
-`npm run test:unit` and `npm run test:browser` temporarily permit an empty test set so independent
-foundation changes can land without placeholder tests. Phase 1 is not complete until real unit and
-browser tests replace that allowance.
+`npm run test:unit` and `npm run test:browser` contain the deterministic domain, worker, and
+interaction checks for the current vertical slice.
 
 ## Architecture boundaries
 
 The browser main thread owns DOM interaction, accessibility, viewport intent, and presentation. It
-must not run orbit iteration or per-pixel classification. The rendering worker owns numerical work,
-cancellation, progress, and semantic tile production. The stable message protocol between them is a
-versioned domain boundary, not an incidental serialization of UI state.
+must not run orbit iteration, per-pixel classification, or palette mapping. The rendering worker
+owns numerical work, cancellation, progress, semantic frame storage, and raster production. Only
+colorized RGBA frames cross back to the UI; the view-independent semantic arrays stay worker-local.
+The message protocol between the threads is a domain boundary, not an incidental serialization of
+UI state.
 
 The intended dependency direction is:
 
 1. Domain types and pure numerical functions depend on no browser UI.
 2. The worker depends on domain and numerical modules.
 3. The UI depends on domain contracts and the worker client, but not worker implementation modules.
-4. Palette and display changes consume semantic render results; they do not trigger numerical
-   reclassification unless the requested semantic quantity changes.
+4. The three current interior views consume the same semantic frame. Changing the view recolors the
+   current coarse or stable frame without restarting orbit classification.
 5. Catalog identifiers and mathematical evidence remain distinct. A label may be attached only
    when the available evidence supports it, and unresolved points remain explicit.
+
+The Phase 1 semantic frame uses full-raster typed arrays for status, detected period, smooth escape
+iteration or multiplier magnitude, and multiplier angle. A bounded, single-entry store retains only
+the current stable frame. Its key includes an explicit semantic-algorithm version, canonical
+viewport, raster size, and resolved quality limits; it deliberately excludes the selected interior
+view. Navigation, resolution, quality, or algorithm changes invalidate the entry. If the view
+changes during classification, the worker keeps the same computation and applies the newest view to
+subsequent frames.
+
+Selected-point inspection remains a separate computation. The selected coordinate need not be the
+center of a sampled raster pixel, and the inspector returns richer evidence than the compact
+full-frame representation.
 
 Separate TypeScript configurations enforce different ambient environments for application and worker
 code. `tsconfig.app.json` supplies DOM types; `tsconfig.worker.json` supplies Web Worker types. Shared
@@ -86,7 +99,8 @@ should satisfy the same protocol rather than leak renderer-specific state into t
   replacement render.
 - Unit tests should cover pure complex arithmetic, viewport transforms, orbit/classification rules,
   catalog matching, cancellation state, and protocol validation.
-- Worker tests should verify progressive/coarse-to-stable messages and rejection of superseded work.
+- Worker tests should verify progressive/coarse-to-stable messages, semantic-frame reuse and
+  in-progress view coalescing, and rejection of work superseded by different dynamics.
 - Playwright tests should cover the first-use render, reset, bounded zoom feedback, semantic legend,
   keyboard operation, inspector evidence, and renderer fallback.
 - Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
