@@ -1,428 +1,389 @@
-# Project Plan
+# Project plan
 
 ## 1. Purpose
 
-int(M) will be a browser-based atlas of dynamics inside the Mandelbrot set. It will make hyperbolic components legible through attracting periods, multiplier coordinates, component identifiers, and selected mathematical overlays.
+`int-M-` is a small, focused interactive atlas of the Mandelbrot set's interior.
 
-The project is deliberately not competing with mature deep-zoom renderers. Its value is interpretation: showing what happens inside the familiar boundary and explaining what the image means.
+The project is not trying to win the usual Mandelbrot-viewer contest of maximum zoom depth, maximum palette count, or maximum feature count. Its value is a legible view of attracting dynamics: what component a parameter appears to belong to, its period, its multiplier, how strongly it attracts, how the result was established, and how selected components are identified combinatorially.
 
-## 2. Product definition
+The bounded zoom is intentional. It gives the project room to favor explanation, responsiveness, and numerical honesty over spectacle.
 
-> A bounded, interactive atlas of periods, multipliers, component structure, and numerical uncertainty inside the Mandelbrot set.
+## 2. First-release thesis
 
-A successful first release should let a curious user:
+The first release should tell one coherent story:
 
-- navigate the full set and selected interior regions;
-- see hyperbolic components colored by mathematically meaningful quantities;
-- inspect a point and understand how it was classified;
-- identify cataloged components by period, center, internal address, and angled internal address;
-- compare multiplier, period, and convergence views;
-- enable a small number of explanatory overlays;
-- understand why some points remain unresolved.
+1. Begin with a recognizable view of the full Mandelbrot set.
+2. Reveal the interior using multiplier or stability coloring.
+3. Highlight a small catalog of mathematically identified components.
+4. Let the user inspect a point and see its outcome, period, multiplier, coordinates, identifiers, and supporting evidence.
+5. Mark results that the numerical budget cannot resolve instead of implying certainty.
 
-## 3. Scope
+If that story is clear and responsive, the project succeeds. Significant Curves, Sharkovsky ordering, deep perturbation zooms, and renormalization views are valuable follow-on research, not prerequisites.
+
+## 3. Release scope
 
 ### 3.1 Core views
 
-#### Multiplier view
+The renderer will support three related semantic views:
 
-For a detected attracting cycle of exact period p, calculate its complex multiplier:
+- **Multiplier:** hue may encode `arg(λ)` while lightness or chroma encodes `|λ|`.
+- **Stability:** a monotonic scale represents the intrinsic per-iterate stability exponent
 
-`lambda = product(2 * z[j]), j = 0..p-1`
+  `κ = -log|λ| / p`
 
-Use multiplier phase and magnitude as internal coordinates:
+  where `λ` is the attracting cycle multiplier and `p` is its period.
+- **Period:** selected periods, families, or cataloged components are distinguished with a restrained categorical treatment and a visible legend.
 
-- hue: argument of lambda;
-- lightness or radial tone: magnitude of lambda;
-- optional constant-phase internal rays;
-- optional constant-magnitude equipotentials.
+Raw iteration count is diagnostic information and a measure of computational cost. It is not the primary definition of interior complexity.
 
-The exact palette remains a presentation choice. The underlying multiplier values must remain available independently of coloring.
+### 3.2 Outcome and evidence
 
-#### Period view
+Mathematical outcome and computational evidence are orthogonal:
 
-Show the exact detected attracting period as a categorical value. Brightness or saturation may retain multiplier magnitude so that components do not become visually flat.
+```ts
+type DynamicsStatus =
+  | "escaped"
+  | "interior"
+  | "attracting-cycle"
+  | "unresolved";
 
-#### Convergence view
+type Evidence =
+  | "analytic"
+  | "gpu-direct"
+  | "gpu-perturbation"
+  | "cpu-float64"
+  | "catalog-validated";
+```
 
-Show the numerical effort required to reach a classification:
+The exact representation may become flags rather than a single `Evidence` value, because more than one method can support a result. “Provisional” is a confidence or evidence label, not a dynamical state.
 
-- iterations before escape;
-- iterations before an attracting-cycle candidate;
-- work required to verify or refine the cycle;
-- unresolved points.
+### 3.3 Initial component catalog
 
-This is a classification-cost visualization, not an intrinsic measure of mathematical complexity.
+The first vertical slice includes a deliberately small catalog—approximately 6–12 low-period hyperbolic components. It will be independently generated and validated for this project.
 
-### 3.2 Classification states
+Each entry should be able to carry:
 
-Every calculated point must have an explicit state:
-
-1. **Escaped** — an escape was observed.
-2. **Analytic interior** — membership follows from an implemented analytic test.
-3. **Attractor detected** — a periodic attracting cycle was detected and passed the applicable checks.
-4. **Unresolved** — the computation budget ended without a reliable classification.
-5. **Provisional** — optional state for a GPU result awaiting stronger verification.
-
-The application must never silently translate "reached the iteration limit" into "inside."
-
-### 3.3 Component catalog
-
-Ship a curated static catalog rather than constructing the full component hierarchy at runtime. A record should be able to contain:
-
-- stable project identifier;
+- a stable project identifier;
+- a human-readable name where appropriate;
+- center parameter `c` and declared precision;
 - exact period;
-- center coordinate stored as decimal strings;
 - internal address;
-- angled internal address;
-- parent component;
-- limb or wake metadata;
-- optional sourced common aliases;
-- source and certification metadata.
+- angled internal address using exact rational angles;
+- characteristic parameter-ray pair when known, also as exact rationals;
+- validation residuals and method;
+- provenance and schema version.
 
-Internal addresses are authoritative identifiers. Common names are optional aliases and must not be invented merely to fill the catalog.
+Internal addresses alone are not guaranteed to uniquely identify a component. Angled addresses and characteristic rays provide the distinguishing combinatorics; the stable project identifier provides durable software identity.
 
-The initial catalog should contain only components that add value within the supported zoom and period range. A large database is not a goal by itself.
+### 3.4 Inspector and interaction
 
-### 3.4 Overlays
+The inspector will expose only quantities the current numerical path can defend:
 
-#### Internal-coordinate overlay
+- canonical parameter `c`;
+- outcome and evidence;
+- period and multiplier when detected;
+- `|λ|`, `arg(λ)`, and `κ`;
+- iteration and residual diagnostics;
+- catalog name and identifiers when matched; and
+- an explicit unresolved state when the budget is exhausted.
 
-Display constant multiplier phase and magnitude within classified components. This is part of the core multiplier view.
+Navigation is pan and bounded zoom. Rendering is progressive and cancellable. A deliberate device-independent resolution cap prevents high-DPI displays from silently multiplying the workload.
 
-#### Significant Curves overlay
+### 3.5 Research extensions
 
-Implement only curves that can be traced to explicit results or formulas in the cited research. Initially this is expected to emphasize the main cardioid, period-2 component, and other low-period curves described in the source.
+These are retained in the research plan but excluded from the first-release definition of done:
 
-The overlay is educational and can also serve as a numerical validation reference. It is not intended to generate analytic boundaries for every component.
+- Significant Curves overlays;
+- Sharkovsky-order views;
+- perturbation rendering beyond the bounded v1 need;
+- exterior Böttcher coordinates;
+- Ecalle/Fatou-coordinate experiments;
+- straightening and renormalization-coordinate views;
+- larger component catalogs; and
+- native SVG export.
 
-#### Sharkovsky vein overlay
+## 4. Explicit non-goals for the first release
 
-Treat Sharkovsky ordering as a guided, curated view along selected veins:
+- arbitrary-depth exploration;
+- a general-purpose fractal framework;
+- user-programmable color curves;
+- exhaustive component classification;
+- proof-grade certification of every rendered pixel;
+- reproducing or redistributing the published period-41 center database;
+- a general coordinate-system plug-in architecture;
+- maintaining CPU, direct-GPU, and perturbation renderers at production quality without measured need; or
+- replacing canonical Mandelbrot parameters with a transformed coordinate space.
 
-- display a chosen vein;
-- mark the components it encounters;
-- label their periods and ordering;
-- allow stepwise exploration;
-- link each marker to component metadata.
+## 5. Architecture
 
-It is not a global ordering imposed on the entire two-dimensional set.
+### 5.1 Application shape
 
-### 3.5 Inspector
+The preferred application shape remains a pure TypeScript web application:
 
-A selected point should expose, when available:
+- a small UI layer on the main thread;
+- a rendering coordinator in a worker;
+- numerical kernels that can run on worker CPU or WebGPU;
+- a shared semantic result model consumed by palettes and the inspector; and
+- static, versioned catalog and validation fixtures.
 
-- complex coordinate;
-- classification state;
-- escape or convergence iteration count;
-- exact or candidate period;
-- multiplier magnitude and phase;
-- residual and confidence;
-- component identity and aliases;
-- internal and angled internal addresses;
-- whether the value is GPU-estimated or CPU-verified.
+TypeScript is appropriate for the product shell, worker orchestration, state, inspection, and WebGPU integration. It does not imply that every future high-precision operation must be handwritten in TypeScript. A small WebAssembly numerical module remains an option if later measurements justify it.
 
-## 4. Explicit non-goals
+### 5.2 Threading invariant
 
-The initial project will not attempt to provide:
+The main thread handles input, layout, accessibility, and presentation. Orbit iteration, component detection, catalog matching, and raster production occur in workers or GPU commands coordinated by a worker.
 
-- unlimited or arbitrary-precision zoom;
-- a replacement for Kalles Fraktaler, Fraktaler, or other deep-zoom tools;
-- exhaustive enumeration of hyperbolic components;
-- reproduction of the tera-polynomial center-finding computation;
-- a general fractal-formula editor;
-- Julia-set, Burning Ship, Multibrot, or three-dimensional rendering;
-- video production or zoom-sequence rendering;
-- per-pixel SVG output;
-- a user-programmable shader language;
-- proof that an arbitrary unresolved point belongs to the Mandelbrot set.
+Every render request has an identity and cancellation path. Stale work must be discarded before it can replace a newer frame.
 
-These can be reconsidered only after the focused application is complete.
+### 5.3 Coordinate invariant
 
-## 5. Technical architecture
+> Orbit calculation operates exclusively on canonical Mandelbrot parameters `c`. Screen, multiplier, Böttcher, and future straightening coordinates are chart layers that map to or from `c`. Chart conversion is isolated from orbit iteration and may be partial, approximate, and versioned.
 
-### 5.1 Technology direction
+For the first release this requires only:
 
-Expected baseline:
+- one CPU pixel-to-parameter boundary;
+- one corresponding WGSL `parameter_for_pixel` boundary if WebGPU is selected;
+- canonical `c` as the source of truth in inspection and saved state; and
+- versioned persisted/share state.
 
-- TypeScript;
-- a minimal browser build tool;
-- Canvas with OffscreenCanvas where supported;
-- Web Workers;
-- WebGPU compute and rendering where supported;
-- typed arrays for numerical buffers;
-- a CPU worker path as correctness reference and compatibility fallback.
+Future nonlinear charts may provide a precomputed per-pixel parameter buffer without changing the orbit engine. No general chart interface or renormalization implementation is needed now.
 
-Avoid a UI framework until ordinary DOM and Canvas code demonstrably becomes harder to maintain.
+### 5.4 Semantic render data
 
-### 5.2 Threading rule
+Rendering should produce semantic values rather than final aesthetic colors wherever practical. Candidate fields include:
 
-The main UI thread handles:
-
-- input events;
-- DOM updates;
-- high-level render requests;
-- accessibility state;
-- small status messages.
-
-It does not:
-
-- iterate orbits;
-- classify pixels;
-- color full image buffers;
-- process completed tiles individually;
-- construct overlays through expensive numerical work.
-
-A render coordinator worker owns the OffscreenCanvas and rendering state. CPU math workers and WebGPU communicate through the coordinator. MessageChannel connections should allow worker-to-worker data flow without routing each tile through the main thread.
-
-### 5.3 Semantic rendering buffers
-
-Orbit calculation produces semantic data, not final colors. A compact per-pixel representation should support:
-
-- status;
-- period;
-- iteration or convergence count;
+- outcome/status;
+- evidence flags;
+- detected period;
+- iterations used;
 - multiplier real and imaginary parts;
-- residual or confidence.
+- convergence or residual measure; and
+- catalog match.
 
-Coloring consumes these buffers in a separate pass. A palette or display-mode change must not repeat orbit calculation.
+Palettes and legends then map those values to display color. This keeps visual design separate from dynamics and makes later views cheaper to add.
 
-### 5.4 Progressive rendering
+The final buffer layout must be chosen from measured memory and bandwidth costs; this list is a semantic contract, not a requirement to allocate a full-size texture for every field.
 
-Rendering should:
+### 5.5 Numerical paths
 
-1. produce a coarse preview quickly;
-2. refine in tiles;
-3. prioritize the center and visible areas of interest;
-4. assign every request a monotonically increasing epoch;
-5. discard results from stale epochs;
-6. cancel or cheaply abandon obsolete work;
-7. reuse compatible cached dynamics when only color or overlays change.
+The production plan will select the smallest renderer that meets the bounded product need.
 
-### 5.5 Numerical modes
+1. **Worker CPU baseline.** Binary64 establishes a portable implementation baseline, fallback, and independent comparison path. It is not a mathematical truth oracle.
+2. **Direct WebGPU.** WGSL `f32` can handle large amounts of per-pixel orbit work, but its useful zoom and classification limits must be measured.
+3. **CPU-reference/GPU perturbation.** A high-precision reference orbit plus GPU delta orbits is technically viable. It is adopted only if the bounded zoom target exceeds direct GPU precision and the added numerical edge cases are justified.
 
-#### Direct GPU mode
+CPU verification should concentrate on catalog entries, selected inspector points, sparse samples, and golden fixtures. Ambiguous bulk pixels remain `unresolved`; they do not trigger an unbounded CPU rescue queue.
 
-For wide views, use native WGSL f32 iteration. This is the simplest and fastest path where coordinate precision is sufficient.
+### 5.6 Progressive rendering and cache
 
-#### CPU reference perturbation mode
+A navigation action should produce:
 
-For zoomed views:
+1. an immediate reused or coarse frame;
+2. a low-resolution current frame;
+3. progressively refined tiles or passes; and
+4. a stable final frame within the configured numerical budget.
 
-1. a CPU worker calculates a binary64 reference orbit for a tile or known component center;
-2. each GPU pixel stores its small coordinate offset from that reference;
-3. the GPU iterates the perturbation recurrence;
-4. unreliable perturbations are marked rather than silently accepted;
-5. affected tiles are subdivided or sent to CPU verification.
-
-For reference parameter C and pixel c = C + dc:
-
-`dZ[n+1] = 2 * Z[n] * dZ[n] + dZ[n]^2 + dc`
-
-This mode is intended to avoid f32 coordinate collapse, not to provide unlimited deep zoom.
-
-#### CPU verification mode
-
-CPU workers use JavaScript binary64 for:
-
-- the selected point;
-- catalog centers and labeled components;
-- GPU-ambiguous pixels;
-- regression samples;
-- pixels near classification thresholds.
-
-The inspector should distinguish provisional and verified values.
-
-### 5.6 Perturbation validity
-
-A reference orbit is local. Use tile-local references or known component centers rather than assuming one viewport-center reference works everywhere.
-
-The first implementation should handle failure conservatively:
-
-- detect perturbation glitches or excessive difference-orbit growth;
-- subdivide affected tiles;
-- calculate a closer reference;
-- fall back to CPU binary64 for remaining ambiguity.
-
-Sophisticated rebasing and series approximation are outside the initial scope.
+Cache keys include the canonical viewport, resolution, numerical limits, semantic view inputs, and kernel version. Cosmetic palette changes should not invalidate dynamics data when the required semantic fields already exist.
 
 ### 5.7 Bounded zoom
 
-The zoom bound is a product feature, not an apology. It should be chosen from measured reliability.
+The bound is selected from evidence, not an arbitrary marketing number. Phase 0 measures where:
 
-The application should report:
+- direct `f32` rendering loses pixel-scale parameter distinctions;
+- binary64 becomes unreliable for the selected diagnostics;
+- perturbation begins to pay for its complexity; and
+- memory, latency, or iteration budgets stop supporting the intended interaction.
 
-- current magnification;
-- pixel scale;
-- configured coordinate limit;
-- classification budget;
-- whether coordinate precision or convergence is the current constraint.
-
-The initial numerical bound is unresolved. A viewport width around 1e-9 to 1e-10 is a hypothesis to test, not a committed requirement.
+The UI communicates the bound as part of the atlas's scope.
 
 ## 6. Data flow
 
-1. UI sends viewport, mode, palette, overlay, and computation limits.
-2. Coordinator chooses direct GPU, perturbation, or CPU mode.
-3. CPU workers generate reference orbits when required.
-4. GPU or CPU workers calculate semantic dynamics tiles.
-5. Ambiguous GPU results are queued for verification.
-6. Coordinator caches semantic tiles.
-7. Coloring pass produces the displayed image.
-8. Overlay pass adds curves, component markers, and labels.
-9. Inspector requests receive high-priority CPU verification.
+```text
+UI input
+  -> versioned viewport request
+  -> worker rendering coordinator
+  -> chart mapping to canonical c
+  -> selected numerical kernel
+  -> semantic tile data
+  -> palette/legend mapping
+  -> canvas presentation
+  -> inspector and catalog annotation
+```
 
-## 7. Correctness strategy
+Catalog generation and high-precision validation are offline development tools, not browser hot-path dependencies.
 
-### 7.1 Reference implementation
+## 7. Correctness and numerical honesty
 
-Build the CPU binary64 classifier first. It defines semantics and produces test vectors for the GPU implementation.
+Validation uses several independent forms of evidence:
 
-### 7.2 Test classes
+- analytic checks at known parameters;
+- independently generated high-precision golden fixtures;
+- exact-period checks against all proper divisors;
+- catalog residuals and provenance;
+- CPU/GPU comparison samples;
+- conjugate-symmetry and other invariants; and
+- deterministic regression images or semantic tile snapshots.
 
-Include:
+Disagreement thresholds must be declared per field. A pixel that exceeds the numerical budget or fails a confidence test is rendered and inspected as `unresolved`.
 
-- analytic points in and out of the main cardioid and period-2 bulb;
-- known escaping points;
-- known hyperbolic centers across several periods;
-- points near but not exactly on component boundaries;
-- candidate periods with proper divisors;
-- CPU versus GPU comparisons over deterministic sample grids;
-- perturbation versus direct CPU comparisons at several zoom levels;
-- known cases expected to remain unresolved under limited budgets.
+Persisted or shareable state includes a schema and algorithm version so future coordinate or numerical changes do not silently reinterpret old links.
 
-### 7.3 Confidence
+## 8. Accessibility and visual language
 
-Confidence must be based on explicit evidence such as:
+Accessibility is part of the first slice because color carries meaning:
 
-- escape observed;
-- analytic membership test;
-- repeated cycle agreement;
-- smallest-period divisor checks;
-- Newton residual;
-- multiplier comfortably within the unit disk;
-- agreement between independent methods.
+- every view has a readable legend;
+- stability uses monotonic lightness;
+- categorical distinctions are not hue-only;
+- palettes are checked for common color-vision deficiencies;
+- the inspector is keyboard reachable;
+- catalog highlighting has a non-color cue; and
+- unresolved regions have a stable, clearly explained treatment.
 
-Do not reduce confidence to an unexplained percentage.
+The period view will not assign dozens of equally prominent categorical colors. It will emphasize selected periods, families, boundaries, or catalog entries appropriate to the current story.
 
-### 7.4 Performance
+## 9. Delivery phases
 
-Measure:
+### Phase 0 — decisions, provenance, and disposable experiments
 
-- time to first coarse frame;
-- time to stable frame;
-- UI long tasks;
-- cancellation latency;
-- GPU/CPU disagreement rate;
-- unresolved and glitch rates;
-- cost of palette-only redraw;
-- worker scaling.
+Phase 0 ends uncertainty before production architecture hardens.
 
-No heavy numerical work on the UI thread is a release criterion.
+#### Mathematical and product contract
 
-## 8. Delivery phases
+- Define multiplier, stability, period, outcome, evidence, and unresolved semantics.
+- Record the coordinate invariant and the role of canonical `c`.
+- Define the first-run story and initial 6–12 catalog components.
+- Define the bounded-navigation promise in measurable terms.
+- Correct the research bibliography, author names, and identifier terminology.
 
-### Phase 0 — Research and documentation
+#### Data and licensing
 
-- establish project thesis, scope, terminology, and sources;
-- document architectural decisions and open questions;
-- select a license before importing third-party data or code.
+- Choose and record licenses for code, documentation, and project-generated catalog data.
+- Treat the published period-41 center database as unavailable for redistribution unless its rightsholder supplies an explicit compatible data license.
+- Define the catalog schema, stable identifier convention, exact rational-angle representation, provenance fields, and schema version.
+- Specify a reproducible high-precision catalog-generation and exact-period-validation procedure.
+- Create a small set of independently generated high-precision golden fixtures.
 
-**Exit condition:** plan and research are reviewable before source scaffolding begins.
+#### Three disposable rendering experiments
 
-### Phase 1 — CPU mathematical reference
+1. **Worker CPU:** render representative 512- and 768-pixel views with realistic cycle detection and cancellation.
+2. **Direct WebGPU:** measure latency, numerical disagreement against sampled CPU/high-precision results, and the practical `f32` zoom limit.
+3. **Perturbation tile:** compute one representative tile from a CPU reference orbit and compare it with direct high-precision samples, including rebasing or glitch behavior if encountered.
 
-- minimal TypeScript application;
-- CPU worker orbit calculation;
-- explicit classification states;
-- period detection and verification;
-- multiplier calculation;
-- basic pixel inspector;
-- deterministic tests.
+These experiments answer a decision; they are not three production renderers.
 
-**Exit condition:** known points and component centers classify correctly under documented limits.
+#### Budgets and decision record
 
-### Phase 2 — Core atlas experience
+Set preliminary budgets for:
 
-- bounded navigation;
-- progressive tiles;
-- multiplier, period, and convergence views;
-- off-main-thread coloring and rendering;
-- shareable viewport state.
+- time to coarse and stable frame;
+- cancellation response;
+- main-thread long tasks;
+- maximum render resolution and memory;
+- iteration and period limits;
+- numerical disagreement and unresolved behavior;
+- catalog matching; and
+- accessibility checks.
 
-**Exit condition:** the application communicates the interior-dynamics thesis without overlays.
+Record:
 
-### Phase 3 — WebGPU acceleration
+- the initial production rendering path;
+- the preliminary zoom bound;
+- why perturbation is included now, deferred, or rejected; and
+- which semantic fields must be retained per pixel.
 
-- direct f32 GPU path;
-- semantic GPU result buffers;
-- GPU/CPU comparison harness;
-- compatibility fallback to CPU workers.
+#### Phase 0 exit criteria
 
-**Exit condition:** measured speedup with bounded and documented disagreement behavior.
+Phase 0 is complete when:
 
-### Phase 4 — Catalog and identifiers
+- the mathematical terms, status/evidence model, and v1 story are unambiguous;
+- licenses and data provenance are recorded;
+- catalog schema and golden-fixture procedures are reproducible;
+- all three experiments have comparable measurements;
+- one initial rendering path and a preliminary zoom bound are selected; and
+- no unresolved external data dependency blocks the production scaffold.
 
-- curated component catalog;
-- internal and angled internal addresses;
-- optional sourced aliases;
-- component markers, labels, and navigation;
-- high-priority verification for inspected catalog components.
+### Phase 1 — focused vertical slice
 
-**Exit condition:** identifiers are traceable and do not rely on nearest-center guessing alone.
+Build the smallest end-to-end atlas:
 
-### Phase 5 — Perturbation
+- TypeScript application shell;
+- all orbit and render work off the main thread;
+- pan and bounded zoom;
+- the Phase 0-selected renderer;
+- one primary multiplier/stability view with legend;
+- explicit outcome and evidence;
+- selected-point inspector;
+- the initial catalog and identifiers;
+- progressive rendering, cancellation, and resolution cap;
+- one guided first-run path; and
+- basic keyboard and color-vision accessibility.
 
-- tile-local CPU reference orbits;
-- GPU perturbation kernel;
-- glitch detection;
-- tile subdivision;
-- CPU fallback and verification.
+The slice should be deployable and useful on its own.
 
-**Exit condition:** supported zoom extends beyond direct f32 coordinates while matching CPU reference results within stated tolerances.
+### Phase 2 — core atlas
 
-### Phase 6 — Mathematical overlays
+Deepen the same story without changing its shape:
 
-- internal rays and equipotentials;
-- Significant Curves;
-- a small number of curated Sharkovsky veins;
-- explanatory copy and citations.
+- refine multiplier, stability, and period views;
+- expand the catalog only as the generation and validation process supports;
+- add shareable versioned URLs;
+- improve catalog navigation and explanatory annotations;
+- tune palettes and legends through accessibility testing;
+- optimize the selected renderer from measured profiles; and
+- formalize semantic and image regression tests.
 
-**Exit condition:** each overlay is understandable, source-backed, and independently toggleable.
+### Phase 3 — measured numerical extension
 
-### Phase 7 — Portfolio polish
+Only if Phase 0 or real use demonstrates a meaningful gap:
 
-- accessibility and keyboard navigation;
-- responsive layout;
-- curated tours;
-- performance budget;
-- documentation of methods and limitations;
-- deployment.
+- productionize perturbation and rebasing;
+- introduce the smallest justified high-precision CPU or WebAssembly component;
+- extend the bounded zoom;
+- retain explicit evidence and unresolved behavior; and
+- compare the complexity and maintenance cost with the product value gained.
 
-## 9. Open questions and decision gates
+### Research extensions
 
-Resolve through prototypes or source review:
+Explore independently, promoting only work that reinforces the interior-atlas thesis:
 
-1. What period and iteration limits provide a responsive, meaningful atlas?
-2. Which certified-center data is available in a reusable format and under what terms?
-3. Will angled internal addresses be imported, generated offline, or derived at build time?
-4. What evidence is sufficient to label a GPU cycle as verified?
-5. At what pixel scale should direct f32 switch to perturbation?
-6. Is split-reference arithmetic materially better than high-part-only reference values?
-7. What glitch criterion works reliably for the bounded range?
-8. Which browsers constitute the supported WebGPU target?
-9. Is OffscreenCanvas rendering sufficiently portable, and what fallback is acceptable?
-10. What initial zoom bound keeps catalog, numerical, and explanatory value aligned?
+- Significant Curves overlays;
+- Sharkovsky-order relationships;
+- interior distance or potential fields;
+- exterior Böttcher views;
+- Ecalle/Fatou boundary experiments;
+- straightening and renormalization coordinates;
+- larger or externally sourced catalogs with compatible licensing; and
+- export formats, including SVG where the semantics suit vector output.
 
-## 10. Definition of done
+## 10. Open decisions
 
-The focused project is complete when:
+Phase 0 must resolve:
 
-- the main UI remains responsive during every supported render;
-- the application visualizes periods and multiplier coordinates inside the set;
-- classifications expose evidence and uncertainty;
-- known components have traceable identifiers;
-- selected Significant Curves and Sharkovsky veins add explanation rather than clutter;
-- the documented zoom range is reliable;
-- unsupported cases become unresolved instead of mislabeled;
-- implementation and documentation remain small enough for one maintainer to understand.
+- code, documentation, and generated-data licenses;
+- the exact first catalog entries and naming convention;
+- the initial renderer selected by the three experiments;
+- preliminary zoom, resolution, period, and iteration bounds;
+- which semantic fields are stored versus recomputed;
+- how catalog matching confidence is expressed; and
+- the initial accessible palette and unresolved-region treatment.
+
+These are intentionally not open-ended framework decisions. They are bounded choices for the first release.
+
+## 11. First-release definition of done
+
+The first release is complete when:
+
+- the full-set first-run story is clear without prior fractal knowledge;
+- all rendering and orbit math remain off the main UI thread;
+- interaction stays responsive within documented device and resolution budgets;
+- multiplier and stability coloring have accurate legends;
+- period is available as a restrained secondary structural view;
+- outcome and evidence are separately inspectable;
+- unresolved results are visible and explained;
+- the initial catalog is reproducible, versioned, and provenance-complete;
+- internal and angled addresses are represented correctly;
+- CPU, GPU, and high-precision fixtures agree within declared tolerances;
+- keyboard and color-vision accessibility checks pass; and
+- the deployed application communicates its deliberate zoom bound.
+
+Overlays, perturbation, renormalization coordinates, and an exhaustive catalog are not required for this milestone.
