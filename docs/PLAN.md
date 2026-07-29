@@ -86,7 +86,18 @@ The inspector will expose only quantities the current numerical path can defend:
 - catalog name and identifiers when matched; and
 - an explicit unresolved state when the budget is exhausted.
 
-Navigation is pan and bounded zoom. Rendering is progressive and cancellable. A deliberate device-independent resolution cap prevents high-DPI displays from silently multiplying the workload.
+Navigation preserves ordinary drag-to-pan while adding a visible area-zoom
+tool and a Shift-drag accelerator. The free-form selection is fitted to the
+viewport aspect ratio so complex-plane pixels remain square. Catalog names
+appear automatically once magnification makes them useful, while hover, focus,
+selection, and accessible names keep them available below that threshold.
+
+Quick, Balanced, and Detailed profiles expose finite search budgets rather
+than raw numerical parameters. Balanced is the default. A higher profile may
+reduce the unresolved region but never changes “unresolved” into a certainty
+claim. Rendering is progressive and cancellable. A deliberate
+device-independent resolution cap prevents high-DPI displays from silently
+multiplying the workload.
 
 ### 3.5 Research extensions
 
@@ -182,7 +193,11 @@ A navigation action should produce:
 3. progressively refined tiles or passes; and
 4. a stable final frame within the configured numerical budget.
 
-Cache keys include the canonical viewport, resolution, numerical limits, semantic view inputs, and kernel version. Cosmetic palette changes should not invalidate dynamics data when the required semantic fields already exist.
+Cache keys include the canonical viewport, resolution, selected quality
+profile and numerical limits, semantic view inputs, and kernel version. A
+profile change cancels stale work; raster rendering and point inspection use
+the same profile. Cosmetic palette changes should not invalidate dynamics data
+when the required semantic fields already exist.
 
 ### 5.7 Bounded zoom
 
@@ -236,14 +251,17 @@ Accessibility is part of the first slice because color carries meaning:
 - categorical distinctions are not hue-only;
 - palettes are checked for common color-vision deficiencies;
 - the inspector is keyboard reachable;
+- quality selection and explanatory disclosures are keyboard operable;
 - catalog highlighting has a non-color cue; and
+- collapsed catalog labels retain accessible names;
+- area selection has a visible non-color boundary and mode state; and
 - unresolved regions have a stable, clearly explained treatment.
 
 The period view will not assign dozens of equally prominent categorical colors. It will emphasize selected periods, families, boundaries, or catalog entries appropriate to the current story.
 
 ### 8.1 UX requirements and traceability
 
-The normative first-release UX requirements are `MI-UX-001` through `MI-UX-016` in [the SysML v2 system model](../model/MandelbrotInteriority.sysml). They cover the first-use render and defaults, progressive and truthful feedback, focused controls, responsive bounded navigation, semantic legends, evidence-bounded inspection, resilient renderer fallback, keyboard operation, and accessible presentation. The same model traces each requirement to a responsible logical component and to a verification objective; [the model guide](../model/README.md) explains the organization and validation baseline.
+The normative first-release UX requirements are `MI-UX-001` through `MI-UX-016` in [the SysML v2 system model](../model/MandelbrotInteriority.sysml). They cover the first-use render and defaults, progressive and truthful feedback, focused controls, responsive bounded point and area navigation, adaptive catalog labels, discoverable semantic definitions, evidence-bounded inspection, selectable quality budgets, resilient renderer fallback, keyboard operation, and accessible presentation. The same model traces each requirement to a responsible logical component and to a verification objective; [the model guide](../model/README.md) explains the organization and validation baseline.
 
 ## 9. Delivery phases
 
@@ -312,11 +330,15 @@ Build the smallest end-to-end atlas:
 
 - Vite application shell with strict TypeScript and vanilla DOM/CSS;
 - all orbit and render work off the main thread;
-- pan and bounded zoom;
+- pan, point zoom, and bounded area-selection zoom;
 - the Phase 0-selected renderer;
 - one primary multiplier/stability view with legend;
 - explicit outcome and evidence;
 - selected-point inspector;
+- adaptive labels for cataloged points as the view is magnified;
+- plain-language definitions for multiplier, period, and stability evidence;
+- Quick, Balanced, and Detailed numerical quality profiles with truthful
+  unresolved treatment;
 - the initial catalog and identifiers;
 - progressive rendering, cancellation, and resolution cap;
 - one guided first-run path;
@@ -382,6 +404,10 @@ The first release is complete when:
 - all rendering and orbit math remain off the main UI thread;
 - interaction stays responsive within documented device and resolution budgets;
 - multiplier and stability coloring have accurate legends;
+- dynamical terms have discoverable plain-language definitions;
+- point and area-selection zoom remain responsive within the deliberate bound;
+- catalog labels become available when magnification makes them useful;
+- quality selection changes both rendering and point-inspection budgets;
 - period is available as a restrained secondary structural view;
 - outcome and evidence are separately inspectable;
 - unresolved results are visible and explained;

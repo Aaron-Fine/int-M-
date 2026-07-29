@@ -33,6 +33,7 @@ The model defines the initial experience as:
 - full-set viewport;
 - stability view;
 - balanced quality profile;
+- pan pointer tool, with an explicit zoom-area alternative;
 - automatic renderer selection;
 - essential catalog markers;
 - system-preferred theme; and
@@ -41,6 +42,10 @@ The model defines the initial experience as:
 The intended first-use sequence is a truthful coarse silhouette followed by
 progressive stability refinement. No splash screen, configuration dialog, or
 blocking tutorial is required.
+
+Users may switch among Quick, Balanced, and Detailed numerical budgets.
+Balanced remains the first-use default; unresolved always means that the
+selected budget did not support a stronger claim.
 
 ## Language baseline
 

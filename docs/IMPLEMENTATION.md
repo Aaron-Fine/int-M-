@@ -76,6 +76,14 @@ should satisfy the same protocol rather than leak renderer-specific state into t
 
 ## Testing boundaries
 
+- Verification is layered. Pure domain mathematics uses deterministic inputs
+  and declared numerical tolerances; worker tests verify message ordering,
+  cancellation, and evidence-budget propagation; browser tests verify
+  user-visible invariants rather than incidental pixel-perfect values. For
+  example, rectangle fitting is checked numerically in unit tests, while
+  Playwright checks that a visible selection meaningfully increases
+  magnification, enables reset, reveals the appropriate labels, and starts a
+  replacement render.
 - Unit tests should cover pure complex arithmetic, viewport transforms, orbit/classification rules,
   catalog matching, cancellation state, and protocol validation.
 - Worker tests should verify progressive/coarse-to-stable messages and rejection of superseded work.
@@ -123,16 +131,16 @@ affect externally loaded resources and should not be made speculatively.
 
 This foundation directly supports:
 
-| Requirement or decision     | Foundation support                                                       |
-| --------------------------- | ------------------------------------------------------------------------ |
-| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build  |
-| MI-UX-007 through MI-UX-009 | Main-thread/worker separation and interaction-test boundary              |
-| MI-UX-010 through MI-UX-012 | Semantic-result boundary and inspector/legend test coverage              |
-| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility         |
-| MI-UX-014                   | Renderer-neutral protocol and required fallback browser test             |
-| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary      |
-| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings         |
-| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI |
+| Requirement or decision     | Foundation support                                                          |
+| --------------------------- | --------------------------------------------------------------------------- |
+| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build     |
+| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests |
+| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests         |
+| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility            |
+| MI-UX-014                   | Renderer-neutral protocol and required fallback browser test                |
+| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary         |
+| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings            |
+| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI    |
 
 These entries establish the verification hooks; they do not claim that the user-visible requirement
 is satisfied before the corresponding behavior and tests exist.

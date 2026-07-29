@@ -108,6 +108,7 @@ const stageRaster = async (
   const orbitScratch = new OrbitScratch(quality.maxPeriod);
   const classifier = new OrbitClassifier(orbitOptions, orbitScratch);
   const viewportTransform = createViewportTransform(request.viewport, request.size);
+  const yieldRowMask = quality.maxIterations > DEFAULT_RENDER_QUALITY.maxIterations ? 1 : 7;
 
   for (let y = 0; y < height; y += stride) {
     throwIfAborted(signal);
@@ -126,7 +127,7 @@ const stageRaster = async (
 
     // Browser messages, including cancel, cannot be processed during a long
     // synchronous loop. Yield often enough to preserve the cancellation SLO.
-    if ((Math.floor(y / stride) & 7) === 7) {
+    if ((Math.floor(y / stride) & yieldRowMask) === yieldRowMask) {
       await yieldToWorkerEventLoop();
     }
   }
@@ -149,8 +150,13 @@ export class CpuRenderer implements Renderer {
     validateRasterSize(request.size);
     const quality = resolveQuality(request.quality);
     const coarseStride = Math.max(2, quality.coarseStride);
+    const coarseQuality: RenderQuality = {
+      maxIterations: Math.min(quality.maxIterations, 256),
+      maxPeriod: Math.min(quality.maxPeriod, 16),
+      coarseStride,
+    };
 
-    const coarse = await stageRaster(request, quality, coarseStride, 'coarse', signal);
+    const coarse = await stageRaster(request, coarseQuality, coarseStride, 'coarse', signal);
     await onFrame(coarse);
     throwIfAborted(signal);
 

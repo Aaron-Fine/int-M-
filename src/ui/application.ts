@@ -1,22 +1,34 @@
+import type { Complex } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
   MainToWorkerMessage,
   WorkerToMainMessage,
 } from '../worker/protocol';
-import { complexToPixel, panViewport, pixelToComplex, zoomViewportAt } from '../domain/viewport';
+import {
+  complexToPixel,
+  panViewport,
+  pixelToComplex,
+  zoomViewportAt,
+  zoomViewportToRect,
+} from '../domain/viewport';
 import { COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { createSemanticLegend } from './semantic-legend';
 import {
   DEFAULT_VIEWPORT,
+  DEFAULT_QUALITY_PROFILE_ID,
   formatCoordinate,
   formatMagnification,
+  getQualityProfile,
   isDefaultViewport,
   MAX_SCALE,
   MIN_SCALE,
+  QUALITY_PROFILES,
   SEMANTIC_VIEWS,
+  type QualityProfile,
+  type QualityProfileId,
   type SemanticView,
   type Viewport,
   ZOOM_FACTOR,
@@ -28,8 +40,12 @@ interface ApplicationState {
   catalogVisible: boolean;
   requestId: number;
   activeRequestId: number;
+  activeInspectionRequestId: number;
   frameStage: 'none' | 'coarse' | 'stable';
   dragging: boolean;
+  interactionMode: InteractionMode;
+  qualityProfile: QualityProfileId;
+  selectedPoint?: Complex;
   selectedCatalogId?: string;
 }
 
@@ -38,10 +54,10 @@ interface CanvasPoint {
   readonly y: number;
 }
 
+type InteractionMode = 'pan' | 'region';
 const RENDER_DELAY_MS = 65;
-// An intentional device-independent cap keeps the first CPU renderer within
-// the representative 768–1024 px performance target on high-DPI displays.
-const MAX_RENDER_EDGE = 1024;
+const LABEL_MAGNIFICATION_THRESHOLD = 2;
+const MIN_REGION_SIZE_PX = 12;
 
 export function mountApplication(host: HTMLElement): () => void {
   const state: ApplicationState = {
@@ -50,8 +66,11 @@ export function mountApplication(host: HTMLElement): () => void {
     catalogVisible: true,
     requestId: 0,
     activeRequestId: 0,
+    activeInspectionRequestId: 0,
     frameStage: 'none',
     dragging: false,
+    interactionMode: 'pan',
+    qualityProfile: DEFAULT_QUALITY_PROFILE_ID,
   };
 
   const worker = new Worker(new URL('../worker/render.worker.ts', import.meta.url), {
@@ -130,6 +149,24 @@ export function mountApplication(host: HTMLElement): () => void {
     text: SEMANTIC_VIEWS[0].description,
     attributes: { id: 'semantic-view-description' },
   });
+  const qualitySelect = element('select', {
+    className: 'select select--compact',
+    attributes: {
+      id: 'render-quality',
+      'aria-describedby': 'render-quality-description',
+    },
+  });
+  for (const profile of QUALITY_PROFILES) {
+    qualitySelect.append(
+      element('option', { text: profile.label, attributes: { value: profile.id } }),
+    );
+  }
+  qualitySelect.value = state.qualityProfile;
+  const qualityDescription = element('p', {
+    className: 'control-description',
+    text: currentQualityProfile().description,
+    attributes: { id: 'render-quality-description' },
+  });
 
   const catalogToggle = button('Catalog', {
     className: 'toggle-button',
@@ -159,6 +196,18 @@ export function mountApplication(host: HTMLElement): () => void {
   });
   setIcon(zoomInButton, 'zoomIn');
   zoomInButton.setAttribute('aria-label', 'Zoom in');
+  const panToolButton = button('', {
+    className: 'tool-button',
+    title: 'Drag to pan',
+    pressed: true,
+  });
+  setIcon(panToolButton, 'pan', 'Pan');
+  const regionToolButton = button('', {
+    className: 'tool-button',
+    title: 'Drag a box to zoom into an area',
+    pressed: false,
+  });
+  setIcon(regionToolButton, 'region', 'Zoom area');
 
   const feedback = element('div', {
     className: 'feedback',
@@ -179,6 +228,10 @@ export function mountApplication(host: HTMLElement): () => void {
       'aria-label': 'Named Mandelbrot components',
     },
   });
+  const zoomSelection = element('div', {
+    className: 'zoom-selection',
+    attributes: { 'aria-hidden': 'true' },
+  });
 
   const header = createHeader(guidance.show);
   const controls = element('section', {
@@ -197,14 +250,31 @@ export function mountApplication(host: HTMLElement): () => void {
     semanticSelect,
     semanticDescription,
   );
+  const qualityControl = element('div', { className: 'field field--quality' });
+  qualityControl.append(
+    element('label', {
+      className: 'field__label',
+      text: 'Quality',
+      attributes: { for: 'render-quality' },
+    }),
+    qualitySelect,
+    qualityDescription,
+  );
+  const controlFields = element('div', { className: 'controls__fields' });
+  controlFields.append(viewControl, qualityControl);
   const controlActions = element('div', { className: 'controls__actions' });
+  const pointerToolGroup = element('div', {
+    className: 'button-group tool-group',
+    attributes: { role: 'group', 'aria-label': 'Pointer tool' },
+  });
+  pointerToolGroup.append(panToolButton, regionToolButton);
   const zoomGroup = element('div', {
     className: 'button-group',
     attributes: { role: 'group', 'aria-label': 'Zoom controls' },
   });
   zoomGroup.append(zoomOutButton, zoomInButton);
-  controlActions.append(catalogToggle, zoomGroup, resetButton);
-  controls.append(viewControl, controlActions);
+  controlActions.append(pointerToolGroup, catalogToggle, zoomGroup, resetButton);
+  controls.append(controlFields, controlActions);
 
   const canvasShell = element('section', {
     className: 'explorer explorer--catalog-visible',
@@ -221,9 +291,16 @@ export function mountApplication(host: HTMLElement): () => void {
   const canvasStack = element('div', { className: 'explorer__stack' });
   const interactionHint = element('p', {
     className: 'explorer__hint',
-    text: 'Scroll to zoom · drag to pan · click to inspect',
+    text: 'Drag to pan · Shift-drag to zoom area · click to inspect',
   });
-  canvasStack.append(presentationCanvas, renderCanvas, catalogOverlay, interactionHint, feedback);
+  canvasStack.append(
+    presentationCanvas,
+    renderCanvas,
+    catalogOverlay,
+    zoomSelection,
+    interactionHint,
+    feedback,
+  );
   const explorerFooter = element('footer', { className: 'explorer__footer' });
   explorerFooter.append(status, coordinateReadout);
   canvasShell.append(explorerHeading, canvasStack, explorerFooter);
@@ -244,8 +321,19 @@ export function mountApplication(host: HTMLElement): () => void {
 
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
-  let dragOrigin: CanvasPoint | undefined;
-  let dragViewport: Viewport | undefined;
+  let pointerSession:
+    | {
+        readonly pointerId: number;
+        readonly kind: InteractionMode;
+        readonly origin: CanvasPoint;
+        latest: CanvasPoint;
+        readonly viewport: Viewport;
+      }
+    | undefined;
+
+  function currentQualityProfile(): QualityProfile {
+    return getQualityProfile(state.qualityProfile);
+  }
 
   function showFeedback(message: string): void {
     feedback.textContent = message;
@@ -267,12 +355,19 @@ export function mountApplication(host: HTMLElement): () => void {
     resetButton.disabled = isDefaultViewport(state.viewport);
     zoomInButton.disabled = state.viewport.spanY <= MIN_SCALE;
     zoomOutButton.disabled = state.viewport.spanY >= MAX_SCALE;
+    canvasShell.classList.toggle(
+      'explorer--expanded-labels',
+      DEFAULT_VIEWPORT.spanY / state.viewport.spanY >= LABEL_MAGNIFICATION_THRESHOLD,
+    );
   }
 
   function dimensions(): { width: number; height: number } {
     const rect = renderCanvas.getBoundingClientRect();
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
-    const scale = Math.min(pixelRatio, MAX_RENDER_EDGE / Math.max(rect.width, rect.height));
+    const scale = Math.min(
+      pixelRatio,
+      currentQualityProfile().maxRenderEdge / Math.max(rect.width, rect.height),
+    );
     return {
       width: Math.max(1, Math.round(rect.width * scale)),
       height: Math.max(1, Math.round(rect.height * scale)),
@@ -303,6 +398,7 @@ export function mountApplication(host: HTMLElement): () => void {
       viewport: state.viewport,
       size,
       semanticView: state.semanticView,
+      quality: currentQualityProfile().quality,
     } satisfies MainToWorkerMessage);
   }
 
@@ -359,7 +455,10 @@ export function mountApplication(host: HTMLElement): () => void {
       center: { ...DEFAULT_VIEWPORT.center },
       spanY: DEFAULT_VIEWPORT.spanY,
     };
+    delete state.selectedPoint;
+    delete state.selectedCatalogId;
     inspector.clear();
+    updateCatalogSelection();
     updateCoordinateReadout();
     showFeedback('Full-set view restored.');
     scheduleRender(true);
@@ -368,9 +467,18 @@ export function mountApplication(host: HTMLElement): () => void {
   function canvasPoint(event: PointerEvent | WheelEvent): CanvasPoint {
     const rect = renderCanvas.getBoundingClientRect();
     return {
-      x: (event.clientX - rect.left) / rect.width,
-      y: (event.clientY - rect.top) / rect.height,
+      x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
+      y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
     };
+  }
+
+  function updateZoomSelection(origin: CanvasPoint, latest: CanvasPoint): void {
+    const left = Math.min(origin.x, latest.x) * 100;
+    const top = Math.min(origin.y, latest.y) * 100;
+    zoomSelection.style.left = `${left}%`;
+    zoomSelection.style.top = `${top}%`;
+    zoomSelection.style.width = `${Math.abs(latest.x - origin.x) * 100}%`;
+    zoomSelection.style.height = `${Math.abs(latest.y - origin.y) * 100}%`;
   }
 
   function inspectAt(point: CanvasPoint): void {
@@ -384,10 +492,8 @@ export function mountApplication(host: HTMLElement): () => void {
     inspectPoint(complexPoint);
   }
 
-  function inspectPoint(
-    complexPoint: { readonly re: number; readonly im: number },
-    component?: CatalogComponent,
-  ): void {
+  function inspectPoint(complexPoint: Complex, component?: CatalogComponent): void {
+    state.selectedPoint = complexPoint;
     if (component) {
       state.selectedCatalogId = component.id;
     } else {
@@ -395,11 +501,26 @@ export function mountApplication(host: HTMLElement): () => void {
     }
     inspector.loading(complexPoint.re, complexPoint.im, component);
     state.requestId += 1;
+    state.activeInspectionRequestId = state.requestId;
     worker.postMessage({
       type: 'inspect',
-      requestId: state.requestId,
+      requestId: state.activeInspectionRequestId,
       point: complexPoint,
+      quality: currentQualityProfile().quality,
     } satisfies MainToWorkerMessage);
+    updateCatalogSelection();
+  }
+
+  function updateCatalogSelection(): void {
+    for (const marker of catalogOverlay.querySelectorAll<HTMLButtonElement>('.catalog-marker')) {
+      const selected = marker.dataset['catalogId'] === state.selectedCatalogId;
+      marker.classList.toggle('catalog-marker--selected', selected);
+      if (selected) {
+        marker.setAttribute('aria-current', 'true');
+      } else {
+        marker.removeAttribute('aria-current');
+      }
+    }
   }
 
   function updateCatalogOverlay(): void {
@@ -414,10 +535,21 @@ export function mountApplication(host: HTMLElement): () => void {
         return [];
       }
       const marker = button('', {
-        className: `catalog-marker catalog-marker--period-${component.period}`,
+        className: [
+          'catalog-marker',
+          `catalog-marker--period-${component.period}`,
+          component.id === state.selectedCatalogId ? 'catalog-marker--selected' : '',
+          point.x / size.width > 0.76 ? 'catalog-marker--left-facing' : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
         title: `${component.label}, period ${component.period}`,
       });
+      marker.dataset['catalogId'] = component.id;
       marker.setAttribute('aria-label', `Inspect ${component.label}, period ${component.period}`);
+      if (component.id === state.selectedCatalogId) {
+        marker.setAttribute('aria-current', 'true');
+      }
       marker.style.left = `${(point.x / size.width) * 100}%`;
       marker.style.top = `${(point.y / size.height) * 100}%`;
       marker.append(
@@ -446,6 +578,36 @@ export function mountApplication(host: HTMLElement): () => void {
     scheduleRender(true);
   });
 
+  qualitySelect.addEventListener('change', () => {
+    state.qualityProfile = qualitySelect.value as QualityProfileId;
+    const profile = currentQualityProfile();
+    qualityDescription.textContent = profile.description;
+    showFeedback(
+      `${profile.label} quality selected · ${profile.quality.maxIterations} iterations · periods through ${profile.quality.maxPeriod}.`,
+    );
+    scheduleRender(true);
+    if (state.selectedPoint) {
+      inspectPoint(
+        state.selectedPoint,
+        COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
+      );
+    }
+  });
+
+  function setInteractionMode(mode: InteractionMode): void {
+    state.interactionMode = mode;
+    panToolButton.setAttribute('aria-pressed', String(mode === 'pan'));
+    regionToolButton.setAttribute('aria-pressed', String(mode === 'region'));
+    canvasShell.classList.toggle('explorer--region-tool', mode === 'region');
+    interactionHint.textContent =
+      mode === 'region'
+        ? 'Drag a box to zoom · click to inspect'
+        : 'Drag to pan · Shift-drag to zoom area · click to inspect';
+  }
+
+  panToolButton.addEventListener('click', () => setInteractionMode('pan'));
+  regionToolButton.addEventListener('click', () => setInteractionMode('region'));
+
   catalogToggle.addEventListener('click', () => {
     state.catalogVisible = !state.catalogVisible;
     catalogToggle.setAttribute('aria-pressed', String(state.catalogVisible));
@@ -473,46 +635,115 @@ export function mountApplication(host: HTMLElement): () => void {
   );
 
   renderCanvas.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || !event.isPrimary) return;
     renderCanvas.setPointerCapture(event.pointerId);
     state.dragging = false;
-    dragOrigin = { x: event.clientX, y: event.clientY };
-    dragViewport = state.viewport;
-    renderCanvas.classList.add('explorer__canvas--grabbing');
+    const origin = canvasPoint(event);
+    pointerSession = {
+      pointerId: event.pointerId,
+      kind: state.interactionMode === 'region' || event.shiftKey ? 'region' : 'pan',
+      origin,
+      latest: origin,
+      viewport: state.viewport,
+    };
+    if (pointerSession.kind === 'pan') {
+      renderCanvas.classList.add('explorer__canvas--grabbing');
+    } else {
+      canvasShell.classList.add('explorer--selecting');
+      updateZoomSelection(origin, origin);
+    }
   });
 
   renderCanvas.addEventListener('pointermove', (event) => {
-    if (!dragOrigin || !dragViewport) return;
-    const dx = event.clientX - dragOrigin.x;
-    const dy = event.clientY - dragOrigin.y;
-    if (Math.hypot(dx, dy) > 3) state.dragging = true;
+    if (pointerSession?.pointerId !== event.pointerId) return;
+    const latest = canvasPoint(event);
+    pointerSession.latest = latest;
+    const rect = renderCanvas.getBoundingClientRect();
+    const dxCss = (latest.x - pointerSession.origin.x) * rect.width;
+    const dyCss = (latest.y - pointerSession.origin.y) * rect.height;
+    if (Math.hypot(dxCss, dyCss) > 3) state.dragging = true;
     if (!state.dragging) return;
-    state.viewport = panViewport(dragViewport, dimensions(), dx, dy);
-    updateCoordinateReadout();
+    if (pointerSession.kind === 'region') {
+      updateZoomSelection(pointerSession.origin, latest);
+    } else {
+      const size = dimensions();
+      state.viewport = panViewport(
+        pointerSession.viewport,
+        size,
+        dxCss * (size.width / rect.width),
+        dyCss * (size.height / rect.height),
+      );
+      updateCoordinateReadout();
+    }
   });
 
   const finishPointer = (event: PointerEvent): void => {
-    if (!dragOrigin) return;
-    renderCanvas.releasePointerCapture(event.pointerId);
+    if (pointerSession?.pointerId !== event.pointerId) return;
+    if (renderCanvas.hasPointerCapture(event.pointerId)) {
+      renderCanvas.releasePointerCapture(event.pointerId);
+    }
     renderCanvas.classList.remove('explorer__canvas--grabbing');
-    if (state.dragging) {
+    canvasShell.classList.remove('explorer--selecting');
+    zoomSelection.removeAttribute('style');
+    const session = pointerSession;
+    if (state.dragging && session.kind === 'region') {
+      const rect = renderCanvas.getBoundingClientRect();
+      const widthCss = Math.abs(session.latest.x - session.origin.x) * rect.width;
+      const heightCss = Math.abs(session.latest.y - session.origin.y) * rect.height;
+      if (widthCss >= MIN_REGION_SIZE_PX && heightCss >= MIN_REGION_SIZE_PX) {
+        const size = dimensions();
+        const next = zoomViewportToRect(session.viewport, size, {
+          x1: session.origin.x * size.width,
+          y1: session.origin.y * size.height,
+          x2: session.latest.x * size.width,
+          y2: session.latest.y * size.height,
+        });
+        if (next.spanY === session.viewport.spanY) {
+          showFeedback(
+            session.viewport.spanY <= MIN_SCALE
+              ? 'Purposeful zoom limit reached. This keeps the analysis reliable.'
+              : 'That selection already covers the current view.',
+          );
+        } else {
+          state.viewport = next;
+          updateCoordinateReadout();
+          showFeedback('Zoomed to selected area.');
+          scheduleRender();
+        }
+      } else {
+        inspectAt(session.latest);
+      }
+    } else if (state.dragging) {
       scheduleRender();
     } else {
       inspectAt(canvasPoint(event));
     }
-    dragOrigin = undefined;
-    dragViewport = undefined;
+    pointerSession = undefined;
     state.dragging = false;
   };
   renderCanvas.addEventListener('pointerup', finishPointer);
   renderCanvas.addEventListener('pointercancel', () => {
-    dragOrigin = undefined;
-    dragViewport = undefined;
+    pointerSession = undefined;
     state.dragging = false;
     renderCanvas.classList.remove('explorer__canvas--grabbing');
+    canvasShell.classList.remove('explorer--selecting');
+    zoomSelection.removeAttribute('style');
   });
 
   renderCanvas.addEventListener('keydown', (event) => {
     switch (event.key) {
+      case 'Escape':
+        if (!pointerSession) return;
+        if (renderCanvas.hasPointerCapture(pointerSession.pointerId)) {
+          renderCanvas.releasePointerCapture(pointerSession.pointerId);
+        }
+        pointerSession = undefined;
+        state.dragging = false;
+        renderCanvas.classList.remove('explorer__canvas--grabbing');
+        canvasShell.classList.remove('explorer--selecting');
+        zoomSelection.removeAttribute('style');
+        showFeedback('Area selection cancelled.');
+        break;
       case '+':
       case '=':
         zoom('in');
@@ -558,9 +789,11 @@ export function mountApplication(host: HTMLElement): () => void {
         presentFrame(message);
         break;
       case 'inspection':
+        if (message.requestId !== state.activeInspectionRequestId) break;
         inspector.show(
           message.result,
           COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
+          currentQualityProfile(),
         );
         break;
       case 'error':
@@ -636,8 +869,9 @@ function createGuidance(): {
   const tips = element('ul', { className: 'guidance__tips' });
   for (const tip of [
     'Scroll or use + and − to zoom',
-    'Drag or use arrow keys to pan',
+    'Drag to pan; choose Zoom area or hold Shift to draw a zoom box',
     'Select a point to inspect the evidence',
+    'Choose Quick, Balanced, or Detailed to change the numerical search budget',
   ]) {
     tips.append(element('li', { text: tip }));
   }
@@ -660,7 +894,11 @@ function createGuidance(): {
 function createInspector(): {
   readonly element: HTMLElement;
   readonly loading: (re: number, im: number, component?: CatalogComponent) => void;
-  readonly show: (result: InspectionResult, component?: CatalogComponent) => void;
+  readonly show: (
+    result: InspectionResult,
+    component: CatalogComponent | undefined,
+    quality: QualityProfile,
+  ) => void;
   readonly clear: () => void;
 } {
   const root = element('section', {
@@ -673,7 +911,32 @@ function createInspector(): {
     attributes: { id: 'inspector-heading' },
   });
   const body = element('div', { className: 'inspector__body' });
-  root.append(heading, body);
+  const help = element('details', { className: 'measurement-help' });
+  help.append(element('summary', { text: 'How to read these values' }));
+  const definitions = element('dl');
+  for (const [term, description] of [
+    ['Detected period p', 'The number of iterations in one complete attracting cycle.'],
+    [
+      'Multiplier magnitude |λ|',
+      'How much a nearby displacement shrinks after one complete cycle. Smaller means stronger attraction; values approaching 1 are weaker.',
+    ],
+    [
+      'Multiplier angle arg λ',
+      'How much that displacement rotates after one complete cycle. It is shown in degrees and used as hue in Multiplier view.',
+    ],
+    [
+      'Stability exponent κ',
+      'Attraction strength per iteration: κ = −ln|λ| / p. Larger values settle faster; ∞ marks a superattracting center.',
+    ],
+    [
+      'Quality',
+      'The numerical search budget. Higher quality checks more iterations and periods, but unresolved still means no claim within that budget.',
+    ],
+  ] as const) {
+    definitions.append(element('dt', { text: term }), element('dd', { text: description }));
+  }
+  help.append(definitions);
+  root.append(heading, body, help);
 
   const clear = (): void => {
     replaceChildren(body, [
@@ -700,7 +963,11 @@ function createInspector(): {
     ]);
   };
 
-  const show = (result: InspectionResult, component?: CatalogComponent): void => {
+  const show = (
+    result: InspectionResult,
+    component: CatalogComponent | undefined,
+    quality: QualityProfile,
+  ): void => {
     const orbit = result.orbit;
     const statusLabel: Record<typeof orbit.status, string> = {
       escaped: 'Escaped',
@@ -741,6 +1008,10 @@ function createInspector(): {
       }
     }
     addFact('Iterations', String(orbit.iterations));
+    addFact(
+      'Quality',
+      `${quality.label} · up to ${quality.quality.maxIterations} iterations / period ${quality.quality.maxPeriod}`,
+    );
     if (orbit.status === 'escaped') {
       addFact('Escape iteration', String(orbit.escapeIteration));
       addFact('Final magnitude', Math.sqrt(orbit.magnitudeSquared).toPrecision(7));

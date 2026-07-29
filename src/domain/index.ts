@@ -27,5 +27,6 @@ export {
   pixelToComplex,
   validateRasterSize,
   zoomViewportAt,
+  zoomViewportToRect,
 } from './viewport';
-export type { ViewportTransform } from './viewport';
+export type { PixelRect, ViewportTransform } from './viewport';

@@ -63,9 +63,9 @@ const COMMON: readonly LegendEntry[] = [
 ];
 
 const DEFINITIONS: Record<SemanticView, string> = {
-  stability: 'κ = −log|λ| / p measures attraction per iteration.',
-  multiplier: 'Hue = arg λ; lightness follows multiplier magnitude |λ|.',
-  period: 'Color categories represent the exact detected attracting-cycle period.',
+  stability: 'Lighter regions settle faster. κ = −ln|λ| / p measures attraction per iteration.',
+  multiplier: 'Hue shows rotation (arg λ); lightness shows attraction strength through |λ|.',
+  period: 'Each color category represents the exact detected attracting-cycle period p.',
 };
 
 export function createSemanticLegend(): {
