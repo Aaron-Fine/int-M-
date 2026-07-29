@@ -1,4 +1,4 @@
-# int-M-
+# Mandelbrot Interiority
 
 An interactive atlas of the Mandelbrot set's interior.
 
@@ -20,21 +20,21 @@ Significant Curves, Sharkovsky-order overlays, perturbation rendering, and renor
 - **Interiority first.** The inside of the set is the subject, not empty space behind an escape-time image.
 - **Bounded on purpose.** The useful zoom range is a product constraint to be measured, documented, and tested.
 - **Meaning before decoration.** Colors represent declared mathematical quantities and always have a legend.
-- **Evidence is explicit.** `interior`, `escaped`, and `unresolved` are outcomes; CPU, GPU, analytic, and catalog checks are evidence.
+- **Evidence is explicit.** `attracting-cycle`, `escaped`, and `unresolved` are outcomes; CPU, GPU, analytic, and catalog checks are evidence.
 - **Canonical parameters stay canonical.** Coordinate systems are chart layers around the Mandelbrot parameter `c`, never replacements for it.
 - **Measure before adding machinery.** WebGPU and perturbation are adopted only when small Phase 0 experiments justify their cost.
 - **Small, reproducible data.** The initial catalog is generated and validated by this project rather than copied from a large externally published database.
 
 ## Technical direction
 
-The application is planned as a TypeScript web project with all rendering and orbit work performed away from the main UI thread. Phase 0 will compare a worker-based CPU renderer, direct WebGPU computation, and a small CPU-reference/GPU-perturbation experiment before the production renderer is selected.
+The application is planned as a Vite-based, strict TypeScript web project with vanilla DOM/CSS. All rendering and orbit work will run away from the main UI thread. Phase 0 will compare a worker-based CPU renderer, direct WebGPU computation, and a small CPU-reference/GPU-perturbation experiment before the production renderer is selected.
 
 The orbit engine will consume canonical complex parameters. Pixel-to-parameter and other coordinate conversions will live at an isolated chart boundary, leaving a clean seam for later experiments with multiplier, Böttcher, or straightening coordinates.
 
-See [the project plan](docs/PLAN.md) and [the research notes](docs/RESEARCH.md).
+See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), and [the SysML v2 system model](model/README.md).
 
 ## Status
 
 Research and planning. Production implementation has not started.
 
-License selection for the code and project-generated catalog is a Phase 0 decision. External catalog data will not be imported without an explicit compatible data license.
+Application code and documentation are licensed under GPL-3.0-only. Independently generated catalog data and numerical fixtures are dedicated to the public domain under CC0-1.0. External catalog data will not be imported without an explicit compatible data license.
