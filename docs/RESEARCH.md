@@ -1,406 +1,358 @@
-# Research Notes
+# Research foundation
 
-## 1. Research question
+This document records the mathematical and technical decisions behind `int-M-`. It is not an attempt to survey all Mandelbrot-set research. The filter is practical: does an idea help a small, bounded, interactive atlas explain the interior of the set?
 
-How can a small browser application reveal meaningful structure inside the Mandelbrot set without becoming another unrestricted deep-zoom renderer?
+## 1. Product position
 
-The most promising answer combines:
+Most interactive Mandelbrot software is organized around escape time and zoom depth. The opportunity here is narrower and more distinctive:
 
-- attracting-cycle period;
-- the complex multiplier as an internal coordinate;
-- internal and angled internal addresses as component identifiers;
-- selected analytic curves;
-- selected orderings along veins;
-- explicit numerical uncertainty;
-- GPU acceleration with CPU reference and verification.
+- treat attracting dynamics as the primary subject;
+- make interior color represent declared mathematical quantities;
+- attach human and combinatorial identity to a small number of components;
+- distinguish a result from the evidence for that result; and
+- stop at an explicit zoom and numerical budget.
 
-This document records the mathematical and computational basis for that direction. It is not a comprehensive survey of complex dynamics.
+The focused first release is therefore:
 
-## 2. The calculation being visualized
+> multiplier-colored interiors, intrinsic stability, honest uncertainty, a precise inspector, and a small mathematically identified catalog.
 
-For each parameter c, iterate the critical point under:
+Significant Curves, Sharkovsky ordering, perturbation, and renormalization remain compatible research directions, but they do not belong in the initial definition of done.
 
-`f_c(z) = z^2 + c, with z_0 = 0`
+## 2. Interior quantities worth visualizing
 
-A point is outside the Mandelbrot set when this critical orbit escapes. A finite computation that fails to observe escape does not, by itself, prove that the parameter is inside the set.
+For the quadratic family
 
-Within a hyperbolic component, the map has an attracting periodic cycle. If its exact period is p and its points are z[0] through z[p-1], the cycle multiplier is:
+`f_c(z) = z² + c`,
 
-`lambda = product(2 * z[j]), j = 0..p-1`
+suppose a parameter has an attracting cycle of exact period `p`. The multiplier is
 
-The cycle is attracting when the magnitude of lambda is less than one and superattracting when lambda is zero.
+`λ = (f_c^p)'(z₀) = ∏(2z_j)`
 
-### Design consequence
+around that cycle. It provides two immediately useful coordinates:
 
-The renderer must preserve more than an integer escape count. Its semantic result needs classification state, period, multiplier, convergence effort, residual, and confidence evidence.
+- `|λ|`, the contraction per full cycle; and
+- `arg(λ)`, the rotation accumulated per cycle.
 
-## 3. Multiplier coordinates
+These quantities are preferable to iteration count as primary interior semantics. Iteration count depends strongly on detection thresholds, algorithm, and budget; it remains useful as a diagnostic and cost measure.
 
-### Source
+### Multiplier coordinates
 
-John Milnor, "Periodic Orbits, External Rays and the Mandelbrot Set: An Expository Account" (2000):
+Within a hyperbolic component, the multiplier map gives a natural internal coordinate. Polar form
 
-- https://arxiv.org/abs/math/9905169
-- https://arxiv.org/pdf/math/9905169
+`λ = ρ exp(2πiθ)`
 
-Milnor describes a hyperbolic component of period n and the multiplier map that sends each parameter to the multiplier of its attracting orbit. The multiplier provides a canonical uniformization of the component by the unit disk.
+separates contraction from angle and maps well to a color legend. This is where polar coordinates genuinely simplify the product: not by writing the global parameter `c` in polar form, but by using polar form in multiplier space.
 
-### Relevance
+### Intrinsic stability
 
-This is the strongest basis for the primary visualization. It is not merely an attractive palette:
+Comparing raw `|λ|` across different periods can be misleading because `λ` measures contraction over a full cycle. A period-normalized quantity is
 
-- multiplier magnitude measures position from a superattracting center toward the component boundary;
-- multiplier phase gives an internal angle;
-- constant phase produces internal rays;
-- constant magnitude produces internal equipotentials;
-- the same coordinate interpretation applies across hyperbolic components of different periods.
+`κ = -log|λ| / p`.
 
-### Proposed view
+`κ` is the contraction exponent per ordinary iteration:
 
-- hue from argument(lambda);
-- lightness or radial tone from magnitude(lambda);
-- optional phase spokes;
-- optional magnitude rings;
-- period retained as a separate semantic value and optional categorical layer.
+- it tends to infinity at a superattracting center;
+- it tends to zero toward a parabolic boundary; and
+- it is comparable across components of different periods.
 
-The exact visual encoding requires perceptual testing. The mathematical values must remain independent of the palette.
+This makes stability a strong primary or companion view.
 
-## 4. Interior classification and uncertainty
+The log-multiplier quantity
 
-A conventional escape-time image normally colors every point that reaches the iteration limit as if it were interior. That conflates several states:
+`g = -log|λ|`
 
-- a point with analytically known membership;
-- a point with a detected attracting cycle;
-- a point converging too slowly for the budget;
-- a point whose numerical behavior is ambiguous;
-- a point that would escape after the configured limit.
+also turns radial multiplication into translation. A punctured component becomes cylinder-like in `(g, θ)`, which may make selected interior relationships easier to inspect.
 
-Near parabolic parameters and component boundaries, convergence and escape behavior can be particularly slow.
+The Poincaré radius `2 artanh|λ|` can be considered as a display transform for palette spacing near the unit circle. It does not introduce a new semantic field.
 
-### Related recent work
+## 3. Outcomes, confidence, and evidence
 
-Daniel Meyer and Dierk Schleicher, "Pi in the Mandelbrot Set Everywhere" (2025 preprint):
+The renderer must not confuse “the algorithm stopped” with “the mathematics is settled.”
 
-- https://arxiv.org/abs/2505.07138
-- https://arxiv.org/html/2505.07138v1
+A useful result model separates:
 
-The work studies escape-time behavior near parabolic and satellite bifurcations. It is not an interior-coloring algorithm, but it reinforces that iteration count near these regions reflects subtle dynamical behavior and should not be treated as a simple binary membership test.
+```ts
+type DynamicsStatus =
+  | "escaped"
+  | "interior"
+  | "attracting-cycle"
+  | "unresolved";
 
-### Design consequence
+type Evidence =
+  | "analytic"
+  | "gpu-direct"
+  | "gpu-perturbation"
+  | "cpu-float64"
+  | "catalog-validated";
+```
 
-Expose escaped, analytic interior, attractor detected, provisional, and unresolved as different states. Present the numerical evidence in the inspector.
+Evidence may ultimately be a set of flags because independent checks can agree. Thresholds, residuals, and confidence can accompany it.
 
-## 5. Internal and angled internal addresses
+“Provisional” should not be a fifth dynamical status. It describes the strength of evidence for a status. An exhausted budget produces `unresolved`, not an invented inside/outside answer.
 
-### Source
+## 4. Internal and angled addresses
 
-Dierk Schleicher, "Internal Addresses of the Mandelbrot Set and Galois Groups of Polynomials," Arnold Mathematical Journal 3 (2017):
+Internal addresses describe the combinatorial route through hyperbolic components. They are useful, compact labels, but an internal address alone need not uniquely distinguish a component.
 
-- https://doi.org/10.1007/s40598-016-0042-x
-- https://armj.math.stonybrook.edu/pdf-Springer-final/016-0042.pdf
+Angled internal addresses add exact rational rotation data and can distinguish components sharing the same period sequence. Exact angles should be stored as integer numerator/denominator pairs rather than floating-point approximations.
 
-Internal addresses provide a concise, dynamically meaningful description of combinatorial structure. Angled internal addresses add rotation data and can distinguish hyperbolic components more precisely.
+For software identity, the project should assign a stable, version-independent catalog identifier. The mathematical fields then describe the component:
 
-### Relevance
-
-The address system provides principled identifiers and hierarchy:
-
-- exact period sequence;
-- parent and child relationships;
-- limbs and sub-limbs;
-- rotation information;
-- human-readable component navigation.
-
-It is more reliable than inventing names or identifying components only by proximity.
-
-### Design consequence
-
-Create a static component catalog containing:
-
-- center as decimal strings;
-- exact period;
+- period;
 - internal address;
 - angled internal address;
-- parent identifier;
-- optional sourced aliases;
-- source metadata.
+- characteristic parameter-ray pair where known; and
+- center parameter with precision and provenance.
 
-Common names should remain aliases. Internal addresses should be treated as authoritative mathematical identifiers.
+Preserving characteristic ray pairs is useful now and also leaves meaningful combinatorial anchors for possible straightening or renormalization experiments later.
 
-### Open work
+Foundational references include Schleicher's work on internal addresses and angled internal addresses:
 
-The project still needs to determine whether address data will be:
+- Dierk Schleicher, [Internal Addresses in the Mandelbrot Set and Irreducibility of Polynomials](https://arxiv.org/abs/math/9411238)
+- Dierk Schleicher, [Internal Addresses of the Mandelbrot Set and Galois Groups of Polynomials](https://arxiv.org/abs/math/9411239)
 
-- imported from an existing reusable dataset;
-- calculated offline from center/combinatorial data;
-- curated manually for the initially supported subset.
+## 5. A small reproducible catalog
 
-This choice depends on source availability, licensing, and validation effort.
+The v1 catalog should contain roughly 6–12 recognizable low-period hyperbolic components. It is part of the first vertical slice, not a later annotation feature: identity is central to the atlas's story.
 
-## 6. Certified hyperbolic centers
+Catalog centers should be generated independently at high precision. Validation should include:
 
-### Source
+- a small residual for `f_c^p(0) = 0`;
+- exclusion of every proper divisor of `p`;
+- repeatable precision and rounding rules;
+- independent high-precision golden fixtures;
+- exact rational combinatorial data where available; and
+- recorded method, source, and schema version.
 
-Nicolae Mihalache and François Vigneron, "How to Split a Tera-Polynomial" (2024 preprint):
+The catalog should not claim the stronger meaning of “certified” unless its procedure actually establishes that standard.
 
-- https://arxiv.org/abs/2402.06083
-- https://arxiv.org/html/2402.06083v2
+### External database licensing decision
 
-The authors describe algorithms for roots associated with periodic critical dynamics and Misiurewicz-Thurston parameters. They report certified computation of all hyperbolic centers through period 41 and provide an associated implementation and database to the scientific community.
+The period-41 database described by Vigneron and Gauthier is scientifically important, but the available licensing evidence does not authorize redistribution of the data in this project.
 
-### Relevance
+- The accompanying [`fvigneron/Mandelbrot`](https://github.com/fvigneron/Mandelbrot) repository uses a BSD-3-Clause-Attribution license whose text applies to the software.
+- The [database paper](https://ar5iv.labs.arxiv.org/html/2402.06083) describes scientific availability, but no separate, explicit database-reuse license was identified.
+- Database compilations can carry rights distinct from the software that generated them, including the EU sui generis database right described in the [EU summary of Directive 96/9/EC](https://eur-lex.europa.eu/EN/legal-content/summary/legal-protection-databases.html).
 
-The results can support:
+The conservative resolution is:
 
-- verified center coordinates;
-- regression tests across many periods;
-- curated navigation targets;
-- component labels;
-- canonical perturbation references;
-- comparison between runtime period detection and known centers.
+1. do not copy or redistribute that database;
+2. do not treat the code license as a license to the data;
+3. generate the small v1 catalog independently;
+4. retain computation and provenance records; and
+5. reconsider external data only if an explicit compatible license is supplied by the rightsholder.
 
-### Design consequence
+This removes the external database as a Phase 0 dependency. A permissive code license and a separate CC0 dedication for independently generated catalog data are plausible choices, but the project owner must select and record them.
 
-Do not reproduce the center-enumeration algorithm. Investigate using an appropriately licensed subset of the published results as static reference data.
+## 6. Significant Curves
 
-The catalog should include only the range that improves the supported atlas. Completeness through period 41 is not itself a product requirement.
+Significant Curves propose structural curves associated with hyperbolic components and may create an unusually expressive overlay for an interior atlas. Their appeal is explanatory: they could connect visible component geometry with combinatorial organization.
 
-## 7. Significant curves
+They also carry risks:
 
-### Source
+- definitions and computational procedures need careful reconstruction;
+- the visual may imply theorem-level certainty where the implementation is approximate;
+- intersections and occlusion can overwhelm the core color semantics; and
+- validating a curve overlay is substantially harder than validating a selected point.
 
-Dalibor Martisek, "Significant Curves of the Mandelbrot Set," MENDEL 27(2), 2021:
+The right treatment is an optional research overlay after the core atlas is stable. It should carry provenance, approximation method, and error or validity information.
 
-- https://doi.org/10.13164/mendel.2021.2.030
-- https://mendel-journal.org/index.php/mendel/article/view/157
+Relevant recent work:
 
-The paper describes analytic curves associated with the main hyperbolic component, internal and external bounds, and curves of low period.
+- Thies Brockmoeller, Oscar Scherz, and Nedim Srkalovic, [Pi in the Mandelbrot Set Everywhere](https://arxiv.org/abs/2505.07138)
 
-### Relevance
+## 7. Sharkovsky ordering
 
-These curves can provide:
+Sharkovsky's theorem belongs to real one-dimensional dynamics, while the Mandelbrot set parameterizes complex quadratic dynamics. A project overlay must therefore state exactly which real slice, orbit relation, or derived combinatorial construction it is displaying. The ordering should not be presented as a generic total order on complex hyperbolic components.
 
-- educational overlays;
-- comparison between analytic and numerically rendered structure;
-- regression and visual-validation references;
-- an explanation of the simplest component boundaries.
+This idea is strongest as a selected explanatory overlay or guided comparison, not as the base coloring.
 
-### Design constraint
+Relevant recent work:
 
-Do not generalize the paper beyond its results. The first overlay should implement only explicitly sourced formulas and clearly label what each curve represents.
+- Reila Zheng, [Sharkovsky's Ordering in the Mandelbrot Set](https://arxiv.org/abs/2506.06163)
 
-This is a secondary layer, not the renderer's central organizing principle.
+## 8. Coordinate systems and transformations
 
-## 8. Sharkovsky ordering along veins
+Different coordinate spaces are useful in different domains. No single transformed plane should replace the canonical parameter plane.
 
-### Source
+### Useful now
 
-W. Zheng, "Sharkovsky's Ordering in the Mandelbrot Set" (2025 preprint):
+- **Multiplier polar coordinates:** natural inside a detected hyperbolic component.
+- **Log-multiplier coordinates:** turn radial contraction into an additive potential and make a punctured component cylinder-like.
+- **Exact rational angle coordinates:** essential for angled addresses and characteristic rays.
+- **Normalized device and tile coordinates:** implementation coordinates only, isolated from dynamics.
 
-- https://arxiv.org/abs/2506.06163
-- https://arxiv.org/html/2506.06163
+### Potentially useful later
 
-The work studies ordering and dynamics of hyperbolic components along veins in the Mandelbrot set, extending ideas associated with Sharkovsky ordering beyond the real quadratic family.
+- **Böttcher/external-potential coordinates:** natural outside the Mandelbrot set for equipotentials and external rays.
+- **Koenigs linearization:** conceptually valuable for checking local attracting behavior, but not required as a v1 visual mode.
+- **Fatou and Ecalle coordinates:** important near parabolic dynamics, but specialized and numerically delicate.
+- **Straightening coordinates:** central to renormalization and small copies, but partial, expensive, and dependent on identifying suitable polynomial-like restrictions.
 
-### Relevance
+Global polar coordinates `c = re^{iθ}` do not substantially simplify Mandelbrot dynamics because the family is not radially symmetric in parameter space.
 
-The natural visualization is not a global colored field. It is a curated path:
+## 9. Preserving a path to renormalization
 
-- select a vein;
-- draw it from the main cardioid toward a tip;
-- mark intersected or associated hyperbolic components;
-- present their periods in the proved ordering;
-- connect markers to component identifiers and dynamics.
+No renormalization machinery is needed in the first release. A few architectural seams prevent needless future rewrites:
 
-### Design consequence
+> Orbit calculation operates exclusively on canonical Mandelbrot parameters `c`. Screen, multiplier, Böttcher, and future straightening coordinates are chart layers that map to or from `c`. Chart conversion is isolated from orbit iteration and may be partial, approximate, and versioned.
 
-Implement this as a guided explanatory overlay after the core atlas works. Begin with only a few source-backed veins.
+Practical consequences:
 
-Avoid presenting an arbitrary radial line or nearest-component sequence as "Sharkovsky ordering."
+- canonical `c` remains the source of truth;
+- the orbit kernel accepts `c`, not screen coordinates;
+- CPU pixel mapping lives in one isolated function;
+- a WebGPU path has one corresponding `parameter_for_pixel` function;
+- a future nonlinear chart can supply a per-pixel `c` buffer or lookup;
+- persisted/share state is versioned;
+- characteristic ray pairs can be retained in catalog entries; and
+- future chart results may declare a validity domain and an error estimate.
 
-## 9. Interior and exterior distance estimates
+Do not build a generalized coordinate plug-in system, renormalization class hierarchy, or speculative chart API now.
 
-### Sources
+Foundational references:
 
-Albert Lobo, "Interior and Exterior Distance Bounds for the Mandelbrot Set," updated 2022:
+- Adrien Douady and John H. Hubbard, [Étude dynamique des polynômes complexes](https://www.numdam.org/item/ASENS_1985_4_18_2_287_0/)
+- Luna Lomonaco and Carsten L. Petersen, [On the Notions of Renormalization and Multimodality](https://arxiv.org/abs/1505.05422)
 
-- https://albertlobo.com/fractals/interior-exterior-distance-bounds-mandelbrot-set
+## 10. CPU, WebGPU, and perturbation
 
-Lindsay Robert Wilson, "Distance Estimation Method for Drawing Mandelbrot and Julia Sets" (2012):
+### What can run on the GPU
 
-- https://www.imajeenyus.com/mathematics/20121112_distance_estimates/distance_estimation_method_for_fractals.pdf
+Most independent per-pixel work is GPU-shaped:
 
-Claude Heiland-Allen, Mandelbrot renderer notes and practical interior distance material:
+- direct orbit iteration;
+- escape checks;
+- derivative accumulation;
+- bounded cycle candidates;
+- multiplier accumulation after a candidate period is known;
+- status and semantic-field output; and
+- final palette mapping.
 
-- https://mathr.co.uk/mandelbrot/book-draft-2017-11-10.pdf
+Reduction-heavy, branching, high-precision, and sparse verification work is often better on the CPU.
 
-### Relevance
+### Precision constraint
 
-Interior distance estimates could produce meaningful boundary-relative shading and adaptive sampling. However, practical interior estimates require:
+Portable WGSL provides `f32` and optionally `f16`, not general `f64`. Direct WebGPU therefore has a shallower useful parameter-resolution limit than JavaScript's binary64 arithmetic.
 
-- a correctly identified exact period;
-- a well-refined attracting cycle;
-- propagated derivatives;
-- care around misidentified period multiples and boundaries.
+This does not automatically require arbitrary precision or perturbation. The product has a bounded zoom, and its useful bound should be measured.
 
-### Decision
+### Perturbation shape
 
-Treat interior distance as future research. Multiplier coordinates are simpler, more canonical, and sufficient to establish the project's identity.
+For a high-precision reference parameter `c₀` and reference orbit `Z_n`, nearby pixels use
 
-## 10. Perturbation rendering
+`c = c₀ + δc`
 
-### Sources
+and evolve a lower-precision delta orbit. Expanding
 
-Claude Heiland-Allen, "Deep Zoom Theory and Practice" (2021):
+`Z_{n+1} + δz_{n+1} = (Z_n + δz_n)² + c₀ + δc`
 
-- https://mathr.co.uk/blog/2021-05-14_deep_zoom_theory_and_practice.html
+gives
 
-Claude Heiland-Allen, "Deep Zoom":
+`δz_{n+1} = 2Z_nδz_n + δz_n² + δc`.
 
-- https://mathr.co.uk/web/deep-zoom.html
+The CPU can compute the reference orbit at high precision; the GPU can evaluate many nearby delta orbits. Practical implementations must detect loss of perturbative accuracy and may need tile subdivision, a new reference, or rebasing.
 
-Kalles Fraktaler 2+ description:
+Perturbation is a credible Phase 3 extension, but productionizing it before the bounded need is measured would add two numerical systems and difficult edge cases prematurely.
 
-- https://mathr.co.uk/kf/kf.html
+## 11. Phase 0 numerical experiments
 
-### Method
+Three disposable experiments should compare the options before a production renderer is selected:
 
-Let C be a reference parameter with CPU-calculated orbit:
+1. **Worker CPU:** representative 512- and 768-pixel renders with realistic attracting-cycle detection, progressive output, and cancellation.
+2. **Direct WebGPU:** the same views, sampled against CPU and high-precision fixtures to find performance and practical `f32` limits.
+3. **One perturbation tile:** a CPU reference orbit plus GPU delta orbits, sampled against direct high-precision results.
 
-`Z[n+1] = Z[n]^2 + C`
+The experiments should report:
 
-For a nearby pixel c = C + dc and orbit z = Z + dZ:
+- coarse- and stable-frame latency;
+- cancellation response;
+- memory and transfer costs;
+- maximum useful zoom at the selected resolution;
+- disagreement by status, period, multiplier, and stability;
+- unresolved fraction; and
+- implementation complexity observed.
 
-`dZ[n+1] = 2 * Z[n] * dZ[n] + dZ[n]^2 + dc`
+The result is one initial production path, not three maintained renderers.
 
-The reference orbit is calculated in CPU binary64. The GPU stores the small dc and dZ values in f32. This avoids adding a tiny pixel displacement directly to a coordinate of order one in single precision.
+## 12. Correctness strategy
 
-### Relevance to a bounded atlas
+Binary64 CPU results are a useful independent baseline, not mathematical ground truth. Validation combines:
 
-Perturbation is useful even without unlimited zoom:
+- analytically known points;
+- independently computed high-precision fixtures;
+- exact-period checks over proper divisors;
+- invariant checks such as conjugate symmetry;
+- comparisons between independent numerical paths;
+- catalog residuals and provenance; and
+- versioned semantic or image regressions.
 
-- direct GPU f32 loses coordinate resolution at modest zoom;
-- JavaScript binary64 remains adequate for the deliberately bounded range;
-- many GPU pixels can share one precise CPU reference orbit;
-- cataloged component centers can serve as canonical interior references;
-- tile-local references can handle uncataloged and exterior regions.
+Selected points, catalog labels, and sparse samples deserve stronger CPU/high-precision verification. Bulk pixels that cannot be resolved within the budget remain visibly unresolved.
 
-### Failure handling
+## 13. Rendering semantics and palettes
 
-Perturbation is local and can fail through cancellation or excessive difference-orbit growth. The bounded project should prefer simple conservative recovery:
+Dynamics output should be semantic where memory permits:
 
-1. mark a glitch;
-2. subdivide the affected tile;
-3. calculate a closer reference;
-4. fall back to CPU binary64 if necessary.
+- status and evidence;
+- period;
+- multiplier;
+- stability;
+- iteration cost;
+- residual/confidence; and
+- catalog match.
 
-Do not begin with sophisticated rebasing, series approximation, or unlimited-reference management.
+Color is a later mapping from those values. This enables:
 
-## 11. Browser GPU constraints
+- palette changes without recomputing dynamics;
+- explicit legends;
+- color-vision-safe alternatives;
+- meaningful inspector values; and
+- future research overlays that do not rewrite the orbit kernel.
 
-### Sources
+The period view should emphasize selected periods or families rather than attempting a flat palette of dozens of equally important colors.
 
-W3C, WebGPU Shading Language:
+## 14. SVG
 
-- https://www.w3.org/TR/WGSL/
+SVG is well suited to vector overlays, labels, legends, component markers, and exported annotations. It is poorly suited to representing every pixel of a dense fractal raster as native vector geometry.
 
-MDN, WebGPU API:
+A pragmatic future export is hybrid:
 
-- https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API
+- raster image for the computed field;
+- SVG for catalog markers, labels, rays, curves, and legend; or
+- an SVG wrapper containing the raster plus vector annotations.
 
-MDN, GPUComputePipeline:
+Native SVG output is therefore an extension, not a first-release rendering target.
 
-- https://developer.mozilla.org/en-US/docs/Web/API/GPUComputePipeline
+## 15. Accessibility and interaction
 
-### Current constraints
+Accessibility cannot be postponed because the product communicates largely through color:
 
-WGSL's concrete scalar types include f32 and optional f16 but not f64. WGSL also permits implementation differences from full IEEE-754 behavior, including unspecified rounding direction in some contexts and documented accuracy bounds.
+- stable legends;
+- monotonic lightness for scalar stability;
+- non-color cues for selection and catalog identity;
+- color-vision-deficiency checks;
+- keyboard inspection;
+- readable unresolved treatment; and
+- a device-independent render-resolution cap.
 
-WebGPU compute pipelines are available in Web Workers on supporting browsers, but WebGPU is not yet a universal compatibility baseline.
+The first-run experience should begin with the recognizable full set, reveal the interior semantics, point out a few catalog components, and invite inspection before expecting the user to understand the coordinate systems.
 
-### Design consequence
+## 16. Research decisions
 
-- use WebGPU compute for direct orbit iteration, perturbation, provisional cycle detection, multipliers, and coloring;
-- keep the GPU device and OffscreenCanvas in a render worker;
-- retain CPU binary64 workers for correctness reference, verification, and fallback;
-- do not require WebGPU merely to open and understand the application;
-- test GPU results against deterministic CPU results.
+The current decisions are:
 
-## 12. Cycle detection and multiplier verification
+- Build a focused TypeScript web atlas.
+- Keep all orbit and raster work off the main thread.
+- Make multiplier and intrinsic stability the primary interior semantics.
+- Use period as a secondary structural view.
+- Separate status from evidence and expose unresolved results.
+- Include a small independently generated catalog in the first vertical slice.
+- Store exact rational angle data and durable project identifiers.
+- Do not import the published center database without an explicit data license.
+- Preserve canonical `c` and isolate chart mapping for future coordinate work.
+- Measure CPU, direct WebGPU, and one perturbation tile in Phase 0.
+- Select one initial production renderer from those measurements.
+- Treat perturbation, Significant Curves, Sharkovsky ordering, and renormalization as research extensions.
+- Keep the zoom bounded and derive the bound from numerical and interaction budgets.
 
-The exact runtime algorithm remains to be prototyped. A likely bounded approach is:
-
-1. iterate through a burn-in period;
-2. save a reference orbit value;
-3. detect a candidate return within a scaled tolerance;
-4. treat the return interval as candidate period p;
-5. repeat for additional cycles;
-6. refine a periodic point using Newton's method on f_c^p(z) - z;
-7. test proper divisors of p;
-8. calculate the multiplier;
-9. accept only with an adequate residual and attracting magnitude.
-
-### Risks
-
-- convergence near the component boundary can be slow;
-- a multiple of the exact period can be detected;
-- absolute tolerances do not scale uniformly;
-- GPU f32 can disagree with CPU binary64;
-- perturbation can become unreliable even when the reference itself is valid.
-
-### Required prototype
-
-Before committing to the catalog or overlays, build a CPU test harness over known centers and nearby points. Period semantics and confidence evidence must stabilize before GPU porting.
-
-## 13. Rendering architecture implications
-
-The research supports a hybrid pipeline:
-
-- wide view: direct GPU f32;
-- zoomed view: CPU binary64 reference orbit plus GPU perturbations;
-- ambiguous result: tile subdivision or CPU verification;
-- color change: GPU recoloring of cached semantic buffers;
-- inspected point: high-priority CPU verification;
-- unsupported GPU: CPU worker fallback.
-
-The semantic calculation result should remain independent from its presentation so that multiplier, period, and convergence views share the same computation.
-
-## 14. Research-backed boundaries
-
-The following boundaries keep the project focused:
-
-- multiplier coordinates before interior distance estimates;
-- curated component catalog before exhaustive enumeration;
-- selected Significant Curves before general analytic-curve tooling;
-- selected Sharkovsky veins before a global combinatorial explorer;
-- bounded CPU binary64 references before arbitrary precision;
-- tile subdivision before sophisticated perturbation rebasing;
-- CPU correctness before GPU optimization;
-- explicit unresolved states before aggressive classification.
-
-## 15. Questions requiring further research
-
-1. Where is the certified center database distributed, and what are its reuse terms?
-2. Is there a maintained, reusable dataset of internal and angled internal addresses?
-3. What is the most reliable bounded cycle-detection algorithm for CPU and GPU parity?
-4. What perturbation glitch criterion is appropriate for the supported range?
-5. How should multiplier colors remain perceptually legible across periods and near magnitude one?
-6. Which Significant Curves formulas should be included in the first overlay?
-7. Which veins from the Sharkovsky work make the clearest guided examples?
-8. What numerical and catalog limits should define the maximum zoom?
-9. What level of GPU/CPU disagreement is acceptable for provisional rendering?
-10. Which browser matrix is realistic for WebGPU and OffscreenCanvas?
-
-## 16. Preliminary conclusion
-
-The recent literature does not supply one new "interior coloring algorithm." Instead, it supplies several compatible structures:
-
-- multiplier uniformization gives the primary internal coordinate;
-- internal addresses give component identity and hierarchy;
-- certified centers give reference data;
-- Significant Curves give low-period analytic overlays;
-- Sharkovsky ordering gives curated paths through component periods;
-- perturbation provides a practical CPU/GPU numerical bridge;
-- explicit uncertainty prevents a finite computation from masquerading as proof.
-
-Together these support a project that is distinct from conventional Mandelbrot viewers while remaining narrow enough to implement and maintain.
+These choices deliberately concentrate the project on a legible mathematical idea rather than a broad fractal-viewer feature set.
