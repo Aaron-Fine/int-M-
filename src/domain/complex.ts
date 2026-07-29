@@ -1,5 +1,17 @@
 import type { Complex } from './types';
 
+/**
+ * JavaScript has no native complex-number type, so this module operates on the
+ * worker-friendly `{ re, im }` representation used at domain boundaries.
+ *
+ * TODO: Keep this module deliberately minimal: remove helpers without call
+ * sites, rename `complexSqrt` to `principalComplexSqrt`, and add tests for its
+ * branch semantics. Introduce a general complex-number library only if the
+ * non-rendering mathematics grows beyond a small, reviewable operation set.
+ * Per-pixel hot paths should continue to use scalar real/imaginary values to
+ * avoid allocating an object on every iteration.
+ */
+
 export const complexMagnitudeSquared = (value: Complex): number =>
   value.re * value.re + value.im * value.im;
 
