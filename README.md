@@ -27,14 +27,25 @@ Significant Curves, Sharkovsky-order overlays, perturbation rendering, and renor
 
 ## Technical direction
 
-The application is planned as a Vite-based, strict TypeScript web project with vanilla DOM/CSS. All rendering and orbit work will run away from the main UI thread. Phase 0 will compare a worker-based CPU renderer, direct WebGPU computation, and a small CPU-reference/GPU-perturbation experiment before the production renderer is selected.
+The initial implementation is a Vite-based, strict TypeScript application with vanilla DOM/CSS. Orbit classification, palette mapping, and raster production run in a worker behind a renderer-neutral protocol; the main thread handles interaction, accessibility, and presentation. The worker CPU renderer is the measured baseline while direct WebGPU and perturbation remain explicit Phase 0/Phase 3 experiments.
 
 The orbit engine will consume canonical complex parameters. Pixel-to-parameter and other coordinate conversions will live at an isolated chart boundary, leaving a clean seam for later experiments with multiplier, Böttcher, or straightening coordinates.
 
-See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), and [the SysML v2 system model](model/README.md).
+See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), [the implementation guide](docs/IMPLEMENTATION.md), and [the SysML v2 system model](model/README.md).
+
+## Run locally
+
+Node.js 22 and npm 10 or newer are required.
+
+```sh
+npm ci
+npm run dev
+```
+
+Run `npm run check` before submitting a pull request. It checks formatting, linting, strict TypeScript, the independently generated component catalog, unit tests, and the production build.
 
 ## Status
 
-Research and planning. Production implementation has not started.
+The first worker-rendered vertical slice is implemented: progressive CPU rendering, bounded pan and zoom, stability/multiplier/period views, an evidence-aware inspector, and an eleven-component low-period catalog. Direct WebGPU, perturbation, and the remaining Phase 0 measurements are not yet production features.
 
 Application code and documentation are licensed under GPL-3.0-only. Independently generated catalog data and numerical fixtures are dedicated to the public domain under CC0-1.0. External catalog data will not be imported without an explicit compatible data license.
