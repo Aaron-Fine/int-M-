@@ -16,7 +16,7 @@ later phase does not silently convert an unmet criterion into a pass.
 
 | Phase   | Readiness              | Blocking evidence                                                                                                                                    |
 | ------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 0 | **Not ready to close** | No direct WebGPU or perturbation experiment; no representative-device comparison; zoom bound remains provisional                                     |
+| Phase 0 | **Not ready to close** | No direct WebGPU or perturbation experiment; no representative-device comparison; renderer decision remains provisional                              |
 | Phase 1 | **Not ready to close** | No measured interaction budget on target hardware; incomplete failure/fallback verification; incomplete manual accessibility and color-vision review |
 
 The vertical slice is nevertheless deployable and coherent. The remaining
@@ -25,14 +25,14 @@ CPU architecture.
 
 ## Phase 0 exit criteria
 
-| Criterion                                                               | State       | Evidence and disposition                                                                                                                                                                                           |
-| ----------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Mathematical terms, status/evidence model, and v1 story are unambiguous | **Pass**    | [`PLAN.md`](../PLAN.md), [`RESEARCH.md`](../RESEARCH.md), and `MI-UX-001`–`MI-UX-016` in the [SysML model](../../model/MandelbrotInteriority.sysml) define the semantics and product story.                        |
-| Licenses and data provenance are recorded                               | **Pass**    | `LICENSE` and `package.json` declare GPL-3.0-only. Catalog and fixture files declare CC0-1.0 and name their generators.                                                                                            |
-| Catalog schema and golden-fixture procedures are reproducible           | **Pass**    | `npm run catalog:check` regenerates all exact-period centers through period four. `npm run fixtures:check` regenerates six Decimal fixtures; unit tests compare them with the TypeScript classifier.               |
-| All three rendering experiments have comparable measurements            | **Not met** | Only the Worker CPU renderer exists. The [common protocol](EXPERIMENT-PROTOCOL.md) records exactly what is missing; direct WebGPU and perturbation have no harness or result.                                      |
-| One initial rendering path and preliminary zoom bound are selected      | **Partial** | Worker CPU and `spanY=4…1e-10` are implemented and tested. [ADR 0001](../decisions/0001-interim-renderer-and-zoom.md) records why they remain provisional without the target-hardware and three-renderer evidence. |
-| No unresolved external data dependency blocks the scaffold              | **Pass**    | The initial catalog is independently generated. The unlicensed external period-41 data is excluded and does not block the application.                                                                             |
+| Criterion                                                               | State       | Evidence and disposition                                                                                                                                                                                                                                                                                                                 |
+| ----------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mathematical terms, status/evidence model, and v1 story are unambiguous | **Pass**    | [`PLAN.md`](../PLAN.md), [`RESEARCH.md`](../RESEARCH.md), and `MI-UX-001`–`MI-UX-016` in the [SysML model](../../model/MandelbrotInteriority.sysml) define the semantics and product story.                                                                                                                                              |
+| Licenses and data provenance are recorded                               | **Pass**    | `LICENSE` and `package.json` declare GPL-3.0-only. Catalog and fixture files declare CC0-1.0 and name their generators.                                                                                                                                                                                                                  |
+| Catalog schema and golden-fixture procedures are reproducible           | **Pass**    | `npm run catalog:check` regenerates all exact-period centers through period four. `npm run fixtures:check` regenerates six Decimal fixtures; unit tests compare them with the TypeScript classifier.                                                                                                                                     |
+| All three rendering experiments have comparable measurements            | **Not met** | Only the Worker CPU renderer exists. The [common protocol](EXPERIMENT-PROTOCOL.md) records exactly what is missing; direct WebGPU and perturbation have no harness or result.                                                                                                                                                            |
+| One initial rendering path and preliminary zoom bound are selected      | **Partial** | Worker CPU and a preliminary `6,000,000×` ceiling are implemented and tested. The [observation](../../evidence/phase-0/zoom-bound-observation-2026-07-29.md) supports the bound; [ADR 0001](../decisions/0001-interim-renderer-and-zoom.md) keeps the renderer decision provisional pending target-hardware and three-renderer evidence. |
+| No unresolved external data dependency blocks the scaffold              | **Pass**    | The initial catalog is independently generated. The unlicensed external period-41 data is excluded and does not block the application.                                                                                                                                                                                                   |
 
 ## Phase 1 deliverable evidence
 
@@ -71,7 +71,8 @@ binaries are unavailable.
    long-task budgets from those results.
 2. Implement and run the disposable direct WebGPU and perturbation experiments,
    or approve a criteria change that moves both comparisons to Phase 3.
-3. Use those results to finalize the renderer and zoom-bound ADR.
+3. Use those results to finalize the renderer decision and confirm or revise
+   the preliminary `6,000,000×` zoom ceiling.
 4. Complete the manual WCAG 2.2 AA, keyboard-focus, canvas alternative, 200%
    zoom/reflow, and color-vision review checklist.
 5. Resolve the incomplete `MI-UX-013` failure-injection and `MI-UX-014`

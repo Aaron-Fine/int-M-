@@ -12,17 +12,20 @@ zoom bound. The focused vertical slice currently implements only the Worker CPU
 path. A renderer-neutral worker boundary exists, but there are no disposable
 WebGPU or perturbation implementations and therefore no comparable results.
 
-The current viewport enforces `spanY` from `4` down to `1e-10`. This is a
-deliberate product bound in code and tests, but its numerical margin and target
-device performance have not yet been established by the full Phase 0
-experiment.
+Direct use of the Cloudflare Pages preview found the practical edge of useful
+detail at approximately `5.42e6×` in the Detailed stability view. The
+[observation record](../../evidence/phase-0/zoom-bound-observation-2026-07-29.md)
+supports a nearby preliminary product ceiling of `6,000,000×`. From the
+default vertical span of `2.5`, this derives a minimum `spanY` of approximately
+`4.17e-7`.
 
 ## Interim decision
 
-Continue using the binary64 Worker CPU renderer for the Phase 1 candidate. Keep
-the existing viewport bound while it is clearly communicated to the user.
-Treat both choices as provisional operational decisions, not as evidence that
-the Phase 0 experiment criterion passed.
+Continue using the binary64 Worker CPU renderer for the Phase 1 candidate.
+Adopt `6,000,000×` as the preliminary reliability ceiling for that renderer
+and its present numerical budgets, and communicate that scope explicitly to
+the user. Treat the renderer choice as a provisional operational decision, not
+as evidence that the Phase 0 comparison criterion passed.
 
 This choice preserves the smallest coherent implementation:
 
@@ -31,6 +34,8 @@ This choice preserves the smallest coherent implementation:
 - unresolved remains explicit when a finite budget is exhausted;
 - independently generated Decimal fixtures cross-check the binary64
   classifier; and
+- the zoom bound reflects observed product behavior without claiming a
+  fundamental binary64 limit; and
 - the renderer-neutral protocol leaves room for a later measured replacement.
 
 ## Available measurement
@@ -50,10 +55,12 @@ latency.
 - Phase 1 implementation can continue without introducing an unmeasured GPU
   architecture.
 - Phase 0 remains open under its current exit criteria.
+- `MAX_MAGNIFICATION` is the authoritative product limit; the minimum viewport
+  span is derived from it and can be revised with later renderer evidence.
 - Closing Phase 0 requires either:
   1. running the direct WebGPU and perturbation experiments under the common
      protocol and recording the target-hardware comparison; or
   2. an explicit approved change to the Phase 0 exit criteria explaining why
      those experiments moved to Phase 3.
-- A final zoom bound must state the binary64 precision margin, target-device
-  latency, resolution, and quality assumptions that justify it.
+- Target-device performance runs must still characterize latency, resolution,
+  and quality behavior at the preliminary ceiling before finalizing it.

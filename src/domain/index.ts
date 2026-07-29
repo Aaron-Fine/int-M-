@@ -21,6 +21,7 @@ export {
   complexToPixel,
   createViewportTransform,
   DEFAULT_VIEWPORT,
+  MAX_MAGNIFICATION,
   MAX_VIEWPORT_SPAN_Y,
   MIN_VIEWPORT_SPAN_Y,
   panViewport,

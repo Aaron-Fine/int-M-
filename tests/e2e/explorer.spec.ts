@@ -58,6 +58,18 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await canvas.press('-');
     await canvas.press('-');
     await expect(page.getByText('Already showing the complete Mandelbrot set.')).toBeVisible();
+
+    await canvas.press('0');
+    for (let step = 0; step < 31; step += 1) {
+      await canvas.press('+');
+    }
+    await expect(page.getByLabel('Magnification')).toHaveText('6.00e6×');
+    await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+    await expect(
+      page.getByText(
+        'Reached the current reliable zoom limit for this renderer and numerical budget.',
+      ),
+    ).toBeVisible();
   });
 
   test('catalog markers are keyboard-selectable and populate evidence', async ({ page }) => {
