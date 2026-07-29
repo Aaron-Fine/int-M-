@@ -106,7 +106,7 @@ package MandelbrotInteriority {
             part canvasPresenter : CanvasPresenter;
             part capabilitySelector : CapabilitySelector;
             part firstUseGuidance : FirstUseGuidance;
-        port renderChannel : UIWorkerPort;
+            port renderChannel : UIWorkerPort;
         }
 
         part def CoordinateMapper;
@@ -142,7 +142,7 @@ package MandelbrotInteriority {
             part renderingWorker : RenderingWorker;
             part catalogData : CatalogData;
 
-        connect uiShell.renderChannel to renderingWorker.userInterface;
+            connect uiShell.renderChannel to renderingWorker.userInterface;
         }
 
         part def HighPrecisionFixtureGenerator;
