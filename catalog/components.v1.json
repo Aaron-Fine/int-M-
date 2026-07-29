@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "license": "CC0-1.0",
+  "method": "Independently generated roots of f_c^p(0) = 0 with proper-period checks.",
+  "components": [
+    {
+      "id": "mi-p1-main",
+      "label": "Main cardioid",
+      "center": { "re": 0, "im": 0 },
+      "centerPrecisionDigits": 16,
+      "period": 1,
+      "internalAddress": [1]
+    },
+    {
+      "id": "mi-p2-basilica",
+      "label": "Period-2 bulb",
+      "center": { "re": -1, "im": 0 },
+      "centerPrecisionDigits": 16,
+      "period": 2,
+      "internalAddress": [1, 2],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 2,
+          "rotation": { "numerator": 1, "denominator": 2 }
+        }
+      ],
+      "characteristicRays": [
+        { "numerator": 1, "denominator": 3 },
+        { "numerator": 2, "denominator": 3 }
+      ]
+    },
+    {
+      "id": "mi-p3-airplane",
+      "label": "Airplane",
+      "center": { "re": -1.7548776662466907, "im": 0 },
+      "centerPrecisionDigits": 15,
+      "period": 3,
+      "internalAddress": [1, 2, 3],
+      "characteristicRays": [
+        { "numerator": 3, "denominator": 7 },
+        { "numerator": 4, "denominator": 7 }
+      ]
+    },
+    {
+      "id": "mi-p3-corabbit",
+      "label": "Co-rabbit",
+      "center": { "re": -0.1225611668766535, "im": -0.7448617666197435 },
+      "centerPrecisionDigits": 15,
+      "period": 3,
+      "internalAddress": [1, 3],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 3,
+          "rotation": { "numerator": 2, "denominator": 3 }
+        }
+      ],
+      "characteristicRays": [
+        { "numerator": 5, "denominator": 7 },
+        { "numerator": 6, "denominator": 7 }
+      ]
+    },
+    {
+      "id": "mi-p3-rabbit",
+      "label": "Douady rabbit",
+      "center": { "re": -0.1225611668766535, "im": 0.7448617666197435 },
+      "centerPrecisionDigits": 15,
+      "period": 3,
+      "internalAddress": [1, 3],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 3,
+          "rotation": { "numerator": 1, "denominator": 3 }
+        }
+      ],
+      "characteristicRays": [
+        { "numerator": 1, "denominator": 7 },
+        { "numerator": 2, "denominator": 7 }
+      ]
+    },
+    {
+      "id": "mi-p4-01",
+      "label": "Period-4 component 1",
+      "center": { "re": -1.9407998065294834, "im": 0 },
+      "centerPrecisionDigits": 14,
+      "period": 4
+    },
+    {
+      "id": "mi-p4-02",
+      "label": "Period-4 component 2",
+      "center": { "re": -1.3107026413368348, "im": 0 },
+      "centerPrecisionDigits": 15,
+      "period": 4,
+      "internalAddress": [1, 2, 4]
+    },
+    {
+      "id": "mi-p4-03",
+      "label": "Period-4 component 3",
+      "center": { "re": -0.1565201668337543, "im": -1.0322471089228327 },
+      "centerPrecisionDigits": 14,
+      "period": 4
+    },
+    {
+      "id": "mi-p4-04",
+      "label": "Period-4 component 4",
+      "center": { "re": -0.1565201668337543, "im": 1.0322471089228327 },
+      "centerPrecisionDigits": 14,
+      "period": 4
+    },
+    {
+      "id": "mi-p4-05",
+      "label": "Period-4 component 5",
+      "center": { "re": 0.2822713907669141, "im": -0.5300606175785254 },
+      "centerPrecisionDigits": 15,
+      "period": 4
+    },
+    {
+      "id": "mi-p4-06",
+      "label": "Period-4 component 6",
+      "center": { "re": 0.2822713907669141, "im": 0.5300606175785254 },
+      "centerPrecisionDigits": 15,
+      "period": 4
+    }
+  ]
+}

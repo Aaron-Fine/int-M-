@@ -1,0 +1,138 @@
+# Implementation foundation
+
+This document records the implementation conventions for Phase 1. It is deliberately narrower than
+the [project plan](PLAN.md) and the
+[SysML v2 model](../model/MandelbrotInteriority.sysml): those documents define intent and
+requirements, while this one defines the working boundaries and repeatable commands.
+
+## Supported environment
+
+- Node.js 22 LTS (`.nvmrc`), with a minimum of 22.13
+- npm 10 or newer
+- Python 3.11 or newer for the offline catalog generator
+- Current stable desktop Firefox and Chrome/Chromium
+- A mainstream four-core laptop with integrated graphics as the performance baseline
+
+TypeScript is pinned to 6.0.3. TypeScript 7 is the current npm `latest`, but the current typed ESLint
+release supports TypeScript only through 6.0.x. The project should move to TypeScript 7 after that
+toolchain compatibility is explicit.
+
+## Local workflow
+
+```sh
+npm ci
+npm run dev
+```
+
+Vite serves the application at `http://127.0.0.1:5173`. The other common commands are:
+
+| Command                 | Purpose                                               |
+| ----------------------- | ----------------------------------------------------- |
+| `npm run format`        | Format supported source and documentation             |
+| `npm run format:check`  | Check formatting without changing files               |
+| `npm run lint`          | Run ESLint with typed, strict TypeScript rules        |
+| `npm run typecheck`     | Check UI, worker, Node, and browser-test projects     |
+| `npm run catalog:check` | Independently regenerate and validate catalog data    |
+| `npm run test:unit`     | Run deterministic unit and worker tests               |
+| `npm run test:browser`  | Run end-to-end tests in Chromium and Firefox          |
+| `npm run build`         | Type-check and create production assets in `dist/`    |
+| `npm run build:assets`  | Create assets after an already-successful type-check  |
+| `npm run preview`       | Serve the production build at `http://127.0.0.1:4173` |
+| `npm run check`         | Run the fast local pre-PR checks                      |
+
+Install Playwright's managed browsers once on a development machine:
+
+```sh
+npx playwright install chromium firefox
+```
+
+`npm run test:unit` and `npm run test:browser` temporarily permit an empty test set so independent
+foundation changes can land without placeholder tests. Phase 1 is not complete until real unit and
+browser tests replace that allowance.
+
+## Architecture boundaries
+
+The browser main thread owns DOM interaction, accessibility, viewport intent, and presentation. It
+must not run orbit iteration or per-pixel classification. The rendering worker owns numerical work,
+cancellation, progress, and semantic tile production. The stable message protocol between them is a
+versioned domain boundary, not an incidental serialization of UI state.
+
+The intended dependency direction is:
+
+1. Domain types and pure numerical functions depend on no browser UI.
+2. The worker depends on domain and numerical modules.
+3. The UI depends on domain contracts and the worker client, but not worker implementation modules.
+4. Palette and display changes consume semantic render results; they do not trigger numerical
+   reclassification unless the requested semantic quantity changes.
+5. Catalog identifiers and mathematical evidence remain distinct. A label may be attached only
+   when the available evidence supports it, and unresolved points remain explicit.
+
+Separate TypeScript configurations enforce different ambient environments for application and worker
+code. `tsconfig.app.json` supplies DOM types; `tsconfig.worker.json` supplies Web Worker types. Shared
+math and protocol modules should stay free of both environments where practical.
+
+The initial worker may use the CPU reference implementation. A GPU or WebAssembly implementation
+should satisfy the same protocol rather than leak renderer-specific state into the UI.
+
+## Testing boundaries
+
+- Unit tests should cover pure complex arithmetic, viewport transforms, orbit/classification rules,
+  catalog matching, cancellation state, and protocol validation.
+- Worker tests should verify progressive/coarse-to-stable messages and rejection of superseded work.
+- Playwright tests should cover the first-use render, reset, bounded zoom feedback, semantic legend,
+  keyboard operation, inspector evidence, and renderer fallback.
+- Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
+  intended for reuse belong under CC0-1.0; application tests remain GPL-3.0-only.
+- Performance assertions should use broad budgets and recorded hardware context. Avoid making CI
+  timing on shared runners the normative performance measurement.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs two jobs for pull requests and changes to `main`:
+
+- static checks, unit tests, and a production build;
+- Playwright tests against current managed Chromium and Firefox binaries.
+
+The jobs use `npm ci` and the checked-in lockfile. Failed browser runs upload their Playwright report;
+successful quality runs retain the built `dist/` directory briefly for inspection. Branch protection
+should require both jobs before merge.
+
+## Cloudflare Pages
+
+Cloudflare Pages can deploy the Vite output without Workers or a Wrangler configuration. Connect the
+GitHub repository and use these project settings:
+
+| Setting                | Value                                                       |
+| ---------------------- | ----------------------------------------------------------- |
+| Production branch      | `main`                                                      |
+| Build command          | `npm run build`                                             |
+| Build output directory | `dist`                                                      |
+| Root directory         | repository root                                             |
+| Node version           | `22` via `NODE_VERSION=22` if Pages does not honor `.nvmrc` |
+
+Enable preview deployments for pull requests. Do not store secrets in Vite `VITE_*` variables: all
+such variables are compiled into client assets. The application is intended to remain a fully static
+site, so no runtime secret should be necessary.
+
+`public/_headers` adds conservative browser security headers to the deployed assets. If a later
+WebAssembly renderer uses shared memory, add and test
+`Cross-Origin-Embedder-Policy: require-corp` alongside the existing opener policy; that change can
+affect externally loaded resources and should not be made speculatively.
+
+## Requirements traceability
+
+This foundation directly supports:
+
+| Requirement or decision     | Foundation support                                                       |
+| --------------------------- | ------------------------------------------------------------------------ |
+| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build  |
+| MI-UX-007 through MI-UX-009 | Main-thread/worker separation and interaction-test boundary              |
+| MI-UX-010 through MI-UX-012 | Semantic-result boundary and inspector/legend test coverage              |
+| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility         |
+| MI-UX-014                   | Renderer-neutral protocol and required fallback browser test             |
+| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary      |
+| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings         |
+| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI |
+
+These entries establish the verification hooks; they do not claim that the user-visible requirement
+is satisfied before the corresponding behavior and tests exist.
