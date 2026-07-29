@@ -20,6 +20,9 @@
   --accent: #d75b36;
   --accent-strong: #a83c1f;
   --accent-soft: #f7ded5;
+  --accent-button: #a83c1f;
+  --accent-button-hover: #7e2d18;
+  --accent-button-ink: #ffffff;
   --focus: #1867c0;
   --ready: #24724b;
   --warning: #8a5b05;
@@ -45,6 +48,9 @@
     --accent: #f1815e;
     --accent-strong: #ffa180;
     --accent-soft: #4b2920;
+    --accent-button: #f1815e;
+    --accent-button-hover: #ffa180;
+    --accent-button-ink: #17201c;
     --focus: #77b8ff;
     --ready: #69cf97;
     --warning: #e0b253;
@@ -372,13 +378,13 @@ button:disabled {
 
 .primary-button {
   padding-inline: 1.15rem;
-  color: white;
-  background: var(--accent);
-  border-color: var(--accent);
+  color: var(--accent-button-ink);
+  background: var(--accent-button);
+  border-color: var(--accent-button);
 }
 
 .primary-button:hover {
-  background: var(--accent-strong);
+  background: var(--accent-button-hover);
 }
 
 .explorer {

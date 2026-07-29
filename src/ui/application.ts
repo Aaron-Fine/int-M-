@@ -225,6 +225,7 @@ export function mountApplication(host: HTMLElement): () => void {
   const catalogOverlay = element('div', {
     className: 'catalog-overlay',
     attributes: {
+      role: 'group',
       'aria-label': 'Named Mandelbrot components',
     },
   });
