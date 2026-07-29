@@ -54,7 +54,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
 
     await expect(page.getByRole('heading', { name: 'Main cardioid' })).toBeVisible();
     await expect(page.getByText('Internal address')).toBeVisible();
-    await expect(page.getByText('Attracting cycle')).toBeVisible({
+    await expect(page.getByText('Attracting cycle', { exact: true })).toBeVisible({
       timeout: 10_000,
     });
     await expect(page.getByText('Stability exponent κ')).toBeVisible();
