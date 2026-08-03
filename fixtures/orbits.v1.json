@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "license": "CC0-1.0",
+  "generator": "tools/generate_orbit_fixtures.py",
+  "method": "Python Decimal iteration independent of the TypeScript binary64 classifier; attracting fixtures use a declared known period.",
+  "precisionDigits": 80,
+  "binary64Tolerance": {
+    "multiplierMagnitudeAbsolute": 1e-7
+  },
+  "fixtures": [
+    {
+      "id": "escape-one-plus-i",
+      "parameter": {
+        "re": "1",
+        "im": "1"
+      },
+      "classificationBudget": {
+        "maxIterations": 16,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "escaped",
+        "escapeIteration": 2,
+        "magnitudeSquared": "10"
+      }
+    },
+    {
+      "id": "main-cardioid-center",
+      "parameter": {
+        "re": "0",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 64,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 1,
+        "settledAfterIterations": 1,
+        "cycleClosureResidualSquared": "0",
+        "multiplier": {
+          "re": "0",
+          "im": "0",
+          "magnitude": "0"
+        }
+      }
+    },
+    {
+      "id": "period-two-center",
+      "parameter": {
+        "re": "-1",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 64,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 2,
+        "settledAfterIterations": 1,
+        "cycleClosureResidualSquared": "0",
+        "multiplier": {
+          "re": "-0",
+          "im": "0",
+          "magnitude": "0"
+        }
+      }
+    },
+    {
+      "id": "period-three-off-center",
+      "parameter": {
+        "re": "-0.12",
+        "im": "0.74"
+      },
+      "classificationBudget": {
+        "maxIterations": 2048,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 67,
+        "cycleClosureResidualSquared": "6.3460475042501564102931789872075379176234742500255025005246886609266027918579514E-63",
+        "multiplier": {
+          "re": "0.050092816991242598287603796073471770118659732894456602231118601455946191228156172",
+          "im": "0.029603214108057098978115968501482121660504784151706960781536714920794519057813596",
+          "magnitude": "0.058186257824726913946072725149398542527385340372923527654809551204205569112151791"
+        }
+      }
+    },
+    {
+      "id": "period-four-off-center",
+      "parameter": {
+        "re": "-1.30",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 2048,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 4,
+        "settledAfterIterations": 145,
+        "cycleClosureResidualSquared": "2.5552225609806887011352380883839877021810743311429197506856934442831891366411530E-61",
+        "multiplier": {
+          "re": "0.18054275318673077035218345347127029398673965503614893765819596156686775596756607",
+          "im": "0E-11346",
+          "magnitude": "0.18054275318673077035218345347127029398673965503614893765819596156686775596756607"
+        }
+      }
+    },
+    {
+      "id": "parabolic-boundary-minus-three-quarters",
+      "parameter": {
+        "re": "-0.75",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 1024,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "unresolved",
+        "iterations": 1024,
+        "lastMagnitudeSquared": "0.22828232081046918617618175682120258907296052951440833393673962049699579536979418",
+        "reason": "budget-exhausted-at-known-parabolic-boundary"
+      }
+    }
+  ]
+}

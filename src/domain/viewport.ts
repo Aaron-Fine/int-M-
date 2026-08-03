@@ -6,10 +6,12 @@ export const DEFAULT_VIEWPORT: Viewport = Object.freeze({
 });
 
 /**
- * The CPU baseline intentionally stops before binary64 precision becomes a
- * misleading representation of adjacent screen pixels.
+ * Empirical reliability ceiling for the current binary64 CPU renderer and its
+ * finite iteration, period, and resolution budgets. This is a product bound,
+ * not the representational limit of binary64 or a limit on future renderers.
  */
-export const MIN_VIEWPORT_SPAN_Y = 1e-10;
+export const MAX_MAGNIFICATION = 6_000_000;
+export const MIN_VIEWPORT_SPAN_Y = DEFAULT_VIEWPORT.spanY / MAX_MAGNIFICATION;
 export const MAX_VIEWPORT_SPAN_Y = 4;
 
 const requireFinitePositive = (value: number, name: string): void => {

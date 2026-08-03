@@ -225,6 +225,7 @@ export function mountApplication(host: HTMLElement): () => void {
   const catalogOverlay = element('div', {
     className: 'catalog-overlay',
     attributes: {
+      role: 'group',
       'aria-label': 'Named Mandelbrot components',
     },
   });
@@ -439,7 +440,7 @@ export function mountApplication(host: HTMLElement): () => void {
     if (nextScale === state.viewport.spanY) {
       showFeedback(
         direction === 'in'
-          ? 'Purposeful zoom limit reached. This keeps the analysis reliable.'
+          ? 'Reached the current reliable zoom limit for this renderer and numerical budget.'
           : 'Already showing the complete Mandelbrot set.',
       );
       canvasShell.classList.remove('explorer--bounded');
@@ -709,7 +710,7 @@ export function mountApplication(host: HTMLElement): () => void {
         if (next.spanY === session.viewport.spanY) {
           showFeedback(
             session.viewport.spanY <= MIN_SCALE
-              ? 'Purposeful zoom limit reached. This keeps the analysis reliable.'
+              ? 'Reached the current reliable zoom limit for this renderer and numerical budget.'
               : 'That selection already covers the current view.',
           );
         } else {

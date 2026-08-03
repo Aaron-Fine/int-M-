@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_VIEWPORT,
+  MAX_MAGNIFICATION,
   MAX_VIEWPORT_SPAN_Y,
   MIN_VIEWPORT_SPAN_Y,
   clampViewport,
@@ -27,7 +28,11 @@ describe('viewport mapping', () => {
     expect(bottomRight).toEqual({ re: 1.125, im: -0.625 });
   });
 
-  it('clamps zoom to the deliberate binary64 bounds', () => {
+  it('derives the reliable minimum span from the declared magnification ceiling', () => {
+    expect(DEFAULT_VIEWPORT.spanY / MIN_VIEWPORT_SPAN_Y).toBe(MAX_MAGNIFICATION);
+  });
+
+  it('clamps zoom to the deliberate product bounds', () => {
     expect(clampViewport({ center: { re: 0, im: 0 }, spanY: 1e-30 }).spanY).toBe(
       MIN_VIEWPORT_SPAN_Y,
     );
@@ -120,7 +125,7 @@ describe('viewport mapping', () => {
     expect(selected.spanY).toBeCloseTo(1.25);
   });
 
-  it('keeps the existing center when already at the deliberate minimum span', () => {
+  it('keeps the existing center when already at the reliable minimum span', () => {
     const minimum = {
       center: { re: -0.12, im: 0.74 },
       spanY: MIN_VIEWPORT_SPAN_Y,

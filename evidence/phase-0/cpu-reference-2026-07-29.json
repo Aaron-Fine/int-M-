@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "license": "CC0-1.0",
+  "baselineCommit": "7c991a27792f6b23d099d6ae2b56928485da2ab6",
+  "command": "INTM_EVIDENCE_SAMPLES=3 npm run evidence:cpu",
+  "measuredAt": "2026-07-29T19:55:27.044Z",
+  "renderer": "cpu-binary64",
+  "executionMode": "Node process invoking the production CpuRenderer directly",
+  "environment": {
+    "node": "v24.14.0",
+    "platform": "linux",
+    "platformRelease": "6.12.13",
+    "logicalCpuCount": 9,
+    "cpuModel": "AMD EPYC 9V74 80-Core Processor",
+    "totalMemoryBytes": 17105375232,
+    "note": "Hosted work container, not the four-core integrated-graphics target. Node measures the production renderer without worker messaging, browser presentation, or main-thread long tasks."
+  },
+  "sampleCount": 3,
+  "measurements": [
+    {
+      "id": "full-set-512",
+      "viewport": {
+        "center": {
+          "re": -0.5,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "size": {
+        "width": 512,
+        "height": 384
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "samples": [
+        {
+          "coarseMs": 14.34,
+          "stableMs": 198.16,
+          "totalMs": 212.49,
+          "semanticBytes": 4128768
+        },
+        {
+          "coarseMs": 10.12,
+          "stableMs": 186.27,
+          "totalMs": 196.39,
+          "semanticBytes": 4128768
+        },
+        {
+          "coarseMs": 9.35,
+          "stableMs": 200.56,
+          "totalMs": 209.91,
+          "semanticBytes": 4128768
+        }
+      ],
+      "median": {
+        "coarseMs": 10.12,
+        "stableMs": 198.16,
+        "totalMs": 209.91,
+        "cancellationAfterCoarseMs": 0.23,
+        "semanticBytes": 4128768
+      }
+    },
+    {
+      "id": "period-three-neighborhood-768",
+      "viewport": {
+        "center": {
+          "re": -0.12,
+          "im": 0.74
+        },
+        "spanY": 0.35
+      },
+      "size": {
+        "width": 768,
+        "height": 512
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "samples": [
+        {
+          "coarseMs": 24.72,
+          "stableMs": 2325.64,
+          "totalMs": 2350.37,
+          "semanticBytes": 8257536
+        },
+        {
+          "coarseMs": 28.9,
+          "stableMs": 2244.79,
+          "totalMs": 2273.69,
+          "semanticBytes": 8257536
+        },
+        {
+          "coarseMs": 25.89,
+          "stableMs": 2239.97,
+          "totalMs": 2265.87,
+          "semanticBytes": 8257536
+        }
+      ],
+      "median": {
+        "coarseMs": 25.89,
+        "stableMs": 2244.79,
+        "totalMs": 2273.69,
+        "cancellationAfterCoarseMs": 0.14,
+        "semanticBytes": 8257536
+      }
+    }
+  ]
+}

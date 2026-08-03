@@ -31,11 +31,11 @@ The initial implementation is a Vite-based, strict TypeScript application with v
 
 The orbit engine will consume canonical complex parameters. Pixel-to-parameter and other coordinate conversions will live at an isolated chart boundary, leaving a clean seam for later experiments with multiplier, Böttcher, or straightening coordinates.
 
-See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), [the implementation guide](docs/IMPLEMENTATION.md), and [the SysML v2 system model](model/README.md).
+See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), [the implementation guide](docs/IMPLEMENTATION.md), [the Phase 0/1 closeout evidence](docs/verification/PHASE-0-1-CLOSEOUT.md), and [the SysML v2 system model](model/README.md).
 
 ## Run locally
 
-Node.js 22 and npm 10 or newer are required.
+Node.js 24.18.0 LTS and npm 11 are required.
 
 ```sh
 npm ci
