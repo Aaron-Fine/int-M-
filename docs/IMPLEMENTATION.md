@@ -13,6 +13,10 @@ requirements, while this one defines the working boundaries and repeatable comma
 - Current stable desktop Firefox and Chrome/Chromium
 - A mainstream four-core laptop with integrated graphics as the performance baseline
 
+The measured Phase 0 target-hardware results, preliminary budgets, renderer
+decision, and reproduction commands are recorded in
+[the Phase 0 benchmark report](PHASE0_BENCHMARK.md).
+
 TypeScript is pinned to 6.0.3. TypeScript 7 is the current npm `latest`, but the current typed ESLint
 release supports TypeScript only through 6.0.x. The project should move to TypeScript 7 after that
 toolchain compatibility is explicit.
