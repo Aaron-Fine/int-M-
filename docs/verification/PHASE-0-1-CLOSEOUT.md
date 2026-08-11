@@ -68,6 +68,9 @@ binaries are unavailable.
 
 ## Phase 1 closeout actions that remain
 
+The ordered implementation and evidence backlog is maintained in the
+[Phase 1 closeout TODO](PHASE1-TODO.md).
+
 1. Complete the manual WCAG 2.2 AA, keyboard-focus, canvas alternative, 200%
    zoom/reflow, and color-vision review checklist.
 2. Resolve the incomplete `MI-UX-013` failure-injection and `MI-UX-014`
