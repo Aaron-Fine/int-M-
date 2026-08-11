@@ -349,8 +349,14 @@ The current decisions are:
 - Store exact rational angle data and durable project identifiers.
 - Do not import the published center database without an explicit data license.
 - Preserve canonical `c` and isolate chart mapping for future coordinate work.
-- Measure CPU, direct WebGPU, and one perturbation tile in Phase 0.
-- Select one initial production renderer from those measurements.
+- Phase 0 measured CPU, direct WebGPU, and one perturbation tile on the target
+  hardware class.
+- Use Worker CPU as the initial production renderer and retain the
+  `6,000,000×` supported product ceiling.
+- Defer production WebGPU until it is enabled by default in stable Firefox on
+  every supported desktop platform and passes the semantic, fallback, and
+  recovery gates in
+  [ADR 0002](decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md).
 - Treat perturbation, Significant Curves, Sharkovsky ordering, and renormalization as research extensions.
 - Keep the zoom bounded and derive the bound from numerical and interaction budgets.
 

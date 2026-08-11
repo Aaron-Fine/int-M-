@@ -1,10 +1,13 @@
 # ADR 0001: Interim CPU renderer and bounded binary64 viewport
 
-- Status: Provisional; does not close the Phase 0 comparison criterion
+- Status: Superseded by [ADR 0002](0002-phase-0-renderer-zoom-and-gpu-gate.md)
 - Date: 2026-07-29
 - Baseline: merge commit `7c991a2`
 
 ## Context
+
+This record preserves the provisional decision made before the target-hardware
+comparison. ADR 0002 records the final Phase 0 renderer, zoom, and GPU gate.
 
 Phase 0 requires comparable Worker CPU, direct WebGPU, and perturbation-tile
 experiments before selecting the initial production renderer and deriving a
