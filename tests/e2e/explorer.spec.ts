@@ -375,7 +375,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
         expect(guidanceBox.y + guidanceBox.height).toBeLessThanOrEqual(viewport.height);
       }
 
-      await page.getByRole('button', { name: 'Explore' }).click();
+      await page.getByRole('button', { name: 'Explore', exact: true }).click();
       await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
 
       const pageWidth = await page.evaluate(() => ({
