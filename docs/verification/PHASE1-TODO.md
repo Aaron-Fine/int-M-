@@ -26,11 +26,11 @@ The detailed evidence references remain in the
 [requirements matrix](REQUIREMENTS.md). This summary is the planning baseline;
 update both documents as evidence is completed.
 
-| State   | Requirements                                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------------------------- |
-| Pass    | `MI-UX-001`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`                                        |
-| Partial | `MI-UX-002`, `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-012`, `MI-UX-013`, `MI-UX-015`, `MI-UX-016` |
-| Not met | `MI-UX-014`                                                                                                         |
+| State   | Requirements                                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------ |
+| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`–`MI-UX-014` |
+| Partial | `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                       |
+| Not met | None                                                                                                               |
 
 ## Ordered closeout backlog
 
@@ -42,14 +42,14 @@ can expand the remediation work.
 **Trace:** `MI-UX-002`, `MI-UX-014`  
 **Estimate:** 0.5–1 engineering day
 
-- [ ] Change the sensible-default requirement from speculative automatic
+- [x] Change the sensible-default requirement from speculative automatic
       renderer selection to the selected Worker CPU renderer.
-- [ ] Reframe automatic fallback so any future optional renderer falls back to
+- [x] Reframe automatic fallback so any future optional renderer falls back to
       Worker CPU, while the current CPU-only product provides automatic worker
       recovery.
-- [ ] Update the associated SysML verification objective so Phase 1 does not
+- [x] Update the associated SysML verification objective so Phase 1 does not
       require an intentionally deferred WebGPU implementation.
-- [ ] Reconcile the requirement matrix and implementation guide with the
+- [x] Reconcile the requirement matrix and implementation guide with the
       accepted ADR 0002 language.
 
 **Done when:** the normative model, ADR, implementation guide, and verification
@@ -61,19 +61,19 @@ future renderer-fallback requirement.
 **Trace:** `MI-UX-013`, `MI-UX-014`  
 **Estimate:** 2–4 engineering days
 
-- [ ] Introduce a worker factory and lifecycle boundary rather than retaining
+- [x] Introduce a worker factory and lifecycle boundary rather than retaining
       one immutable worker for the application lifetime.
-- [ ] Handle both worker `error` and `messageerror` events.
-- [ ] Automatically recreate the worker once and resubmit the current render
+- [x] Handle both worker `error` and `messageerror` events.
+- [x] Automatically recreate the worker once and resubmit the current render
       after an unexpected worker failure.
-- [ ] Bound automatic retries so a persistent fault cannot create a restart
+- [x] Bound automatic retries so a persistent fault cannot create a restart
       loop.
-- [ ] Preserve, cancel, or explicitly restart pending point inspection during
+- [x] Preserve, cancel, or explicitly restart pending point inspection during
       recovery.
-- [ ] Present a nonblocking persistent failure state with a keyboard-operable
+- [x] Present a nonblocking persistent failure state with a keyboard-operable
       **Retry renderer** action after automatic recovery is exhausted.
-- [ ] Add unit coverage for render rejection followed by successful work.
-- [ ] Add browser failure injection covering worker crash, automatic recovery,
+- [x] Add unit coverage for render rejection followed by successful work.
+- [x] Add browser failure injection covering worker crash, automatic recovery,
       persistent failure, manual retry, and continued control operation.
 
 **Done when:** a recoverable render or worker failure does not require a page
@@ -85,13 +85,13 @@ browser scenarios pass in Firefox and Chromium.
 **Trace:** `MI-UX-007`  
 **Estimate:** 1–2 engineering days
 
-- [ ] Translate the most recent stable presentation while a pointer pan is in
+- [x] Translate the most recent stable presentation while a pointer pan is in
       progress, or implement an equally direct visual preview.
-- [ ] Reset the preview transform when the replacement coarse frame is
+- [x] Reset the preview transform when the replacement coarse frame is
       presented or when the interaction is cancelled.
-- [ ] Verify that pointer and keyboard navigation cancel superseded work and
+- [x] Verify that pointer and keyboard navigation cancel superseded work and
       that stale frames cannot replace the current request.
-- [ ] Add a Playwright pointer-pan scenario asserting live displacement, final
+- [x] Add a Playwright pointer-pan scenario asserting live displacement, final
       viewport state, replacement rendering, and pointer-cancel cleanup.
 
 **Done when:** pan, point zoom, and area zoom all provide immediate visible
@@ -102,20 +102,20 @@ feedback and replacement work observes the cancellation budget.
 **Trace:** `MI-UX-011`, `MI-UX-012`  
 **Estimate:** 1.5–3 engineering days
 
-- [ ] Add a persistent ring, crosshair, or equivalent non-color marker for an
+- [x] Add a persistent ring, crosshair, or equivalent non-color marker for an
       arbitrarily selected point.
-- [ ] Define and test how the marker behaves across pan, zoom, quality changes,
+- [x] Define and test how the marker behaves across pan, zoom, quality changes,
       catalog selection, and reset.
-- [ ] Associate the selected coordinate and status with the canvas through
+- [x] Associate the selected coordinate and status with the canvas through
       adjacent accessible text.
-- [ ] Document a coordinate display-precision policy tied to viewport scale
+- [x] Document a coordinate display-precision policy tied to viewport scale
       and raster evidence rather than relying only on a fixed significant-digit
       count.
-- [ ] Add browser assertions for arbitrary escaped, attracting-cycle, and
+- [x] Add browser assertions for arbitrary escaped, attracting-cycle, and
       unresolved points.
-- [ ] Assert canonical `c`, outcome, supporting evidence, available dynamical
+- [x] Assert canonical `c`, outcome, supporting evidence, available dynamical
       values, definitions, and the selected numerical-quality budget.
-- [ ] Verify that the inspector never reports precision unsupported by the
+- [x] Verify that the inspector never reports precision unsupported by the
       available evidence.
 
 **Done when:** arbitrary and catalog point selection are visibly and
@@ -127,12 +127,12 @@ truthful outcome class.
 **Trace:** `MI-UX-003`, `MI-UX-005`, `MI-UX-007`  
 **Estimate:** 1–2 engineering days plus the target-device run
 
-- [ ] Add marks for application mount, render request, coarse presentation,
+- [x] Add marks for application mount, render request, coarse presentation,
       stable presentation, immediate interaction feedback, and cancellation
       acknowledgement.
-- [ ] Measure presentation rather than stopping at worker message receipt.
-- [ ] Capture rendering-related main-thread long tasks.
-- [ ] Demonstrate that first-use guidance is interactive before the coarse
+- [x] Measure presentation rather than stopping at worker message receipt.
+- [x] Capture rendering-related main-thread long tasks.
+- [x] Demonstrate that first-use guidance is interactive before the coarse
       frame and does not delay rendering or navigation.
 - [ ] Run the deployed application on the documented four-core integrated-
       graphics target class in supported release Firefox and Chrome.

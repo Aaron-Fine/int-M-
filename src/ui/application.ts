@@ -20,6 +20,7 @@ import {
   DEFAULT_VIEWPORT,
   DEFAULT_QUALITY_PROFILE_ID,
   formatCoordinate,
+  formatCoordinateForViewport,
   formatMagnification,
   getQualityProfile,
   isDefaultViewport,
@@ -33,6 +34,7 @@ import {
   type Viewport,
   ZOOM_FACTOR,
 } from './view-state';
+import { RendererWorkerClient } from './renderer-worker-client';
 
 interface ApplicationState {
   viewport: Viewport;
@@ -59,7 +61,26 @@ const RENDER_DELAY_MS = 65;
 const LABEL_MAGNIFICATION_THRESHOLD = 2;
 const MIN_REGION_SIZE_PX = 12;
 
+declare global {
+  interface Window {
+    __MI_PHASE1_TEST__?: {
+      failRenderer(): void;
+    };
+  }
+}
+
 export function mountApplication(host: HTMLElement): () => void {
+  performance.mark('mi:app-mount');
+  const longTaskObserver = PerformanceObserver.supportedEntryTypes.includes('longtask')
+    ? new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          performance.mark('mi:long-task', {
+            detail: { startTime: entry.startTime, duration: entry.duration },
+          });
+        }
+      })
+    : undefined;
+  longTaskObserver?.observe({ type: 'longtask', buffered: true });
   const state: ApplicationState = {
     viewport: { ...DEFAULT_VIEWPORT },
     semanticView: 'stability',
@@ -73,15 +94,12 @@ export function mountApplication(host: HTMLElement): () => void {
     qualityProfile: DEFAULT_QUALITY_PROFILE_ID,
   };
 
-  const worker = new Worker(new URL('../worker/render.worker.ts', import.meta.url), {
-    type: 'module',
-    name: 'mandelbrot-renderer',
-  });
   const renderCanvas = element('canvas', {
     className: 'explorer__canvas',
     attributes: {
       'aria-label':
         'Interactive Mandelbrot set. Use arrow keys to pan, plus and minus to zoom, and Enter to inspect the center.',
+      'aria-describedby': 'explorer-interaction-hint selected-point-status',
       tabindex: '0',
     },
   });
@@ -112,12 +130,17 @@ export function mountApplication(host: HTMLElement): () => void {
       'aria-atomic': 'true',
     },
   });
+  const retryRendererButton = button('Retry renderer', {
+    className: 'status__retry',
+  });
+  retryRendererButton.hidden = true;
   status.append(
     element('span', {
       className: 'status__indicator',
       attributes: { 'aria-hidden': 'true' },
     }),
     statusText,
+    retryRendererButton,
   );
 
   const magnification = element('output', {
@@ -233,6 +256,19 @@ export function mountApplication(host: HTMLElement): () => void {
     className: 'zoom-selection',
     attributes: { 'aria-hidden': 'true' },
   });
+  const selectedPointMarker = element('div', {
+    className: 'selected-point-marker',
+    attributes: { 'aria-hidden': 'true' },
+  });
+  selectedPointMarker.hidden = true;
+  const selectedPointStatus = element('p', {
+    className: 'visually-hidden',
+    text: 'No point selected.',
+    attributes: {
+      id: 'selected-point-status',
+      'aria-live': 'polite',
+    },
+  });
 
   const header = createHeader(guidance.show);
   const controls = element('section', {
@@ -293,13 +329,16 @@ export function mountApplication(host: HTMLElement): () => void {
   const interactionHint = element('p', {
     className: 'explorer__hint',
     text: 'Drag to pan · Shift-drag to zoom area · click to inspect',
+    attributes: { id: 'explorer-interaction-hint' },
   });
   canvasStack.append(
     presentationCanvas,
     renderCanvas,
     catalogOverlay,
+    selectedPointMarker,
     zoomSelection,
     interactionHint,
+    selectedPointStatus,
     feedback,
   );
   const explorerFooter = element('footer', { className: 'explorer__footer' });
@@ -329,6 +368,7 @@ export function mountApplication(host: HTMLElement): () => void {
         readonly origin: CanvasPoint;
         latest: CanvasPoint;
         readonly viewport: Viewport;
+        feedbackMarked: boolean;
       }
     | undefined;
 
@@ -360,10 +400,46 @@ export function mountApplication(host: HTMLElement): () => void {
       'explorer--expanded-labels',
       DEFAULT_VIEWPORT.spanY / state.viewport.spanY >= LABEL_MAGNIFICATION_THRESHOLD,
     );
+    updateSelectedPointMarker();
+  }
+
+  function formattedSelectedPoint(point: Complex): string {
+    const size = dimensions();
+    return `${formatCoordinateForViewport(point.re, state.viewport.spanY, size.height)} ${
+      point.im < 0 ? '−' : '+'
+    } ${formatCoordinateForViewport(Math.abs(point.im), state.viewport.spanY, size.height)}i`;
+  }
+
+  function updateSelectedPointMarker(): void {
+    if (!state.selectedPoint) {
+      selectedPointMarker.hidden = true;
+      return;
+    }
+    const size = dimensions();
+    const point = complexToPixel(state.viewport, size, state.selectedPoint);
+    const visible = point.x >= 0 && point.x <= size.width && point.y >= 0 && point.y <= size.height;
+    selectedPointMarker.hidden = !visible;
+    if (!visible) return;
+    selectedPointMarker.style.left = `${(point.x / size.width) * 100}%`;
+    selectedPointMarker.style.top = `${(point.y / size.height) * 100}%`;
+  }
+
+  function applyPresentationPreview(transform: string, origin = 'center'): void {
+    renderCanvas.style.transform = transform;
+    renderCanvas.style.transformOrigin = origin;
+    catalogOverlay.style.transform = transform;
+    catalogOverlay.style.transformOrigin = origin;
+  }
+
+  function clearPresentationPreview(): void {
+    renderCanvas.style.removeProperty('transform');
+    renderCanvas.style.removeProperty('transform-origin');
+    catalogOverlay.style.removeProperty('transform');
+    catalogOverlay.style.removeProperty('transform-origin');
   }
 
   function dimensions(): { width: number; height: number } {
-    const rect = renderCanvas.getBoundingClientRect();
+    const rect = canvasStack.getBoundingClientRect();
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
     const scale = Math.min(
       pixelRatio,
@@ -378,7 +454,7 @@ export function mountApplication(host: HTMLElement): () => void {
   function scheduleRender(immediate = false): void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (state.activeRequestId > 0) {
-      worker.postMessage({
+      workerClient.post({
         type: 'cancel',
         requestId: state.activeRequestId,
       } satisfies MainToWorkerMessage);
@@ -401,7 +477,10 @@ export function mountApplication(host: HTMLElement): () => void {
     state.requestId += 1;
     state.activeRequestId = state.requestId;
     state.frameStage = 'none';
-    worker.postMessage({
+    performance.mark('mi:render-request', {
+      detail: { requestId: state.activeRequestId },
+    });
+    workerClient.post({
       type: 'render',
       requestId: state.activeRequestId,
       viewport: state.viewport,
@@ -420,7 +499,15 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasContext.imageSmoothingEnabled = false;
     canvasContext.putImageData(pixels, 0, 0);
     state.frameStage = frame.stage;
+    retryRendererButton.hidden = true;
+    if (frame.stage === 'coarse') clearPresentationPreview();
     updateCatalogOverlay();
+    updateSelectedPointMarker();
+    requestAnimationFrame(() => {
+      performance.mark(`mi:${frame.stage}-presented`, {
+        detail: { requestId: frame.requestId },
+      });
+    });
 
     if (frame.stage === 'coarse') {
       statusText.textContent = `Refining view · ${Math.round(frame.progress * 100)}%`;
@@ -448,6 +535,11 @@ export function mountApplication(host: HTMLElement): () => void {
       return;
     }
     const size = dimensions();
+    applyPresentationPreview(
+      `scale(${state.viewport.spanY / nextScale})`,
+      `${anchor.x * 100}% ${anchor.y * 100}%`,
+    );
+    performance.mark('mi:interaction-feedback');
     state.viewport = zoomViewportAt(
       state.viewport,
       size,
@@ -467,6 +559,8 @@ export function mountApplication(host: HTMLElement): () => void {
     delete state.selectedPoint;
     delete state.selectedCatalogId;
     inspector.clear();
+    selectedPointStatus.textContent = 'No point selected.';
+    clearPresentationPreview();
     updateCatalogSelection();
     updateCoordinateReadout();
     showFeedback('Full-set view restored.');
@@ -474,7 +568,7 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function canvasPoint(event: PointerEvent | WheelEvent): CanvasPoint {
-    const rect = renderCanvas.getBoundingClientRect();
+    const rect = canvasStack.getBoundingClientRect();
     return {
       x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
       y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)),
@@ -508,16 +602,20 @@ export function mountApplication(host: HTMLElement): () => void {
     } else {
       delete state.selectedCatalogId;
     }
-    inspector.loading(complexPoint.re, complexPoint.im, component);
+    inspector.loading(formattedSelectedPoint(complexPoint), component);
+    selectedPointStatus.textContent = `Selected point c = ${formattedSelectedPoint(
+      complexPoint,
+    )}. Computing evidence.`;
     state.requestId += 1;
     state.activeInspectionRequestId = state.requestId;
-    worker.postMessage({
+    workerClient.post({
       type: 'inspect',
       requestId: state.activeInspectionRequestId,
       point: complexPoint,
       quality: currentQualityProfile().quality,
     } satisfies MainToWorkerMessage);
     updateCatalogSelection();
+    updateSelectedPointMarker();
   }
 
   function updateCatalogSelection(): void {
@@ -654,6 +752,7 @@ export function mountApplication(host: HTMLElement): () => void {
       origin,
       latest: origin,
       viewport: state.viewport,
+      feedbackMarked: false,
     };
     if (pointerSession.kind === 'pan') {
       renderCanvas.classList.add('explorer__canvas--grabbing');
@@ -667,7 +766,7 @@ export function mountApplication(host: HTMLElement): () => void {
     if (pointerSession?.pointerId !== event.pointerId) return;
     const latest = canvasPoint(event);
     pointerSession.latest = latest;
-    const rect = renderCanvas.getBoundingClientRect();
+    const rect = canvasStack.getBoundingClientRect();
     const dxCss = (latest.x - pointerSession.origin.x) * rect.width;
     const dyCss = (latest.y - pointerSession.origin.y) * rect.height;
     if (Math.hypot(dxCss, dyCss) > 3) state.dragging = true;
@@ -676,6 +775,11 @@ export function mountApplication(host: HTMLElement): () => void {
       updateZoomSelection(pointerSession.origin, latest);
     } else {
       const size = dimensions();
+      applyPresentationPreview(`translate3d(${dxCss}px, ${dyCss}px, 0)`);
+      if (!pointerSession.feedbackMarked) {
+        performance.mark('mi:interaction-feedback');
+        pointerSession.feedbackMarked = true;
+      }
       state.viewport = panViewport(
         pointerSession.viewport,
         size,
@@ -696,7 +800,7 @@ export function mountApplication(host: HTMLElement): () => void {
     zoomSelection.removeAttribute('style');
     const session = pointerSession;
     if (state.dragging && session.kind === 'region') {
-      const rect = renderCanvas.getBoundingClientRect();
+      const rect = canvasStack.getBoundingClientRect();
       const widthCss = Math.abs(session.latest.x - session.origin.x) * rect.width;
       const heightCss = Math.abs(session.latest.y - session.origin.y) * rect.height;
       if (widthCss >= MIN_REGION_SIZE_PX && heightCss >= MIN_REGION_SIZE_PX) {
@@ -714,6 +818,13 @@ export function mountApplication(host: HTMLElement): () => void {
               : 'That selection already covers the current view.',
           );
         } else {
+          const centerX = ((session.origin.x + session.latest.x) / 2) * 100;
+          const centerY = ((session.origin.y + session.latest.y) / 2) * 100;
+          applyPresentationPreview(
+            `scale(${session.viewport.spanY / next.spanY})`,
+            `${centerX}% ${centerY}%`,
+          );
+          performance.mark('mi:interaction-feedback');
           state.viewport = next;
           updateCoordinateReadout();
           showFeedback('Zoomed to selected area.');
@@ -732,8 +843,14 @@ export function mountApplication(host: HTMLElement): () => void {
   };
   renderCanvas.addEventListener('pointerup', finishPointer);
   renderCanvas.addEventListener('pointercancel', () => {
+    const session = pointerSession;
+    if (session?.kind === 'pan') {
+      state.viewport = session.viewport;
+      updateCoordinateReadout();
+    }
     pointerSession = undefined;
     state.dragging = false;
+    clearPresentationPreview();
     renderCanvas.classList.remove('explorer__canvas--grabbing');
     canvasShell.classList.remove('explorer--selecting');
     zoomSelection.removeAttribute('style');
@@ -743,11 +860,16 @@ export function mountApplication(host: HTMLElement): () => void {
     switch (event.key) {
       case 'Escape':
         if (!pointerSession) return;
+        if (pointerSession.kind === 'pan') {
+          state.viewport = pointerSession.viewport;
+          updateCoordinateReadout();
+        }
         if (renderCanvas.hasPointerCapture(pointerSession.pointerId)) {
           renderCanvas.releasePointerCapture(pointerSession.pointerId);
         }
         pointerSession = undefined;
         state.dragging = false;
+        clearPresentationPreview();
         renderCanvas.classList.remove('explorer__canvas--grabbing');
         canvasShell.classList.remove('explorer--selecting');
         zoomSelection.removeAttribute('style');
@@ -766,18 +888,26 @@ export function mountApplication(host: HTMLElement): () => void {
         resetView();
         break;
       case 'ArrowLeft':
+        applyPresentationPreview('translate3d(10%, 0, 0)');
+        performance.mark('mi:interaction-feedback');
         state.viewport = panViewport(state.viewport, dimensions(), dimensions().width * 0.1, 0);
         scheduleRender();
         break;
       case 'ArrowRight':
+        applyPresentationPreview('translate3d(-10%, 0, 0)');
+        performance.mark('mi:interaction-feedback');
         state.viewport = panViewport(state.viewport, dimensions(), dimensions().width * -0.1, 0);
         scheduleRender();
         break;
       case 'ArrowUp':
+        applyPresentationPreview('translate3d(0, 10%, 0)');
+        performance.mark('mi:interaction-feedback');
         state.viewport = panViewport(state.viewport, dimensions(), 0, dimensions().height * 0.1);
         scheduleRender();
         break;
       case 'ArrowDown':
+        applyPresentationPreview('translate3d(0, -10%, 0)');
+        performance.mark('mi:interaction-feedback');
         state.viewport = panViewport(state.viewport, dimensions(), 0, dimensions().height * -0.1);
         scheduleRender();
         break;
@@ -791,8 +921,7 @@ export function mountApplication(host: HTMLElement): () => void {
     updateCoordinateReadout();
   });
 
-  worker.addEventListener('message', (event: MessageEvent<WorkerToMainMessage>) => {
-    const message = event.data;
+  function handleWorkerMessage(message: WorkerToMainMessage): void {
     switch (message.type) {
       case 'frame':
         presentFrame(message);
@@ -803,20 +932,54 @@ export function mountApplication(host: HTMLElement): () => void {
           message.result,
           COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
           currentQualityProfile(),
+          formattedSelectedPoint(message.result.point),
         );
-        break;
-      case 'error':
-        status.className = 'status status--error';
-        statusText.textContent = 'Render interrupted. Adjust the view or reset to try again.';
+        selectedPointStatus.textContent = `Selected point c = ${formattedSelectedPoint(
+          message.result.point,
+        )}. Outcome: ${message.result.orbit.status.replace('-', ' ')}.`;
         break;
       case 'cancelled':
+        performance.mark('mi:cancellation-acknowledged', {
+          detail: { requestId: message.requestId },
+        });
+        break;
+      case 'error':
         break;
     }
+  }
+
+  const workerClient = new RendererWorkerClient(
+    () =>
+      new Worker(new URL('../worker/render.worker.ts', import.meta.url), {
+        type: 'module',
+        name: 'mandelbrot-renderer',
+      }),
+    {
+      onMessage: handleWorkerMessage,
+      onRecovering: () => {
+        status.className = 'status status--working';
+        statusText.textContent = 'Renderer interrupted. Recovering automatically…';
+        retryRendererButton.hidden = true;
+      },
+      onPersistentFailure: () => {
+        clearPresentationPreview();
+        status.className = 'status status--error';
+        statusText.textContent = 'Renderer could not recover. Controls remain available.';
+        retryRendererButton.hidden = false;
+      },
+    },
+  );
+  retryRendererButton.addEventListener('click', () => {
+    status.className = 'status status--working';
+    statusText.textContent = 'Retrying renderer…';
+    retryRendererButton.hidden = true;
+    workerClient.retry();
   });
-  worker.addEventListener('error', () => {
-    status.className = 'status status--error';
-    statusText.textContent = 'Renderer unavailable. Reload the page to start a new worker.';
-  });
+  if (import.meta.env.DEV) {
+    window.__MI_PHASE1_TEST__ = {
+      failRenderer: () => workerClient.simulateUnexpectedFailure(),
+    };
+  }
 
   const resizeObserver = new ResizeObserver(() => scheduleRender());
   resizeObserver.observe(canvasStack);
@@ -826,7 +989,9 @@ export function mountApplication(host: HTMLElement): () => void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (feedbackTimer !== undefined) clearTimeout(feedbackTimer);
     resizeObserver.disconnect();
-    worker.terminate();
+    longTaskObserver?.disconnect();
+    workerClient.dispose();
+    if (import.meta.env.DEV) delete window.__MI_PHASE1_TEST__;
     host.replaceChildren();
   };
 }
@@ -885,14 +1050,20 @@ function createGuidance(): {
     tips.append(element('li', { text: tip }));
   }
   const dismiss = button('Explore', { className: 'primary-button' });
-  dismiss.addEventListener('click', () => root.classList.remove('guidance--visible'));
+  dismiss.addEventListener('click', () => {
+    performance.mark('mi:guidance-interaction');
+    root.classList.remove('guidance--visible');
+  });
   const close = button('', {
     className: 'icon-button icon-button--quiet guidance__close',
     title: 'Dismiss guide',
   });
   setIcon(close, 'close');
   close.setAttribute('aria-label', 'Dismiss guide');
-  close.addEventListener('click', () => root.classList.remove('guidance--visible'));
+  close.addEventListener('click', () => {
+    performance.mark('mi:guidance-interaction');
+    root.classList.remove('guidance--visible');
+  });
   root.append(close, heading, copy, tips, dismiss);
   return {
     element: root,
@@ -902,11 +1073,12 @@ function createGuidance(): {
 
 function createInspector(): {
   readonly element: HTMLElement;
-  readonly loading: (re: number, im: number, component?: CatalogComponent) => void;
+  readonly loading: (coordinate: string, component?: CatalogComponent) => void;
   readonly show: (
     result: InspectionResult,
     component: CatalogComponent | undefined,
     quality: QualityProfile,
+    coordinate: string,
   ) => void;
   readonly clear: () => void;
 } {
@@ -956,7 +1128,7 @@ function createInspector(): {
     ]);
   };
 
-  const loading = (re: number, im: number, component?: CatalogComponent): void => {
+  const loading = (coordinate: string, component?: CatalogComponent): void => {
     replaceChildren(body, [
       component
         ? element('h3', {
@@ -966,7 +1138,7 @@ function createInspector(): {
         : undefined,
       element('p', {
         className: 'inspector__coordinate',
-        text: `${formatCoordinate(re)} ${im < 0 ? '−' : '+'} ${formatCoordinate(Math.abs(im))}i`,
+        text: `c = ${coordinate}`,
       }),
       element('p', { className: 'loading-line', text: 'Computing evidence…' }),
     ]);
@@ -976,6 +1148,7 @@ function createInspector(): {
     result: InspectionResult,
     component: CatalogComponent | undefined,
     quality: QualityProfile,
+    coordinate: string,
   ): void => {
     const orbit = result.orbit;
     const statusLabel: Record<typeof orbit.status, string> = {
@@ -991,6 +1164,7 @@ function createInspector(): {
     const addFact = (term: string, value: string): void => {
       facts.append(element('dt', { text: term }), element('dd', { text: value }));
     };
+    addFact('Parameter c', coordinate);
     if (component) {
       addFact('Catalog period', String(component.period));
       if (component.internalAddress) {
@@ -1049,9 +1223,7 @@ function createInspector(): {
         : undefined,
       element('p', {
         className: 'inspector__coordinate',
-        text: `${formatCoordinate(result.point.re)} ${
-          result.point.im < 0 ? '−' : '+'
-        } ${formatCoordinate(Math.abs(result.point.im))}i`,
+        text: `c = ${coordinate}`,
       }),
       badge,
       facts,

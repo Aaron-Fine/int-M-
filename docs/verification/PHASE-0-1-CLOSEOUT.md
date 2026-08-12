@@ -1,7 +1,7 @@
 # Phase 0 and Phase 1 closeout evidence
 
-- Assessment date: 2026-08-11
-- Assessed baseline: `b663fdf` plus this closeout change
+- Assessment date: 2026-08-12
+- Assessed baseline: Phase 1 closeout candidate branch from `79b93b8`
 - Status vocabulary:
   - **Pass** — criterion is implemented and has repeatable evidence.
   - **Partial** — meaningful evidence exists, but part of the criterion is
@@ -19,7 +19,7 @@ reconsideration gates in [ADR 0002](../decisions/0002-phase-0-renderer-zoom-and-
 | Phase   | Readiness              | Disposition                                                                                                                         |
 | ------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Phase 0 | **Closed**             | All six exit criteria pass; Worker CPU and a `6,000,000×` product ceiling are selected                                              |
-| Phase 1 | **Not ready to close** | Target-hardware budgets now exist; failure/fallback verification and manual accessibility and color-vision review remain incomplete |
+| Phase 1 | **Not ready to close** | Recovery, interaction, and inspector gaps are implemented; target-device release-browser, manual accessibility, and final deployment evidence remain incomplete |
 
 The vertical slice is nevertheless deployable and coherent. The remaining
 items are evidence and requirement gaps, not a reason to discard the current
@@ -42,15 +42,16 @@ CPU architecture.
 | ----------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Vite, strict TypeScript, vanilla DOM/CSS                                      | **Pass**                  | `npm run check`; separate app, worker, Node, and e2e TypeScript projects                                                                                               |
 | Orbit, palette, and raster work off the main thread                           | **Pass**                  | Worker entry/runtime boundary; worker tests confirm only RGBA crosses to the UI                                                                                        |
-| Pan, point zoom, bounded area zoom, and reset                                 | **Pass**                  | Viewport unit tests and Chromium/Firefox Playwright navigation scenarios                                                                                               |
+| Pan, point zoom, bounded area zoom, and reset                                 | **Pass**                  | Immediate presentation transforms, viewport unit tests, and Chromium/Firefox Playwright navigation and pointer-cancel scenarios                                      |
 | Selected Worker CPU renderer                                                  | **Pass**                  | Renderer-neutral protocol, `CpuRenderer`, target-hardware evidence, and accepted ADR 0002                                                                              |
 | Stability, multiplier, and restrained period views with legends               | **Pass**                  | Semantic coloring tests, semantic-frame reuse tests, and browser legend scenarios                                                                                      |
-| Outcome, evidence, selected-point inspector, definitions, and adaptive labels | **Pass**                  | Orbit tests and browser inspector, definition, and magnified-label scenarios                                                                                           |
+| Outcome, evidence, selected-point inspector, definitions, and adaptive labels | **Pass**                  | Persistent non-color marker, adjacent canvas semantics, viewport-aware coordinate precision, orbit tests, and arbitrary-point browser scenarios                      |
 | Quick, Balanced, and Detailed finite budgets                                  | **Pass**                  | Quality-profile unit tests and browser selection scenario                                                                                                              |
 | Progressive rendering, cancellation, cache, and resolution cap                | **Pass functionally**     | CPU renderer, worker runtime, semantic store, and viewport tests                                                                                                       |
+| Worker failure recovery and manual retry                                      | **Pass functionally**     | Replaceable Worker lifecycle, 48 unit tests, and browser injection for automatic recovery, bounded persistent failure, continued controls, and manual retry           |
 | Guided first use                                                              | **Pass**                  | Browser first-use scenario verifies a rendered view and dismissible guidance                                                                                           |
 | Keyboard and color-vision accessibility                                       | **Partial**               | Keyboard scenarios and automated Axe WCAG A/AA scan exist. Manual focus, canvas semantics, 200% zoom/reflow, and simulated color-vision review remain external review. |
-| Static analysis and browser coverage                                          | **Pass when CI is green** | Required GitHub Actions jobs run formatting, lint, strict type checking, 43 unit tests, build, and Playwright in Firefox and Chromium                                  |
+| Static analysis and browser coverage                                          | **Pass when CI is green** | Required GitHub Actions jobs run formatting, lint, strict type checking, 48 unit tests, build, and Playwright in Firefox and Chromium                                  |
 | Cloudflare Pages production and PR previews                                   | **Pass**                  | The [deployment observation](../../evidence/deployment/cloudflare-2026-07-29.md) records the production HTTP 200 response and PR #4 preview evidence                   |
 
 ## Evidence commands
@@ -71,12 +72,13 @@ binaries are unavailable.
 The ordered implementation and evidence backlog is maintained in the
 [Phase 1 closeout TODO](PHASE1-TODO.md).
 
-1. Complete the manual WCAG 2.2 AA, keyboard-focus, canvas alternative, 200%
-   zoom/reflow, and color-vision review checklist.
-2. Resolve the incomplete `MI-UX-013` failure-injection and `MI-UX-014`
-   renderer-fallback evidence identified in the
-   [requirements matrix](REQUIREMENTS.md).
-3. Confirm the measured interaction budgets against the release browser
-   versions when those versions are pinned.
+1. Run the deployed candidate on the documented four-core integrated-graphics
+   target in stable Firefox and Chrome; commit raw presentation, cancellation,
+   and main-thread long-task evidence against the existing budgets.
+2. Complete the manual WCAG 2.2 AA, keyboard-focus, canvas semantics, 200%
+   zoom/reflow, forced-colors, target-size, and simulated color-vision review.
+3. Record the final stable release-browser versions, verify the immutable
+   Cloudflare preview, merge, and replace the older production observation
+   with evidence for the Phase 1 release commit.
 
 These actions block Phase 1, not the completed Phase 0 decision baseline.

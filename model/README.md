@@ -36,7 +36,7 @@ The model defines the initial experience as:
 - stability view;
 - balanced quality profile;
 - pan pointer tool, with an explicit zoom-area alternative;
-- automatic renderer selection;
+- the selected Worker CPU renderer with bounded automatic worker recovery;
 - essential catalog markers;
 - system-preferred theme; and
 - an inspector that opens when the user selects a point.

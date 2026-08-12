@@ -93,8 +93,19 @@ Separate TypeScript configurations enforce different ambient environments for ap
 code. `tsconfig.app.json` supplies DOM types; `tsconfig.worker.json` supplies Web Worker types. Shared
 math and protocol modules should stay free of both environments where practical.
 
-The initial worker may use the CPU reference implementation. A GPU or WebAssembly implementation
-should satisfy the same protocol rather than leak renderer-specific state into the UI.
+Phase 1 uses the binary64 CPU implementation inside a replaceable module Worker. The UI worker
+client retains the current render and point-inspection intent, automatically recreates the Worker
+once after a consecutive worker, message-decoding, or reported render failure, and then exposes a
+nonblocking manual retry instead of entering a restart loop. A future GPU or WebAssembly
+implementation must satisfy the same protocol, preserve the CPU path as its automatic fallback,
+and must not leak renderer-specific state into the UI.
+
+Selected coordinates use viewport-aware display precision. The number of displayed decimal places
+is derived from the vertical units per raster pixel, retains one guard digit so adjacent selectable
+samples remain distinguishable, and is capped at 15 decimal places for binary64. This policy avoids
+implying fixed sub-raster precision at the full-set view while allowing appropriately finer
+coordinates at higher magnification. Catalog source coordinates remain stored independently at
+their canonical data precision.
 
 ## Testing boundaries
 
@@ -111,7 +122,8 @@ should satisfy the same protocol rather than leak renderer-specific state into t
 - Worker tests should verify progressive/coarse-to-stable messages, semantic-frame reuse and
   in-progress view coalescing, and rejection of work superseded by different dynamics.
 - Playwright tests should cover the first-use render, reset, bounded zoom feedback, semantic legend,
-  keyboard operation, inspector evidence, and renderer fallback.
+  keyboard operation, arbitrary-point inspector evidence, immediate pan feedback, bounded worker
+  recovery, and manual retry.
 - Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
   intended for reuse belong under CC0-1.0; application tests remain GPL-3.0-only.
 - Performance assertions should use broad budgets and recorded hardware context. Avoid making CI
@@ -154,16 +166,16 @@ affect externally loaded resources and should not be made speculatively.
 
 This foundation directly supports:
 
-| Requirement or decision     | Foundation support                                                          |
-| --------------------------- | --------------------------------------------------------------------------- |
-| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build     |
-| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests |
-| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests         |
-| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility            |
-| MI-UX-014                   | Renderer-neutral protocol and required fallback browser test                |
-| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary         |
-| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings            |
-| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI    |
+| Requirement or decision     | Foundation support                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build               |
+| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests           |
+| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests                   |
+| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility                      |
+| MI-UX-014                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback |
+| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                   |
+| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                      |
+| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI              |
 
 These entries establish the verification hooks; they do not claim that the user-visible requirement
 is satisfied before the corresponding behavior and tests exist.

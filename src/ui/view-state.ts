@@ -84,6 +84,23 @@ export function formatCoordinate(value: number): string {
   return value.toPrecision(9).replace(/(?:\.0+|(\.\d+?)0+)e/, '$1e');
 }
 
+/**
+ * Formats an inspected coordinate without implying sub-raster selection
+ * precision. One decimal guard digit is retained beyond the pixel spacing so
+ * adjacent selectable samples remain distinguishable, capped at binary64's
+ * useful decimal precision.
+ */
+export function formatCoordinateForViewport(
+  value: number,
+  spanY: number,
+  rasterHeight: number,
+): string {
+  const unitsPerPixel = spanY / Math.max(1, rasterHeight);
+  const decimalPlaces = Math.min(15, Math.max(3, Math.ceil(-Math.log10(unitsPerPixel)) + 1));
+  if (Math.abs(value) < 10 ** -decimalPlaces) return '0';
+  return value.toFixed(decimalPlaces).replace(/(?:\.0+|(\.\d+?)0+)$/, '$1');
+}
+
 export function formatMagnification(spanY: number): string {
   const magnification = DEFAULT_VIEWPORT.spanY / spanY;
   if (magnification < 10_000) {
