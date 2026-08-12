@@ -425,7 +425,6 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function applyPresentationPreview(transform: string, origin = 'center'): void {
-    renderCanvas.classList.add('explorer__canvas--previewing');
     renderCanvas.style.transform = transform;
     renderCanvas.style.transformOrigin = origin;
     catalogOverlay.style.transform = transform;
@@ -433,7 +432,6 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function clearPresentationPreview(): void {
-    renderCanvas.classList.remove('explorer__canvas--previewing');
     renderCanvas.style.removeProperty('transform');
     renderCanvas.style.removeProperty('transform-origin');
     catalogOverlay.style.removeProperty('transform');

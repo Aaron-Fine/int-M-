@@ -91,8 +91,11 @@ browser scenarios pass in Firefox and Chromium.
       presented or when the interaction is cancelled.
 - [x] Verify that pointer and keyboard navigation cancel superseded work and
       that stale frames cannot replace the current request.
-- [x] Add a Playwright pointer-pan scenario asserting live displacement, final
-      viewport state, replacement rendering, and pointer-cancel cleanup.
+- [ ] Manually verify live pointer displacement, final viewport state,
+      replacement rendering, and pointer-cancel rollback in supported release
+      Chrome and Firefox. Playwright's synthetic pointer path does not expose
+      the intermediate pan state reliably in CI, so this evidence must not be
+      represented as an automated check.
 
 **Done when:** pan, point zoom, and area zoom all provide immediate visible
 feedback and replacement work observes the cancellation budget.
@@ -185,8 +188,10 @@ semantic distinctions are documented with evidence.
 - [ ] Retain Playwright coverage in managed Chromium and Firefox.
 - [ ] Record explicit supported release-browser versions and validate stable
       Chrome plus branded stable Firefox on the target-device class.
-- [ ] Add missing browser scenarios for pointer pan, arbitrary point
-      inspection, progressive presentation, and renderer recovery.
+- [ ] Add any missing automatable browser scenarios for arbitrary point
+      inspection, progressive presentation, and renderer recovery; record
+      pointer-pan and pointer-cancel behavior in the manual release-browser
+      evidence.
 - [ ] Run all static checks, 43 or more unit tests, production build, and the
       complete browser matrix from the final candidate commit.
 - [ ] Verify the final immutable Cloudflare preview for rendering,

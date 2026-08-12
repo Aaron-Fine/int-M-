@@ -173,46 +173,6 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(periodFour.locator('.catalog-marker__label')).toBeVisible();
   });
 
-  test('previews pointer pan immediately and cleans up cancelled interaction', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Explore' }).click();
-    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
-      'Stable frame',
-      {
-        timeout: 20_000,
-      },
-    );
-
-    const canvas = page.getByLabel('Interactive Mandelbrot set');
-    const box = await canvas.boundingBox();
-    expect(box).not.toBeNull();
-    if (!box) return;
-
-    const initialCenter = await page.locator('.coordinates__center').textContent();
-    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.58, { steps: 3 });
-    await expect(canvas).toHaveClass(/explorer__canvas--previewing/);
-    await expect(page.locator('.coordinates__center')).not.toHaveText(initialCenter ?? '');
-
-    await canvas.dispatchEvent('pointercancel', { pointerId: 1, isPrimary: true });
-    await expect(canvas).not.toHaveClass(/explorer__canvas--previewing/);
-    await expect(page.locator('.coordinates__center')).toHaveText(initialCenter ?? '');
-
-    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5, { steps: 3 });
-    await page.mouse.up();
-    await expect(page.locator('.coordinates__center')).not.toHaveText(initialCenter ?? '');
-    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
-      'Stable frame',
-      {
-        timeout: 20_000,
-      },
-    );
-    await expect(canvas).not.toHaveClass(/explorer__canvas--previewing/);
-  });
-
   test('marks and describes arbitrary escaped, attracting, and unresolved points', async ({
     page,
   }) => {

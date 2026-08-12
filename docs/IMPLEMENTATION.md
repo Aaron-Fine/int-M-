@@ -122,8 +122,9 @@ their canonical data precision.
 - Worker tests should verify progressive/coarse-to-stable messages, semantic-frame reuse and
   in-progress view coalescing, and rejection of work superseded by different dynamics.
 - Playwright tests should cover the first-use render, reset, bounded zoom feedback, semantic legend,
-  keyboard operation, arbitrary-point inspector evidence, immediate pan feedback, bounded worker
-  recovery, and manual retry.
+  keyboard operation, arbitrary-point inspector evidence, bounded worker recovery, and manual retry.
+  Record immediate pointer-pan feedback and pointer-cancel rollback in the manual release-browser
+  evidence because CI's synthetic pointer path does not expose that intermediate state reliably.
 - Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
   intended for reuse belong under CC0-1.0; application tests remain GPL-3.0-only.
 - Performance assertions should use broad budgets and recorded hardware context. Avoid making CI
