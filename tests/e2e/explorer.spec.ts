@@ -248,7 +248,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(
       page.locator('.facts').getByText('Final magnitude', { exact: true }),
     ).toBeVisible();
-    await inspectAt(0.5, 0.5, 'Unresolved');
+    // c = 0.25 + 0i is the cardioid cusp: it neither escapes nor supplies
+    // conclusive attracting-cycle evidence within the finite search budget.
+    await inspectAt(0.75, 0.5, 'Unresolved');
     await expect(page.getByText('No conclusive evidence at current quality')).toBeVisible();
     await expect(page.locator('.inspector__coordinate')).toContainText('c =');
     await expect(page.getByText('How to read these values')).toBeVisible();
