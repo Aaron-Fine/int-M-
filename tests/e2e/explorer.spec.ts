@@ -353,4 +353,60 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.getByRole('heading', { name: 'Main cardioid' })).toBeVisible();
     await expectNoAccessibilityViolations(page);
   });
+
+  test('reflows phone layouts without horizontal overflow or undersized controls', async ({
+    page,
+  }) => {
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 375, height: 667 },
+      { width: 430, height: 932 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto('/');
+
+      const guidance = page.locator('.guidance');
+      const guidanceBox = await guidance.boundingBox();
+      expect(guidanceBox).not.toBeNull();
+      if (guidanceBox) {
+        expect(guidanceBox.x).toBeGreaterThanOrEqual(0);
+        expect(guidanceBox.y).toBeGreaterThanOrEqual(0);
+        expect(guidanceBox.x + guidanceBox.width).toBeLessThanOrEqual(viewport.width);
+        expect(guidanceBox.y + guidanceBox.height).toBeLessThanOrEqual(viewport.height);
+      }
+
+      await page.getByRole('button', { name: 'Explore' }).click();
+      await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
+
+      const pageWidth = await page.evaluate(() => ({
+        client: document.documentElement.clientWidth,
+        scroll: document.documentElement.scrollWidth,
+      }));
+      expect(
+        pageWidth.scroll,
+        `${viewport.width}px layout overflowed horizontally`,
+      ).toBeLessThanOrEqual(pageWidth.client);
+
+      const canvasBox = await page.locator('.explorer__stack').boundingBox();
+      expect(canvasBox).not.toBeNull();
+      if (canvasBox) {
+        expect(canvasBox.width / canvasBox.height).toBeGreaterThan(1.3);
+        expect(canvasBox.width / canvasBox.height).toBeLessThan(1.37);
+      }
+
+      const targets = await page
+        .locator('.site-header button, .controls__actions button, .controls select')
+        .evaluateAll((elements) =>
+          elements.map((target) => {
+            const rect = target.getBoundingClientRect();
+            return { width: rect.width, height: rect.height, left: rect.left, right: rect.right };
+          }),
+        );
+      for (const target of targets) {
+        expect(target.height).toBeGreaterThanOrEqual(44);
+        expect(target.left).toBeGreaterThanOrEqual(0);
+        expect(target.right).toBeLessThanOrEqual(viewport.width);
+      }
+    }
+  });
 });
