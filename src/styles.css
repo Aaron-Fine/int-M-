@@ -411,6 +411,7 @@ button:disabled {
   width: 100%;
   height: 100%;
   image-rendering: auto;
+  transition: transform 80ms linear;
 }
 
 .explorer__presentation {
@@ -492,6 +493,17 @@ button:disabled {
   color: var(--error);
 }
 
+.status__retry {
+  padding: 0.2rem 0.5rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .coordinates__magnification {
   min-width: 4.5rem;
   padding: 0.2rem 0.45rem;
@@ -561,12 +573,13 @@ button:disabled {
   z-index: 3;
   inset: 0;
   pointer-events: none;
+  transition: transform 80ms linear;
 }
 
 .catalog-marker {
   position: absolute;
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.5rem;
+  height: 1.5rem;
   padding: 0;
   cursor: pointer;
   pointer-events: auto;
@@ -578,12 +591,48 @@ button:disabled {
 
 .catalog-marker__dot {
   position: absolute;
-  inset: 0.22rem;
+  inset: 0.39rem;
   display: block;
   background: var(--accent);
   border: 2px solid white;
   border-radius: 50%;
   box-shadow: 0 0.1rem 0.35rem rgb(0 0 0 / 65%);
+}
+
+.selected-point-marker {
+  position: absolute;
+  z-index: 4;
+  width: 1.6rem;
+  height: 1.6rem;
+  pointer-events: none;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0.15rem 0.5rem rgb(0 0 0 / 75%);
+  transform: translate(-50%, -50%);
+}
+
+.selected-point-marker::before,
+.selected-point-marker::after {
+  position: absolute;
+  content: '';
+  background: white;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.selected-point-marker::before {
+  top: 50%;
+  left: -0.35rem;
+  width: 2.05rem;
+  height: 1px;
+}
+
+.selected-point-marker::after {
+  top: -0.35rem;
+  left: 50%;
+  width: 1px;
+  height: 2.05rem;
 }
 
 .catalog-marker--period-2 .catalog-marker__dot {
@@ -1051,5 +1100,17 @@ button:disabled {
 
   .zoom-selection {
     border: 2px dashed CanvasText;
+  }
+
+  button:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .selected-point-marker {
+    border-color: CanvasText;
+    box-shadow: 0 0 0 2px Highlight;
   }
 }

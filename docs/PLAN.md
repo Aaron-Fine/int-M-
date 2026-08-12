@@ -260,7 +260,18 @@ The period view will not assign dozens of equally prominent categorical colors. 
 
 ### 8.1 UX requirements and traceability
 
-The normative first-release UX requirements are `MI-UX-001` through `MI-UX-016` in [the SysML v2 system model](../model/MandelbrotInteriority.sysml). They cover the first-use render and defaults, progressive and truthful feedback, focused controls, responsive bounded point and area navigation, adaptive catalog labels, discoverable semantic definitions, evidence-bounded inspection, selectable quality budgets, resilient renderer fallback, keyboard operation, and accessible presentation. The same model traces each requirement to a responsible logical component and to a verification objective; [the model guide](../model/README.md) explains the organization and validation baseline.
+The active normative first-release UX requirements are `MI-UX-001` through
+`MI-UX-013` and `MI-UX-015` through `MI-UX-017` in
+[the SysML v2 system model](../model/MandelbrotInteriority.sysml).
+`MI-UX-014` is retained as OBE and superseded by `MI-UX-017` rather than
+reusing its identifier. The active requirements cover the first-use render and
+defaults, progressive and truthful feedback, focused controls, responsive
+bounded point and area navigation, adaptive catalog labels, discoverable
+semantic definitions, evidence-bounded inspection, selectable quality budgets,
+resilient renderer recovery and fallback, keyboard operation, and accessible
+presentation. The same model traces each active requirement to a responsible
+logical component and to a verification objective; [the model guide](../model/README.md)
+explains the organization and validation baseline.
 
 ## 9. Delivery phases
 
@@ -425,7 +436,9 @@ The first release is complete when:
 - internal and angled addresses are represented correctly;
 - CPU, GPU, and high-precision fixtures agree within declared tolerances;
 - keyboard and color-vision accessibility checks pass;
-- the `MI-UX-001` through `MI-UX-016` verification objectives pass in supported current Firefox and Chrome releases; and
+- the active `MI-UX-001` through `MI-UX-013` and `MI-UX-015` through
+  `MI-UX-017` verification objectives pass in supported current Firefox and
+  Chrome releases, with `MI-UX-014` retained as OBE; and
 - the Cloudflare Pages deployment communicates its deliberate zoom bound.
 
 Overlays, perturbation, renormalization coordinates, and an exhaustive catalog are not required for this milestone.

@@ -42,7 +42,7 @@ package MandelbrotInteriority {
         }
 
         enum def RendererSelection {
-            automatic;
+            workerCpu;
         }
 
         enum def CatalogOverlaySelection {
@@ -93,7 +93,7 @@ package MandelbrotInteriority {
             attribute semanticView : SemanticView = SemanticView::stability;
             attribute qualityProfile : QualityProfile = QualityProfile::balanced;
             attribute pointerTool : PointerTool = PointerTool::pan;
-            attribute renderer : RendererSelection = RendererSelection::automatic;
+            attribute renderer : RendererSelection = RendererSelection::workerCpu;
             attribute catalogOverlay : CatalogOverlaySelection =
                 CatalogOverlaySelection::essentialComponents;
             attribute theme : ThemeSelection = ThemeSelection::systemPreference;
@@ -109,7 +109,7 @@ package MandelbrotInteriority {
 
         part def CanvasPresenter;
 
-        part def CapabilitySelector;
+        part def RendererLifecycle;
 
         part def FirstUseGuidance;
 
@@ -118,7 +118,7 @@ package MandelbrotInteriority {
             part legend : Legend;
             part inspector : InspectorPanel;
             part canvasPresenter : CanvasPresenter;
-            part capabilitySelector : CapabilitySelector;
+            part rendererLifecycle : RendererLifecycle;
             part firstUseGuidance : FirstUseGuidance;
             port renderChannel : UIWorkerPort;
         }
@@ -204,7 +204,8 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * The default presentation shall use the stability view, a
-             * balanced numerical profile, automatic renderer selection, and a
+             * balanced numerical profile, the selected Worker CPU renderer,
+             * and a
              * minimal catalog overlay.
              */
         }
@@ -309,9 +310,12 @@ package MandelbrotInteriority {
         requirement <'MI-UX-014'> AutomaticRendererFallback {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * If WebGPU is unavailable or rejected, the application shall
-             * automatically select a supported fallback without requiring user
-             * intervention.
+             * Status: OBE. Original requirement: If WebGPU is unavailable or
+             * rejected, the application shall automatically select a
+             * supported fallback without requiring user intervention. Phase 0
+             * instead selected Worker CPU as the production renderer.
+             * MI-UX-017 supersedes this requirement without reusing its
+             * identifier.
              */
         }
 
@@ -329,6 +333,17 @@ package MandelbrotInteriority {
             doc /*
              * The application shall conform to WCAG 2.2 Level AA for
              * applicable interface content and controls.
+             */
+        }
+
+        requirement <'MI-UX-017'> RendererRecoveryAndFallback {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The Worker CPU renderer shall recover automatically from one
+             * consecutive worker or render failure and shall expose a manual
+             * retry after recovery is exhausted. Any future optional renderer
+             * shall fall back automatically to Worker CPU when unavailable or
+             * rejected.
              */
         }
     }
@@ -364,12 +379,12 @@ package MandelbrotInteriority {
                 by app.uiShell.inspector;
             satisfy UserExperienceRequirements::NonblockingStatusAndFailure
                 by app.uiShell;
-            satisfy UserExperienceRequirements::AutomaticRendererFallback
-                by app.uiShell.capabilitySelector;
             satisfy UserExperienceRequirements::KeyboardOperation
                 by app.uiShell;
             satisfy UserExperienceRequirements::AccessibleInterface
                 by app.uiShell;
+            satisfy UserExperienceRequirements::RendererRecoveryAndFallback
+                by app.uiShell.rendererLifecycle;
         }
     }
 
@@ -424,12 +439,15 @@ package MandelbrotInteriority {
         verification def <'MI-VER-UX-004'> ResilienceAndFallbackTest {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Inject worker, numerical-budget, and WebGPU capability failures
-             * and confirm nonblocking status and automatic recovery.
+             * Inject worker startup, message-decoding, and render failures;
+             * confirm bounded automatic recovery, persistent nonblocking
+             * status, manual retry, and continued control operation. Exercise
+             * optional-renderer capability fallback when such a renderer is
+             * introduced.
              */
             objective resilienceAndFallback {
                 verify UserExperienceRequirements::NonblockingStatusAndFailure;
-                verify UserExperienceRequirements::AutomaticRendererFallback;
+                verify UserExperienceRequirements::RendererRecoveryAndFallback;
             }
         }
 

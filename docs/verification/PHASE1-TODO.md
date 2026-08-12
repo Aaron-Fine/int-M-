@@ -2,7 +2,8 @@
 
 This checklist turns the remaining Phase 1 verification gaps into an ordered
 implementation and evidence backlog. Phase 1 is not ready to close until every
-normative requirement `MI-UX-001` through `MI-UX-016` has passing evidence.
+active normative requirement (`MI-UX-001` through `MI-UX-013` and `MI-UX-015`
+through `MI-UX-017`) has passing evidence. `MI-UX-014` is retained as OBE.
 
 ## Fixed scope and decisions
 
@@ -26,11 +27,12 @@ The detailed evidence references remain in the
 [requirements matrix](REQUIREMENTS.md). This summary is the planning baseline;
 update both documents as evidence is completed.
 
-| State   | Requirements                                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------------------------- |
-| Pass    | `MI-UX-001`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`                                        |
-| Partial | `MI-UX-002`, `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-012`, `MI-UX-013`, `MI-UX-015`, `MI-UX-016` |
-| Not met | `MI-UX-014`                                                                                                         |
+| State   | Requirements                                                                                                                     |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`, `MI-UX-013`, `MI-UX-017` |
+| Partial | `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                                     |
+| Not met | None                                                                                                                             |
+| OBE     | `MI-UX-014`                                                                                                                      |
 
 ## Ordered closeout backlog
 
@@ -39,17 +41,17 @@ can expand the remediation work.
 
 ### 1. Reconcile the renderer requirements with Phase 0
 
-**Trace:** `MI-UX-002`, `MI-UX-014`  
+**Trace:** `MI-UX-002`, `MI-UX-014` (OBE), `MI-UX-017`
 **Estimate:** 0.5–1 engineering day
 
-- [ ] Change the sensible-default requirement from speculative automatic
+- [x] Change the sensible-default requirement from speculative automatic
       renderer selection to the selected Worker CPU renderer.
-- [ ] Reframe automatic fallback so any future optional renderer falls back to
+- [x] Reframe automatic fallback so any future optional renderer falls back to
       Worker CPU, while the current CPU-only product provides automatic worker
       recovery.
-- [ ] Update the associated SysML verification objective so Phase 1 does not
+- [x] Update the associated SysML verification objective so Phase 1 does not
       require an intentionally deferred WebGPU implementation.
-- [ ] Reconcile the requirement matrix and implementation guide with the
+- [x] Reconcile the requirement matrix and implementation guide with the
       accepted ADR 0002 language.
 
 **Done when:** the normative model, ADR, implementation guide, and verification
@@ -58,22 +60,22 @@ future renderer-fallback requirement.
 
 ### 2. Make renderer failures recoverable
 
-**Trace:** `MI-UX-013`, `MI-UX-014`  
+**Trace:** `MI-UX-013`, `MI-UX-017`
 **Estimate:** 2–4 engineering days
 
-- [ ] Introduce a worker factory and lifecycle boundary rather than retaining
+- [x] Introduce a worker factory and lifecycle boundary rather than retaining
       one immutable worker for the application lifetime.
-- [ ] Handle both worker `error` and `messageerror` events.
-- [ ] Automatically recreate the worker once and resubmit the current render
+- [x] Handle both worker `error` and `messageerror` events.
+- [x] Automatically recreate the worker once and resubmit the current render
       after an unexpected worker failure.
-- [ ] Bound automatic retries so a persistent fault cannot create a restart
+- [x] Bound automatic retries so a persistent fault cannot create a restart
       loop.
-- [ ] Preserve, cancel, or explicitly restart pending point inspection during
+- [x] Preserve, cancel, or explicitly restart pending point inspection during
       recovery.
-- [ ] Present a nonblocking persistent failure state with a keyboard-operable
+- [x] Present a nonblocking persistent failure state with a keyboard-operable
       **Retry renderer** action after automatic recovery is exhausted.
-- [ ] Add unit coverage for render rejection followed by successful work.
-- [ ] Add browser failure injection covering worker crash, automatic recovery,
+- [x] Add unit coverage for render rejection followed by successful work.
+- [x] Add browser failure injection covering worker crash, automatic recovery,
       persistent failure, manual retry, and continued control operation.
 
 **Done when:** a recoverable render or worker failure does not require a page
@@ -85,14 +87,17 @@ browser scenarios pass in Firefox and Chromium.
 **Trace:** `MI-UX-007`  
 **Estimate:** 1–2 engineering days
 
-- [ ] Translate the most recent stable presentation while a pointer pan is in
+- [x] Translate the most recent stable presentation while a pointer pan is in
       progress, or implement an equally direct visual preview.
-- [ ] Reset the preview transform when the replacement coarse frame is
+- [x] Reset the preview transform when the replacement coarse frame is
       presented or when the interaction is cancelled.
-- [ ] Verify that pointer and keyboard navigation cancel superseded work and
+- [x] Verify that pointer and keyboard navigation cancel superseded work and
       that stale frames cannot replace the current request.
-- [ ] Add a Playwright pointer-pan scenario asserting live displacement, final
-      viewport state, replacement rendering, and pointer-cancel cleanup.
+- [ ] Manually verify live pointer displacement, final viewport state,
+      replacement rendering, and pointer-cancel rollback in supported release
+      Chrome and Firefox. Playwright's synthetic pointer path does not expose
+      the intermediate pan state reliably in CI, so this evidence must not be
+      represented as an automated check.
 
 **Done when:** pan, point zoom, and area zoom all provide immediate visible
 feedback and replacement work observes the cancellation budget.
@@ -102,20 +107,20 @@ feedback and replacement work observes the cancellation budget.
 **Trace:** `MI-UX-011`, `MI-UX-012`  
 **Estimate:** 1.5–3 engineering days
 
-- [ ] Add a persistent ring, crosshair, or equivalent non-color marker for an
+- [x] Add a persistent ring, crosshair, or equivalent non-color marker for an
       arbitrarily selected point.
-- [ ] Define and test how the marker behaves across pan, zoom, quality changes,
+- [x] Define and test how the marker behaves across pan, zoom, quality changes,
       catalog selection, and reset.
-- [ ] Associate the selected coordinate and status with the canvas through
+- [x] Associate the selected coordinate and status with the canvas through
       adjacent accessible text.
-- [ ] Document a coordinate display-precision policy tied to viewport scale
+- [x] Document a coordinate display-precision policy tied to viewport scale
       and raster evidence rather than relying only on a fixed significant-digit
       count.
-- [ ] Add browser assertions for arbitrary escaped, attracting-cycle, and
+- [x] Add browser assertions for arbitrary escaped, attracting-cycle, and
       unresolved points.
-- [ ] Assert canonical `c`, outcome, supporting evidence, available dynamical
+- [x] Assert canonical `c`, outcome, supporting evidence, available dynamical
       values, definitions, and the selected numerical-quality budget.
-- [ ] Verify that the inspector never reports precision unsupported by the
+- [x] Verify that the inspector never reports precision unsupported by the
       available evidence.
 
 **Done when:** arbitrary and catalog point selection are visibly and
@@ -127,12 +132,12 @@ truthful outcome class.
 **Trace:** `MI-UX-003`, `MI-UX-005`, `MI-UX-007`  
 **Estimate:** 1–2 engineering days plus the target-device run
 
-- [ ] Add marks for application mount, render request, coarse presentation,
+- [x] Add marks for application mount, render request, coarse presentation,
       stable presentation, immediate interaction feedback, and cancellation
       acknowledgement.
-- [ ] Measure presentation rather than stopping at worker message receipt.
-- [ ] Capture rendering-related main-thread long tasks.
-- [ ] Demonstrate that first-use guidance is interactive before the coarse
+- [x] Measure presentation rather than stopping at worker message receipt.
+- [x] Capture rendering-related main-thread long tasks.
+- [x] Demonstrate that first-use guidance is interactive before the coarse
       frame and does not delay rendering or navigation.
 - [ ] Run the deployed application on the documented four-core integrated-
       graphics target class in supported release Firefox and Chrome.
@@ -185,8 +190,10 @@ semantic distinctions are documented with evidence.
 - [ ] Retain Playwright coverage in managed Chromium and Firefox.
 - [ ] Record explicit supported release-browser versions and validate stable
       Chrome plus branded stable Firefox on the target-device class.
-- [ ] Add missing browser scenarios for pointer pan, arbitrary point
-      inspection, progressive presentation, and renderer recovery.
+- [ ] Add any missing automatable browser scenarios for arbitrary point
+      inspection, progressive presentation, and renderer recovery; record
+      pointer-pan and pointer-cancel behavior in the manual release-browser
+      evidence.
 - [ ] Run all static checks, 43 or more unit tests, production build, and the
       complete browser matrix from the final candidate commit.
 - [ ] Verify the final immutable Cloudflare preview for rendering,
@@ -196,21 +203,22 @@ semantic distinctions are documented with evidence.
       interaction, and visible `6,000,000×` ceiling.
 - [ ] Replace older deployment observations with evidence for the actual Phase
       1 release candidate and production commit.
-- [ ] Update `REQUIREMENTS.md` so every `MI-UX-001` through `MI-UX-016` row is
-      **Pass** with a stable evidence reference.
+- [ ] Update `REQUIREMENTS.md` so every active Phase 1 requirement is **Pass**
+      with a stable evidence reference while `MI-UX-014` remains **OBE**.
 - [ ] Record the final reviewer and closeout date in
       `PHASE-0-1-CLOSEOUT.md`.
 
 **Done when:** required CI is green, supported release-browser and target-device
 evidence is committed, the production deployment is verified, and all sixteen
-normative requirements have passing evidence.
+active normative requirements have passing evidence.
 
 ## Phase 1 definition of done
 
 Phase 1 may be declared closed only when:
 
 - [ ] Every task above that contributes to a normative requirement is complete.
-- [ ] `MI-UX-001` through `MI-UX-016` are all marked **Pass**.
+- [ ] `MI-UX-001` through `MI-UX-013` and `MI-UX-015` through `MI-UX-017` are
+      all marked **Pass**; `MI-UX-014` remains **OBE**.
 - [ ] The manual accessibility record contains no blank or `Not run` entries.
 - [ ] Target-device UI-path performance meets the documented budgets.
 - [ ] Final Firefox and Chrome release validation is recorded.

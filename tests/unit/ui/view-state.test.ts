@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_RENDER_QUALITY } from '../../../src/render';
 import {
   DEFAULT_QUALITY_PROFILE_ID,
+  formatCoordinateForViewport,
   getQualityProfile,
   QUALITY_PROFILES,
 } from '../../../src/ui/view-state';
@@ -31,5 +32,18 @@ describe('quality profiles', () => {
     expect(balanced.maxIterations).toBeLessThan(detailed.maxIterations);
     expect(quick.maxPeriod).toBeLessThan(balanced.maxPeriod);
     expect(balanced.maxPeriod).toBeLessThan(detailed.maxPeriod);
+  });
+});
+
+describe('viewport-aware coordinate formatting', () => {
+  it('increases displayed precision with raster scale', () => {
+    expect(formatCoordinateForViewport(-0.123456789, 2.5, 1000)).toBe('-0.1235');
+    expect(formatCoordinateForViewport(-0.123456789, 0.0000004, 1000)).toBe('-0.123456789');
+  });
+
+  it('does not report more than binary64 useful decimal precision', () => {
+    expect(formatCoordinateForViewport(Number('0.12345678901234567'), 1e-30, 1000)).toBe(
+      '0.123456789012346',
+    );
   });
 });

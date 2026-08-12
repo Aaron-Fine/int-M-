@@ -15,17 +15,19 @@ features.
 - `SystemContext` — the user, browser, static host, and development context;
 - `Architecture` — the proposed main-thread UI, rendering worker, numerical
   services, catalog, and offline generation toolchain;
-- `UserExperienceRequirements` — the sixteen baselined Phase 1 UX
-  requirements;
+- `UserExperienceRequirements` — sixteen active baselined Phase 1 UX
+  requirements plus the retained OBE `MI-UX-014` requirement;
 - `RequirementSatisfaction` — proposed allocation of those requirements to
   logical components; and
-- `Verification` — grouped verification cases that cover every UX
+- `Verification` — grouped verification cases that cover every active UX
   requirement.
 
-The requirements are normative for Phase 1. Phase 0 selected the Worker CPU
-production numerical path, the worker-internal semantic boundary, and the
-`6,000,000×` product ceiling. Architecture for later WebGPU and perturbation
-paths remains proposed and is governed by
+The active requirements are normative for Phase 1. `MI-UX-014` is retained as
+OBE for identifier and decision-history continuity; `MI-UX-017` replaces it
+with the current renderer recovery and fallback contract. Phase 0 selected the
+Worker CPU production numerical path, the worker-internal semantic boundary,
+and the `6,000,000×` product ceiling. Architecture for later WebGPU and
+perturbation paths remains proposed and is governed by
 [ADR 0002](../docs/decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md).
 
 ## Default experience
@@ -36,7 +38,7 @@ The model defines the initial experience as:
 - stability view;
 - balanced quality profile;
 - pan pointer tool, with an explicit zoom-area alternative;
-- automatic renderer selection;
+- the selected Worker CPU renderer with bounded automatic worker recovery;
 - essential catalog markers;
 - system-preferred theme; and
 - an inspector that opens when the user selects a point.
@@ -79,7 +81,8 @@ navigate.
 Before a requirement baseline is merged:
 
 1. check that every requirement has a stable short identifier;
-2. check that every requirement is covered by a verification objective;
+2. check that every active requirement is covered by a verification objective
+   and every OBE requirement identifies its replacement or disposition;
 3. check satisfaction paths against the proposed architecture;
 4. parse the model with a compatible SysML v2 tool pinned to the recorded
    language baseline; and

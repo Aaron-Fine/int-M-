@@ -18,6 +18,19 @@ const expectNoAccessibilityViolations = async (page: Page): Promise<void> => {
   ).toEqual([]);
 };
 
+const failRenderer = async (page: Page, count = 1): Promise<void> => {
+  await page.evaluate((failureCount) => {
+    const testGlobal = globalThis as typeof globalThis & {
+      __MI_PHASE1_TEST__?: { failRenderer(): void };
+    };
+    const testApi = testGlobal.__MI_PHASE1_TEST__;
+    if (!testApi) throw new Error('Phase 1 test seam is unavailable');
+    for (let index = 0; index < failureCount; index += 1) {
+      testApi.failRenderer();
+    }
+  }, count);
+};
+
 test.describe('Mandelbrot Interiority explorer', () => {
   test('starts with a useful, explained semantic view', async ({ page }) => {
     await page.goto('/');
@@ -158,6 +171,156 @@ test.describe('Mandelbrot Interiority explorer', () => {
       name: 'Inspect Period-4 component 2, period 4',
     });
     await expect(periodFour.locator('.catalog-marker__label')).toBeVisible();
+  });
+
+  test('marks and describes arbitrary escaped, attracting, and unresolved points', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore' }).click();
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    const box = await canvas.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) return;
+
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    const inspectAt = async (x: number, y: number, outcome: string): Promise<void> => {
+      await page.mouse.click(box.x + box.width * x, box.y + box.height * y);
+      await expect(page.locator('#selected-point-status')).toContainText(
+        `Outcome: ${outcome.toLowerCase()}`,
+        { timeout: 10_000 },
+      );
+      await expect(pointEvidence.locator('.inspector__classification')).toHaveText(outcome);
+      await expect(page.locator('.selected-point-marker')).toBeVisible();
+      await expect(
+        pointEvidence.locator('.facts').getByText('Parameter c', { exact: true }),
+      ).toBeVisible();
+      await expect(
+        pointEvidence.locator('.facts').getByText('Evidence', { exact: true }),
+      ).toBeVisible();
+      await expect(
+        pointEvidence.locator('.facts').getByText('Quality', { exact: true }),
+      ).toBeVisible();
+    };
+
+    await inspectAt(0.6375, 0.5, 'Attracting cycle');
+    await expect(
+      page.locator('.facts').getByText('Detected period', { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.locator('.facts').getByText('Multiplier magnitude', { exact: true }),
+    ).toBeVisible();
+    await inspectAt(0.9375, 0.5, 'Escaped');
+    await expect(
+      page.locator('.facts').getByText('Escape iteration', { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.locator('.facts').getByText('Final magnitude', { exact: true }),
+    ).toBeVisible();
+    // This high-period real-axis neighborhood remains unresolved within the
+    // Balanced profile's finite iteration and period search budget.
+    await inspectAt(0.338, 0.5, 'Unresolved');
+    await expect(pointEvidence.locator('.inspector__evidence')).toHaveText('Iteration Limit');
+    await expect(page.locator('.inspector__coordinate')).toContainText('c =');
+    await expect(page.getByText('How to read these values')).toBeVisible();
+
+    const marker = page.locator('.selected-point-marker');
+    const markerStyle = await marker.getAttribute('style');
+    await canvas.focus();
+    await canvas.press('ArrowLeft');
+    await expect(marker).toBeVisible();
+    await expect.poll(() => marker.getAttribute('style')).not.toBe(markerStyle);
+    const pannedMarkerStyle = await marker.getAttribute('style');
+    await canvas.press('+');
+    await expect(marker).toBeVisible();
+    await expect.poll(() => marker.getAttribute('style')).not.toBe(pannedMarkerStyle);
+    await page.getByLabel('Quality').selectOption('detailed');
+    await expect(marker).toBeVisible();
+    const periodTwo = page.getByRole('button', {
+      name: 'Inspect Period-2 bulb, period 2',
+    });
+    await expect(periodTwo).toBeVisible({ timeout: 20_000 });
+    await periodTwo.click();
+    await expect(marker).toBeVisible();
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(marker).toBeHidden();
+    await expect(page.locator('#selected-point-status')).toHaveText('No point selected.');
+  });
+
+  test('automatically recovers once and offers manual retry after persistent failure', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      {
+        timeout: 20_000,
+      },
+    );
+
+    await failRenderer(page);
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      {
+        timeout: 20_000,
+      },
+    );
+    await expect(page.getByRole('button', { name: 'Retry renderer' })).toBeHidden();
+
+    await failRenderer(page, 2);
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Renderer could not recover. Controls remain available.',
+    );
+    const retry = page.getByRole('button', { name: 'Retry renderer' });
+    await expect(retry).toBeVisible();
+    await page.getByLabel('Interior view').selectOption('period');
+    await expect(page.getByLabel('Interior view')).toHaveValue('period');
+
+    await retry.click();
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      {
+        timeout: 20_000,
+      },
+    );
+  });
+
+  test('records presentation-path performance marks', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore' }).click();
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      {
+        timeout: 20_000,
+      },
+    );
+    await page.waitForFunction(
+      () => performance.getEntriesByName('mi:stable-presented').length > 0,
+    );
+    const marks = await page.evaluate(() =>
+      performance
+        .getEntriesByType('mark')
+        .filter((entry) => entry.name.startsWith('mi:'))
+        .map((entry) => ({ name: entry.name, startTime: entry.startTime })),
+    );
+    for (const name of [
+      'mi:app-mount',
+      'mi:guidance-interaction',
+      'mi:render-request',
+      'mi:coarse-presented',
+      'mi:stable-presented',
+    ]) {
+      expect(
+        marks.some((mark) => mark.name === name),
+        `${name} was not recorded`,
+      ).toBe(true);
+    }
+    const first = (name: string): number =>
+      marks.find((mark) => mark.name === name)?.startTime ?? Number.POSITIVE_INFINITY;
+    expect(first('mi:app-mount')).toBeLessThanOrEqual(first('mi:render-request'));
+    expect(first('mi:guidance-interaction')).toBeLessThanOrEqual(first('mi:coarse-presented'));
+    expect(first('mi:render-request')).toBeLessThanOrEqual(first('mi:coarse-presented'));
+    expect(first('mi:coarse-presented')).toBeLessThanOrEqual(first('mi:stable-presented'));
   });
 
   test('explains evidence terms and exposes bounded quality profiles', async ({ page }) => {
