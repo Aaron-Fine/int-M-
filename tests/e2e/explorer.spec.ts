@@ -192,10 +192,11 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width * 0.62, box.y + box.height * 0.58, { steps: 3 });
-    await expect(canvas).toHaveCSS('transform', /matrix\(1, 0, 0, 1,/);
+    await expect(canvas).toHaveClass(/explorer__canvas--previewing/);
+    await expect(page.locator('.coordinates__center')).not.toHaveText(initialCenter ?? '');
 
     await canvas.dispatchEvent('pointercancel', { pointerId: 1, isPrimary: true });
-    await expect(canvas).toHaveCSS('transform', 'none');
+    await expect(canvas).not.toHaveClass(/explorer__canvas--previewing/);
     await expect(page.locator('.coordinates__center')).toHaveText(initialCenter ?? '');
 
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
@@ -209,7 +210,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
         timeout: 20_000,
       },
     );
-    await expect(canvas).toHaveCSS('transform', 'none');
+    await expect(canvas).not.toHaveClass(/explorer__canvas--previewing/);
   });
 
   test('marks and describes arbitrary escaped, attracting, and unresolved points', async ({
@@ -222,16 +223,24 @@ test.describe('Mandelbrot Interiority explorer', () => {
     expect(box).not.toBeNull();
     if (!box) return;
 
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
     const inspectAt = async (x: number, y: number, outcome: string): Promise<void> => {
       await page.mouse.click(box.x + box.width * x, box.y + box.height * y);
-      await expect(page.getByText(outcome, { exact: true })).toBeVisible({ timeout: 10_000 });
-      await expect(page.locator('.selected-point-marker')).toBeVisible();
-      await expect(page.locator('.facts').getByText('Parameter c', { exact: true })).toBeVisible();
-      await expect(page.locator('.facts').getByText('Evidence', { exact: true })).toBeVisible();
-      await expect(page.locator('.facts').getByText('Quality', { exact: true })).toBeVisible();
       await expect(page.locator('#selected-point-status')).toContainText(
         `Outcome: ${outcome.toLowerCase()}`,
+        { timeout: 10_000 },
       );
+      await expect(pointEvidence.locator('.inspector__classification')).toHaveText(outcome);
+      await expect(page.locator('.selected-point-marker')).toBeVisible();
+      await expect(
+        pointEvidence.locator('.facts').getByText('Parameter c', { exact: true }),
+      ).toBeVisible();
+      await expect(
+        pointEvidence.locator('.facts').getByText('Evidence', { exact: true }),
+      ).toBeVisible();
+      await expect(
+        pointEvidence.locator('.facts').getByText('Quality', { exact: true }),
+      ).toBeVisible();
     };
 
     await inspectAt(0.6375, 0.5, 'Attracting cycle');
@@ -251,7 +260,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     // This high-period real-axis neighborhood remains unresolved within the
     // Balanced profile's finite iteration and period search budget.
     await inspectAt(0.338, 0.5, 'Unresolved');
-    await expect(page.getByText('No conclusive evidence at current quality')).toBeVisible();
+    await expect(pointEvidence.locator('.inspector__evidence')).toHaveText('Iteration Limit');
     await expect(page.locator('.inspector__coordinate')).toContainText('c =');
     await expect(page.getByText('How to read these values')).toBeVisible();
 

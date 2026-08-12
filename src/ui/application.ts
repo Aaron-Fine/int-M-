@@ -425,6 +425,7 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function applyPresentationPreview(transform: string, origin = 'center'): void {
+    renderCanvas.classList.add('explorer__canvas--previewing');
     renderCanvas.style.transform = transform;
     renderCanvas.style.transformOrigin = origin;
     catalogOverlay.style.transform = transform;
@@ -432,6 +433,7 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function clearPresentationPreview(): void {
+    renderCanvas.classList.remove('explorer__canvas--previewing');
     renderCanvas.style.removeProperty('transform');
     renderCanvas.style.removeProperty('transform-origin');
     catalogOverlay.style.removeProperty('transform');
@@ -1157,12 +1159,18 @@ function createInspector(): {
       unresolved: 'Unresolved',
     };
     const badge = element('p', {
-      className: `classification classification--${orbit.status}`,
+      className: `classification classification--${orbit.status} inspector__classification`,
       text: statusLabel[orbit.status],
     });
     const facts = element('dl', { className: 'facts' });
-    const addFact = (term: string, value: string): void => {
-      facts.append(element('dt', { text: term }), element('dd', { text: value }));
+    const addFact = (term: string, value: string, valueClassName?: string): void => {
+      facts.append(
+        element('dt', { text: term }),
+        element('dd', {
+          ...(valueClassName ? { className: valueClassName } : {}),
+          text: value,
+        }),
+      );
     };
     addFact('Parameter c', coordinate);
     if (component) {
@@ -1213,6 +1221,7 @@ function createInspector(): {
       orbit.evidence.length > 0
         ? orbit.evidence.map(formatEvidence).join(', ')
         : 'No conclusive evidence at current quality',
+      'inspector__evidence',
     );
     replaceChildren(body, [
       component
