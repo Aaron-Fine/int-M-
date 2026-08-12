@@ -16,6 +16,9 @@ requirements, while this one defines the working boundaries and repeatable comma
 The measured Phase 0 target-hardware results, preliminary budgets, renderer
 decision, and reproduction commands are recorded in
 [the Phase 0 benchmark report](PHASE0_BENCHMARK.md).
+[ADR 0002](decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md) closes the
+decision with Worker CPU, a `6,000,000×` product ceiling, and explicit WebGPU
+and perturbation reconsideration gates.
 
 TypeScript is pinned to 6.0.3. TypeScript 7 is the current npm `latest`, but the current typed ESLint
 release supports TypeScript only through 6.0.x. The project should move to TypeScript 7 after that

@@ -22,9 +22,11 @@ features.
 - `Verification` — grouped verification cases that cover every UX
   requirement.
 
-The requirements are normative for Phase 1. The architecture and satisfaction
-relationships are proposed until Phase 0 experiments select the production
-numerical path.
+The requirements are normative for Phase 1. Phase 0 selected the Worker CPU
+production numerical path, the worker-internal semantic boundary, and the
+`6,000,000×` product ceiling. Architecture for later WebGPU and perturbation
+paths remains proposed and is governed by
+[ADR 0002](../docs/decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md).
 
 ## Default experience
 

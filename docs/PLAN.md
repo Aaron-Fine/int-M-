@@ -268,6 +268,12 @@ The normative first-release UX requirements are `MI-UX-001` through `MI-UX-016` 
 
 Phase 0 ends uncertainty before production architecture hardens.
 
+**Status: complete 2026-08-11.** The
+[closeout matrix](verification/PHASE-0-1-CLOSEOUT.md) records all six exit
+criteria as passed. [ADR 0002](decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md)
+selects Worker CPU, retains the `6,000,000×` product ceiling, and defines the
+stable-Firefox WebGPU and perturbation reconsideration gates.
+
 #### Mathematical and product contract
 
 - Define multiplier, stability, period, outcome, evidence, and unresolved semantics.
@@ -362,7 +368,8 @@ Deepen the same story without changing its shape:
 
 ### Phase 3 — measured numerical extension
 
-Only if Phase 0 or real use demonstrates a meaningful gap:
+Only if real use demonstrates a meaningful gap within the Phase 0-selected
+CPU path and the ADR 0002 reconsideration criteria are met:
 
 - productionize perturbation and rebasing;
 - introduce the smallest justified high-precision CPU or WebAssembly component;
@@ -383,17 +390,21 @@ Explore independently, promoting only work that reinforces the interior-atlas th
 - larger or externally sourced catalogs with compatible licensing; and
 - export formats, including SVG where the semantics suit vector output.
 
-## 10. Open decisions
+## 10. Phase 0 decision disposition
 
-Phase 0 must resolve:
+Phase 0 resolved:
 
-- the exact first catalog entries and naming convention;
-- the initial renderer selected by the three experiments;
-- preliminary zoom, resolution, period, and iteration bounds;
-- how catalog matching confidence is expressed; and
-- the initial accessible palette and unresolved-region treatment.
+- the independently generated period-through-four initial catalog and durable
+  identifiers;
+- the Worker CPU renderer selected by the three experiments;
+- the `6,000,000×` product ceiling and preliminary resolution, period, and
+  iteration budgets;
+- explicit evidence and unresolved semantics for classification and catalog
+  matching; and
+- the initial accessible palette and non-color unresolved treatment.
 
-These are intentionally not open-ended framework decisions. They are bounded choices for the first release.
+These remain bounded first-release choices. Later changes require new evidence;
+they do not reopen Phase 0 retroactively.
 
 ## 11. First-release definition of done
 

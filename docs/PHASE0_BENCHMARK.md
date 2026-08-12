@@ -21,13 +21,14 @@ The disposable benchmark is already 876 lines across its browser, WebGPU,
 high-precision fixture, and runner code, which is material complexity compared
 with the bounded first release.
 
-Use `spanY = 1e-8` (magnification `2.5e8×` from the default view) as the
-evidence-backed preliminary CPU zoom bound. The perturbation experiment has
-80-digit comparison evidence at that scale. The currently configured `1e-10`
-UI bound remains unvalidated and should not be claimed as supported until an
-equivalent direct binary64/high-precision sweep is recorded. A direct `f32`
-renderer would instead require a conservative whole-set bound of `1e-4`
-(`25,000×`) at 768 pixels.
+The perturbation experiment provides 80-digit numerical feasibility evidence
+at `spanY = 1e-8` (magnification `2.5e8×` from the default view). It does not
+establish useful interior semantics, interaction quality, or a supported
+product zoom at that scale. Keep the separately observed and implemented
+`6,000,000×` product ceiling (`spanY ≈ 4.17e-7`). The `1e-10` UI bound present
+at the measured baseline was subsequently replaced by that empirical product
+ceiling. A direct `f32` renderer would instead require a conservative
+whole-set bound of `1e-4` (`25,000×`) at 768 pixels.
 
 ## Target hardware and software
 
@@ -137,8 +138,10 @@ normative only for this hardware class at Balanced quality:
 - direct-GPU acceptance before production use: status mismatch no more than
   0.1%, period mismatch no more than 0.01%, multiplier/stability absolute error
   no more than `1e-5` at p95, plus a defined unresolved policy; and
-- preliminary CPU zoom: `spanY >= 1e-8`; direct `f32` zoom:
-  `spanY >= 1e-4` at 768² across the whole set.
+- supported CPU product zoom: magnification no greater than `6,000,000×`
+  (`spanY >= 4.17e-7`); sampled CPU/perturbation numerical feasibility at
+  `spanY = 1e-8`; and direct `f32` zoom `spanY >= 1e-4` at 768² across the
+  whole set.
 
 The direct GPU experiment fails the proposed status and period disagreement
 budgets on the full-set views. Perturbation passes its sampled escape checks
