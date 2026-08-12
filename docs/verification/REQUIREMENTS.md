@@ -1,8 +1,10 @@
 # Phase 1 UX verification matrix
 
 This matrix distinguishes implemented behavior from evidence sufficient to
-close a normative requirement. Test names are stable evidence references; CI
-provides the execution record in current Firefox and Chromium.
+close a normative requirement. **OBE** identifies a retained historical
+requirement that is no longer part of the active baseline. Test names are
+stable evidence references; CI provides the execution record in current
+Firefox and Chromium.
 
 | Requirement                                | State       | Automated evidence                                                                                                                          | Remaining evidence                                                                                                  |
 | ------------------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -19,9 +21,10 @@ provides the execution record in current Firefox and Chromium.
 | `MI-UX-011` Non-color state distinction    | **Partial** | Semantic color tests, unresolved texture, persistent crosshair/ring selection marker, and adaptive-label browser scenario                   | Manual simulated color-vision and canvas review                                                                     |
 | `MI-UX-012` Evidence-bounded inspector     | **Pass**    | Arbitrary escaped/attracting/unresolved browser assertions; viewport-aware coordinate policy; high-precision fixture and orbit tests        | None                                                                                                                |
 | `MI-UX-013` Nonblocking status and failure | **Pass**    | Injected worker failure, automatic recovery, persistent status, continued controls, and manual-retry browser scenario; lifecycle unit tests | None                                                                                                                |
-| `MI-UX-014` Renderer recovery/fallback     | **Pass**    | Selected CPU default; bounded automatic worker/render recovery and manual retry; future optional-renderer CPU fallback remains normative    | None for the CPU-only Phase 1 product                                                                               |
+| `MI-UX-014` Automatic renderer fallback    | **OBE**     | Historical WebGPU-first requirement retained for identifier continuity; superseded by `MI-UX-017`                                           | None; not part of the active Phase 1 baseline                                                                       |
 | `MI-UX-015` Keyboard operation             | **Partial** | Keyboard navigation and catalog selection browser scenarios                                                                                 | Manual full-tab-order and visible-focus review                                                                      |
 | `MI-UX-016` Accessible interface           | **Partial** | Axe WCAG A/AA scans in primary and inspector states, in Firefox and Chromium                                                                | Manual WCAG 2.2 AA review, canvas alternative, 200% zoom/reflow, and color-vision checks                            |
+| `MI-UX-017` Renderer recovery/fallback     | **Pass**    | Selected CPU default; bounded automatic worker/render recovery and manual retry; future optional-renderer CPU fallback remains normative    | None for the CPU-only Phase 1 product                                                                               |
 
 ## Manual accessibility record
 

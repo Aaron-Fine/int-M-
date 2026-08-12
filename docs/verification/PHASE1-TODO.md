@@ -2,7 +2,8 @@
 
 This checklist turns the remaining Phase 1 verification gaps into an ordered
 implementation and evidence backlog. Phase 1 is not ready to close until every
-normative requirement `MI-UX-001` through `MI-UX-016` has passing evidence.
+active normative requirement (`MI-UX-001` through `MI-UX-013` and `MI-UX-015`
+through `MI-UX-017`) has passing evidence. `MI-UX-014` is retained as OBE.
 
 ## Fixed scope and decisions
 
@@ -26,11 +27,12 @@ The detailed evidence references remain in the
 [requirements matrix](REQUIREMENTS.md). This summary is the planning baseline;
 update both documents as evidence is completed.
 
-| State   | Requirements                                                                                                       |
-| ------- | ------------------------------------------------------------------------------------------------------------------ |
-| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`–`MI-UX-014` |
-| Partial | `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                       |
-| Not met | None                                                                                                               |
+| State   | Requirements                                                                                                                     |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`, `MI-UX-013`, `MI-UX-017` |
+| Partial | `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                                     |
+| Not met | None                                                                                                                             |
+| OBE     | `MI-UX-014`                                                                                                                      |
 
 ## Ordered closeout backlog
 
@@ -39,7 +41,7 @@ can expand the remediation work.
 
 ### 1. Reconcile the renderer requirements with Phase 0
 
-**Trace:** `MI-UX-002`, `MI-UX-014`  
+**Trace:** `MI-UX-002`, `MI-UX-014` (OBE), `MI-UX-017`
 **Estimate:** 0.5–1 engineering day
 
 - [x] Change the sensible-default requirement from speculative automatic
@@ -58,7 +60,7 @@ future renderer-fallback requirement.
 
 ### 2. Make renderer failures recoverable
 
-**Trace:** `MI-UX-013`, `MI-UX-014`  
+**Trace:** `MI-UX-013`, `MI-UX-017`
 **Estimate:** 2–4 engineering days
 
 - [x] Introduce a worker factory and lifecycle boundary rather than retaining
@@ -201,21 +203,22 @@ semantic distinctions are documented with evidence.
       interaction, and visible `6,000,000×` ceiling.
 - [ ] Replace older deployment observations with evidence for the actual Phase
       1 release candidate and production commit.
-- [ ] Update `REQUIREMENTS.md` so every `MI-UX-001` through `MI-UX-016` row is
-      **Pass** with a stable evidence reference.
+- [ ] Update `REQUIREMENTS.md` so every active Phase 1 requirement is **Pass**
+      with a stable evidence reference while `MI-UX-014` remains **OBE**.
 - [ ] Record the final reviewer and closeout date in
       `PHASE-0-1-CLOSEOUT.md`.
 
 **Done when:** required CI is green, supported release-browser and target-device
 evidence is committed, the production deployment is verified, and all sixteen
-normative requirements have passing evidence.
+active normative requirements have passing evidence.
 
 ## Phase 1 definition of done
 
 Phase 1 may be declared closed only when:
 
 - [ ] Every task above that contributes to a normative requirement is complete.
-- [ ] `MI-UX-001` through `MI-UX-016` are all marked **Pass**.
+- [ ] `MI-UX-001` through `MI-UX-013` and `MI-UX-015` through `MI-UX-017` are
+      all marked **Pass**; `MI-UX-014` remains **OBE**.
 - [ ] The manual accessibility record contains no blank or `Not run` entries.
 - [ ] Target-device UI-path performance meets the documented budgets.
 - [ ] Final Firefox and Chrome release validation is recorded.

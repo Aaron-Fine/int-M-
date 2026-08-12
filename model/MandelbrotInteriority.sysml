@@ -307,14 +307,15 @@ package MandelbrotInteriority {
              */
         }
 
-        requirement <'MI-UX-014'> RendererRecoveryAndFallback {
+        requirement <'MI-UX-014'> AutomaticRendererFallback {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * The Worker CPU renderer shall recover automatically from one
-             * consecutive worker or render failure and shall expose a manual
-             * retry after recovery is exhausted. Any future optional renderer
-             * shall fall back automatically to Worker CPU when unavailable or
-             * rejected.
+             * Status: OBE. Original requirement: If WebGPU is unavailable or
+             * rejected, the application shall automatically select a
+             * supported fallback without requiring user intervention. Phase 0
+             * instead selected Worker CPU as the production renderer.
+             * MI-UX-017 supersedes this requirement without reusing its
+             * identifier.
              */
         }
 
@@ -332,6 +333,17 @@ package MandelbrotInteriority {
             doc /*
              * The application shall conform to WCAG 2.2 Level AA for
              * applicable interface content and controls.
+             */
+        }
+
+        requirement <'MI-UX-017'> RendererRecoveryAndFallback {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The Worker CPU renderer shall recover automatically from one
+             * consecutive worker or render failure and shall expose a manual
+             * retry after recovery is exhausted. Any future optional renderer
+             * shall fall back automatically to Worker CPU when unavailable or
+             * rejected.
              */
         }
     }
@@ -367,12 +379,12 @@ package MandelbrotInteriority {
                 by app.uiShell.inspector;
             satisfy UserExperienceRequirements::NonblockingStatusAndFailure
                 by app.uiShell;
-            satisfy UserExperienceRequirements::RendererRecoveryAndFallback
-                by app.uiShell.rendererLifecycle;
             satisfy UserExperienceRequirements::KeyboardOperation
                 by app.uiShell;
             satisfy UserExperienceRequirements::AccessibleInterface
                 by app.uiShell;
+            satisfy UserExperienceRequirements::RendererRecoveryAndFallback
+                by app.uiShell.rendererLifecycle;
         }
     }
 

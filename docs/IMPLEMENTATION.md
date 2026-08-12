@@ -173,8 +173,9 @@ This foundation directly supports:
 | MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests           |
 | MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests                   |
 | MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility                      |
-| MI-UX-014                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback |
+| MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity              |
 | MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                   |
+| MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback |
 | Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                      |
 | Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI              |
 
