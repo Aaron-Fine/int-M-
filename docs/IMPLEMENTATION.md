@@ -125,6 +125,9 @@ their canonical data precision.
   keyboard operation, arbitrary-point inspector evidence, bounded worker recovery, and manual retry.
   Record immediate pointer-pan feedback and pointer-cancel rollback in the manual release-browser
   evidence because CI's synthetic pointer path does not expose that intermediate state reliably.
+- Phone-layout checks should cover 320, 375, and 430 CSS-pixel viewports, assert no horizontal
+  document overflow, keep the canvas at its compact aspect ratio, bound the first-use guide to the
+  visual viewport, and enforce 44 CSS-pixel primary control targets.
 - Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
   intended for reuse belong under CC0-1.0; application tests remain GPL-3.0-only.
 - Performance assertions should use broad budgets and recorded hardware context. Avoid making CI
