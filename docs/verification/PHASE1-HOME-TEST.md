@@ -30,25 +30,25 @@ unobserved check into a pass.
 4. Repeat quick +/− or arrow-key changes at least 20 times so superseded work
    produces cancellation samples. Export the browser performance marks with:
 
-   \`\`\`js
+   ```js
    copy(
-   JSON.stringify(
-   performance
-   .getEntriesByType('mark')
-   .filter((entry) => entry.name.startsWith('mi:'))
-   .map((entry) => ({
-   name: entry.name,
-   startTime: entry.startTime,
-   detail: entry.detail,
-   })),
-   null,
-   2,
-   ),
+     JSON.stringify(
+       performance
+         .getEntriesByType('mark')
+         .filter((entry) => entry.name.startsWith('mi:'))
+         .map((entry) => ({
+           name: entry.name,
+           startTime: entry.startTime,
+           detail: entry.detail,
+         })),
+       null,
+       2,
+     ),
    );
-   \`\`\`
+   ```
 
 5. Record coarse/stable presentation times, cancellation-request to
-   cancellation-acknowledgement p95, and every \`mi:long-task\` duration. Apply
+   cancellation-acknowledgement p95, and every `mi:long-task` duration. Apply
    the budgets in [the Phase 1 TODO](PHASE1-TODO.md).
 
 ## Accessibility
@@ -63,7 +63,7 @@ unobserved check into a pass.
    name/instructions, render status, viewport, selected point, outcome, and
    evidence are understandable.
 4. Enable native high contrast when available; otherwise record use of browser
-   \`forced-colors: active\` emulation. Confirm focus, selected point, catalog
+   `forced-colors: active` emulation. Confirm focus, selected point, catalog
    shapes, classifications, and retry remain visible.
 5. Simulate protanopia, deuteranopia, and tritanopia. In Stability, Multiplier,
    and Period views, confirm escaped, unresolved, selected, and catalog states
@@ -73,5 +73,5 @@ unobserved check into a pass.
 
 Confirm the console has no application-origin errors and note any failed or
 blocked network request. Save the completed record under
-\`evidence/phase-1/\` with the date and target name. A failure opens follow-up
+`evidence/phase-1/` with the date and target name. A failure opens follow-up
 work; it does not invalidate the useful passing evidence.

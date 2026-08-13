@@ -28,7 +28,7 @@ Use **Pass**, **Fail**, or **Blocked** and explain every non-pass.
 
 ## Performance summary
 
-Attach the raw \`mi:\` performance-mark JSON for each browser.
+Attach the raw `mi:` performance-mark JSON for each browser.
 
 | Metric                                  |            Budget | Firefox | Chrome |
 | --------------------------------------- | ----------------: | ------: | -----: |
