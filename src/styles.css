@@ -1077,6 +1077,7 @@ button:disabled {
   .toggle-button,
   .tool-button,
   .primary-button,
+  .status__retry,
   .select {
     min-height: 2.75rem;
   }
@@ -1178,7 +1179,13 @@ button:disabled {
   .identity__mark,
   .status__indicator,
   .catalog-marker__dot {
-    forced-color-adjust: none;
+    border-color: CanvasText;
+    forced-color-adjust: auto;
+  }
+
+  .status__indicator,
+  .catalog-marker__dot {
+    background: CanvasText;
   }
 
   .legend__swatch {
@@ -1198,6 +1205,8 @@ button:disabled {
 
   .selected-point-marker {
     border-color: CanvasText;
-    box-shadow: 0 0 0 2px Highlight;
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+    box-shadow: none;
   }
 }

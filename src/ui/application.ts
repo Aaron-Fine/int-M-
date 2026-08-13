@@ -318,6 +318,7 @@ export function mountApplication(host: HTMLElement): () => void {
     attributes: {
       id: 'explorer',
       'aria-labelledby': 'explorer-heading',
+      'data-render-stage': 'none',
     },
   });
   const explorerHeading = element('h2', {
@@ -454,6 +455,9 @@ export function mountApplication(host: HTMLElement): () => void {
   function scheduleRender(immediate = false): void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (state.activeRequestId > 0) {
+      performance.mark('mi:cancellation-requested', {
+        detail: { requestId: state.activeRequestId },
+      });
       workerClient.post({
         type: 'cancel',
         requestId: state.activeRequestId,
@@ -477,6 +481,8 @@ export function mountApplication(host: HTMLElement): () => void {
     state.requestId += 1;
     state.activeRequestId = state.requestId;
     state.frameStage = 'none';
+    canvasShell.dataset['renderStage'] = 'requested';
+    canvasShell.dataset['renderRequestId'] = String(state.activeRequestId);
     performance.mark('mi:render-request', {
       detail: { requestId: state.activeRequestId },
     });
@@ -499,6 +505,8 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasContext.imageSmoothingEnabled = false;
     canvasContext.putImageData(pixels, 0, 0);
     state.frameStage = frame.stage;
+    canvasShell.dataset['renderStage'] = frame.stage;
+    canvasShell.dataset['renderRequestId'] = String(frame.requestId);
     retryRendererButton.hidden = true;
     if (frame.stage === 'coarse') clearPresentationPreview();
     updateCatalogOverlay();

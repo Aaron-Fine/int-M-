@@ -27,12 +27,12 @@ The detailed evidence references remain in the
 [requirements matrix](REQUIREMENTS.md). This summary is the planning baseline;
 update both documents as evidence is completed.
 
-| State   | Requirements                                                                                                                     |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`, `MI-UX-013`, `MI-UX-017` |
-| Partial | `MI-UX-003`, `MI-UX-005`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                                     |
-| Not met | None                                                                                                                             |
-| OBE     | `MI-UX-014`                                                                                                                      |
+| State   | Requirements                                                                                                                                  |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-005`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`, `MI-UX-013`, `MI-UX-017` |
+| Partial | `MI-UX-003`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                                                               |
+| Not met | None                                                                                                                                          |
+| OBE     | `MI-UX-014`                                                                                                                                   |
 
 ## Ordered closeout backlog
 
@@ -135,10 +135,14 @@ truthful outcome class.
 - [x] Add marks for application mount, render request, coarse presentation,
       stable presentation, immediate interaction feedback, and cancellation
       acknowledgement.
+- [x] Pair cancellation-request and cancellation-acknowledgement marks by
+      request ID so the target-device run can compute acknowledgement p95.
 - [x] Measure presentation rather than stopping at worker message receipt.
 - [x] Capture rendering-related main-thread long tasks.
 - [x] Demonstrate that first-use guidance is interactive before the coarse
       frame and does not delay rendering or navigation.
+- [x] Verify one browser render request progresses through requested, coarse,
+      and stable presentation states with matching request IDs.
 - [ ] Run the deployed application on the documented four-core integrated-
       graphics target class in supported release Firefox and Chrome.
 - [ ] Record browser version, operating system, viewport, hardware, raw samples,
@@ -158,6 +162,12 @@ in both supported browser families.
 **Trace:** `MI-UX-011`, `MI-UX-015`, `MI-UX-016`  
 **Estimate:** 2–4 engineering days, subject to findings
 
+- [x] Automate forced-colors focus, selected-point, classification, and Axe
+      checks in Chromium and Firefox.
+- [x] Automate 320 px selected evidence, long fact values, persistent renderer
+      error, 44 px retry target, manual retry, and horizontal containment.
+- [x] Retain 320/375/430 px checks for initial reflow, canvas ratio, guide
+      containment, primary target size, and horizontal overflow.
 - [ ] Complete every row of the manual accessibility record with reviewer,
       date, browser, operating system, viewport, result, and notes.
 - [ ] Review the full tab order and visible focus in Firefox and Chrome.
@@ -178,6 +188,10 @@ in both supported browser families.
 - [ ] Re-run Axe checks after remediation in primary and inspector states in
       both browser projects.
 
+Use the concise [home-test procedure](PHASE1-HOME-TEST.md) and commit a
+completed copy of the
+[manual evidence template](../../evidence/phase-1/manual-template.md).
+
 **Done when:** the manual record is complete, automated checks remain green,
 all discovered applicable WCAG 2.2 AA failures are resolved, and non-color
 semantic distinctions are documented with evidence.
@@ -187,10 +201,10 @@ semantic distinctions are documented with evidence.
 **Trace:** all Phase 1 requirements  
 **Estimate:** 1–2 engineering days
 
-- [ ] Retain Playwright coverage in managed Chromium and Firefox.
+- [x] Retain Playwright coverage in managed Chromium and Firefox.
 - [ ] Record explicit supported release-browser versions and validate stable
       Chrome plus branded stable Firefox on the target-device class.
-- [ ] Add any missing automatable browser scenarios for arbitrary point
+- [x] Add the automatable browser scenarios for arbitrary point
       inspection, progressive presentation, and renderer recovery; record
       pointer-pan and pointer-cancel behavior in the manual release-browser
       evidence.
@@ -199,10 +213,12 @@ semantic distinctions are documented with evidence.
 - [ ] Verify the final immutable Cloudflare preview for rendering,
       interaction, accessibility smoke checks, console errors, and network
       errors.
-- [ ] After merge, verify the production response, first useful frame, normal
-      interaction, and visible `6,000,000×` ceiling.
-- [ ] Replace older deployment observations with evidence for the actual Phase
-      1 release candidate and production commit.
+- [x] After the PR #8 merge, verify the production response, first useful
+      frame, normal interaction, console health, and visible `6,000,000×`
+      ceiling in the
+      [2026-08-12 production observation](../../evidence/deployment/cloudflare-2026-08-12.md).
+- [ ] Repeat the production observation if the final Phase 1 release changes
+      built application assets after that baseline.
 - [ ] Update `REQUIREMENTS.md` so every active Phase 1 requirement is **Pass**
       with a stable evidence reference while `MI-UX-014` remains **OBE**.
 - [ ] Record the final reviewer and closeout date in

@@ -31,6 +31,16 @@ const failRenderer = async (page: Page, count = 1): Promise<void> => {
   }, count);
 };
 
+const expectNoHorizontalOverflow = async (page: Page, context: string): Promise<void> => {
+  const pageWidth = await page.evaluate(() => ({
+    client: document.documentElement.clientWidth,
+    scroll: document.documentElement.scrollWidth,
+  }));
+  expect(pageWidth.scroll, `${context} overflowed horizontally`).toBeLessThanOrEqual(
+    pageWidth.client,
+  );
+};
+
 test.describe('Mandelbrot Interiority explorer', () => {
   test('starts with a useful, explained semantic view', async ({ page }) => {
     await page.goto('/');
@@ -48,6 +58,11 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.getByText('No claim at current quality')).toBeVisible();
 
     await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
+    await expect(page.getByLabel('Interior view')).toBeEnabled();
     await page.getByRole('button', { name: 'Explore' }).click();
     await expect(page.getByRole('heading', { name: 'Start with structure' })).not.toBeVisible();
 
@@ -285,7 +300,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     );
   });
 
-  test('records presentation-path performance marks', async ({ page }) => {
+  test('presents coarse and stable frames in order for one render request', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Explore' }).click();
     await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
@@ -294,18 +309,57 @@ test.describe('Mandelbrot Interiority explorer', () => {
         timeout: 20_000,
       },
     );
-    await page.waitForFunction(
-      () => performance.getEntriesByName('mi:stable-presented').length > 0,
-    );
+
+    await page.evaluate(() => {
+      for (const name of [
+        'mi:interaction-feedback',
+        'mi:render-request',
+        'mi:coarse-presented',
+        'mi:stable-presented',
+      ]) {
+        performance.clearMarks(name);
+      }
+    });
+
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    const explorer = page.locator('#explorer');
+    await canvas.focus();
+    await canvas.press('+');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', {
+      timeout: 20_000,
+    });
+    const coarseRequestId = await explorer.getAttribute('data-render-request-id');
+    expect(coarseRequestId).not.toBeNull();
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(explorer).toHaveAttribute('data-render-request-id', coarseRequestId ?? '');
+
     const marks = await page.evaluate(() =>
       performance
         .getEntriesByType('mark')
-        .filter((entry) => entry.name.startsWith('mi:'))
-        .map((entry) => ({ name: entry.name, startTime: entry.startTime })),
+        .filter((entry) =>
+          [
+            'mi:interaction-feedback',
+            'mi:render-request',
+            'mi:coarse-presented',
+            'mi:stable-presented',
+          ].includes(entry.name),
+        )
+        .map((entry) => {
+          const detail: unknown = (entry as PerformanceMark).detail;
+          const requestId =
+            typeof detail === 'object' &&
+            detail !== null &&
+            'requestId' in detail &&
+            typeof detail.requestId === 'number'
+              ? detail.requestId
+              : undefined;
+          return { name: entry.name, startTime: entry.startTime, requestId };
+        }),
     );
     for (const name of [
-      'mi:app-mount',
-      'mi:guidance-interaction',
+      'mi:interaction-feedback',
       'mi:render-request',
       'mi:coarse-presented',
       'mi:stable-presented',
@@ -317,10 +371,14 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
     const first = (name: string): number =>
       marks.find((mark) => mark.name === name)?.startTime ?? Number.POSITIVE_INFINITY;
-    expect(first('mi:app-mount')).toBeLessThanOrEqual(first('mi:render-request'));
-    expect(first('mi:guidance-interaction')).toBeLessThanOrEqual(first('mi:coarse-presented'));
+    expect(first('mi:interaction-feedback')).toBeLessThanOrEqual(first('mi:render-request'));
     expect(first('mi:render-request')).toBeLessThanOrEqual(first('mi:coarse-presented'));
     expect(first('mi:coarse-presented')).toBeLessThanOrEqual(first('mi:stable-presented'));
+
+    const requestIds = marks
+      .filter((mark) => mark.name !== 'mi:interaction-feedback')
+      .map((mark) => mark.requestId);
+    expect(new Set(requestIds)).toEqual(new Set([Number(coarseRequestId)]));
   });
 
   test('explains evidence terms and exposes bounded quality profiles', async ({ page }) => {
@@ -354,6 +412,51 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expectNoAccessibilityViolations(page);
   });
 
+  test('preserves focus and non-color state cues in forced colors', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await page.goto('/');
+    await expect
+      .poll(() => page.evaluate(() => matchMedia('(forced-colors: active)').matches))
+      .toBe(true);
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+
+    const periodTwo = page.getByRole('button', {
+      name: 'Inspect Period-2 bulb, period 2',
+    });
+    await expect(periodTwo).toBeVisible({ timeout: 20_000 });
+    await periodTwo.click();
+    await expect(page.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    await canvas.focus();
+    const focusStyle = await canvas.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { style: style.outlineStyle, width: Number.parseFloat(style.outlineWidth) };
+    });
+    expect(focusStyle.style).not.toBe('none');
+    expect(focusStyle.width).toBeGreaterThanOrEqual(3);
+
+    const selectedMarker = page.locator('.selected-point-marker');
+    await expect(selectedMarker).toBeVisible();
+    const markerStyle = await selectedMarker.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        borderStyle: style.borderTopStyle,
+        outlineStyle: style.outlineStyle,
+        outlineWidth: Number.parseFloat(style.outlineWidth),
+      };
+    });
+    expect(markerStyle.borderStyle).toBe('solid');
+    expect(markerStyle.outlineStyle).not.toBe('none');
+    expect(markerStyle.outlineWidth).toBeGreaterThanOrEqual(2);
+
+    await expect(page.locator('.classification--attracting-cycle')).toHaveCSS(
+      'border-style',
+      'solid',
+    );
+    await expectNoAccessibilityViolations(page);
+  });
+
   test('reflows phone layouts without horizontal overflow or undersized controls', async ({
     page,
   }) => {
@@ -378,14 +481,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
       await page.getByRole('button', { name: 'Explore', exact: true }).click();
       await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
 
-      const pageWidth = await page.evaluate(() => ({
-        client: document.documentElement.clientWidth,
-        scroll: document.documentElement.scrollWidth,
-      }));
-      expect(
-        pageWidth.scroll,
-        `${viewport.width}px layout overflowed horizontally`,
-      ).toBeLessThanOrEqual(pageWidth.client);
+      await expectNoHorizontalOverflow(page, `${viewport.width}px initial phone layout`);
 
       const canvasBox = await page.locator('.explorer__stack').boundingBox();
       expect(canvasBox).not.toBeNull();
@@ -408,5 +504,66 @@ test.describe('Mandelbrot Interiority explorer', () => {
         expect(target.right).toBeLessThanOrEqual(viewport.width);
       }
     }
+  });
+
+  test('contains point evidence and renderer recovery controls on a narrow phone', async ({
+    page,
+  }) => {
+    const viewport = { width: 320, height: 568 };
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+
+    const periodTwo = page.getByRole('button', {
+      name: 'Inspect Period-2 bulb, period 2',
+    });
+    await expect(periodTwo).toBeVisible({ timeout: 20_000 });
+    await periodTwo.click();
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+    await expect(pointEvidence.getByText('Angled address', { exact: true })).toBeVisible();
+    await expect(pointEvidence.getByText('1 → 2 at 1/2', { exact: true })).toBeVisible();
+    await expect(pointEvidence.getByText('Characteristic rays', { exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page, 'selected-point evidence state');
+
+    const factValues = await pointEvidence.locator('.facts dd').evaluateAll((elements) =>
+      elements.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          scroll: element.scrollWidth,
+          client: element.clientWidth,
+        };
+      }),
+    );
+    for (const value of factValues) {
+      expect(value.left).toBeGreaterThanOrEqual(0);
+      expect(value.right).toBeLessThanOrEqual(viewport.width);
+      expect(value.scroll).toBeLessThanOrEqual(value.client);
+    }
+
+    await failRenderer(page, 2);
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Renderer could not recover. Controls remain available.',
+    );
+    const retry = page.getByRole('button', { name: 'Retry renderer' });
+    await expect(retry).toBeVisible();
+    const retryBox = await retry.boundingBox();
+    expect(retryBox).not.toBeNull();
+    if (retryBox) {
+      expect(retryBox.height).toBeGreaterThanOrEqual(44);
+      expect(retryBox.x).toBeGreaterThanOrEqual(0);
+      expect(retryBox.x + retryBox.width).toBeLessThanOrEqual(viewport.width);
+    }
+    await expectNoHorizontalOverflow(page, 'persistent renderer-error state');
+
+    await retry.click();
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      { timeout: 20_000 },
+    );
+    await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+    await expectNoHorizontalOverflow(page, 'manual renderer-retry state');
   });
 });
