@@ -518,3 +518,61 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('contains point evidence and renderer recovery controls on a narrow phone', async ({
     page,
   }) => {
+    const viewport = { width: 320, height: 568 };
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+
+    const periodTwo = page.getByRole('button', {
+      name: 'Inspect Period-2 bulb, period 2',
+    });
+    await expect(periodTwo).toBeVisible({ timeout: 20_000 });
+    await periodTwo.click();
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+    await expect(pointEvidence.getByText('Angled address', { exact: true })).toBeVisible();
+    await expect(pointEvidence.getByText('1 → 2 at 1/2', { exact: true })).toBeVisible();
+    await expect(pointEvidence.getByText('Characteristic rays', { exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page, 'selected-point evidence state');
+
+    const factValues = await pointEvidence.locator('.facts dd').evaluateAll((elements) =>
+      elements.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          right: rect.right,
+          scroll: element.scrollWidth,
+          client: element.clientWidth,
+        };
+      }),
+    );
+    for (const value of factValues) {
+      expect(value.left).toBeGreaterThanOrEqual(0);
+      expect(value.right).toBeLessThanOrEqual(viewport.width);
+      expect(value.scroll).toBeLessThanOrEqual(value.client);
+    }
+
+    await failRenderer(page, 2);
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Renderer could not recover. Controls remain available.',
+    );
+    const retry = page.getByRole('button', { name: 'Retry renderer' });
+    await expect(retry).toBeVisible();
+    const retryBox = await retry.boundingBox();
+    expect(retryBox).not.toBeNull();
+    if (retryBox) {
+      expect(retryBox.height).toBeGreaterThanOrEqual(44);
+      expect(retryBox.x).toBeGreaterThanOrEqual(0);
+      expect(retryBox.x + retryBox.width).toBeLessThanOrEqual(viewport.width);
+    }
+    await expectNoHorizontalOverflow(page, 'persistent renderer-error state');
+
+    await retry.click();
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      { timeout: 20_000 },
+    );
+    await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+    await expectNoHorizontalOverflow(page, 'manual renderer-retry state');
+  });
+});
