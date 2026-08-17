@@ -1,7 +1,8 @@
 # Phase 0 and Phase 1 closeout evidence
 
 - Assessment date: 2026-08-12
-- Assessed baseline: Phase 1 closeout candidate branch from `79b93b8`
+- Assessed merged production baseline:
+  [`4fce632`](https://github.com/Aaron-Fine/int-M-/commit/4fce632972e9a7b24be4e48213ddf2e21f94d4fc)
 - Status vocabulary:
   - **Pass** — criterion is implemented and has repeatable evidence.
   - **Partial** — meaningful evidence exists, but part of the criterion is
@@ -18,10 +19,10 @@ reconsideration gates in [ADR 0002](../decisions/0002-phase-0-renderer-zoom-and-
 
 ## Executive disposition
 
-| Phase   | Readiness              | Disposition                                                                                                                                                     |
-| ------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 0 | **Closed**             | All six exit criteria pass; Worker CPU and a `6,000,000×` product ceiling are selected                                                                          |
-| Phase 1 | **Not ready to close** | Recovery, interaction, and inspector gaps are implemented; target-device release-browser, manual accessibility, and final deployment evidence remain incomplete |
+| Phase   | Readiness              | Disposition                                                                                                                                                                                        |
+| ------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 0 | **Closed**             | All six exit criteria pass; Worker CPU and a `6,000,000×` product ceiling are selected                                                                                                             |
+| Phase 1 | **Not ready to close** | Recovery, interaction, inspector, phone layout, CI, and the merged production smoke are evidenced; target-device release-browser, performance, and manual accessibility evidence remain incomplete |
 
 The vertical slice is nevertheless deployable and coherent. The remaining
 items are evidence and requirement gaps, not a reason to discard the current
@@ -40,21 +41,21 @@ CPU architecture.
 
 ## Phase 1 deliverable evidence
 
-| Deliverable                                                                   | State                     | Evidence and remaining work                                                                                                                                            |
-| ----------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vite, strict TypeScript, vanilla DOM/CSS                                      | **Pass**                  | `npm run check`; separate app, worker, Node, and e2e TypeScript projects                                                                                               |
-| Orbit, palette, and raster work off the main thread                           | **Pass**                  | Worker entry/runtime boundary; worker tests confirm only RGBA crosses to the UI                                                                                        |
-| Pan, point zoom, bounded area zoom, and reset                                 | **Pass functionally**     | Immediate presentation transforms, viewport unit tests, and automated area/keyboard navigation; manual release-browser pointer-pan and pointer-cancel evidence remains |
-| Selected Worker CPU renderer                                                  | **Pass**                  | Renderer-neutral protocol, `CpuRenderer`, target-hardware evidence, and accepted ADR 0002                                                                              |
-| Stability, multiplier, and restrained period views with legends               | **Pass**                  | Semantic coloring tests, semantic-frame reuse tests, and browser legend scenarios                                                                                      |
-| Outcome, evidence, selected-point inspector, definitions, and adaptive labels | **Pass**                  | Persistent non-color marker, adjacent canvas semantics, viewport-aware coordinate precision, orbit tests, and arbitrary-point browser scenarios                        |
-| Quick, Balanced, and Detailed finite budgets                                  | **Pass**                  | Quality-profile unit tests and browser selection scenario                                                                                                              |
-| Progressive rendering, cancellation, cache, and resolution cap                | **Pass functionally**     | CPU renderer, worker runtime, semantic store, and viewport tests                                                                                                       |
-| Worker failure recovery and manual retry                                      | **Pass functionally**     | Replaceable Worker lifecycle, 48 unit tests, and browser injection for automatic recovery, bounded persistent failure, continued controls, and manual retry            |
-| Guided first use                                                              | **Pass**                  | Browser first-use scenario verifies a rendered view and dismissible guidance                                                                                           |
-| Keyboard and color-vision accessibility                                       | **Partial**               | Keyboard scenarios and automated Axe WCAG A/AA scan exist. Manual focus, canvas semantics, 200% zoom/reflow, and simulated color-vision review remain external review. |
-| Static analysis and browser coverage                                          | **Pass when CI is green** | Required GitHub Actions jobs run formatting, lint, strict type checking, 48 unit tests, build, and Playwright in Firefox and Chromium                                  |
-| Cloudflare Pages production and PR previews                                   | **Pass**                  | The [deployment observation](../../evidence/deployment/cloudflare-2026-07-29.md) records the production HTTP 200 response and PR #4 preview evidence                   |
+| Deliverable                                                                   | State                           | Evidence and remaining work                                                                                                                                                                                  |
+| ----------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Vite, strict TypeScript, vanilla DOM/CSS                                      | **Pass**                        | `npm run check`; separate app, worker, Node, and e2e TypeScript projects                                                                                                                                     |
+| Orbit, palette, and raster work off the main thread                           | **Pass**                        | Worker entry/runtime boundary; worker tests confirm only RGBA crosses to the UI                                                                                                                              |
+| Pan, point zoom, bounded area zoom, and reset                                 | **Pass functionally**           | Immediate presentation transforms, viewport unit tests, and automated area/keyboard navigation; manual release-browser pointer-pan and pointer-cancel evidence remains                                       |
+| Selected Worker CPU renderer                                                  | **Pass**                        | Renderer-neutral protocol, `CpuRenderer`, target-hardware evidence, and accepted ADR 0002                                                                                                                    |
+| Stability, multiplier, and restrained period views with legends               | **Pass**                        | Semantic coloring tests, semantic-frame reuse tests, and browser legend scenarios                                                                                                                            |
+| Outcome, evidence, selected-point inspector, definitions, and adaptive labels | **Pass**                        | Persistent non-color marker, adjacent canvas semantics, viewport-aware coordinate precision, orbit tests, and arbitrary-point browser scenarios                                                              |
+| Quick, Balanced, and Detailed finite budgets                                  | **Pass**                        | Quality-profile unit tests and browser selection scenario                                                                                                                                                    |
+| Progressive rendering, cancellation, cache, and resolution cap                | **Pass functionally**           | CPU renderer and worker tests plus browser evidence that one request advances through requested, coarse, and stable presentation with matching IDs                                                           |
+| Worker failure recovery and manual retry                                      | **Pass functionally**           | Replaceable Worker lifecycle, 48 unit tests, and browser injection for automatic recovery, bounded persistent failure, continued controls, and manual retry                                                  |
+| Guided first use                                                              | **Pass**                        | The guide remains visible and controls remain enabled while the first render reaches Stable frame, then it is dismissible                                                                                    |
+| Keyboard and color-vision accessibility                                       | **Partial**                     | Keyboard, Axe, forced-colors, phone reflow, and narrow evidence/error/retry scenarios are automated. Manual assistive-technology, 200% zoom, native high-contrast, and simulated color-vision review remain. |
+| Static analysis and browser coverage                                          | **Pass when CI is green**       | The dated [automation baseline](../../evidence/phase-1/automation-2026-08-12.md) pins the candidate commit, CI run, static/unit/build checks, and Firefox/Chromium scenarios                                 |
+| Cloudflare Pages production and PR previews                                   | **Pass for merged PR #8 build** | The [2026-08-12 production observation](../../evidence/deployment/cloudflare-2026-08-12.md) records stable rendering, interaction, the zoom ceiling, and console health on `4fce632`                         |
 
 ## Evidence commands
 
@@ -69,6 +70,10 @@ curl -sSIL https://int-m.pages.dev
 The Playwright container used by CI is authoritative when local managed browser
 binaries are unavailable.
 
+The remaining target-device work has a concise
+[home-test procedure](PHASE1-HOME-TEST.md) and a committed
+[evidence template](../../evidence/phase-1/manual-template.md).
+
 ## Phase 1 closeout actions that remain
 
 The ordered implementation and evidence backlog is maintained in the
@@ -79,8 +84,8 @@ The ordered implementation and evidence backlog is maintained in the
    and main-thread long-task evidence against the existing budgets.
 2. Complete the manual WCAG 2.2 AA, keyboard-focus, canvas semantics, 200%
    zoom/reflow, forced-colors, target-size, and simulated color-vision review.
-3. Record the final stable release-browser versions, verify the immutable
-   Cloudflare preview, merge, and replace the older production observation
-   with evidence for the Phase 1 release commit.
+3. Record the final stable release-browser versions and immutable preview. If
+   the final Phase 1 changes alter built assets after `4fce632`, repeat the
+   production observation against that release commit.
 
 These actions block Phase 1, not the completed Phase 0 decision baseline.
