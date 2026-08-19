@@ -15,7 +15,6 @@ import {
   type SemanticView,
 } from '../domain';
 import {
-  DEFAULT_RENDER_QUALITY,
   resolveRenderQuality,
   type DynamicsRenderRequest,
   type RasterFrame,
@@ -25,6 +24,7 @@ import {
   type SemanticFrameConsumer,
   type SemanticStatusCode,
 } from './renderer';
+import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
 
 export class RenderCancelledError extends Error {
   public constructor() {
@@ -134,7 +134,7 @@ const stageSemantics = async (
   const orbitScratch = new OrbitScratch(quality.maxPeriod);
   const classifier = new OrbitClassifier(orbitOptions, orbitScratch);
   const viewportTransform = createViewportTransform(request.viewport, request.size);
-  const yieldRowMask = quality.maxIterations > DEFAULT_RENDER_QUALITY.maxIterations ? 1 : 7;
+  const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   const wallStarted = nowMs();
   let yieldWaitMs = 0;
   let yieldCount = 0;
@@ -150,7 +150,7 @@ const stageSemantics = async (
 
     // Browser messages, including cancel, cannot be processed during a long
     // synchronous loop. Yield often enough to preserve the cancellation SLO.
-    if ((Math.floor(y / stride) & yieldRowMask) === yieldRowMask) {
+    if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
       const yieldStarted = nowMs();
       await yieldToWorkerEventLoop();
       yieldWaitMs += nowMs() - yieldStarted;
