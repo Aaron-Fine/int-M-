@@ -7,7 +7,7 @@ import {
   type RenderQuality,
 } from '../domain';
 import { RenderCancelledError } from './cpu-renderer';
-import type { DynamicsRenderRequest } from './renderer';
+import type { DynamicsRenderRequest, SemanticStageTiming } from './renderer';
 import type { BandArrays } from './row-bands';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
 
@@ -22,6 +22,12 @@ const yieldToWorkerEventLoop = async (): Promise<void> => {
     setTimeout(resolve, 0);
   });
 };
+
+const nowMs = (): number => performance.now();
+
+export interface ClassifyRowsResult extends BandArrays {
+  readonly timing: SemanticStageTiming;
+}
 
 const writeOrbitResult = (
   band: BandArrays,
@@ -68,7 +74,7 @@ export async function classifyRows(
   y0: number,
   y1: number,
   signal: AbortSignal,
-): Promise<BandArrays> {
+): Promise<ClassifyRowsResult> {
   const { width } = request.size;
   const length = (y1 - y0) * width;
   const band: BandArrays = {
@@ -84,6 +90,9 @@ export async function classifyRows(
   const classifier = new OrbitClassifier(orbitOptions, new OrbitScratch(quality.maxPeriod));
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
+  const wallStarted = nowMs();
+  let yieldWaitMs = 0;
+  let yieldCount = 0;
 
   for (let y = y0; y < y1; y += stride) {
     throwIfAborted(signal);
@@ -95,10 +104,20 @@ export async function classifyRows(
     }
 
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
+      const yieldStarted = nowMs();
       await yieldToWorkerEventLoop();
+      yieldWaitMs += nowMs() - yieldStarted;
+      yieldCount += 1;
     }
   }
 
   throwIfAborted(signal);
-  return band;
+  return {
+    ...band,
+    timing: {
+      classifyMs: nowMs() - wallStarted - yieldWaitMs,
+      yieldWaitMs,
+      yieldCount,
+    },
+  };
 }

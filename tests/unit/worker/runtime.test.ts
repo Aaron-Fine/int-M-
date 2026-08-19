@@ -1,18 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { OrbitResult, RasterSize, SemanticView } from '../../../src/domain';
-import type {
-  DynamicsRenderRequest,
-  RasterFrame,
-  Renderer,
-  SemanticFrame,
-  SemanticFrameConsumer,
+import type { OrbitResult, RasterSize, RenderQuality, SemanticView } from '../../../src/domain';
+import {
+  CpuRenderer,
+  RenderCancelledError,
+  type DynamicsRenderRequest,
+  type RasterFrame,
+  type Renderer,
+  type SemanticFrame,
+  type SemanticFrameConsumer,
 } from '../../../src/render';
 import {
   RenderWorkerRuntime,
   type WorkerMessagePort,
   type WorkerToMainMessage,
 } from '../../../src/worker';
+import type { TilePool } from '../../../src/worker/tile-pool';
 
 const semanticFrame = (
   size: RasterSize,
@@ -39,6 +42,60 @@ const colorize = (frame: SemanticFrame, view: SemanticView): RasterFrame => ({
   ),
   progress: frame.progress,
 });
+
+const STABLE_QUALITY: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
+
+const waitFor = async (started: Promise<void>, label: string): Promise<void> => {
+  await Promise.race([
+    started,
+    new Promise<void>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`timed out waiting for ${label}`));
+      }, 1000);
+    }),
+  ]);
+};
+
+const createPendingPool = (): {
+  readonly pool: TilePool;
+  readonly classifyStable: TilePool['classifyStable'];
+  readonly started: Promise<void>;
+} => {
+  let startedResolve: () => void = () => undefined;
+  const started = new Promise<void>((resolve) => {
+    startedResolve = resolve;
+  });
+  const classifyStable = vi.fn(
+    (
+      _request: DynamicsRenderRequest,
+      _quality: RenderQuality,
+      signal: AbortSignal,
+    ): Promise<SemanticFrame> =>
+      new Promise<SemanticFrame>((_resolve, reject) => {
+        startedResolve();
+        if (signal.aborted) {
+          reject(new RenderCancelledError());
+          return;
+        }
+        signal.addEventListener(
+          'abort',
+          () => {
+            reject(new RenderCancelledError());
+          },
+          { once: true },
+        );
+      }),
+  );
+  return {
+    pool: {
+      size: 2,
+      classifyStable,
+      dispose: () => undefined,
+    },
+    classifyStable,
+    started,
+  };
+};
 
 class InspectOnlyRenderer implements Renderer {
   public render(): Promise<void> {
@@ -398,5 +455,119 @@ describe('RenderWorkerRuntime', () => {
       expect.objectContaining({ type: 'frame', requestId: 'old' }),
     );
     expect(messages).toContainEqual(expect.objectContaining({ type: 'frame', requestId: 'new' }));
+  });
+
+  it('runtime_secondRenderSameKey_doesNotCallClassifyStable', async () => {
+    const classifyStable = vi.fn((request: DynamicsRenderRequest) =>
+      Promise.resolve(semanticFrame(request.size, 'stable')),
+    );
+    const pool: TilePool = {
+      size: 2,
+      classifyStable,
+      dispose: () => undefined,
+    };
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      new CpuRenderer(pool),
+    );
+    const dynamics = {
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 4, height: 2 },
+      quality: STABLE_QUALITY,
+    };
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 'first',
+      semanticView: 'period',
+      ...dynamics,
+    });
+    await runtime.handle({
+      type: 'render',
+      requestId: 'second',
+      semanticView: 'multiplier',
+      ...dynamics,
+    });
+
+    expect(classifyStable).toHaveBeenCalledOnce();
+    expect(classifyStable).toHaveBeenCalledWith(
+      expect.objectContaining({ quality: STABLE_QUALITY }),
+      STABLE_QUALITY,
+      expect.any(AbortSignal),
+    );
+    expect(messages.filter((message) => message.type === 'frame')).toEqual([
+      expect.objectContaining({ type: 'frame', requestId: 'first', stage: 'coarse' }),
+      expect.objectContaining({ type: 'frame', requestId: 'first', stage: 'stable' }),
+      expect.objectContaining({ type: 'frame', requestId: 'second', stage: 'stable' }),
+    ]);
+  });
+
+  it('runtime_inspectDuringPendingClassifyStable_stillHitsRendererInspect', async () => {
+    const pending = createPendingPool();
+    const renderer = new CpuRenderer(pending.pool);
+    const inspect = vi.spyOn(renderer, 'inspect');
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      renderer,
+    );
+
+    const renderHandle = runtime.handle({
+      type: 'render',
+      requestId: 'pending-stable',
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 4, height: 2 },
+      quality: STABLE_QUALITY,
+      semanticView: 'period',
+    });
+    await waitFor(pending.started, 'classifyStable');
+    await runtime.handle({
+      type: 'inspect',
+      requestId: 'live-inspect',
+      point: { re: 0.25, im: 0 },
+      quality: { maxIterations: 12 },
+    });
+
+    expect(inspect).toHaveBeenCalledOnce();
+    expect(messages).toContainEqual(
+      expect.objectContaining({
+        type: 'inspection',
+        requestId: 'live-inspect',
+      }),
+    );
+    expect(messages).not.toContainEqual(
+      expect.objectContaining({ type: 'frame', stage: 'stable' }),
+    );
+
+    await runtime.handle({ type: 'cancel', requestId: 'pending-stable' });
+    await renderHandle;
+  });
+
+  it('runtime_cancelDuringClassifyStable_postsCancelledNotStable', async () => {
+    const pending = createPendingPool();
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      new CpuRenderer(pending.pool),
+    );
+
+    const renderHandle = runtime.handle({
+      type: 'render',
+      requestId: 'in-flight',
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 4, height: 2 },
+      quality: STABLE_QUALITY,
+      semanticView: 'period',
+    });
+    await waitFor(pending.started, 'classifyStable');
+    await runtime.handle({ type: 'cancel', requestId: 'in-flight' });
+    await renderHandle;
+
+    expect(messages).toContainEqual({ type: 'cancelled', requestId: 'in-flight' });
+    expect(messages).toContainEqual(expect.objectContaining({ type: 'frame', stage: 'coarse' }));
+    expect(messages).not.toContainEqual(
+      expect.objectContaining({ type: 'frame', stage: 'stable' }),
+    );
   });
 });
