@@ -506,6 +506,75 @@ const collectOverflow = async (page, zoom) => {
   return { zoom, ...metrics, overflowedX: metrics.scrollWidth > metrics.clientWidth + 1 };
 };
 
+const clampTileWorkers = (value) => {
+  const n = value ?? 0;
+  return Math.min(4, Math.max(1, n > 0 ? n : 1));
+};
+
+const collectPoolEvidence = async (page, name) => {
+  const hardwareConcurrency = await page.evaluate(() => navigator.hardwareConcurrency ?? null);
+  const inferredPoolSize = clampTileWorkers(hardwareConcurrency ?? undefined);
+  const pageWorkers = page.workers().map((worker) => worker.url());
+  let cdpWorkers = null;
+  if (name === 'chromium') {
+    try {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Target.setDiscoverTargets', { discover: true });
+      const { targetInfos } = await cdp.send('Target.getTargets');
+      await cdp.detach();
+      const workers = targetInfos.filter(
+        (target) =>
+          target.type === 'worker' &&
+          (/^mandelbrot-(?:renderer|tile)$/.test(target.title) ||
+            /(?:render|tile)\.worker/.test(target.url)),
+      );
+      cdpWorkers = {
+        render: workers.filter(
+          (target) =>
+            target.title === 'mandelbrot-renderer' || target.url.includes('render.worker'),
+        ).length,
+        tile: workers.filter(
+          (target) => target.title === 'mandelbrot-tile' || target.url.includes('tile.worker'),
+        ).length,
+        targets: workers.map((target) => ({ title: target.title, url: target.url })),
+      };
+    } catch (error) {
+      cdpWorkers = { error: String(error) };
+    }
+  }
+  return { hardwareConcurrency, inferredPoolSize, pageWorkers, cdpWorkers };
+};
+
+const measureUnforcedSidecar = async (page) => {
+  await page.evaluate(() => {
+    const stack = document.querySelector('.explorer__stack');
+    if (!(stack instanceof HTMLElement)) throw new Error('missing explorer stack');
+    stack.style.width = '';
+    stack.style.height = '';
+    stack.style.maxWidth = '';
+    stack.style.minHeight = '';
+    stack.style.aspectRatio = '';
+  });
+  await page.waitForFunction(
+    () => {
+      const canvasEl = document.querySelector('.explorer__canvas');
+      return (
+        canvasEl instanceof HTMLCanvasElement &&
+        canvasEl.width > 0 &&
+        canvasEl.height > 0 &&
+        (canvasEl.width !== 1024 || canvasEl.height !== 1024)
+      );
+    },
+    null,
+    { timeout: 20_000 },
+  );
+  await waitForStable(page, 30_000);
+  return {
+    id: 'unforced-16-10',
+    canvas: await canvasInfo(page),
+  };
+};
+
 const launchBrowser = async (name) => {
   if (name === 'chromium') {
     return {
@@ -552,20 +621,30 @@ const runBrowser = async (name) => {
     }
   });
   page.on('pageerror', (error) => pageErrors.push(String(error)));
+  const navigatedAt = Date.now();
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
   const guideVisibleBeforeStable = await page
     .getByRole('heading', { name: 'Start with structure' })
     .isVisible();
   await waitForStable(page);
+  const coldFirstStableMs = Date.now() - navigatedAt;
   const guideVisibleAfterStable = await page
     .getByRole('heading', { name: 'Start with structure' })
     .isVisible();
+  const poolAfterFirstStable = await collectPoolEvidence(page, name);
   await page.getByRole('button', { name: 'Explore' }).click();
   const canvas = page.getByLabel('Interactive Mandelbrot set');
   await expectStableCeiling(page, canvas);
 
   const case768 = await measureCase(page, canvas, 768, 'balanced-768');
   const case1024 = await measureCase(page, canvas, 1024, 'balanced-1024');
+  let unforcedSidecar;
+  try {
+    unforcedSidecar = await measureUnforcedSidecar(page);
+  } catch (error) {
+    unforcedSidecar = { id: 'unforced-16-10', error: String(error) };
+  }
+  const poolAfterWarm = await collectPoolEvidence(page, name);
   const tabOrder = await collectTabOrder(page);
   const overflow200 = await collectOverflow(page, 2);
 
@@ -593,8 +672,14 @@ const runBrowser = async (name) => {
     firstUse: {
       guideVisibleBeforeStable,
       guideVisibleAfterStable,
+      coldFirstStableMs,
+    },
+    pool: {
+      afterFirstStable: poolAfterFirstStable,
+      afterWarm: poolAfterWarm,
     },
     cases: [case768, case1024],
+    unforcedSidecar,
     tabOrder,
     overflow200,
     vision,
@@ -675,6 +760,15 @@ const smokeProduction = async () => {
   };
 };
 
+const readCpuGovernor = async () => {
+  try {
+    const { readFile } = await import('node:fs/promises');
+    return (await readFile('/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor', 'utf8')).trim();
+  } catch {
+    return null;
+  }
+};
+
 const results = {
   schemaVersion: 1,
   measuredAt: new Date().toISOString(),
@@ -684,19 +778,22 @@ const results = {
   budgets: BUDGETS,
   sampleCount,
   cancelPresses,
+  host: {
+    cpuGovernor: await readCpuGovernor(),
+  },
   browsers: [],
   production: null,
 };
 
+await mkdir(dirname(outputPath), { recursive: true });
 for (const name of browsers) {
   results.browsers.push(await runBrowser(name));
+  await writeFile(outputPath, `${JSON.stringify(results, null, 2)}\n`, 'utf8');
 }
 if (process.env.PHASE1_SKIP_PRODUCTION !== '1') {
   results.production = await smokeProduction();
+  await writeFile(outputPath, `${JSON.stringify(results, null, 2)}\n`, 'utf8');
 }
-
-await mkdir(dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify(results, null, 2)}\n`, 'utf8');
 process.stdout.write(
   `${JSON.stringify(
     {
@@ -705,6 +802,9 @@ process.stdout.write(
         name: item.name,
         version: item.version,
         kind: item.kind,
+        firstUse: item.firstUse,
+        pool: item.pool,
+        unforcedSidecar: item.unforcedSidecar,
         cases: item.cases.map((measurement) => ({
           id: measurement.id,
           canvas: measurement.canvas,

@@ -71,6 +71,7 @@ interface ActiveJob {
   readonly expectedJobs: number;
   readonly received: Map<number, TileResultMessage>;
   readonly frame: SemanticFrame;
+  readonly startedAt: number;
   settled: boolean;
   resolve: (frame: SemanticFrame) => void;
   reject: (error: unknown) => void;
@@ -160,6 +161,7 @@ class TilePoolImpl implements TilePool {
         expectedJobs: bands.length,
         received: new Map(),
         frame,
+        startedAt: performance.now(),
         settled: false,
         resolve,
         reject,
@@ -220,7 +222,14 @@ class TilePoolImpl implements TilePool {
     active.received.set(message.jobId, message);
     if (active.received.size === active.expectedJobs) {
       this.#finishActive((job) => {
-        job.resolve(job.frame);
+        job.resolve({
+          ...job.frame,
+          timing: {
+            classifyMs: performance.now() - job.startedAt,
+            yieldWaitMs: 0,
+            yieldCount: 0,
+          },
+        });
       });
     }
   }

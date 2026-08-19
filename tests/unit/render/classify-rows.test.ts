@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_VIEWPORT, type RenderQuality } from '../../../src/domain';
 import { classifyRows } from '../../../src/render/classify-rows';
 import { CpuRenderer, RenderCancelledError, type SemanticFrame } from '../../../src/render';
+import { copyBandIntoFrame, splitRowBands } from '../../../src/render/row-bands';
 
 const BALANCED: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 
@@ -72,5 +73,52 @@ describe('classifyRows', () => {
       ),
     ).rejects.toBeInstanceOf(RenderCancelledError);
     expect(checks).toBe(2);
+  });
+
+  it('stableFrame_matchesInProcessThreeBandMerge_atBalancedQuality_oddHeight', async () => {
+    const quality: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
+    const request = {
+      viewport: DEFAULT_VIEWPORT,
+      size: { width: 16, height: 9 },
+      quality,
+    };
+    const signal = new AbortController().signal;
+    const serial = await classifyRows(request, quality, 1, 0, request.size.height, signal);
+
+    const bands = splitRowBands(request.size.height, 3);
+    expect(bands).toHaveLength(3);
+    const pixelCount = request.size.width * request.size.height;
+    const merged = {
+      size: request.size,
+      status: new Uint8Array(pixelCount),
+      period: new Uint32Array(pixelCount),
+      smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
+      multiplierAngle: new Float64Array(pixelCount),
+    };
+    for (const band of bands) {
+      const classified = await classifyRows(request, quality, 1, band.y0, band.y1, signal);
+      copyBandIntoFrame(merged, { ...classified, ...band });
+    }
+
+    expect(merged.status).toEqual(serial.status);
+    expect(merged.period).toEqual(serial.period);
+    expect(merged.smoothIterationOrMultiplierMagnitude).toEqual(
+      serial.smoothIterationOrMultiplierMagnitude,
+    );
+    expect(merged.multiplierAngle).toEqual(serial.multiplierAngle);
+
+    const renderer = new CpuRenderer();
+    const frames: SemanticFrame[] = [];
+    await renderer.render(request, new AbortController().signal, (frame) => {
+      frames.push(frame);
+    });
+    const stable = frames.find((frame) => frame.stage === 'stable');
+    expect(stable).toBeDefined();
+    expect(stable!.status).toEqual(serial.status);
+    expect(stable!.period).toEqual(serial.period);
+    expect(stable!.smoothIterationOrMultiplierMagnitude).toEqual(
+      serial.smoothIterationOrMultiplierMagnitude,
+    );
+    expect(stable!.multiplierAngle).toEqual(serial.multiplierAngle);
   });
 });
