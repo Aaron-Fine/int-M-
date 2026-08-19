@@ -8,7 +8,7 @@ requirements, while this one defines the working boundaries and repeatable comma
 ## Supported environment
 
 - Node.js 24.18.0 LTS (`.nvmrc`)
-- npm 11.16.0 (recorded in `packageManager`)
+- npm 11.19.0 (recorded in `packageManager`)
 - Python 3.14.6 for the offline catalog generator and CI validation
 - Current stable desktop Firefox and Chrome/Chromium
 - A mainstream four-core laptop with integrated graphics as the performance baseline
@@ -33,21 +33,22 @@ npm run dev
 
 Vite serves the application at `http://127.0.0.1:5173`. The other common commands are:
 
-| Command                  | Purpose                                               |
-| ------------------------ | ----------------------------------------------------- |
-| `npm run format`         | Format supported source and documentation             |
-| `npm run format:check`   | Check formatting without changing files               |
-| `npm run lint`           | Run ESLint with typed, strict TypeScript rules        |
-| `npm run typecheck`      | Check UI, worker, Node, and browser-test projects     |
-| `npm run catalog:check`  | Independently regenerate and validate catalog data    |
-| `npm run fixtures:check` | Regenerate high-precision orbit fixtures              |
-| `npm run evidence:cpu`   | Measure the CPU renderer and print environment data   |
-| `npm run test:unit`      | Run deterministic unit and worker tests               |
-| `npm run test:browser`   | Run end-to-end tests in Chromium and Firefox          |
-| `npm run build`          | Type-check and create production assets in `dist/`    |
-| `npm run build:assets`   | Create assets after an already-successful type-check  |
-| `npm run preview`        | Serve the production build at `http://127.0.0.1:4173` |
-| `npm run check`          | Run the fast local pre-PR checks                      |
+| Command                          | Purpose                                               |
+| -------------------------------- | ----------------------------------------------------- |
+| `npm run format`                 | Format supported source and documentation             |
+| `npm run format:check`           | Check formatting without changing files               |
+| `npm run lint`                   | Run ESLint with typed, strict TypeScript rules        |
+| `npm run typecheck`              | Check UI, worker, Node, and browser-test projects     |
+| `npm run catalog:check`          | Independently regenerate and validate catalog data    |
+| `npm run fixtures:check`         | Regenerate high-precision orbit fixtures              |
+| `npm run evidence:cpu`           | Measure the CPU renderer and print environment data   |
+| `node tools/measure_ui_path.mjs` | Collect target-device UI-path presentation marks      |
+| `npm run test:unit`              | Run deterministic unit and worker tests               |
+| `npm run test:browser`           | Run end-to-end tests in Chromium and Firefox          |
+| `npm run build`                  | Type-check and create production assets in `dist/`    |
+| `npm run build:assets`           | Create assets after an already-successful type-check  |
+| `npm run preview`                | Serve the production build at `http://127.0.0.1:4173` |
+| `npm run check`                  | Run the fast local pre-PR checks                      |
 
 Install Playwright's managed browsers once on a development machine:
 

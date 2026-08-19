@@ -19,7 +19,9 @@ Phase 1 uses a dated automation-baseline record for exact CI provenance, the
 [home-test procedure](../docs/verification/PHASE1-HOME-TEST.md), and a
 [manual evidence template](phase-1/manual-template.md). Committed production
 observations belong under `deployment/`; target-device browser results belong
-under `phase-1/`.
+under `phase-1/`. The current merged candidate is recorded in
+[automation-2026-08-18.md](phase-1/automation-2026-08-18.md) and
+[target-device-ui-path-2026-08-18.md](phase-1/target-device-ui-path-2026-08-18.md).
 
 Numerical fixture and measurement data in this directory is dedicated to
 CC0-1.0. Harness source and explanatory documentation remain GPL-3.0-only.

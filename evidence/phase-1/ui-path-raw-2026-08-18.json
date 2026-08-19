@@ -1,0 +1,1999 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-08-19T03:19:05.104Z",
+  "commit": "3b549ebcfad610b163750de0627d0bbea6509134",
+  "baseUrl": "http://127.0.0.1:4173/",
+  "headless": false,
+  "budgets": {
+    "coarse768Ms": 150,
+    "coarse1024Ms": 250,
+    "stable768Ms": 2000,
+    "stable1024Ms": 2250,
+    "cancellationP95Ms": 50,
+    "longTaskMs": 50
+  },
+  "sampleCount": 5,
+  "cancelPresses": 24,
+  "browsers": [
+    {
+      "name": "chromium",
+      "kind": "Playwright Chromium / Chrome for Testing",
+      "version": "151.0.7922.34",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+      "viewport": {
+        "width": 1440,
+        "height": 1200,
+        "deviceScaleFactor": 1
+      },
+      "firstUse": {
+        "guideVisibleBeforeStable": true,
+        "guideVisibleAfterStable": true
+      },
+      "cases": [
+        {
+          "id": "balanced-768",
+          "edge": 768,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 768,
+            "backingHeight": 768,
+            "cssWidth": 768,
+            "cssHeight": 768,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "38"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "5"
+              },
+              "requestId": "5",
+              "latest": {
+                "requestId": 5,
+                "coarseMs": 88.5,
+                "stableMs": 1605.7
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "7"
+              },
+              "requestId": "7",
+              "latest": {
+                "requestId": 7,
+                "coarseMs": 97.8,
+                "stableMs": 1464.7
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "9"
+              },
+              "requestId": "9",
+              "latest": {
+                "requestId": 9,
+                "coarseMs": 96.9,
+                "stableMs": 1497.2
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "11"
+              },
+              "requestId": "11",
+              "latest": {
+                "requestId": 11,
+                "coarseMs": 82.1,
+                "stableMs": 1432.4
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "13"
+              },
+              "requestId": "13",
+              "latest": {
+                "requestId": 13,
+                "coarseMs": 81.6,
+                "stableMs": 1431.9
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 88.5,
+            "coarseMaxMs": 97.8,
+            "stableMedianMs": 1464.7,
+            "stableMaxMs": 1605.7,
+            "cancellationAllCount": 47,
+            "cancellationInFlightCount": 47,
+            "cancellationAllP95Ms": 12.9,
+            "cancellationInFlightP95Ms": 12.9,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": []
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 14,
+                "ms": 11.3
+              },
+              {
+                "requestId": 14,
+                "ms": 6.7
+              },
+              {
+                "requestId": 15,
+                "ms": 11
+              },
+              {
+                "requestId": 15,
+                "ms": 5.7
+              },
+              {
+                "requestId": 16,
+                "ms": 9
+              },
+              {
+                "requestId": 16,
+                "ms": 3.9
+              },
+              {
+                "requestId": 17,
+                "ms": 12.7
+              },
+              {
+                "requestId": 17,
+                "ms": 8.6
+              },
+              {
+                "requestId": 18,
+                "ms": 12.9
+              },
+              {
+                "requestId": 18,
+                "ms": 8.4
+              },
+              {
+                "requestId": 19,
+                "ms": 11.6
+              },
+              {
+                "requestId": 19,
+                "ms": 6.1
+              },
+              {
+                "requestId": 20,
+                "ms": 11.4
+              },
+              {
+                "requestId": 20,
+                "ms": 7
+              },
+              {
+                "requestId": 21,
+                "ms": 12.2
+              },
+              {
+                "requestId": 21,
+                "ms": 7.1
+              },
+              {
+                "requestId": 22,
+                "ms": 12.7
+              },
+              {
+                "requestId": 22,
+                "ms": 7.6
+              },
+              {
+                "requestId": 23,
+                "ms": 11.6
+              },
+              {
+                "requestId": 23,
+                "ms": 7.6
+              },
+              {
+                "requestId": 24,
+                "ms": 9.4
+              },
+              {
+                "requestId": 24,
+                "ms": 4.7
+              },
+              {
+                "requestId": 25,
+                "ms": 12.8
+              },
+              {
+                "requestId": 25,
+                "ms": 8.1
+              },
+              {
+                "requestId": 26,
+                "ms": 12.8
+              },
+              {
+                "requestId": 26,
+                "ms": 8.3
+              },
+              {
+                "requestId": 27,
+                "ms": 12.9
+              },
+              {
+                "requestId": 27,
+                "ms": 8.4
+              },
+              {
+                "requestId": 28,
+                "ms": 12.5
+              },
+              {
+                "requestId": 28,
+                "ms": 8.4
+              },
+              {
+                "requestId": 29,
+                "ms": 12.5
+              },
+              {
+                "requestId": 29,
+                "ms": 7.6
+              },
+              {
+                "requestId": 30,
+                "ms": 12.6
+              },
+              {
+                "requestId": 30,
+                "ms": 8.1
+              },
+              {
+                "requestId": 31,
+                "ms": 12.6
+              },
+              {
+                "requestId": 31,
+                "ms": 7.8
+              },
+              {
+                "requestId": 32,
+                "ms": 12.3
+              },
+              {
+                "requestId": 32,
+                "ms": 7.4
+              },
+              {
+                "requestId": 33,
+                "ms": 12.6
+              },
+              {
+                "requestId": 33,
+                "ms": 8.3
+              },
+              {
+                "requestId": 34,
+                "ms": 12.5
+              },
+              {
+                "requestId": 34,
+                "ms": 7
+              },
+              {
+                "requestId": 35,
+                "ms": 12.8
+              },
+              {
+                "requestId": 35,
+                "ms": 7.4
+              },
+              {
+                "requestId": 36,
+                "ms": 13.1
+              },
+              {
+                "requestId": 36,
+                "ms": 8.8
+              },
+              {
+                "requestId": 37,
+                "ms": 12.9
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 14,
+                "ms": 11.3
+              },
+              {
+                "requestId": 14,
+                "ms": 6.7
+              },
+              {
+                "requestId": 15,
+                "ms": 11
+              },
+              {
+                "requestId": 15,
+                "ms": 5.7
+              },
+              {
+                "requestId": 16,
+                "ms": 9
+              },
+              {
+                "requestId": 16,
+                "ms": 3.9
+              },
+              {
+                "requestId": 17,
+                "ms": 12.7
+              },
+              {
+                "requestId": 17,
+                "ms": 8.6
+              },
+              {
+                "requestId": 18,
+                "ms": 12.9
+              },
+              {
+                "requestId": 18,
+                "ms": 8.4
+              },
+              {
+                "requestId": 19,
+                "ms": 11.6
+              },
+              {
+                "requestId": 19,
+                "ms": 6.1
+              },
+              {
+                "requestId": 20,
+                "ms": 11.4
+              },
+              {
+                "requestId": 20,
+                "ms": 7
+              },
+              {
+                "requestId": 21,
+                "ms": 12.2
+              },
+              {
+                "requestId": 21,
+                "ms": 7.1
+              },
+              {
+                "requestId": 22,
+                "ms": 12.7
+              },
+              {
+                "requestId": 22,
+                "ms": 7.6
+              },
+              {
+                "requestId": 23,
+                "ms": 11.6
+              },
+              {
+                "requestId": 23,
+                "ms": 7.6
+              },
+              {
+                "requestId": 24,
+                "ms": 9.4
+              },
+              {
+                "requestId": 24,
+                "ms": 4.7
+              },
+              {
+                "requestId": 25,
+                "ms": 12.8
+              },
+              {
+                "requestId": 25,
+                "ms": 8.1
+              },
+              {
+                "requestId": 26,
+                "ms": 12.8
+              },
+              {
+                "requestId": 26,
+                "ms": 8.3
+              },
+              {
+                "requestId": 27,
+                "ms": 12.9
+              },
+              {
+                "requestId": 27,
+                "ms": 8.4
+              },
+              {
+                "requestId": 28,
+                "ms": 12.5
+              },
+              {
+                "requestId": 28,
+                "ms": 8.4
+              },
+              {
+                "requestId": 29,
+                "ms": 12.5
+              },
+              {
+                "requestId": 29,
+                "ms": 7.6
+              },
+              {
+                "requestId": 30,
+                "ms": 12.6
+              },
+              {
+                "requestId": 30,
+                "ms": 8.1
+              },
+              {
+                "requestId": 31,
+                "ms": 12.6
+              },
+              {
+                "requestId": 31,
+                "ms": 7.8
+              },
+              {
+                "requestId": 32,
+                "ms": 12.3
+              },
+              {
+                "requestId": 32,
+                "ms": 7.4
+              },
+              {
+                "requestId": 33,
+                "ms": 12.6
+              },
+              {
+                "requestId": 33,
+                "ms": 8.3
+              },
+              {
+                "requestId": 34,
+                "ms": 12.5
+              },
+              {
+                "requestId": 34,
+                "ms": 7
+              },
+              {
+                "requestId": 35,
+                "ms": 12.8
+              },
+              {
+                "requestId": 35,
+                "ms": 7.4
+              },
+              {
+                "requestId": 36,
+                "ms": 13.1
+              },
+              {
+                "requestId": 36,
+                "ms": 8.8
+              },
+              {
+                "requestId": 37,
+                "ms": 12.9
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:cancellation-requested",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        },
+        {
+          "id": "balanced-1024",
+          "edge": 1024,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 1024,
+            "backingHeight": 1024,
+            "cssWidth": 1024,
+            "cssHeight": 1024,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "75"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "42"
+              },
+              "requestId": "42",
+              "latest": {
+                "requestId": 42,
+                "coarseMs": 135,
+                "stableMs": 2368.7
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "44"
+              },
+              "requestId": "44",
+              "latest": {
+                "requestId": 44,
+                "coarseMs": 138,
+                "stableMs": 2355
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "46"
+              },
+              "requestId": "46",
+              "latest": {
+                "requestId": 46,
+                "coarseMs": 130.9,
+                "stableMs": 2381
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "48"
+              },
+              "requestId": "48",
+              "latest": {
+                "requestId": 48,
+                "coarseMs": 131,
+                "stableMs": 2364.1
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "50"
+              },
+              "requestId": "50",
+              "latest": {
+                "requestId": 50,
+                "coarseMs": 128.9,
+                "stableMs": 2345.9
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 131,
+            "coarseMaxMs": 138,
+            "stableMedianMs": 2364.1,
+            "stableMaxMs": 2381,
+            "cancellationAllCount": 47,
+            "cancellationInFlightCount": 47,
+            "cancellationAllP95Ms": 13.6,
+            "cancellationInFlightP95Ms": 13.6,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": []
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 51,
+                "ms": 13.4
+              },
+              {
+                "requestId": 51,
+                "ms": 8.8
+              },
+              {
+                "requestId": 52,
+                "ms": 13
+              },
+              {
+                "requestId": 52,
+                "ms": 7.5
+              },
+              {
+                "requestId": 53,
+                "ms": 12.7
+              },
+              {
+                "requestId": 53,
+                "ms": 8.7
+              },
+              {
+                "requestId": 54,
+                "ms": 13.1
+              },
+              {
+                "requestId": 54,
+                "ms": 8.8
+              },
+              {
+                "requestId": 55,
+                "ms": 12.5
+              },
+              {
+                "requestId": 55,
+                "ms": 8.3
+              },
+              {
+                "requestId": 56,
+                "ms": 12.4
+              },
+              {
+                "requestId": 56,
+                "ms": 8.4
+              },
+              {
+                "requestId": 57,
+                "ms": 10.9
+              },
+              {
+                "requestId": 57,
+                "ms": 7.2
+              },
+              {
+                "requestId": 58,
+                "ms": 12.7
+              },
+              {
+                "requestId": 58,
+                "ms": 6.5
+              },
+              {
+                "requestId": 59,
+                "ms": 13.1
+              },
+              {
+                "requestId": 59,
+                "ms": 9
+              },
+              {
+                "requestId": 60,
+                "ms": 13.8
+              },
+              {
+                "requestId": 60,
+                "ms": 9.7
+              },
+              {
+                "requestId": 61,
+                "ms": 13.3
+              },
+              {
+                "requestId": 61,
+                "ms": 9.1
+              },
+              {
+                "requestId": 62,
+                "ms": 11.5
+              },
+              {
+                "requestId": 62,
+                "ms": 7.1
+              },
+              {
+                "requestId": 63,
+                "ms": 6.3
+              },
+              {
+                "requestId": 63,
+                "ms": 2.6
+              },
+              {
+                "requestId": 64,
+                "ms": 13.1
+              },
+              {
+                "requestId": 64,
+                "ms": 9.3
+              },
+              {
+                "requestId": 65,
+                "ms": 14.1
+              },
+              {
+                "requestId": 65,
+                "ms": 10.4
+              },
+              {
+                "requestId": 66,
+                "ms": 13.6
+              },
+              {
+                "requestId": 66,
+                "ms": 9.4
+              },
+              {
+                "requestId": 67,
+                "ms": 12.1
+              },
+              {
+                "requestId": 67,
+                "ms": 7.4
+              },
+              {
+                "requestId": 68,
+                "ms": 13.5
+              },
+              {
+                "requestId": 68,
+                "ms": 10
+              },
+              {
+                "requestId": 69,
+                "ms": 13.6
+              },
+              {
+                "requestId": 69,
+                "ms": 9.8
+              },
+              {
+                "requestId": 70,
+                "ms": 13.2
+              },
+              {
+                "requestId": 70,
+                "ms": 9.3
+              },
+              {
+                "requestId": 71,
+                "ms": 12.9
+              },
+              {
+                "requestId": 71,
+                "ms": 9.1
+              },
+              {
+                "requestId": 72,
+                "ms": 13.6
+              },
+              {
+                "requestId": 72,
+                "ms": 9.9
+              },
+              {
+                "requestId": 73,
+                "ms": 13.1
+              },
+              {
+                "requestId": 73,
+                "ms": 9.3
+              },
+              {
+                "requestId": 74,
+                "ms": 13.6
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 51,
+                "ms": 13.4
+              },
+              {
+                "requestId": 51,
+                "ms": 8.8
+              },
+              {
+                "requestId": 52,
+                "ms": 13
+              },
+              {
+                "requestId": 52,
+                "ms": 7.5
+              },
+              {
+                "requestId": 53,
+                "ms": 12.7
+              },
+              {
+                "requestId": 53,
+                "ms": 8.7
+              },
+              {
+                "requestId": 54,
+                "ms": 13.1
+              },
+              {
+                "requestId": 54,
+                "ms": 8.8
+              },
+              {
+                "requestId": 55,
+                "ms": 12.5
+              },
+              {
+                "requestId": 55,
+                "ms": 8.3
+              },
+              {
+                "requestId": 56,
+                "ms": 12.4
+              },
+              {
+                "requestId": 56,
+                "ms": 8.4
+              },
+              {
+                "requestId": 57,
+                "ms": 10.9
+              },
+              {
+                "requestId": 57,
+                "ms": 7.2
+              },
+              {
+                "requestId": 58,
+                "ms": 12.7
+              },
+              {
+                "requestId": 58,
+                "ms": 6.5
+              },
+              {
+                "requestId": 59,
+                "ms": 13.1
+              },
+              {
+                "requestId": 59,
+                "ms": 9
+              },
+              {
+                "requestId": 60,
+                "ms": 13.8
+              },
+              {
+                "requestId": 60,
+                "ms": 9.7
+              },
+              {
+                "requestId": 61,
+                "ms": 13.3
+              },
+              {
+                "requestId": 61,
+                "ms": 9.1
+              },
+              {
+                "requestId": 62,
+                "ms": 11.5
+              },
+              {
+                "requestId": 62,
+                "ms": 7.1
+              },
+              {
+                "requestId": 63,
+                "ms": 6.3
+              },
+              {
+                "requestId": 63,
+                "ms": 2.6
+              },
+              {
+                "requestId": 64,
+                "ms": 13.1
+              },
+              {
+                "requestId": 64,
+                "ms": 9.3
+              },
+              {
+                "requestId": 65,
+                "ms": 14.1
+              },
+              {
+                "requestId": 65,
+                "ms": 10.4
+              },
+              {
+                "requestId": 66,
+                "ms": 13.6
+              },
+              {
+                "requestId": 66,
+                "ms": 9.4
+              },
+              {
+                "requestId": 67,
+                "ms": 12.1
+              },
+              {
+                "requestId": 67,
+                "ms": 7.4
+              },
+              {
+                "requestId": 68,
+                "ms": 13.5
+              },
+              {
+                "requestId": 68,
+                "ms": 10
+              },
+              {
+                "requestId": 69,
+                "ms": 13.6
+              },
+              {
+                "requestId": 69,
+                "ms": 9.8
+              },
+              {
+                "requestId": 70,
+                "ms": 13.2
+              },
+              {
+                "requestId": 70,
+                "ms": 9.3
+              },
+              {
+                "requestId": 71,
+                "ms": 12.9
+              },
+              {
+                "requestId": 71,
+                "ms": 9.1
+              },
+              {
+                "requestId": 72,
+                "ms": 13.6
+              },
+              {
+                "requestId": 72,
+                "ms": 9.9
+              },
+              {
+                "requestId": 73,
+                "ms": 13.1
+              },
+              {
+                "requestId": 73,
+                "ms": 9.3
+              },
+              {
+                "requestId": 74,
+                "ms": 13.6
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:cancellation-requested",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        }
+      ],
+      "tabOrder": [
+        {
+          "tag": "button",
+          "role": null,
+          "name": "How to use the explorer",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "StabilityMultiplierPeriod",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "QuickBalancedDetailed",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag to pan",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag a box to zoom into an area",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Show named components and internal addresses",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom out",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom in",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Restore the full-set view (0)",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "canvas",
+          "role": null,
+          "name": "Interactive Mandelbrot set. Use arrow keys to pan, plus and minus to zoom, and Enter to inspect the center.",
+          "outline": "rgb(24, 103, 192) 0px 0px 0px 3.52px inset"
+        },
+        {
+          "tag": "summary",
+          "role": null,
+          "name": "How to read these values",
+          "outline": "none"
+        },
+        {
+          "tag": "body",
+          "role": null,
+          "name": "Skip to explorer MMandelbrot InteriorityA structural view from the insideGuideIn",
+          "outline": "none"
+        },
+        {
+          "tag": "a",
+          "role": null,
+          "name": "Skip to explorer",
+          "outline": "none"
+        }
+      ],
+      "overflow200": {
+        "zoom": 2,
+        "clientWidth": 1425,
+        "scrollWidth": 1425,
+        "clientHeight": 1200,
+        "scrollHeight": 2718,
+        "overflowedX": false
+      },
+      "vision": {
+        "protanopia": "/home/aaron/int-M-/evidence/phase-1/vision-protanopia.png",
+        "deuteranopia": "/home/aaron/int-M-/evidence/phase-1/vision-deuteranopia.png",
+        "tritanopia": "/home/aaron/int-M-/evidence/phase-1/vision-tritanopia.png"
+      },
+      "consoleMessages": [
+        {
+          "type": "error",
+          "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "url": "http://127.0.0.1:4173/favicon.ico"
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "name": "firefox",
+      "kind": "Playwright Firefox 153.0; branded /usr/bin/firefox 153.0.3 launch failed (Playwright juggler cannot attach to the system binary)",
+      "version": "153.0",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+      "viewport": {
+        "width": 1440,
+        "height": 1200,
+        "deviceScaleFactor": 1
+      },
+      "firstUse": {
+        "guideVisibleBeforeStable": true,
+        "guideVisibleAfterStable": true
+      },
+      "cases": [
+        {
+          "id": "balanced-768",
+          "edge": 768,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 768,
+            "backingHeight": 768,
+            "cssWidth": 768,
+            "cssHeight": 768,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "40"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "7"
+              },
+              "requestId": "7",
+              "latest": {
+                "requestId": 7,
+                "coarseMs": 80,
+                "stableMs": 1598
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "9"
+              },
+              "requestId": "9",
+              "latest": {
+                "requestId": 9,
+                "coarseMs": 88,
+                "stableMs": 1605
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "11"
+              },
+              "requestId": "11",
+              "latest": {
+                "requestId": 11,
+                "coarseMs": 107,
+                "stableMs": 1592
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "13"
+              },
+              "requestId": "13",
+              "latest": {
+                "requestId": 13,
+                "coarseMs": 101,
+                "stableMs": 1619
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "15"
+              },
+              "requestId": "15",
+              "latest": {
+                "requestId": 15,
+                "coarseMs": 102,
+                "stableMs": 1621
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 101,
+            "coarseMaxMs": 107,
+            "stableMedianMs": 1605,
+            "stableMaxMs": 1621,
+            "cancellationAllCount": 28,
+            "cancellationInFlightCount": 28,
+            "cancellationAllP95Ms": 24,
+            "cancellationInFlightP95Ms": 24,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": []
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 16,
+                "ms": 24
+              },
+              {
+                "requestId": 16,
+                "ms": 18
+              },
+              {
+                "requestId": 17,
+                "ms": 5
+              },
+              {
+                "requestId": 18,
+                "ms": 24
+              },
+              {
+                "requestId": 18,
+                "ms": 18
+              },
+              {
+                "requestId": 19,
+                "ms": 2
+              },
+              {
+                "requestId": 20,
+                "ms": 10
+              },
+              {
+                "requestId": 20,
+                "ms": 4
+              },
+              {
+                "requestId": 21,
+                "ms": 0
+              },
+              {
+                "requestId": 22,
+                "ms": 4
+              },
+              {
+                "requestId": 23,
+                "ms": 2
+              },
+              {
+                "requestId": 24,
+                "ms": 4
+              },
+              {
+                "requestId": 25,
+                "ms": 4
+              },
+              {
+                "requestId": 26,
+                "ms": 4
+              },
+              {
+                "requestId": 27,
+                "ms": 1
+              },
+              {
+                "requestId": 28,
+                "ms": 4
+              },
+              {
+                "requestId": 29,
+                "ms": 3
+              },
+              {
+                "requestId": 30,
+                "ms": 1
+              },
+              {
+                "requestId": 31,
+                "ms": 4
+              },
+              {
+                "requestId": 32,
+                "ms": 3
+              },
+              {
+                "requestId": 33,
+                "ms": 5
+              },
+              {
+                "requestId": 34,
+                "ms": 2
+              },
+              {
+                "requestId": 35,
+                "ms": 1
+              },
+              {
+                "requestId": 36,
+                "ms": 5
+              },
+              {
+                "requestId": 36,
+                "ms": 0
+              },
+              {
+                "requestId": 37,
+                "ms": 4
+              },
+              {
+                "requestId": 38,
+                "ms": 3
+              },
+              {
+                "requestId": 39,
+                "ms": 4
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 16,
+                "ms": 24
+              },
+              {
+                "requestId": 16,
+                "ms": 18
+              },
+              {
+                "requestId": 17,
+                "ms": 5
+              },
+              {
+                "requestId": 18,
+                "ms": 24
+              },
+              {
+                "requestId": 18,
+                "ms": 18
+              },
+              {
+                "requestId": 19,
+                "ms": 2
+              },
+              {
+                "requestId": 20,
+                "ms": 10
+              },
+              {
+                "requestId": 20,
+                "ms": 4
+              },
+              {
+                "requestId": 21,
+                "ms": 0
+              },
+              {
+                "requestId": 22,
+                "ms": 4
+              },
+              {
+                "requestId": 23,
+                "ms": 2
+              },
+              {
+                "requestId": 24,
+                "ms": 4
+              },
+              {
+                "requestId": 25,
+                "ms": 4
+              },
+              {
+                "requestId": 26,
+                "ms": 4
+              },
+              {
+                "requestId": 27,
+                "ms": 1
+              },
+              {
+                "requestId": 28,
+                "ms": 4
+              },
+              {
+                "requestId": 29,
+                "ms": 3
+              },
+              {
+                "requestId": 30,
+                "ms": 1
+              },
+              {
+                "requestId": 31,
+                "ms": 4
+              },
+              {
+                "requestId": 32,
+                "ms": 3
+              },
+              {
+                "requestId": 33,
+                "ms": 5
+              },
+              {
+                "requestId": 34,
+                "ms": 2
+              },
+              {
+                "requestId": 35,
+                "ms": 1
+              },
+              {
+                "requestId": 36,
+                "ms": 5
+              },
+              {
+                "requestId": 36,
+                "ms": 0
+              },
+              {
+                "requestId": 37,
+                "ms": 4
+              },
+              {
+                "requestId": 38,
+                "ms": 3
+              },
+              {
+                "requestId": 39,
+                "ms": 4
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:cancellation-requested",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        },
+        {
+          "id": "balanced-1024",
+          "edge": 1024,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 1024,
+            "backingHeight": 1024,
+            "cssWidth": 1024,
+            "cssHeight": 1024,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "77"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "44"
+              },
+              "requestId": "44",
+              "latest": {
+                "requestId": 44,
+                "coarseMs": 159,
+                "stableMs": 2610
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "46"
+              },
+              "requestId": "46",
+              "latest": {
+                "requestId": 46,
+                "coarseMs": 147,
+                "stableMs": 2664
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "48"
+              },
+              "requestId": "48",
+              "latest": {
+                "requestId": 48,
+                "coarseMs": 152,
+                "stableMs": 2653
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "50"
+              },
+              "requestId": "50",
+              "latest": {
+                "requestId": 50,
+                "coarseMs": 142,
+                "stableMs": 2627
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "52"
+              },
+              "requestId": "52",
+              "latest": {
+                "requestId": 52,
+                "coarseMs": 146,
+                "stableMs": 2597
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 147,
+            "coarseMaxMs": 159,
+            "stableMedianMs": 2627,
+            "stableMaxMs": 2664,
+            "cancellationAllCount": 30,
+            "cancellationInFlightCount": 30,
+            "cancellationAllP95Ms": 14,
+            "cancellationInFlightP95Ms": 14,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": []
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 53,
+                "ms": 16
+              },
+              {
+                "requestId": 53,
+                "ms": 11
+              },
+              {
+                "requestId": 54,
+                "ms": 9
+              },
+              {
+                "requestId": 54,
+                "ms": 3
+              },
+              {
+                "requestId": 55,
+                "ms": 7
+              },
+              {
+                "requestId": 55,
+                "ms": 2
+              },
+              {
+                "requestId": 56,
+                "ms": 10
+              },
+              {
+                "requestId": 56,
+                "ms": 4
+              },
+              {
+                "requestId": 57,
+                "ms": 14
+              },
+              {
+                "requestId": 57,
+                "ms": 9
+              },
+              {
+                "requestId": 58,
+                "ms": 5
+              },
+              {
+                "requestId": 59,
+                "ms": 4
+              },
+              {
+                "requestId": 60,
+                "ms": 5
+              },
+              {
+                "requestId": 61,
+                "ms": 5
+              },
+              {
+                "requestId": 62,
+                "ms": 5
+              },
+              {
+                "requestId": 63,
+                "ms": 5
+              },
+              {
+                "requestId": 64,
+                "ms": 4
+              },
+              {
+                "requestId": 65,
+                "ms": 2
+              },
+              {
+                "requestId": 66,
+                "ms": 6
+              },
+              {
+                "requestId": 66,
+                "ms": 0
+              },
+              {
+                "requestId": 67,
+                "ms": 6
+              },
+              {
+                "requestId": 68,
+                "ms": 4
+              },
+              {
+                "requestId": 69,
+                "ms": 5
+              },
+              {
+                "requestId": 70,
+                "ms": 5
+              },
+              {
+                "requestId": 71,
+                "ms": 6
+              },
+              {
+                "requestId": 72,
+                "ms": 5
+              },
+              {
+                "requestId": 73,
+                "ms": 4
+              },
+              {
+                "requestId": 74,
+                "ms": 4
+              },
+              {
+                "requestId": 75,
+                "ms": 2
+              },
+              {
+                "requestId": 76,
+                "ms": 5
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 53,
+                "ms": 16
+              },
+              {
+                "requestId": 53,
+                "ms": 11
+              },
+              {
+                "requestId": 54,
+                "ms": 9
+              },
+              {
+                "requestId": 54,
+                "ms": 3
+              },
+              {
+                "requestId": 55,
+                "ms": 7
+              },
+              {
+                "requestId": 55,
+                "ms": 2
+              },
+              {
+                "requestId": 56,
+                "ms": 10
+              },
+              {
+                "requestId": 56,
+                "ms": 4
+              },
+              {
+                "requestId": 57,
+                "ms": 14
+              },
+              {
+                "requestId": 57,
+                "ms": 9
+              },
+              {
+                "requestId": 58,
+                "ms": 5
+              },
+              {
+                "requestId": 59,
+                "ms": 4
+              },
+              {
+                "requestId": 60,
+                "ms": 5
+              },
+              {
+                "requestId": 61,
+                "ms": 5
+              },
+              {
+                "requestId": 62,
+                "ms": 5
+              },
+              {
+                "requestId": 63,
+                "ms": 5
+              },
+              {
+                "requestId": 64,
+                "ms": 4
+              },
+              {
+                "requestId": 65,
+                "ms": 2
+              },
+              {
+                "requestId": 66,
+                "ms": 6
+              },
+              {
+                "requestId": 66,
+                "ms": 0
+              },
+              {
+                "requestId": 67,
+                "ms": 6
+              },
+              {
+                "requestId": 68,
+                "ms": 4
+              },
+              {
+                "requestId": 69,
+                "ms": 5
+              },
+              {
+                "requestId": 70,
+                "ms": 5
+              },
+              {
+                "requestId": 71,
+                "ms": 6
+              },
+              {
+                "requestId": 72,
+                "ms": 5
+              },
+              {
+                "requestId": 73,
+                "ms": 4
+              },
+              {
+                "requestId": 74,
+                "ms": 4
+              },
+              {
+                "requestId": 75,
+                "ms": 2
+              },
+              {
+                "requestId": 76,
+                "ms": 5
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:cancellation-requested",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        }
+      ],
+      "tabOrder": [
+        {
+          "tag": "button",
+          "role": null,
+          "name": "How to use the explorer",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "StabilityMultiplierPeriod",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "QuickBalancedDetailed",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag to pan",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag a box to zoom into an area",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Show named components and internal addresses",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom out",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom in",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Restore the full-set view (0)",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "canvas",
+          "role": null,
+          "name": "Interactive Mandelbrot set. Use arrow keys to pan, plus and minus to zoom, and Enter to inspect the center.",
+          "outline": "rgb(24, 103, 192) 0px 0px 0px 3.52px inset"
+        },
+        {
+          "tag": "summary",
+          "role": null,
+          "name": "How to read these values",
+          "outline": "none"
+        }
+      ],
+      "overflow200": {
+        "zoom": 2,
+        "clientWidth": 1440,
+        "scrollWidth": 1440,
+        "clientHeight": 1200,
+        "scrollHeight": 2718,
+        "overflowedX": false
+      },
+      "vision": null,
+      "consoleMessages": [],
+      "pageErrors": []
+    }
+  ],
+  "production": {
+    "url": "https://int-m.pages.dev/",
+    "title": "Mandelbrot Interiority",
+    "assets": ["/assets/index-B2Japiw_.js", "/assets/index-D1fGRq2y.css"],
+    "zoomCeilingVisible": true,
+    "zoomInDisabled": true,
+    "consoleErrors": [],
+    "failedRequests": [],
+    "note": "Collected in the first harness pass against production before PHASE1_SKIP_PRODUCTION=1."
+  }
+}
