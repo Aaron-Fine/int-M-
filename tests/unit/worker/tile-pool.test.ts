@@ -62,6 +62,8 @@ const bandResult = (
   classify: TileClassifyMessage,
   fillStatus: number,
   fillPeriod = 0,
+  yieldWaitMs = 0,
+  yieldCount = 0,
 ): TileResultMessage => {
   const length = (classify.y1 - classify.y0) * classify.size.width;
   return {
@@ -74,8 +76,16 @@ const bandResult = (
     period: new Uint32Array(length).fill(fillPeriod),
     smoothIterationOrMultiplierMagnitude: new Float64Array(length),
     multiplierAngle: new Float64Array(length),
+    yieldWaitMs,
+    yieldCount,
   };
 };
+
+const cancelled = (classify: TileClassifyMessage) => ({
+  type: 'tile-cancelled' as const,
+  generation: classify.generation,
+  jobId: classify.jobId,
+});
 
 const replyAll = (workers: readonly FakeTileWorker[], fillStatus: number, fillPeriod = 0): void => {
   for (const worker of workers) {
@@ -221,6 +231,15 @@ describe('createTilePool', () => {
 
     const second = pool.classifyStable(request, BALANCED, new AbortController().signal);
     await expect(first).rejects.toBeInstanceOf(RenderCancelledError);
+    expect(workers[0]!.posts.filter((post) => post.type === 'tile-classify')).toHaveLength(1);
+
+    for (const classify of gen1) {
+      workers[classify.jobId]!.emit(cancelled(classify));
+    }
+
+    await vi.waitFor(() => {
+      expect(workers[0]!.posts.filter((post) => post.type === 'tile-classify')).toHaveLength(2);
+    });
 
     for (const worker of workers) {
       const types = worker.posts.map((post) => post.type);
@@ -260,5 +279,51 @@ describe('createTilePool', () => {
     expect(frame.status[leftoverStart]).toBe(1);
     expect(frame.period[leftoverStart]).toBe(0);
     expect(frame.status.every((value) => value === 1)).toBe(true);
+  });
+
+  it('does not dispatch the next classify until children settle', async () => {
+    const workers: FakeTileWorker[] = [];
+    const factory = vi.fn(() => {
+      const worker = new FakeTileWorker();
+      workers.push(worker);
+      return worker;
+    });
+    const pool = createTilePool({ workerCount: 2, factory });
+    const first = pool.classifyStable(requestOf(4, 6), BALANCED, new AbortController().signal);
+    const gen1 = workers.map((worker) => worker.lastClassify());
+    const second = pool.classifyStable(requestOf(4, 6), BALANCED, new AbortController().signal);
+    await expect(first).rejects.toBeInstanceOf(RenderCancelledError);
+    expect(workers[0]!.posts.filter((post) => post.type === 'tile-classify')).toHaveLength(1);
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 20);
+    });
+    expect(workers[0]!.posts.filter((post) => post.type === 'tile-classify')).toHaveLength(1);
+
+    for (const classify of gen1) {
+      workers[classify.jobId]!.emit(cancelled(classify));
+    }
+    await vi.waitFor(() => {
+      expect(workers[0]!.posts.filter((post) => post.type === 'tile-classify')).toHaveLength(2);
+    });
+    replyAll(workers, 1);
+    await second;
+  });
+
+  it('aggregates child yield timing onto the merged frame', async () => {
+    const workers: FakeTileWorker[] = [];
+    const factory = vi.fn(() => {
+      const worker = new FakeTileWorker();
+      workers.push(worker);
+      return worker;
+    });
+    const pool = createTilePool({ workerCount: 2, factory });
+    const pending = pool.classifyStable(requestOf(4, 6), BALANCED, new AbortController().signal);
+    const gen = workers.map((worker) => worker.lastClassify());
+    workers[0]!.emit(bandResult(gen[0]!, 1, 0, 4, 3));
+    workers[1]!.emit(bandResult(gen[1]!, 1, 0, 10, 5));
+    const frame = await pending;
+    expect(frame.timing?.yieldCount).toBe(8);
+    expect(frame.timing?.yieldWaitMs).toBe(10);
   });
 });

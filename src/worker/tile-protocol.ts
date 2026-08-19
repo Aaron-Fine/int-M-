@@ -21,6 +21,8 @@ export interface TileResultMessage {
   readonly period: Uint32Array<ArrayBuffer>;
   readonly smoothIterationOrMultiplierMagnitude: Float64Array<ArrayBuffer>;
   readonly multiplierAngle: Float64Array<ArrayBuffer>;
+  readonly yieldWaitMs: number;
+  readonly yieldCount: number;
 }
 
 export interface TileCancelMessage {
@@ -35,8 +37,14 @@ export interface TileErrorMessage {
   readonly message: string;
 }
 
+export interface TileCancelledMessage {
+  readonly type: 'tile-cancelled';
+  readonly generation: number;
+  readonly jobId: number;
+}
+
 export type SupervisorToTileMessage = TileClassifyMessage | TileCancelMessage;
-export type TileToSupervisorMessage = TileResultMessage | TileErrorMessage;
+export type TileToSupervisorMessage = TileResultMessage | TileErrorMessage | TileCancelledMessage;
 
 export interface TileMessageEvent {
   readonly data: TileToSupervisorMessage;

@@ -100,7 +100,9 @@ renderer-neutral `Renderer` contract only (`render`, `inspect`, `colorize`); cac
 coalescing, cancel, and `error` recovery stay on that UI-facing boundary. `CpuRenderer.render()`
 still does a serial coarse classify, then a stride-1 stable classify. When production
 `render.worker.ts` injects a nested `TilePool` with `workerCount > 1`, only the stable classify is
-fanned across exclusive row bands in nested `tile.worker` module workers. Coarse, inspect, and
+fanned across exclusive row bands in nested `tile.worker` module workers. The `TilePool` interface
+lives next to `Renderer` in `src/render/renderer.ts`; nested `Worker` construction stays in
+`src/worker/`. Coarse, inspect, and
 colorize stay in-process on the supervisor. Tile messages are worker-internal; they never appear on
 `MainToWorkerMessage` / `WorkerToMainMessage`. There is no SharedArrayBuffer, no `Atomics`, and no
 `Cross-Origin-Embedder-Policy: require-corp` — children transfer band-sized typed arrays back, the

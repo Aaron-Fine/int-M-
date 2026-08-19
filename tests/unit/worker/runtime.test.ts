@@ -15,7 +15,7 @@ import {
   type WorkerMessagePort,
   type WorkerToMainMessage,
 } from '../../../src/worker';
-import type { TilePool } from '../../../src/worker/tile-pool';
+import type { TilePool } from '../../../src/render';
 
 const semanticFrame = (
   size: RasterSize,

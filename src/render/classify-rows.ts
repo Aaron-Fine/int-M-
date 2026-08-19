@@ -6,7 +6,7 @@ import {
   type OrbitResult,
   type RenderQuality,
 } from '../domain';
-import { RenderCancelledError } from './cpu-renderer';
+import { RenderCancelledError } from './render-cancelled-error';
 import type { DynamicsRenderRequest, SemanticStageTiming } from './renderer';
 import type { BandArrays } from './row-bands';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';

@@ -7,7 +7,7 @@ import {
   type DynamicsRenderRequest,
   type SemanticFrame,
 } from '../../../src/render';
-import type { TilePool } from '../../../src/worker/tile-pool';
+import type { TilePool } from '../../../src/render';
 
 const STABLE_QUALITY: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 

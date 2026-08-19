@@ -10,8 +10,8 @@ import {
   type Rgba,
   type SemanticView,
 } from '../domain';
-import type { TilePool } from '../worker/tile-pool';
 import { classifyRows } from './classify-rows';
+import { RenderCancelledError } from './render-cancelled-error';
 import {
   resolveRenderQuality,
   type DynamicsRenderRequest,
@@ -20,14 +20,10 @@ import {
   type RenderStage,
   type SemanticFrame,
   type SemanticFrameConsumer,
+  type TilePool,
 } from './renderer';
 
-export class RenderCancelledError extends Error {
-  public constructor() {
-    super('render cancelled');
-    this.name = 'RenderCancelledError';
-  }
-}
+export { RenderCancelledError };
 
 const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) {

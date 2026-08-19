@@ -61,7 +61,7 @@ describe('tile-handler', () => {
 
     expect(host.posts).toHaveLength(1);
     const posted = host.posts[0]!;
-    expect(posted.message).toEqual({
+    expect(posted.message).toMatchObject({
       type: 'tile-result',
       generation: message.generation,
       jobId: message.jobId,
@@ -71,7 +71,12 @@ describe('tile-handler', () => {
       period: expected.period,
       smoothIterationOrMultiplierMagnitude: expected.smoothIterationOrMultiplierMagnitude,
       multiplierAngle: expected.multiplierAngle,
+      yieldCount: expected.timing.yieldCount,
     });
+    expect(posted.message.type).toBe('tile-result');
+    if (posted.message.type === 'tile-result') {
+      expect(posted.message.yieldWaitMs).toBeGreaterThanOrEqual(0);
+    }
     expect(posted.message.type).toBe('tile-result');
     if (posted.message.type === 'tile-result') {
       expect(posted.transfer).toEqual([
@@ -114,7 +119,9 @@ describe('tile-handler', () => {
     await work;
 
     expect(seenSignal?.aborted).toBe(true);
-    expect(host.posts).toEqual([]);
+    expect(host.posts.map((post) => post.message)).toEqual([
+      { type: 'tile-cancelled', generation: 9, jobId: 0 },
+    ]);
   });
 
   it('handleTileClassify_postsTileErrorOnThrow', async () => {

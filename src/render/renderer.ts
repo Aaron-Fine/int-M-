@@ -86,3 +86,17 @@ export interface Renderer {
 
   colorize(frame: SemanticFrame, view: SemanticView): RasterFrame;
 }
+
+/**
+ * Optional stable-classify fan-out injected into `CpuRenderer`.
+ * Construction and nested Workers stay in the worker package.
+ */
+export interface TilePool {
+  readonly size: number;
+  classifyStable(
+    request: DynamicsRenderRequest,
+    quality: RenderQuality,
+    signal: AbortSignal,
+  ): Promise<SemanticFrame>;
+  dispose(): void;
+}

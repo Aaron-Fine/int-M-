@@ -1,7 +1,7 @@
 import { classifyRows } from '../render/classify-rows';
-import { RenderCancelledError } from '../render';
+import { RenderCancelledError } from '../render/render-cancelled-error';
 import { copyBandIntoFrame, splitRowBands } from '../render/row-bands';
-import type { DynamicsRenderRequest, SemanticFrame } from '../render';
+import type { DynamicsRenderRequest, SemanticFrame, TilePool } from '../render/renderer';
 import type { RenderQuality } from '../domain';
 import type {
   SupervisorToTileMessage,
@@ -11,6 +11,10 @@ import type {
   TileWorkerHandle,
 } from './tile-protocol';
 
+export type { TilePool };
+
+const CHILD_DRAIN_TIMEOUT_MS = 250;
+
 export function clampTileWorkers(value: number | undefined): number {
   const n = value ?? 0;
   return Math.min(4, Math.max(1, n > 0 ? n : 1));
@@ -19,16 +23,6 @@ export function clampTileWorkers(value: number | undefined): number {
 export interface TilePoolOptions {
   readonly workerCount: number;
   readonly factory: () => TileWorkerHandle;
-}
-
-export interface TilePool {
-  readonly size: number;
-  classifyStable(
-    request: DynamicsRenderRequest,
-    quality: RenderQuality,
-    signal: AbortSignal,
-  ): Promise<SemanticFrame>;
-  dispose(): void;
 }
 
 const throwIfAborted = (signal: AbortSignal): void => {
@@ -77,6 +71,13 @@ interface ActiveJob {
   reject: (error: unknown) => void;
 }
 
+interface ChildDrain {
+  readonly generation: number;
+  readonly remaining: Set<number>;
+  readonly promise: Promise<void>;
+  resolve: () => void;
+}
+
 class TilePoolImpl implements TilePool {
   readonly #factory: () => TileWorkerHandle;
   readonly #workerCount: number;
@@ -86,7 +87,7 @@ class TilePoolImpl implements TilePool {
   #generation = 0;
   #workers: TileWorkerHandle[] | undefined;
   #active: ActiveJob | undefined;
-  #running: Promise<SemanticFrame> | undefined;
+  #drain: ChildDrain | undefined;
 
   public constructor(options: TilePoolOptions) {
     this.#factory = options.factory;
@@ -103,32 +104,23 @@ class TilePoolImpl implements TilePool {
     signal: AbortSignal,
   ): Promise<SemanticFrame> {
     throwIfAborted(signal);
-
-    const previous = this.#running;
-    const needsDrain = this.#active !== undefined;
-    if (needsDrain) {
+    if (this.#active !== undefined) {
       this.#cancelActive();
     }
-    if (needsDrain && previous !== undefined) {
-      await previous.catch(() => undefined);
+    if (this.#drain !== undefined) {
+      await this.#awaitChildDrain();
     }
     throwIfAborted(signal);
 
-    const run =
-      this.#workerCount === 1
-        ? this.#classifyInProcess(request, quality, signal)
-        : this.#classifyTiled(request, quality, signal);
-    this.#running = run;
-    return run;
+    return this.#workerCount === 1
+      ? this.#classifyInProcess(request, quality, signal)
+      : this.#classifyTiled(request, quality, signal);
   }
 
   public dispose(): void {
     this.#cancelActive();
-    for (const worker of this.#workers ?? []) {
-      worker.removeEventListener('message', this.#onWorkerMessage);
-      worker.terminate();
-    }
-    this.#workers = undefined;
+    this.#resetWorkers();
+    this.#resolveDrain();
   }
 
   async #classifyInProcess(
@@ -173,6 +165,7 @@ class TilePoolImpl implements TilePool {
         return;
       }
 
+      const postedJobIds: number[] = [];
       for (let jobId = 0; jobId < bands.length; jobId += 1) {
         if (active.settled) break;
         const band = bands[jobId];
@@ -189,7 +182,9 @@ class TilePoolImpl implements TilePool {
           quality,
         };
         worker.postMessage(message);
+        postedJobIds.push(jobId);
       }
+      if (postedJobIds.length > 0) this.#beginDrain(generation, postedJobIds);
     });
 
     return promise;
@@ -209,6 +204,7 @@ class TilePoolImpl implements TilePool {
   }
 
   #handleWorkerMessage(message: TileToSupervisorMessage): void {
+    this.#settleChild(message.generation, message.jobId);
     const active = this.#active;
     if (active === undefined || active.settled) return;
     if (message.generation !== active.generation) return;
@@ -217,17 +213,21 @@ class TilePoolImpl implements TilePool {
       this.#failActive(new Error(message.message));
       return;
     }
+    if (message.type === 'tile-cancelled') {
+      return;
+    }
 
     copyBandIntoFrame(active.frame, message);
     active.received.set(message.jobId, message);
     if (active.received.size === active.expectedJobs) {
       this.#finishActive((job) => {
+        const results = [...job.received.values()];
         job.resolve({
           ...job.frame,
           timing: {
             classifyMs: performance.now() - job.startedAt,
-            yieldWaitMs: 0,
-            yieldCount: 0,
+            yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
+            yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
           },
         });
       });
@@ -260,6 +260,56 @@ class TilePoolImpl implements TilePool {
     active.signal.removeEventListener('abort', active.onAbort);
     this.#active = undefined;
     settle(active);
+  }
+
+  #beginDrain(generation: number, jobIds: readonly number[]): void {
+    let resolveFn = (): void => undefined;
+    const promise = new Promise<void>((resolve) => {
+      resolveFn = resolve;
+    });
+    this.#drain = {
+      generation,
+      remaining: new Set(jobIds),
+      promise,
+      resolve: resolveFn,
+    };
+  }
+
+  #settleChild(generation: number, jobId: number): void {
+    const drain = this.#drain;
+    if (drain?.generation !== generation) return;
+    drain.remaining.delete(jobId);
+    if (drain.remaining.size === 0) this.#resolveDrain();
+  }
+
+  #resolveDrain(): void {
+    const drain = this.#drain;
+    if (drain === undefined) return;
+    this.#drain = undefined;
+    drain.resolve();
+  }
+
+  async #awaitChildDrain(): Promise<void> {
+    const drain = this.#drain;
+    if (drain === undefined) return;
+    await Promise.race([
+      drain.promise,
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, CHILD_DRAIN_TIMEOUT_MS);
+      }),
+    ]);
+    if (this.#drain === drain && drain.remaining.size > 0) {
+      this.#resetWorkers();
+      this.#resolveDrain();
+    }
+  }
+
+  #resetWorkers(): void {
+    for (const worker of this.#workers ?? []) {
+      worker.removeEventListener('message', this.#onWorkerMessage);
+      worker.terminate();
+    }
+    this.#workers = undefined;
   }
 }
 

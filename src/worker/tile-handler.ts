@@ -1,5 +1,5 @@
 import { classifyRows } from '../render/classify-rows';
-import { RenderCancelledError } from '../render';
+import { RenderCancelledError } from '../render/render-cancelled-error';
 import type { DynamicsRenderRequest } from '../render';
 import type {
   SupervisorToTileMessage,
@@ -39,6 +39,7 @@ export function createTileHandler(
   const classify = options.classifyRows ?? classifyRows;
   let jobController: AbortController | undefined;
   let jobGeneration: number | undefined;
+  let jobId: number | undefined;
   let inflight: Promise<void> = Promise.resolve();
 
   const runClassify = async (message: TileClassifyMessage, signal: AbortSignal): Promise<void> => {
@@ -63,6 +64,8 @@ export function createTileHandler(
         smoothIterationOrMultiplierMagnitude:
           band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
         multiplierAngle: band.multiplierAngle as Float64Array<ArrayBuffer>,
+        yieldWaitMs: band.timing.yieldWaitMs,
+        yieldCount: band.timing.yieldCount,
       };
       host.postMessage(result, transferOf(result));
     } catch (error: unknown) {
@@ -79,7 +82,17 @@ export function createTileHandler(
   return async (message: SupervisorToTileMessage): Promise<void> => {
     if (message.type === 'tile-cancel') {
       if (jobGeneration === message.generation) {
+        const cancelledGeneration = jobGeneration;
+        const cancelledJobId = jobId;
         jobController?.abort();
+        void inflight.finally(() => {
+          if (cancelledJobId === undefined) return;
+          host.postMessage({
+            type: 'tile-cancelled',
+            generation: cancelledGeneration,
+            jobId: cancelledJobId,
+          });
+        });
       }
       return;
     }
@@ -89,6 +102,7 @@ export function createTileHandler(
     const controller = new AbortController();
     jobController = controller;
     jobGeneration = message.generation;
+    jobId = message.jobId;
 
     const run = (async (): Promise<void> => {
       await previous.catch(() => undefined);
