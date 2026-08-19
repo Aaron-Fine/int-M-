@@ -74,4 +74,39 @@ describe('CpuRenderer', () => {
     expect(coarse?.rgba[0]).toBe(coarse?.rgba[1]);
     expect(coarse?.rgba[1]).toBe(coarse?.rgba[2]);
   });
+
+  it('records classify time and yield-wait counts without changing yield cadence', async () => {
+    const renderer = new CpuRenderer();
+    const frames: SemanticFrame[] = [];
+
+    await renderer.render(
+      {
+        viewport: DEFAULT_VIEWPORT,
+        size: { width: 16, height: 64 },
+        quality: { maxIterations: 32, maxPeriod: 4, coarseStride: 8 },
+      },
+      new AbortController().signal,
+      (frame) => {
+        frames.push(frame);
+      },
+    );
+
+    expect(frames).toHaveLength(2);
+    const coarse = frames[0];
+    const stable = frames[1];
+    expect(coarse?.timing).toEqual(
+      expect.objectContaining({
+        yieldCount: 1,
+      }),
+    );
+    expect(stable?.timing).toEqual(
+      expect.objectContaining({
+        yieldCount: 8,
+      }),
+    );
+    expect(coarse?.timing?.classifyMs).toBeGreaterThan(0);
+    expect(stable?.timing?.classifyMs).toBeGreaterThan(0);
+    expect(coarse?.timing?.yieldWaitMs).toBeGreaterThanOrEqual(0);
+    expect(stable?.timing?.yieldWaitMs).toBeGreaterThanOrEqual(0);
+  });
 });

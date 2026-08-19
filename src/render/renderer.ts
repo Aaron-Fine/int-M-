@@ -48,6 +48,12 @@ export interface DynamicsRenderRequest {
 
 export type SemanticStatusCode = 0 | 1 | 2;
 
+export interface SemanticStageTiming {
+  readonly classifyMs: number;
+  readonly yieldWaitMs: number;
+  readonly yieldCount: number;
+}
+
 export interface SemanticFrame {
   readonly stage: RenderStage;
   readonly size: RasterSize;
@@ -60,6 +66,7 @@ export interface SemanticFrame {
   /** Multiplier angle for attracting-cycle samples. */
   readonly multiplierAngle: Float64Array<ArrayBuffer>;
   readonly progress: number;
+  readonly timing?: SemanticStageTiming;
 }
 
 export type SemanticFrameConsumer = (frame: SemanticFrame) => void | Promise<void>;

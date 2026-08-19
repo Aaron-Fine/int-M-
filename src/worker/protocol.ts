@@ -34,6 +34,13 @@ export interface CancelMessage {
 
 export type MainToWorkerMessage = RenderMessage | InspectMessage | CancelMessage;
 
+export interface WorkerFrameTiming {
+  readonly classifyMs: number;
+  readonly colorizeMs: number;
+  readonly yieldWaitMs: number;
+  readonly yieldCount: number;
+}
+
 export interface FrameMessage {
   readonly type: 'frame';
   readonly requestId: RequestId;
@@ -42,6 +49,7 @@ export interface FrameMessage {
   readonly height: number;
   readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   readonly progress: number;
+  readonly workerTiming?: WorkerFrameTiming;
 }
 
 export interface InspectionResult {

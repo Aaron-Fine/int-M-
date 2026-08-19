@@ -166,6 +166,95 @@ const setCanvasEdge = async (page, edge) => {
   return previous;
 };
 
+const WORKER_MARK_NAMES = [
+  'mi:worker-coarse-classify',
+  'mi:worker-coarse-colorize',
+  'mi:worker-stable-classify',
+  'mi:worker-stable-colorize',
+  'mi:worker-yield-wait',
+];
+
+const markRequestId = (mark) => {
+  const requestId =
+    mark.detail && typeof mark.detail === 'object' && 'requestId' in mark.detail
+      ? Number(mark.detail.requestId)
+      : undefined;
+  return requestId === undefined || Number.isNaN(requestId) ? undefined : requestId;
+};
+
+const markDuration = (mark) => {
+  const duration =
+    mark.detail && typeof mark.detail === 'object' && 'duration' in mark.detail
+      ? Number(mark.detail.duration)
+      : null;
+  return duration === null || Number.isNaN(duration) ? null : roundMs(duration);
+};
+
+const markCount = (mark) => {
+  const count =
+    mark.detail && typeof mark.detail === 'object' && 'count' in mark.detail
+      ? Number(mark.detail.count)
+      : null;
+  return count === null || Number.isNaN(count) ? null : count;
+};
+
+const applyYieldTiming = (current, mark) => {
+  const stage =
+    mark.detail && typeof mark.detail === 'object' && 'stage' in mark.detail
+      ? String(mark.detail.stage)
+      : undefined;
+  const duration = markDuration(mark);
+  const count = markCount(mark);
+  if (stage === 'coarse') {
+    current.coarseYieldWaitMs = duration;
+    current.coarseYieldCount = count;
+  } else if (stage === 'stable') {
+    current.stableYieldWaitMs = duration;
+    current.stableYieldCount = count;
+  }
+};
+
+const WORKER_DURATION_FIELDS = {
+  'mi:worker-coarse-classify': 'coarseClassifyMs',
+  'mi:worker-coarse-colorize': 'coarseColorizeMs',
+  'mi:worker-stable-classify': 'stableClassifyMs',
+  'mi:worker-stable-colorize': 'stableColorizeMs',
+};
+
+const pairWorkerTimings = (marks) => {
+  /** @type {Map<number, Record<string, number | null>>} */
+  const byId = new Map();
+  for (const mark of marks) {
+    const requestId = markRequestId(mark);
+    if (requestId === undefined) continue;
+    const current = byId.get(requestId) ?? {};
+    const durationField = WORKER_DURATION_FIELDS[mark.name];
+    if (durationField !== undefined) current[durationField] = markDuration(mark);
+    if (mark.name === 'mi:worker-yield-wait') applyYieldTiming(current, mark);
+    byId.set(requestId, current);
+  }
+  return byId;
+};
+
+const summarizeWorkerTimings = (samples) => {
+  const present = samples.filter((item) => item);
+  const values = (key) =>
+    present.map((item) => item?.[key]).filter((value) => typeof value === 'number');
+  if (values('stableClassifyMs').length === 0 && values('coarseClassifyMs').length === 0) {
+    return null;
+  }
+  return {
+    coarseClassifyMedianMs: median(values('coarseClassifyMs')),
+    coarseColorizeMedianMs: median(values('coarseColorizeMs')),
+    stableClassifyMedianMs: median(values('stableClassifyMs')),
+    stableColorizeMedianMs: median(values('stableColorizeMs')),
+    coarseYieldWaitMedianMs: median(values('coarseYieldWaitMs')),
+    stableYieldWaitMedianMs: median(values('stableYieldWaitMs')),
+    coarseYieldCountMedian: median(values('coarseYieldCount')),
+    stableYieldCountMedian: median(values('stableYieldCount')),
+  };
+};
+
 const pairPresentation = (marks) => {
   /** @type {Map<number, { request?: number, coarse?: number, stable?: number }>} */
   const byId = new Map();
@@ -276,11 +365,14 @@ const measureCase = async (page, canvas, edge, label) => {
       { timeout: 20_000 },
     );
     const before = await explorerState(page);
-    await page.evaluate(() => {
-      for (const name of ['mi:render-request', 'mi:coarse-presented', 'mi:stable-presented']) {
-        performance.clearMarks(name);
-      }
-    });
+    await page.evaluate(
+      (names) => {
+        for (const name of names) {
+          performance.clearMarks(name);
+        }
+      },
+      ['mi:render-request', 'mi:coarse-presented', 'mi:stable-presented', ...WORKER_MARK_NAMES],
+    );
     await canvas.focus();
     await canvas.press('+');
     await waitForNewRequest(page, before.requestId);
@@ -290,11 +382,13 @@ const measureCase = async (page, canvas, edge, label) => {
     const paired = pairPresentation(marks).find(
       (item) => String(item.requestId) === started.requestId,
     );
+    const worker = pairWorkerTimings(marks).get(Number(started.requestId)) ?? null;
     samples.push({
       index,
       canvas: await canvasInfo(page),
       requestId: started.requestId,
       latest: paired ?? null,
+      worker,
     });
   }
 
@@ -360,6 +454,7 @@ const measureCase = async (page, canvas, edge, label) => {
       ),
       longTaskCount: tasks.length,
       longTasksOver50Ms: tasks.filter((task) => (task.duration ?? 0) > BUDGETS.longTaskMs),
+      worker: summarizeWorkerTimings(samples.map((sample) => sample.worker)),
     },
     cancellations,
     longTasks: tasks,

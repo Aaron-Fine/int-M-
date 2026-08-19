@@ -45,6 +45,8 @@ const yieldToWorkerEventLoop = async (): Promise<void> => {
   });
 };
 
+const nowMs = (): number => performance.now();
+
 const writeSemanticBlock = (
   frame: SemanticFrame,
   x: number,
@@ -133,6 +135,9 @@ const stageSemantics = async (
   const classifier = new OrbitClassifier(orbitOptions, orbitScratch);
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const yieldRowMask = quality.maxIterations > DEFAULT_RENDER_QUALITY.maxIterations ? 1 : 7;
+  const wallStarted = nowMs();
+  let yieldWaitMs = 0;
+  let yieldCount = 0;
 
   for (let y = 0; y < height; y += stride) {
     throwIfAborted(signal);
@@ -146,12 +151,22 @@ const stageSemantics = async (
     // Browser messages, including cancel, cannot be processed during a long
     // synchronous loop. Yield often enough to preserve the cancellation SLO.
     if ((Math.floor(y / stride) & yieldRowMask) === yieldRowMask) {
+      const yieldStarted = nowMs();
       await yieldToWorkerEventLoop();
+      yieldWaitMs += nowMs() - yieldStarted;
+      yieldCount += 1;
     }
   }
 
   throwIfAborted(signal);
-  return frame;
+  return {
+    ...frame,
+    timing: {
+      classifyMs: nowMs() - wallStarted - yieldWaitMs,
+      yieldWaitMs,
+      yieldCount,
+    },
+  };
 };
 
 export class CpuRenderer implements Renderer {

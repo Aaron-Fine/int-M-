@@ -13,6 +13,7 @@ import type {
   RenderMessage,
   RequestId,
   WorkerErrorMessage,
+  WorkerFrameTiming,
   WorkerToMainMessage,
 } from './protocol';
 
@@ -78,7 +79,14 @@ export class RenderWorkerRuntime {
   }
 
   #postFrame(requestId: RequestId, frame: SemanticFrame, view: SemanticView): void {
+    const colorizeStarted = performance.now();
     const raster = this.#renderer.colorize(frame, view);
+    const workerTiming: WorkerFrameTiming = {
+      classifyMs: frame.timing?.classifyMs ?? 0,
+      colorizeMs: performance.now() - colorizeStarted,
+      yieldWaitMs: frame.timing?.yieldWaitMs ?? 0,
+      yieldCount: frame.timing?.yieldCount ?? 0,
+    };
     const response: WorkerToMainMessage = {
       type: 'frame',
       requestId,
@@ -87,6 +95,7 @@ export class RenderWorkerRuntime {
       height: raster.size.height,
       rgba: raster.rgba,
       progress: raster.progress,
+      workerTiming,
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }

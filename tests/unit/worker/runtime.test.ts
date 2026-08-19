@@ -125,6 +125,69 @@ describe('RenderWorkerRuntime', () => {
     expect(transfer).toHaveLength(1);
   });
 
+  it('attaches worker stage timings to frame messages', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const renderer: Renderer = {
+      inspect: () => ({
+        status: 'unresolved',
+        iterations: 1,
+        evidence: ['iteration-limit'],
+      }),
+      render: async (request, _signal, onFrame) => {
+        await onFrame({
+          ...semanticFrame(request.size, 'coarse'),
+          timing: { classifyMs: 12.5, yieldWaitMs: 3.25, yieldCount: 2 },
+        });
+        await onFrame({
+          ...semanticFrame(request.size, 'stable'),
+          timing: { classifyMs: 80, yieldWaitMs: 7.5, yieldCount: 8 },
+        });
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      renderer,
+    );
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 'timed',
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 2, height: 2 },
+      semanticView: 'period',
+    });
+
+    const frames = messages.filter((message) => message.type === 'frame');
+    expect(frames).toHaveLength(2);
+    expect(frames[0]).toMatchObject({
+      type: 'frame',
+      requestId: 'timed',
+      stage: 'coarse',
+      workerTiming: {
+        classifyMs: 12.5,
+        yieldWaitMs: 3.25,
+        yieldCount: 2,
+      },
+    });
+    expect(frames[1]).toMatchObject({
+      type: 'frame',
+      requestId: 'timed',
+      stage: 'stable',
+      workerTiming: {
+        classifyMs: 80,
+        yieldWaitMs: 7.5,
+        yieldCount: 8,
+      },
+    });
+    expect(
+      frames[0]?.type === 'frame' ? frames[0].workerTiming?.colorizeMs : undefined,
+    ).toBeGreaterThanOrEqual(0);
+    expect(
+      frames[1]?.type === 'frame' ? frames[1].workerTiming?.colorizeMs : undefined,
+    ).toBeGreaterThanOrEqual(0);
+  });
+
   it('reports a render failure and remains available for later requests', async () => {
     const messages: WorkerToMainMessage[] = [];
     const renderer: Renderer = {
