@@ -184,7 +184,7 @@ in both supported browser families.
       unintended horizontal scrolling.
 - [ ] Verify Windows high-contrast or forced-colors presentation and add an
       explicit forced-colors focus outline if the normal indicator is lost.
-- [ ] Evaluate catalog marker target size and spacing against WCAG 2.2 AA;
+- [x] Evaluate catalog marker target size and spacing against WCAG 2.2 AA;
       enlarge the hit area or provide equivalent operation where necessary.
 - [ ] Review stability, multiplier, and period views under protanopia,
       deuteranopia, and tritanopia simulation.

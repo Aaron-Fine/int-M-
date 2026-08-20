@@ -66,6 +66,26 @@ export const colorForAttracting = (
   }
 };
 
+/**
+ * Oriented lightness stripes encode arg λ without relying on hue, so Multiplier
+ * view remains readable under protanopia, deuteranopia, and tritanopia.
+ */
+export const modulateForMultiplierAngle = (
+  color: Rgba,
+  x: number,
+  y: number,
+  multiplierAngle: number,
+): Rgba => {
+  const projection = x * Math.cos(multiplierAngle) + y * Math.sin(multiplierAngle);
+  const offset = Math.sin(projection * 0.45) >= 0 ? 22 : -22;
+  return [
+    clampByte(color[0] + offset),
+    clampByte(color[1] + offset),
+    clampByte(color[2] + offset),
+    color[3],
+  ];
+};
+
 export const colorForOrbit = (result: OrbitResult, view: SemanticView): Rgba => {
   if (result.status === 'unresolved') {
     return colorForUnresolved();

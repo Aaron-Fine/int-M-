@@ -180,7 +180,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(
       page.getByText('The strength and angle of attraction around a detected cycle.'),
     ).toBeVisible();
-    await expect(page.getByText(/Hue shows rotation/)).toBeVisible();
+    await expect(page.getByText(/Hue and oriented stripes show rotation/)).toBeVisible();
     await expect(page.getByText('Multiplier angle', { exact: true })).toBeVisible();
 
     await page.getByLabel('Interior view').selectOption('period');
@@ -243,6 +243,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
   }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Explore' }).click();
+    const catalog = page.getByRole('button', { name: /Catalog/ });
+    await catalog.click();
+    await expect(catalog).toHaveAttribute('aria-pressed', 'false');
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     const box = await canvas.boundingBox();
     expect(box).not.toBeNull();
@@ -301,6 +304,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect.poll(() => marker.getAttribute('style')).not.toBe(pannedMarkerStyle);
     await page.getByLabel('Quality').selectOption('detailed');
     await expect(marker).toBeVisible();
+    await catalog.click();
+    await expect(catalog).toHaveAttribute('aria-pressed', 'true');
     const periodTwo = page.getByRole('button', {
       name: 'Inspect Period-2 bulb, period 2',
     });
@@ -478,6 +483,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
 
     const canvas = page.getByLabel('Interactive Mandelbrot set');
+    await periodTwo.focus();
     for (let step = 0; step < 12; step += 1) {
       if (await canvas.evaluate((element) => element === document.activeElement)) {
         break;
@@ -681,5 +687,59 @@ test.describe('Mandelbrot Interiority explorer', () => {
     expect(after.tile, `after recovery: ${JSON.stringify({ before, after })}`).toBe(before.tile);
     expect(after.total, `leaked workers: ${JSON.stringify({ before, after })}`).toBe(before.total);
     expect(after.total).not.toBe(2 * before.total);
+  });
+
+  test('pans from a catalog marker, cancels pan with Escape, and stamps the build', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore' }).click();
+
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    await expect(canvas).toHaveCSS('cursor', 'grab');
+    await expect(page.getByLabel('Build revision')).toHaveText(/[0-9a-f]{7}|unknown|test/);
+
+    const mainCardioid = page.getByRole('button', {
+      name: 'Inspect Main cardioid, period 1',
+    });
+    await expect(mainCardioid).toBeVisible({ timeout: 20_000 });
+    await expect(mainCardioid).toHaveCSS('cursor', 'grab');
+
+    const markerBox = await mainCardioid.boundingBox();
+    expect(markerBox).not.toBeNull();
+    if (!markerBox) return;
+    const startX = markerBox.x + markerBox.width / 2;
+    const startY = markerBox.y + markerBox.height / 2;
+    const beforeCenter = await page.getByLabel('Current view').textContent();
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 80, startY + 40, { steps: 8 });
+    await expect(canvas).toHaveCSS('cursor', 'grabbing');
+    await page.mouse.up();
+
+    await expect.poll(() => page.getByLabel('Current view').textContent()).not.toBe(beforeCenter);
+    await expect(page.getByRole('button', { name: 'Reset' })).toBeEnabled();
+    await expect(page.getByRole('heading', { name: 'Main cardioid' })).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(page.getByRole('button', { name: 'Reset' })).toBeDisabled();
+
+    const canvasBox = await canvas.boundingBox();
+    expect(canvasBox).not.toBeNull();
+    if (!canvasBox) return;
+    const originX = canvasBox.x + canvasBox.width * 0.12;
+    const originY = canvasBox.y + canvasBox.height * 0.18;
+    const restored = await page.getByLabel('Current view').textContent();
+
+    await page.mouse.move(originX, originY);
+    await page.mouse.down();
+    await page.mouse.move(originX + 70, originY + 30, { steps: 6 });
+    await expect.poll(() => page.getByLabel('Current view').textContent()).not.toBe(restored);
+    await page.keyboard.press('Escape');
+    await expect(page.getByText('Pan cancelled.')).toBeVisible();
+    await expect.poll(() => page.getByLabel('Current view').textContent()).toBe(restored);
+    await page.mouse.up();
+    await expect.poll(() => page.getByLabel('Current view').textContent()).toBe(restored);
   });
 });

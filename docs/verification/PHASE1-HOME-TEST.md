@@ -20,15 +20,23 @@ unobserved check into a pass.
 
 ## Interaction and performance
 
-1. Drag the image. It must visibly follow the pointer before release, then
-   progress from a coarse presentation to **Stable frame** at the new center.
+1. Drag the image, including a drag that begins on a catalog marker. It must
+   visibly follow the pointer before release, then progress from a coarse
+   presentation to **Stable frame** at the new center. The pan cursor is grab.
 2. Start another drag, press **Escape** before releasing, and release the
    pointer. The preview and coordinates must return to their pre-drag state.
+   Pan sessions announce **Pan cancelled.** Zoom-area sessions announce
+   **Area selection cancelled.**
 3. Draw a zoom area, select a point, change Interior view and Quality, use
    arrow keys, use +/−, press Enter on the canvas, reset with 0, and reach the
    visible **6.00e6×** ceiling. No stale frame may replace the latest request.
-4. Repeat quick +/− or arrow-key changes at least 20 times so superseded work
-   produces cancellation samples. Export the browser performance marks with:
+4. Repeat navigation while a render is in flight so superseded work produces
+   cancellation samples. After each +/− or arrow-key change, wait until
+   `#explorer` shows `data-render-stage="coarse"` (or any stage other than
+   `stable`) before the next change. Rapid keypresses inside the 65 ms
+   debounce collapse to a single `mi:render-request` and do not cancel. After
+   a stable frame, further cancels are not requested. Export the browser
+   performance marks with:
 
    ```js
    copy(
