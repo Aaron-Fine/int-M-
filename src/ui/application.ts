@@ -344,7 +344,12 @@ export function mountApplication(host: HTMLElement): () => void {
     feedback,
   );
   const explorerFooter = element('footer', { className: 'explorer__footer' });
-  explorerFooter.append(status, coordinateReadout);
+  const revision = element('span', {
+    className: 'build-revision',
+    text: __MI_COMMIT_SHA__,
+    attributes: { 'aria-label': 'Build revision' },
+  });
+  explorerFooter.append(status, coordinateReadout, revision);
   canvasShell.append(explorerHeading, canvasStack, explorerFooter);
 
   const sidePanel = element('aside', {
@@ -371,6 +376,7 @@ export function mountApplication(host: HTMLElement): () => void {
         latest: CanvasPoint;
         readonly viewport: Viewport;
         feedbackMarked: boolean;
+        readonly catalogInspect?: CatalogComponent;
       }
     | undefined;
 
@@ -400,7 +406,8 @@ export function mountApplication(host: HTMLElement): () => void {
     zoomOutButton.disabled = state.viewport.spanY >= MAX_SCALE;
     canvasShell.classList.toggle(
       'explorer--expanded-labels',
-      DEFAULT_VIEWPORT.spanY / state.viewport.spanY >= LABEL_MAGNIFICATION_THRESHOLD,
+      DEFAULT_VIEWPORT.spanY / state.viewport.spanY >= LABEL_MAGNIFICATION_THRESHOLD &&
+        Number.parseFloat(getComputedStyle(document.documentElement).fontSize) <= 22,
     );
     updateSelectedPointMarker();
   }
@@ -455,7 +462,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   function scheduleRender(immediate = false): void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
-    if (state.activeRequestId > 0) {
+    if (state.activeRequestId > 0 && state.frameStage !== 'stable') {
       performance.mark('mi:cancellation-requested', {
         detail: { requestId: state.activeRequestId },
       });
@@ -585,6 +592,51 @@ export function mountApplication(host: HTMLElement): () => void {
     };
   }
 
+  function startPointerSession(event: PointerEvent, catalogInspect?: CatalogComponent): void {
+    if (event.button !== 0 || !event.isPrimary) return;
+    event.preventDefault();
+    renderCanvas.setPointerCapture(event.pointerId);
+    renderCanvas.focus({ preventScroll: true });
+    state.dragging = false;
+    const origin = canvasPoint(event);
+    pointerSession = {
+      pointerId: event.pointerId,
+      kind: state.interactionMode === 'region' || event.shiftKey ? 'region' : 'pan',
+      origin,
+      latest: origin,
+      viewport: state.viewport,
+      feedbackMarked: false,
+      ...(catalogInspect === undefined ? {} : { catalogInspect }),
+    };
+    if (pointerSession.kind === 'pan') {
+      renderCanvas.classList.add('explorer__canvas--grabbing');
+    } else {
+      canvasShell.classList.add('explorer--selecting');
+      updateZoomSelection(origin, origin);
+    }
+  }
+
+  function cancelPointerSession(announce: boolean): void {
+    const session = pointerSession;
+    if (!session) return;
+    if (session.kind === 'pan') {
+      state.viewport = session.viewport;
+      updateCoordinateReadout();
+    }
+    if (renderCanvas.hasPointerCapture(session.pointerId)) {
+      renderCanvas.releasePointerCapture(session.pointerId);
+    }
+    pointerSession = undefined;
+    state.dragging = false;
+    clearPresentationPreview();
+    renderCanvas.classList.remove('explorer__canvas--grabbing');
+    canvasShell.classList.remove('explorer--selecting');
+    zoomSelection.removeAttribute('style');
+    if (announce) {
+      showFeedback(session.kind === 'region' ? 'Area selection cancelled.' : 'Pan cancelled.');
+    }
+  }
+
   function updateZoomSelection(origin: CanvasPoint, latest: CanvasPoint): void {
     const left = Math.min(origin.x, latest.x) * 100;
     const top = Math.min(origin.y, latest.y) * 100;
@@ -679,13 +731,24 @@ export function mountApplication(host: HTMLElement): () => void {
           text: component.label,
         }),
       );
-      marker.addEventListener('click', () => {
+      marker.addEventListener('pointerdown', (event) => {
+        startPointerSession(event, component);
+      });
+      marker.addEventListener('click', (event) => {
+        if (event.detail !== 0) return;
         inspectPoint(component.center, component);
       });
       return [marker];
     });
     replaceChildren(catalogOverlay, markers);
   }
+
+  const onDocumentKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape' || pointerSession === undefined) return;
+    event.preventDefault();
+    cancelPointerSession(true);
+  };
+  document.addEventListener('keydown', onDocumentKeydown);
 
   semanticSelect.addEventListener('change', () => {
     state.semanticView = semanticSelect.value as SemanticView;
@@ -752,24 +815,7 @@ export function mountApplication(host: HTMLElement): () => void {
   );
 
   renderCanvas.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0 || !event.isPrimary) return;
-    renderCanvas.setPointerCapture(event.pointerId);
-    state.dragging = false;
-    const origin = canvasPoint(event);
-    pointerSession = {
-      pointerId: event.pointerId,
-      kind: state.interactionMode === 'region' || event.shiftKey ? 'region' : 'pan',
-      origin,
-      latest: origin,
-      viewport: state.viewport,
-      feedbackMarked: false,
-    };
-    if (pointerSession.kind === 'pan') {
-      renderCanvas.classList.add('explorer__canvas--grabbing');
-    } else {
-      canvasShell.classList.add('explorer--selecting');
-      updateZoomSelection(origin, origin);
-    }
+    startPointerSession(event);
   });
 
   renderCanvas.addEventListener('pointermove', (event) => {
@@ -845,6 +891,8 @@ export function mountApplication(host: HTMLElement): () => void {
       }
     } else if (state.dragging) {
       scheduleRender();
+    } else if (session.catalogInspect) {
+      inspectPoint(session.catalogInspect.center, session.catalogInspect);
     } else {
       inspectAt(canvasPoint(event));
     }
@@ -853,38 +901,11 @@ export function mountApplication(host: HTMLElement): () => void {
   };
   renderCanvas.addEventListener('pointerup', finishPointer);
   renderCanvas.addEventListener('pointercancel', () => {
-    const session = pointerSession;
-    if (session?.kind === 'pan') {
-      state.viewport = session.viewport;
-      updateCoordinateReadout();
-    }
-    pointerSession = undefined;
-    state.dragging = false;
-    clearPresentationPreview();
-    renderCanvas.classList.remove('explorer__canvas--grabbing');
-    canvasShell.classList.remove('explorer--selecting');
-    zoomSelection.removeAttribute('style');
+    cancelPointerSession(false);
   });
 
   renderCanvas.addEventListener('keydown', (event) => {
     switch (event.key) {
-      case 'Escape':
-        if (!pointerSession) return;
-        if (pointerSession.kind === 'pan') {
-          state.viewport = pointerSession.viewport;
-          updateCoordinateReadout();
-        }
-        if (renderCanvas.hasPointerCapture(pointerSession.pointerId)) {
-          renderCanvas.releasePointerCapture(pointerSession.pointerId);
-        }
-        pointerSession = undefined;
-        state.dragging = false;
-        clearPresentationPreview();
-        renderCanvas.classList.remove('explorer__canvas--grabbing');
-        canvasShell.classList.remove('explorer--selecting');
-        zoomSelection.removeAttribute('style');
-        showFeedback('Area selection cancelled.');
-        break;
       case '+':
       case '=':
         zoom('in');
@@ -1000,6 +1021,7 @@ export function mountApplication(host: HTMLElement): () => void {
     if (feedbackTimer !== undefined) clearTimeout(feedbackTimer);
     resizeObserver.disconnect();
     longTaskObserver?.disconnect();
+    document.removeEventListener('keydown', onDocumentKeydown);
     workerClient.dispose();
     if (import.meta.env.DEV) delete window.__MI_PHASE1_TEST__;
     host.replaceChildren();
@@ -1113,7 +1135,7 @@ function createInspector(): {
     ],
     [
       'Multiplier angle arg λ',
-      'How much that displacement rotates after one complete cycle. It is shown in degrees and used as hue in Multiplier view.',
+      'How much that displacement rotates after one complete cycle. It is shown in degrees and encoded as hue plus stripe orientation in Multiplier view.',
     ],
     [
       'Stability exponent κ',

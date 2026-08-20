@@ -34,7 +34,7 @@ const LEGENDS: Record<SemanticView, readonly LegendEntry[]> = {
     },
     {
       label: 'Multiplier angle',
-      detail: 'Hue represents arg λ',
+      detail: 'Hue and stripe orientation represent arg λ',
       cue: 'angle',
     },
   ],
@@ -64,7 +64,8 @@ const COMMON: readonly LegendEntry[] = [
 
 const DEFINITIONS: Record<SemanticView, string> = {
   stability: 'Lighter regions settle faster. κ = −ln|λ| / p measures attraction per iteration.',
-  multiplier: 'Hue shows rotation (arg λ); lightness shows attraction strength through |λ|.',
+  multiplier:
+    'Hue and oriented stripes show rotation (arg λ); lightness shows attraction strength through |λ|.',
   period: 'Each color category represents the exact detected attracting-cycle period p.',
 };
 

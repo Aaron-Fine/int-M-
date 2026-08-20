@@ -4,6 +4,7 @@ import {
   colorForAttracting,
   colorForEscaped,
   colorForOrbit,
+  modulateForMultiplierAngle,
   type OrbitResult,
   type SemanticView,
 } from '../../../src/domain';
@@ -82,5 +83,22 @@ describe('semantic coloring', () => {
       };
       expect(colorForEscaped(escaped.smoothIteration, view)).toEqual(colorForOrbit(escaped, view));
     }
+  });
+
+  it('modulates multiplier-view lightness along the argument direction', () => {
+    const base = colorForAttracting(
+      attracting.period,
+      attracting.multiplierMagnitude,
+      attracting.multiplierAngle,
+      'multiplier',
+    );
+    const along = modulateForMultiplierAngle(base, 12, 0, 0);
+    const against = modulateForMultiplierAngle(base, 12, 0, Math.PI);
+
+    expect(along[3]).toBe(255);
+    expect(along[1]).not.toBe(base[1]);
+    expect(along[0] - base[0]).toBe(along[1] - base[1]);
+    expect(along[1] - base[1]).toBe(along[2] - base[2]);
+    expect(along[0]).not.toBe(against[0]);
   });
 });

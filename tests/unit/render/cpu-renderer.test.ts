@@ -97,6 +97,33 @@ describe('CpuRenderer', () => {
     expect(coarse?.rgba[1]).toBe(coarse?.rgba[2]);
   });
 
+  it('encodes multiplier angle as oriented lightness stripes', () => {
+    const renderer = new CpuRenderer();
+    const pixelCount = 8;
+    const status = new Uint8Array(pixelCount);
+    const period = new Uint32Array(pixelCount);
+    status.fill(2);
+    period.fill(1);
+    const frame: SemanticFrame = {
+      stage: 'stable',
+      size: { width: 8, height: 1 },
+      sampleStride: 1,
+      status,
+      period,
+      smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.2),
+      multiplierAngle: new Float64Array(pixelCount),
+      progress: 1,
+    };
+    const raster = renderer.colorize(frame, 'multiplier');
+    const luma = (index: number): number => {
+      const red = raster.rgba[index * 4] ?? 0;
+      const green = raster.rgba[index * 4 + 1] ?? 0;
+      const blue = raster.rgba[index * 4 + 2] ?? 0;
+      return red + green + blue;
+    };
+    expect(new Set([0, 1, 2, 3, 4, 5, 6, 7].map((index) => luma(index))).size).toBeGreaterThan(1);
+  });
+
   it('records classify time and yield-wait counts without changing yield cadence', async () => {
     const renderer = new CpuRenderer();
     const frames: SemanticFrame[] = [];

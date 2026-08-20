@@ -3,6 +3,7 @@ import {
   colorForAttracting,
   colorForEscaped,
   colorForUnresolved,
+  modulateForMultiplierAngle,
   validateRasterSize,
   type Complex,
   type OrbitResult,
@@ -65,13 +66,18 @@ const colorForSemanticPixel = (frame: SemanticFrame, offset: number, view: Seman
   switch (frame.status[offset]) {
     case 1:
       return colorForEscaped(frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0, view);
-    case 2:
-      return colorForAttracting(
+    case 2: {
+      const color = colorForAttracting(
         frame.period[offset] ?? 0,
         frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0,
         frame.multiplierAngle[offset] ?? 0,
         view,
       );
+      if (view !== 'multiplier') return color;
+      const x = offset % frame.size.width;
+      const y = Math.floor(offset / frame.size.width);
+      return modulateForMultiplierAngle(color, x, y, frame.multiplierAngle[offset] ?? 0);
+    }
     default: {
       const x = offset % frame.size.width;
       const y = Math.floor(offset / frame.size.width);
