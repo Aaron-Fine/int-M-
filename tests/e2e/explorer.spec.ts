@@ -243,6 +243,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
   }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Explore' }).click();
+    const catalog = page.getByRole('button', { name: /Catalog/ });
+    await catalog.click();
+    await expect(catalog).toHaveAttribute('aria-pressed', 'false');
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     const box = await canvas.boundingBox();
     expect(box).not.toBeNull();
@@ -301,6 +304,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect.poll(() => marker.getAttribute('style')).not.toBe(pannedMarkerStyle);
     await page.getByLabel('Quality').selectOption('detailed');
     await expect(marker).toBeVisible();
+    await catalog.click();
+    await expect(catalog).toHaveAttribute('aria-pressed', 'true');
     const periodTwo = page.getByRole('button', {
       name: 'Inspect Period-2 bulb, period 2',
     });
@@ -478,6 +483,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
 
     const canvas = page.getByLabel('Interactive Mandelbrot set');
+    await periodTwo.focus();
     for (let step = 0; step < 12; step += 1) {
       if (await canvas.evaluate((element) => element === document.activeElement)) {
         break;

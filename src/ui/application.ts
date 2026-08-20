@@ -594,9 +594,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   function startPointerSession(event: PointerEvent, catalogInspect?: CatalogComponent): void {
     if (event.button !== 0 || !event.isPrimary) return;
-    event.preventDefault();
     renderCanvas.setPointerCapture(event.pointerId);
-    renderCanvas.focus({ preventScroll: true });
     state.dragging = false;
     const origin = canvasPoint(event);
     pointerSession = {
