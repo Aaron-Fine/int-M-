@@ -3,19 +3,16 @@ import {
   colorForAttracting,
   colorForEscaped,
   colorForUnresolved,
-  createViewportTransform,
-  OrbitClassifier,
-  OrbitScratch,
   validateRasterSize,
   type Complex,
-  type OrbitOptions,
   type OrbitResult,
   type RenderQuality,
   type Rgba,
   type SemanticView,
 } from '../domain';
+import { classifyRows } from './classify-rows';
+import { RenderCancelledError } from './render-cancelled-error';
 import {
-  DEFAULT_RENDER_QUALITY,
   resolveRenderQuality,
   type DynamicsRenderRequest,
   type RasterFrame,
@@ -23,15 +20,10 @@ import {
   type RenderStage,
   type SemanticFrame,
   type SemanticFrameConsumer,
-  type SemanticStatusCode,
+  type TilePool,
 } from './renderer';
 
-export class RenderCancelledError extends Error {
-  public constructor() {
-    super('render cancelled');
-    this.name = 'RenderCancelledError';
-  }
-}
+export { RenderCancelledError };
 
 const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) {
@@ -39,45 +31,27 @@ const throwIfAborted = (signal: AbortSignal): void => {
   }
 };
 
-const yieldToWorkerEventLoop = async (): Promise<void> => {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
-};
-
-const writeSemanticBlock = (
-  frame: SemanticFrame,
-  x: number,
-  y: number,
+const classifyFull = async (
+  request: DynamicsRenderRequest,
+  quality: RenderQuality,
   stride: number,
-  result: OrbitResult,
-): void => {
-  let status: SemanticStatusCode = 0;
-  let period = 0;
-  let primary = 0;
-  let secondary = 0;
-
-  if (result.status === 'escaped') {
-    status = 1;
-    primary = result.smoothIteration;
-  } else if (result.status === 'attracting-cycle') {
-    status = 2;
-    period = result.period;
-    primary = result.multiplierMagnitude;
-    secondary = result.multiplierAngle;
-  }
-
-  const limitY = Math.min(frame.size.height, y + stride);
-  const limitX = Math.min(frame.size.width, x + stride);
-  for (let writeY = y; writeY < limitY; writeY += 1) {
-    for (let writeX = x; writeX < limitX; writeX += 1) {
-      const offset = writeY * frame.size.width + writeX;
-      frame.status[offset] = status;
-      frame.period[offset] = period;
-      frame.smoothIterationOrMultiplierMagnitude[offset] = primary;
-      frame.multiplierAngle[offset] = secondary;
-    }
-  }
+  stage: RenderStage,
+  signal: AbortSignal,
+): Promise<SemanticFrame> => {
+  const band = await classifyRows(request, quality, stride, 0, request.size.height, signal);
+  throwIfAborted(signal);
+  return {
+    stage,
+    size: request.size,
+    sampleStride: stride,
+    status: band.status as Uint8Array<ArrayBuffer>,
+    period: band.period as Uint32Array<ArrayBuffer>,
+    smoothIterationOrMultiplierMagnitude:
+      band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
+    multiplierAngle: band.multiplierAngle as Float64Array<ArrayBuffer>,
+    progress: stage === 'coarse' ? 0.2 : 1,
+    timing: band.timing,
+  };
 };
 
 const textureUnresolved = (color: Rgba, x: number, y: number, stride: number): Rgba => {
@@ -106,55 +80,9 @@ const colorForSemanticPixel = (frame: SemanticFrame, offset: number, view: Seman
   }
 };
 
-const stageSemantics = async (
-  request: DynamicsRenderRequest,
-  quality: RenderQuality,
-  stride: number,
-  stage: RenderStage,
-  signal: AbortSignal,
-): Promise<SemanticFrame> => {
-  const { width, height } = request.size;
-  const pixelCount = width * height;
-  const frame: SemanticFrame = {
-    stage,
-    size: request.size,
-    sampleStride: stride,
-    status: new Uint8Array(pixelCount),
-    period: new Uint32Array(pixelCount),
-    smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
-    multiplierAngle: new Float64Array(pixelCount),
-    progress: stage === 'coarse' ? 0.2 : 1,
-  };
-  const orbitOptions: Partial<OrbitOptions> = {
-    maxIterations: quality.maxIterations,
-    maxPeriod: quality.maxPeriod,
-  };
-  const orbitScratch = new OrbitScratch(quality.maxPeriod);
-  const classifier = new OrbitClassifier(orbitOptions, orbitScratch);
-  const viewportTransform = createViewportTransform(request.viewport, request.size);
-  const yieldRowMask = quality.maxIterations > DEFAULT_RENDER_QUALITY.maxIterations ? 1 : 7;
-
-  for (let y = 0; y < height; y += stride) {
-    throwIfAborted(signal);
-    for (let x = 0; x < width; x += stride) {
-      const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-      const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
-      const point = viewportTransform.pixelToComplex(sampleX, sampleY);
-      writeSemanticBlock(frame, x, y, stride, classifier.classify(point));
-    }
-
-    // Browser messages, including cancel, cannot be processed during a long
-    // synchronous loop. Yield often enough to preserve the cancellation SLO.
-    if ((Math.floor(y / stride) & yieldRowMask) === yieldRowMask) {
-      await yieldToWorkerEventLoop();
-    }
-  }
-
-  throwIfAborted(signal);
-  return frame;
-};
-
 export class CpuRenderer implements Renderer {
+  public constructor(private readonly tilePool?: TilePool) {}
+
   public async render(
     request: DynamicsRenderRequest,
     signal: AbortSignal,
@@ -169,11 +97,17 @@ export class CpuRenderer implements Renderer {
       coarseStride,
     };
 
-    const coarse = await stageSemantics(request, coarseQuality, coarseStride, 'coarse', signal);
+    const coarse = await classifyFull(request, coarseQuality, coarseStride, 'coarse', signal);
+    throwIfAborted(signal);
     await onFrame(coarse);
     throwIfAborted(signal);
 
-    const stable = await stageSemantics(request, quality, 1, 'stable', signal);
+    const pool = this.tilePool;
+    const stable =
+      pool !== undefined && pool.size > 1
+        ? await pool.classifyStable(request, quality, signal)
+        : await classifyFull(request, quality, 1, 'stable', signal);
+    throwIfAborted(signal);
     await onFrame(stable);
   }
 

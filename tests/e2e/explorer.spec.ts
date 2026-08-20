@@ -18,6 +18,56 @@ const expectNoAccessibilityViolations = async (page: Page): Promise<void> => {
   ).toEqual([]);
 };
 
+const APP_WORKER_NAME = /^(?:mandelbrot-renderer|mandelbrot-tile)$/;
+const APP_WORKER_URL = /(?:render|tile)\.worker/;
+
+interface AppWorkerCounts {
+  readonly render: number;
+  readonly tile: number;
+  readonly total: number;
+  readonly source: 'cdp' | 'page.workers';
+  readonly urls: readonly string[];
+}
+
+const isAppWorkerUrl = (url: string, title = ''): boolean =>
+  APP_WORKER_NAME.test(title) || APP_WORKER_URL.test(url);
+
+const countFromPageWorkers = (page: Page): AppWorkerCounts => {
+  const urls = page
+    .workers()
+    .map((worker) => worker.url())
+    .filter((url) => isAppWorkerUrl(url));
+  const render = urls.filter((url) => url.includes('render.worker')).length;
+  const tile = urls.filter((url) => url.includes('tile.worker')).length;
+  return { render, tile, total: urls.length, source: 'page.workers', urls };
+};
+
+const countFromCdpTargets = async (page: Page): Promise<AppWorkerCounts> => {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    await cdp.send('Target.setDiscoverTargets', { discover: true });
+    const { targetInfos } = await cdp.send('Target.getTargets');
+    const workers = targetInfos.filter(
+      (target) => target.type === 'worker' && isAppWorkerUrl(target.url, target.title),
+    );
+    const render = workers.filter(
+      (target) => target.title === 'mandelbrot-renderer' || target.url.includes('render.worker'),
+    ).length;
+    const tile = workers.filter(
+      (target) => target.title === 'mandelbrot-tile' || target.url.includes('tile.worker'),
+    ).length;
+    return {
+      render,
+      tile,
+      total: workers.length,
+      source: 'cdp',
+      urls: workers.map((target) => `${target.title}:${target.url}`),
+    };
+  } finally {
+    await cdp.detach();
+  }
+};
+
 const failRenderer = async (page: Page, count = 1): Promise<void> => {
   await page.evaluate((failureCount) => {
     const testGlobal = globalThis as typeof globalThis & {
@@ -574,5 +624,62 @@ test.describe('Mandelbrot Interiority explorer', () => {
     );
     await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
     await expectNoHorizontalOverflow(page, 'manual renderer-retry state');
+  });
+
+  test('starts nested tile workers after the first stable frame', async ({ page, browserName }) => {
+    await page.goto('/');
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      { timeout: 20_000 },
+    );
+
+    const fromPage = countFromPageWorkers(page);
+    const counts = browserName === 'chromium' ? await countFromCdpTargets(page) : fromPage;
+
+    expect(
+      counts.tile,
+      `${browserName} did not start nested tile.worker after Stable (${JSON.stringify({ counts, fromPage })}). Nested module workers are required; do not treat serial classify as tiled.`,
+    ).toBeGreaterThanOrEqual(1);
+    expect(counts.render, `${browserName} render-worker count: ${JSON.stringify(counts)}`).toBe(1);
+    expect(
+      counts.tile,
+      `${browserName} tile-worker count: ${JSON.stringify(counts)}`,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      counts.tile,
+      `${browserName} tile-worker count: ${JSON.stringify(counts)}`,
+    ).toBeLessThanOrEqual(4);
+    expect(counts.total).toBe(1 + counts.tile);
+  });
+
+  test('recovery_doesNotLeakNestedWorkers', async ({ page, browserName }) => {
+    test.skip(
+      browserName !== 'chromium',
+      'CDP Target.getTargets is Chromium-only. Firefox nested-worker leak count is BLOCKED in this harness.',
+    );
+
+    await page.goto('/');
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      { timeout: 20_000 },
+    );
+
+    const before = await countFromCdpTargets(page);
+    expect(before.render, `before recovery: ${JSON.stringify(before)}`).toBe(1);
+    expect(before.tile, `before recovery: ${JSON.stringify(before)}`).toBeGreaterThanOrEqual(1);
+    expect(before.tile, `before recovery: ${JSON.stringify(before)}`).toBeLessThanOrEqual(4);
+    expect(before.total).toBe(1 + before.tile);
+
+    await failRenderer(page);
+    await expect(page.getByRole('status', { name: 'Render status' })).toContainText(
+      'Stable frame',
+      { timeout: 20_000 },
+    );
+
+    const after = await countFromCdpTargets(page);
+    expect(after.render, `after recovery: ${JSON.stringify({ before, after })}`).toBe(1);
+    expect(after.tile, `after recovery: ${JSON.stringify({ before, after })}`).toBe(before.tile);
+    expect(after.total, `leaked workers: ${JSON.stringify({ before, after })}`).toBe(before.total);
+    expect(after.total).not.toBe(2 * before.total);
   });
 });

@@ -7,6 +7,10 @@ coverage/
 playwright-report/
 test-results/
 
+# Isolated worktrees and agent scratch
+.worktrees/
+.superpowers/
+
 # Tool caches
 .eslintcache
 .evidence-build/

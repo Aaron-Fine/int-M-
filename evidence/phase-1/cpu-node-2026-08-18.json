@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-08-19T03:37:44.546Z",
+  "renderer": "cpu-binary64",
+  "executionMode": "Node process invoking the production CpuRenderer directly",
+  "command": "INTM_EVIDENCE_SAMPLES=5 npm run evidence:cpu",
+  "commit": "3b549ebcfad610b163750de0627d0bbea6509134",
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "linux",
+    "platformRelease": "7.1.5-201.fc44.x86_64",
+    "logicalCpuCount": 8,
+    "cpuModel": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "totalMemoryBytes": 16465735680,
+    "note": "Node harness measures numerical rendering, not browser main-thread long tasks. Re-run after switching from Node 22.22.2 to nvm Node 24.19.0."
+  },
+  "sampleCount": 5,
+  "priorNode22Median": {
+    "full-set-512": { "coarseMs": 9.48, "stableMs": 197.33, "totalMs": 206.54 },
+    "period-three-neighborhood-768": { "coarseMs": 25.71, "stableMs": 2349.67, "totalMs": 2381.01 }
+  },
+  "measurements": [
+    {
+      "id": "full-set-512",
+      "viewport": {
+        "center": { "re": -0.5, "im": 0 },
+        "spanY": 2.5
+      },
+      "size": { "width": 512, "height": 384 },
+      "quality": { "maxIterations": 512, "maxPeriod": 32, "coarseStride": 8 },
+      "samples": [
+        { "coarseMs": 19.68, "stableMs": 224.21, "totalMs": 243.89, "semanticBytes": 4128768 },
+        { "coarseMs": 11.78, "stableMs": 212.97, "totalMs": 224.74, "semanticBytes": 4128768 },
+        { "coarseMs": 10.78, "stableMs": 207.73, "totalMs": 218.51, "semanticBytes": 4128768 },
+        { "coarseMs": 8.76, "stableMs": 209.89, "totalMs": 218.65, "semanticBytes": 4128768 },
+        { "coarseMs": 10.98, "stableMs": 205.45, "totalMs": 216.43, "semanticBytes": 4128768 }
+      ],
+      "median": {
+        "coarseMs": 10.98,
+        "stableMs": 209.89,
+        "totalMs": 218.65,
+        "cancellationAfterCoarseMs": 0.32,
+        "semanticBytes": 4128768
+      }
+    },
+    {
+      "id": "period-three-neighborhood-768",
+      "viewport": {
+        "center": { "re": -0.12, "im": 0.74 },
+        "spanY": 0.35
+      },
+      "size": { "width": 768, "height": 512 },
+      "quality": { "maxIterations": 512, "maxPeriod": 32, "coarseStride": 8 },
+      "samples": [
+        { "coarseMs": 32.36, "stableMs": 2766.86, "totalMs": 2799.22, "semanticBytes": 8257536 },
+        { "coarseMs": 26.28, "stableMs": 2651.78, "totalMs": 2678.06, "semanticBytes": 8257536 },
+        { "coarseMs": 30.42, "stableMs": 2961.84, "totalMs": 2992.26, "semanticBytes": 8257536 },
+        { "coarseMs": 28, "stableMs": 2909.45, "totalMs": 2937.45, "semanticBytes": 8257536 },
+        { "coarseMs": 29.55, "stableMs": 3027.27, "totalMs": 3056.82, "semanticBytes": 8257536 }
+      ],
+      "median": {
+        "coarseMs": 29.55,
+        "stableMs": 2909.45,
+        "totalMs": 2937.45,
+        "cancellationAfterCoarseMs": 0.11,
+        "semanticBytes": 8257536
+      }
+    }
+  ]
+}

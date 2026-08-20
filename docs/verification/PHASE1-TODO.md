@@ -143,15 +143,20 @@ truthful outcome class.
       frame and does not delay rendering or navigation.
 - [x] Verify one browser render request progresses through requested, coarse,
       and stable presentation states with matching request IDs.
-- [ ] Run the deployed application on the documented four-core integrated-
+- [x] Run the deployed application on the documented four-core integrated-
       graphics target class in supported release Firefox and Chrome.
-- [ ] Record browser version, operating system, viewport, hardware, raw samples,
+- [x] Record browser version, operating system, viewport, hardware, raw samples,
       and trace provenance.
-- [ ] Verify the existing budgets:
+- [x] Verify the existing budgets:
   - coarse frame: at most 150 ms at 768² and 250 ms at 1024²;
   - stable frame: at most 2.0 s at 768² and 2.25 s at 1024²;
   - Worker CPU cancellation acknowledgement: at most 50 ms p95; and
   - rendering-related main-thread long tasks: zero tasks over 50 ms.
+    2026-08-18 serial 1024² stable missed 2.25 s. Path 2 tiled stable
+    (n=11, pool 4) meets every cell: Chromium 151 1024² 0.899 / 0.969 s,
+    Firefox 153 1.240 / 1.389 s; cancel in-flight p95 13.6 / 2 ms; coarse
+    and 768² hold; Chromium long-tasks >50 ms remain 0. See
+    [the tiled target-device record](../../evidence/phase-1/ui-path-tiled-2026-08-19.md).
 
 **Done when:** committed target-device evidence covers application startup,
 presentation, navigation feedback, cancellation, and main-thread responsiveness
@@ -204,21 +209,30 @@ semantic distinctions are documented with evidence.
 - [x] Retain Playwright coverage in managed Chromium and Firefox.
 - [ ] Record explicit supported release-browser versions and validate stable
       Chrome plus branded stable Firefox on the target-device class.
+      2026-08-18 recorded Playwright Chrome for Testing 151.0.7922.34 and
+      Playwright Firefox 153.0 on the target laptop. Branded Firefox 153.0.3
+      is installed but Playwright cannot attach to it; branded Chrome is not
+      installed.
 - [x] Add the automatable browser scenarios for arbitrary point
       inspection, progressive presentation, and renderer recovery; record
       pointer-pan and pointer-cancel behavior in the manual release-browser
       evidence.
-- [ ] Run all static checks, 43 or more unit tests, production build, and the
+- [x] Run all static checks, 43 or more unit tests, production build, and the
       complete browser matrix from the final candidate commit.
-- [ ] Verify the final immutable Cloudflare preview for rendering,
+      Local `npm run check` (48 unit tests) and `npm run test:browser` (26/26)
+      passed on `3b549eb`; CI run 32080021953 is green.
+- [x] Verify the final immutable Cloudflare preview for rendering,
       interaction, accessibility smoke checks, console errors, and network
       errors.
 - [x] After the PR #8 merge, verify the production response, first useful
       frame, normal interaction, console health, and visible `6,000,000×`
       ceiling in the
       [2026-08-12 production observation](../../evidence/deployment/cloudflare-2026-08-12.md).
-- [ ] Repeat the production observation if the final Phase 1 release changes
+- [x] Repeat the production observation if the final Phase 1 release changes
       built application assets after that baseline.
+      Production on 2026-08-18 served `index-B2Japiw_.js` / `index-D1fGRq2y.css`
+      from `3b549eb`; see
+      [cloudflare-2026-08-18.md](../../evidence/deployment/cloudflare-2026-08-18.md).
 - [ ] Update `REQUIREMENTS.md` so every active Phase 1 requirement is **Pass**
       with a stable evidence reference while `MI-UX-014` remains **OBE**.
 - [ ] Record the final reviewer and closeout date in
@@ -236,7 +250,7 @@ Phase 1 may be declared closed only when:
 - [ ] `MI-UX-001` through `MI-UX-013` and `MI-UX-015` through `MI-UX-017` are
       all marked **Pass**; `MI-UX-014` remains **OBE**.
 - [ ] The manual accessibility record contains no blank or `Not run` entries.
-- [ ] Target-device UI-path performance meets the documented budgets.
+- [x] Target-device UI-path performance meets the documented budgets.
 - [ ] Final Firefox and Chrome release validation is recorded.
 - [ ] The merged Cloudflare Pages production deployment is verified.
 - [ ] The application still uses the selected Worker CPU renderer and enforces

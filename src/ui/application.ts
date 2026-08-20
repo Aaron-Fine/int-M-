@@ -35,6 +35,7 @@ import {
   ZOOM_FACTOR,
 } from './view-state';
 import { RendererWorkerClient } from './renderer-worker-client';
+import { recordWorkerTimingMarks } from './worker-timing-marks';
 
 interface ApplicationState {
   viewport: Viewport;
@@ -499,6 +500,7 @@ export function mountApplication(host: HTMLElement): () => void {
   function presentFrame(frame: FrameMessage): void {
     if (frame.requestId !== state.activeRequestId) return;
 
+    recordWorkerTimingMarks(frame);
     const pixels = new ImageData(frame.rgba, frame.width, frame.height);
     renderCanvas.width = frame.width;
     renderCanvas.height = frame.height;

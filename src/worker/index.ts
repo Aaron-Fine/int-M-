@@ -9,6 +9,7 @@ export type {
   RenderMessage,
   RequestId,
   WorkerErrorMessage,
+  WorkerFrameTiming,
   WorkerToMainMessage,
 } from './protocol';
 export { RenderWorkerRuntime } from './runtime';

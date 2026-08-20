@@ -8,7 +8,7 @@ requirements, while this one defines the working boundaries and repeatable comma
 ## Supported environment
 
 - Node.js 24.18.0 LTS (`.nvmrc`)
-- npm 11.16.0 (recorded in `packageManager`)
+- npm 11.19.0 (recorded in `packageManager`)
 - Python 3.14.6 for the offline catalog generator and CI validation
 - Current stable desktop Firefox and Chrome/Chromium
 - A mainstream four-core laptop with integrated graphics as the performance baseline
@@ -33,21 +33,22 @@ npm run dev
 
 Vite serves the application at `http://127.0.0.1:5173`. The other common commands are:
 
-| Command                  | Purpose                                               |
-| ------------------------ | ----------------------------------------------------- |
-| `npm run format`         | Format supported source and documentation             |
-| `npm run format:check`   | Check formatting without changing files               |
-| `npm run lint`           | Run ESLint with typed, strict TypeScript rules        |
-| `npm run typecheck`      | Check UI, worker, Node, and browser-test projects     |
-| `npm run catalog:check`  | Independently regenerate and validate catalog data    |
-| `npm run fixtures:check` | Regenerate high-precision orbit fixtures              |
-| `npm run evidence:cpu`   | Measure the CPU renderer and print environment data   |
-| `npm run test:unit`      | Run deterministic unit and worker tests               |
-| `npm run test:browser`   | Run end-to-end tests in Chromium and Firefox          |
-| `npm run build`          | Type-check and create production assets in `dist/`    |
-| `npm run build:assets`   | Create assets after an already-successful type-check  |
-| `npm run preview`        | Serve the production build at `http://127.0.0.1:4173` |
-| `npm run check`          | Run the fast local pre-PR checks                      |
+| Command                          | Purpose                                               |
+| -------------------------------- | ----------------------------------------------------- |
+| `npm run format`                 | Format supported source and documentation             |
+| `npm run format:check`           | Check formatting without changing files               |
+| `npm run lint`                   | Run ESLint with typed, strict TypeScript rules        |
+| `npm run typecheck`              | Check UI, worker, Node, and browser-test projects     |
+| `npm run catalog:check`          | Independently regenerate and validate catalog data    |
+| `npm run fixtures:check`         | Regenerate high-precision orbit fixtures              |
+| `npm run evidence:cpu`           | Measure the CPU renderer and print environment data   |
+| `node tools/measure_ui_path.mjs` | Collect target-device UI-path presentation marks      |
+| `npm run test:unit`              | Run deterministic unit and worker tests               |
+| `npm run test:browser`           | Run end-to-end tests in Chromium and Firefox          |
+| `npm run build`                  | Type-check and create production assets in `dist/`    |
+| `npm run build:assets`           | Create assets after an already-successful type-check  |
+| `npm run preview`                | Serve the production build at `http://127.0.0.1:4173` |
+| `npm run check`                  | Run the fast local pre-PR checks                      |
 
 Install Playwright's managed browsers once on a development machine:
 
@@ -93,12 +94,33 @@ Separate TypeScript configurations enforce different ambient environments for ap
 code. `tsconfig.app.json` supplies DOM types; `tsconfig.worker.json` supplies Web Worker types. Shared
 math and protocol modules should stay free of both environments where practical.
 
-Phase 1 uses the binary64 CPU implementation inside a replaceable module Worker. The UI worker
-client retains the current render and point-inspection intent, automatically recreates the Worker
-once after a consecutive worker, message-decoding, or reported render failure, and then exposes a
-nonblocking manual retry instead of entering a restart loop. A future GPU or WebAssembly
-implementation must satisfy the same protocol, preserve the CPU path as its automatic fallback,
-and must not leak renderer-specific state into the UI.
+Phase 1 uses the binary64 CPU implementation inside a replaceable module Worker. The UI still owns
+exactly one module Worker via `RendererWorkerClient`. `RenderWorkerRuntime` collaborates with the
+renderer-neutral `Renderer` contract only (`render`, `inspect`, `colorize`); cache, inspect, view
+coalescing, cancel, and `error` recovery stay on that UI-facing boundary. `CpuRenderer.render()`
+still does a serial coarse classify, then a stride-1 stable classify. When production
+`render.worker.ts` injects a nested `TilePool` with `workerCount > 1`, only the stable classify is
+fanned across exclusive row bands in nested `tile.worker` module workers. The `TilePool` interface
+lives next to `Renderer` in `src/render/renderer.ts`; nested `Worker` construction stays in
+`src/worker/`. Coarse, inspect, and
+colorize stay in-process on the supervisor. Tile messages are worker-internal; they never appear on
+`MainToWorkerMessage` / `WorkerToMainMessage`. There is no SharedArrayBuffer, no `Atomics`, and no
+`Cross-Origin-Embedder-Policy: require-corp` — children transfer band-sized typed arrays back, the
+supervisor merges them, and the existing `onFrame(stable)` path colorizes one UI `frame`.
+
+Nested tile workers are constructed only in `render.worker.ts`, lazily on the first tiled stable
+classify, and clamped to `min(4, max(1, hardwareConcurrency || 1))`. `workerCount === 1` never
+calls the factory. Dedicated workers have no `close` event: `RendererWorkerClient.terminate()` of
+the UI-facing supervisor empties the HTML owner-set so nested children die with it. `TilePool.dispose()`
+still `terminate()`s children when in-process shutdown can run. Chromium CDP `Target.getTargets`
+after first stable and after one `failRenderer` recovery is `1+N` workers (`N` in 1..4), not
+`2*(1+N)`.
+
+The UI worker client retains the current render and point-inspection intent, automatically recreates
+the Worker once after a consecutive worker, message-decoding, or reported render failure, and then
+exposes a nonblocking manual retry instead of entering a restart loop. A future GPU or WebAssembly
+implementation must satisfy the same protocol, preserve the CPU path as its automatic fallback, and
+must not leak renderer-specific state into the UI.
 
 Selected coordinates use viewport-aware display precision. The number of displayed decimal places
 is derived from the vertical units per raster pixel, retains one guard digit so adjacent selectable
