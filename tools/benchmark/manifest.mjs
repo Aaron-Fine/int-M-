@@ -18,11 +18,12 @@ const MANIFEST_NAME = 'manifest.sha256';
 
 const args = process.argv.slice(2);
 const check = args.includes('--check');
-const directory = path.resolve(args.find((arg) => arg !== '--check') ?? '');
-if (args.length === 0) {
+const directoryArg = args.find((arg) => arg !== '--check');
+if (directoryArg === undefined) {
   process.stderr.write('usage: node tools/benchmark/manifest.mjs [--check] <directory>\n');
   process.exit(2);
 }
+const directory = path.resolve(directoryArg);
 
 /** Relative POSIX-style paths of every file below the directory, sorted. */
 const collectFiles = (dir, prefix = '') => {

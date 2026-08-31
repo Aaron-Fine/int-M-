@@ -89,6 +89,27 @@ describe('capture-environment', () => {
       rmSync(workDir, { recursive: true, force: true });
     }
   });
+
+  it('environment_failsGracefullyWhenGitIsUnavailable', () => {
+    const workDir = mkdtempSync(join(tmpdir(), 'mi-no-git-'));
+    try {
+      // Empty PATH inside the child process makes its `git` lookup fail while
+      // the child itself is spawned by absolute path.
+      const result = spawnSync(
+        process.execPath,
+        [join(repoRoot, 'tools/benchmark/capture-environment.mjs')],
+        { cwd: repoRoot, encoding: 'utf8', env: { ...process.env, PATH: '' } },
+      );
+      expect(result.status).toEqual(0);
+      const environment = parseEnvironment(result.stdout);
+      expect(environment.revisions.build).toBeNull();
+      expect(environment.notes.join(' ')).toContain('git revision unavailable');
+      // Machine facts are still captured.
+      expect(environment.cpu.cores).toBeGreaterThanOrEqual(1);
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('manifest', () => {
@@ -152,6 +173,12 @@ describe('manifest', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('manifest_requiresADirectoryArgument', () => {
+    // Without a directory the tool must refuse rather than manifest the cwd.
+    expect(runManifest([], repoRoot).status).toEqual(2);
+    expect(runManifest(['--check'], repoRoot).status).toEqual(2);
   });
 });
 
