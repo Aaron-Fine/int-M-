@@ -35,11 +35,7 @@ import {
   ZOOM_FACTOR,
 } from './view-state';
 import { RendererWorkerClient } from './renderer-worker-client';
-import {
-  createRenderTraceRing,
-  expectedWorkerCount,
-  viewKeyHash,
-} from './worker-timing-marks';
+import { createRenderTraceRing, expectedWorkerCount, viewKeyHash } from './worker-timing-marks';
 
 interface ApplicationState {
   viewport: Viewport;
@@ -1001,10 +997,7 @@ export function mountApplication(host: HTMLElement): () => void {
         performance.mark('mi:cancellation-acknowledged', {
           detail: { requestId: message.requestId },
         });
-        if (
-          message.requestId === state.cancelRequestedRequestId &&
-          state.cancelRequestedAtMs > 0
-        ) {
+        if (message.requestId === state.cancelRequestedRequestId && state.cancelRequestedAtMs > 0) {
           renderTraces.recordCancellation(
             message.requestId,
             performance.now() - state.cancelRequestedAtMs,

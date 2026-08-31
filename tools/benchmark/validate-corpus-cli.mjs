@@ -12,10 +12,7 @@ import { dirname, resolve } from 'node:path';
 
 import { validateCorpus } from './validate-corpus.ts';
 
-const defaultCorpusPath = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  'corpus.v1.json',
-);
+const defaultCorpusPath = resolve(dirname(fileURLToPath(import.meta.url)), 'corpus.v1.json');
 const corpusPath = resolve(process.argv[2] ?? defaultCorpusPath);
 
 let corpus;
@@ -31,5 +28,5 @@ if (diagnostics.length > 0) {
   for (const diagnostic of diagnostics) console.error(`${corpusPath}: ${diagnostic}`);
   process.exitCode = 1;
 } else {
-  console.error(`${corpusPath}: valid`);
+  process.stdout.write(`${corpusPath}: valid\n`);
 }

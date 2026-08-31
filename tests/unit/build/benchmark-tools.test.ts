@@ -6,12 +6,34 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const repoRoot = join(import.meta.dirname, '../../..');
+
+interface CapturedEnvironment {
+  schemaVersion: number;
+  capturedAt: string;
+  cpu: { model: string; cores: number };
+  memoryTotalBytes: number;
+  os: { platform: string; kernel: string };
+  browser: Record<string, unknown>;
+  render: Record<string, unknown>;
+  revisions: {
+    build: string | null;
+    algorithm: string | null;
+    catalog: string | null;
+    verifier: string | null;
+  };
+  harness: { command: string; version: string | null; node: string };
+  notes: string[];
+}
+
+const parseEnvironment = (stdout: string): CapturedEnvironment =>
+  JSON.parse(stdout) as CapturedEnvironment;
+
 const runCapture = () =>
   spawnSync('node', [join(repoRoot, 'tools/benchmark/capture-environment.mjs')], {
     cwd: repoRoot,
     encoding: 'utf8',
   });
-const runManifest = (args, cwd) =>
+const runManifest = (args: string[], cwd: string) =>
   spawnSync('node', [join(repoRoot, 'tools/benchmark/manifest.mjs'), ...args], {
     cwd,
     encoding: 'utf8',
@@ -21,7 +43,7 @@ describe('capture-environment', () => {
   it('environment_fillsNodeFactsAndLeavesBrowserFieldsNull', () => {
     const result = runCapture();
     expect(result.status).toEqual(0);
-    const environment = JSON.parse(result.stdout);
+    const environment = parseEnvironment(result.stdout);
 
     expect(environment.schemaVersion).toEqual(1);
     expect(Number.isNaN(Date.parse(environment.capturedAt))).toBe(false);
@@ -45,9 +67,9 @@ describe('capture-environment', () => {
 
     expect(environment.revisions.catalog).toMatch(/^[0-9a-f]{64}$/);
     expect(environment.revisions.verifier).toMatch(/^[0-9a-f]{64}$/);
-    expect(environment.revisions.build === null || typeof environment.revisions.build === 'string').toBe(
-      true,
-    );
+    expect(
+      environment.revisions.build === null || typeof environment.revisions.build === 'string',
+    ).toBe(true);
     expect(environment.harness.version).toEqual(expect.any(String));
     expect(environment.notes.join(' ')).toContain('placeholders');
   });
@@ -62,8 +84,7 @@ describe('capture-environment', () => {
         { cwd: repoRoot, encoding: 'utf8' },
       );
       expect(result.status).toEqual(0);
-      const environment = JSON.parse(readFileSync(outPath, 'utf8'));
-      expect(environment.schemaVersion).toEqual(1);
+      expect(parseEnvironment(readFileSync(outPath, 'utf8')).schemaVersion).toEqual(1);
     } finally {
       rmSync(workDir, { recursive: true, force: true });
     }
@@ -83,7 +104,7 @@ describe('manifest', () => {
   it('manifest_emitsSortedSha256LinesAndVerifiesClean', () => {
     const dir = makeEvidenceDir();
     try {
-      const emit = runManifest([dir]);
+      const emit = runManifest([dir], dir);
       expect(emit.status).toEqual(0);
       const manifest = readFileSync(join(dir, 'manifest.sha256'), 'utf8');
       const lines = manifest.trim().split('\n');
@@ -91,9 +112,9 @@ describe('manifest', () => {
       const paths = lines.map((line) => line.slice(line.indexOf('  ') + 2));
       expect(paths).toEqual([...paths].sort());
       expect(paths).toEqual(['nested/environment.json', 'raw-observations.json', 'summary.md']);
-      for (const line of lines) expect(line).toMatch(/^[0-9a-f]{64}  /);
+      for (const line of lines) expect(line).toMatch(/^[0-9a-f]{64} {2}/);
 
-      const verify = runManifest(['--check', dir]);
+      const verify = runManifest(['--check', dir], dir);
       expect(verify.status).toEqual(0);
       expect(verify.stdout).toContain('3 files verified');
     } finally {
@@ -104,21 +125,21 @@ describe('manifest', () => {
   it('manifest_check_detectsTampering', () => {
     const dir = makeEvidenceDir();
     try {
-      expect(runManifest([dir]).status).toEqual(0);
+      expect(runManifest([dir], dir).status).toEqual(0);
 
       // Tamper with an existing file.
       writeFileSync(join(dir, 'summary.md'), '# tampered\n');
-      expect(runManifest(['--check', dir]).status).not.toEqual(0);
+      expect(runManifest(['--check', dir], dir).status).not.toEqual(0);
 
       // Restore, then add an unmanifested extra file.
       writeFileSync(join(dir, 'summary.md'), '# summary\n');
       writeFileSync(join(dir, 'smuggled.txt'), 'extra\n');
-      expect(runManifest(['--check', dir]).status).not.toEqual(0);
+      expect(runManifest(['--check', dir], dir).status).not.toEqual(0);
 
       // Remove a manifested file.
       rmSync(join(dir, 'smuggled.txt'));
       rmSync(join(dir, 'nested', 'environment.json'));
-      expect(runManifest(['--check', dir]).status).not.toEqual(0);
+      expect(runManifest(['--check', dir], dir).status).not.toEqual(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -127,7 +148,7 @@ describe('manifest', () => {
   it('manifest_check_failsWhenNoManifestExists', () => {
     const dir = makeEvidenceDir();
     try {
-      expect(runManifest(['--check', dir]).status).not.toEqual(0);
+      expect(runManifest(['--check', dir], dir).status).not.toEqual(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

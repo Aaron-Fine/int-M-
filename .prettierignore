@@ -3,6 +3,7 @@ catalog/
 dist/
 docs/PLAN.md
 docs/RESEARCH.md
+docs/plans/
 node_modules/
 playwright-report/
 test-results/

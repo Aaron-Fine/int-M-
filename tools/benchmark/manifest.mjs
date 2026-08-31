@@ -40,7 +40,9 @@ const collectFiles = (dir, prefix = '') => {
 };
 
 const digestOf = (file) =>
-  createHash('sha256').update(readFileSync(path.join(directory, file))).digest('hex');
+  createHash('sha256')
+    .update(readFileSync(path.join(directory, file)))
+    .digest('hex');
 
 const relativeFiles = collectFiles(directory);
 

@@ -42,7 +42,11 @@ const DECIMAL_STRING = /^-?(0|[1-9][0-9]*)(\.[0-9]+)?$/;
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const decimalString = (diagnostics: string[], context: string, value: unknown): number | undefined => {
+const decimalString = (
+  diagnostics: string[],
+  context: string,
+  value: unknown,
+): number | undefined => {
   if (typeof value !== 'string') {
     diagnostics.push(`${context} must be an exact decimal string, got ${typeof value}`);
     return undefined;
@@ -79,6 +83,62 @@ const validateRaster = (diagnostics: string[], index: number, value: unknown): v
   }
 };
 
+const validateCaseEnums = (
+  diagnostics: string[],
+  context: string,
+  value: Record<string, unknown>,
+): void => {
+  if (!CORPUS_CLASSES.includes(value['class'] as CorpusClass)) {
+    diagnostics.push(`${context}.class must be one of ${CORPUS_CLASSES.join(', ')}`);
+  }
+  if (!CORPUS_PROFILES.includes(value['profile'] as CorpusProfile)) {
+    diagnostics.push(`${context}.profile must be one of ${CORPUS_PROFILES.join(', ')}`);
+  }
+  if (!CORPUS_DESIGNATIONS.includes(value['designation'] as CorpusDesignation)) {
+    diagnostics.push(`${context}.designation must be one of ${CORPUS_DESIGNATIONS.join(', ')}`);
+  }
+};
+
+const validateCaseGeometry = (
+  diagnostics: string[],
+  context: string,
+  value: Record<string, unknown>,
+): void => {
+  const center = value['center'];
+  if (!isObject(center)) {
+    diagnostics.push(`${context}.center must be an object with decimal-string re/im`);
+    return;
+  }
+  const re = decimalString(diagnostics, `${context}.center.re`, center['re']);
+  const im = decimalString(diagnostics, `${context}.center.im`, center['im']);
+  if (re !== undefined && Math.abs(re) > 4) {
+    diagnostics.push(`${context}.center.re is outside the sanity bounds [-4, 4]: ${re}`);
+  }
+  if (im !== undefined && Math.abs(im) > 4) {
+    diagnostics.push(`${context}.center.im is outside the sanity bounds [-4, 4]: ${im}`);
+  }
+};
+
+const validateCaseStrata = (
+  diagnostics: string[],
+  context: string,
+  value: Record<string, unknown>,
+): void => {
+  const strata = value['strata'];
+  if (!Array.isArray(strata) || strata.length === 0) {
+    diagnostics.push(`${context}.strata must be a non-empty array of stratum tags`);
+    return;
+  }
+  for (const tag of strata) {
+    if (!CORPUS_STRATA.includes(tag as CorpusStratum)) {
+      diagnostics.push(`${context}.strata contains unknown tag ${JSON.stringify(tag)}`);
+    }
+  }
+  if (new Set(strata).size !== strata.length) {
+    diagnostics.push(`${context}.strata contains duplicate tags`);
+  }
+};
+
 const validateCase = (diagnostics: string[], index: number, value: unknown): string | undefined => {
   const context = `cases[${index}]`;
   if (!isObject(value)) {
@@ -90,29 +150,8 @@ const validateCase = (diagnostics: string[], index: number, value: unknown): str
     diagnostics.push(`${context}.id must match /^mi-[a-z0-9-]+$/`);
   }
 
-  if (!CORPUS_CLASSES.includes(value['class'] as CorpusClass)) {
-    diagnostics.push(`${context}.class must be one of ${CORPUS_CLASSES.join(', ')}`);
-  }
-  if (!CORPUS_PROFILES.includes(value['profile'] as CorpusProfile)) {
-    diagnostics.push(`${context}.profile must be one of ${CORPUS_PROFILES.join(', ')}`);
-  }
-  if (!CORPUS_DESIGNATIONS.includes(value['designation'] as CorpusDesignation)) {
-    diagnostics.push(`${context}.designation must be one of ${CORPUS_DESIGNATIONS.join(', ')}`);
-  }
-
-  const center = value['center'];
-  if (!isObject(center)) {
-    diagnostics.push(`${context}.center must be an object with decimal-string re/im`);
-  } else {
-    const re = decimalString(diagnostics, `${context}.center.re`, center['re']);
-    const im = decimalString(diagnostics, `${context}.center.im`, center['im']);
-    if (re !== undefined && Math.abs(re) > 4) {
-      diagnostics.push(`${context}.center.re is outside the sanity bounds [-4, 4]: ${re}`);
-    }
-    if (im !== undefined && Math.abs(im) > 4) {
-      diagnostics.push(`${context}.center.im is outside the sanity bounds [-4, 4]: ${im}`);
-    }
-  }
+  validateCaseEnums(diagnostics, context, value);
+  validateCaseGeometry(diagnostics, context, value);
 
   const spanY = decimalString(diagnostics, `${context}.spanY`, value['spanY']);
   if (spanY !== undefined) {
@@ -125,19 +164,7 @@ const validateCase = (diagnostics: string[], index: number, value: unknown): str
     }
   }
 
-  const strata = value['strata'];
-  if (!Array.isArray(strata) || strata.length === 0) {
-    diagnostics.push(`${context}.strata must be a non-empty array of stratum tags`);
-  } else {
-    for (const tag of strata) {
-      if (!CORPUS_STRATA.includes(tag as CorpusStratum)) {
-        diagnostics.push(`${context}.strata contains unknown tag ${JSON.stringify(tag)}`);
-      }
-    }
-    if (new Set(strata).size !== strata.length) {
-      diagnostics.push(`${context}.strata contains duplicate tags`);
-    }
-  }
+  validateCaseStrata(diagnostics, context, value);
 
   const rationale = value['rationale'];
   if (typeof rationale !== 'string' || rationale.trim().length === 0) {
@@ -157,7 +184,11 @@ export const validateCorpus = (value: unknown): readonly string[] => {
   if (value['schemaVersion'] !== CORPUS_SCHEMA_VERSION) {
     diagnostics.push(`schemaVersion must be ${CORPUS_SCHEMA_VERSION}`);
   }
-  const baseline = decimalString(diagnostics, 'magnificationBaseline', value['magnificationBaseline']);
+  const baseline = decimalString(
+    diagnostics,
+    'magnificationBaseline',
+    value['magnificationBaseline'],
+  );
   if (baseline !== undefined && baseline !== DEFAULT_SPAN_Y) {
     diagnostics.push(`magnificationBaseline must equal ${DEFAULT_SPAN_Y}`);
   }

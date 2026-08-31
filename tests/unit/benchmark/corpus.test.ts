@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { validateCorpus } from '../../../tools/benchmark/validate-corpus';
 
-type MutableCase = { [key: string]: unknown };
+type MutableCase = Record<string, unknown>;
 
 const clone = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 

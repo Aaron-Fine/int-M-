@@ -15,7 +15,14 @@
       "spanY": "2.5",
       "profile": "Balanced",
       "designation": "screening",
-      "strata": ["exterior", "period-1-4", "period-5-8", "period-9-12", "boundary", "simd-divergent"],
+      "strata": [
+        "exterior",
+        "period-1-4",
+        "period-5-8",
+        "period-9-12",
+        "boundary",
+        "simd-divergent"
+      ],
       "rationale": "The application's default startup viewport. Protects first use and common navigation; a balanced mix of cheap exterior, catalog periods 1-4, higher periods, and boundary filaments."
     },
     {

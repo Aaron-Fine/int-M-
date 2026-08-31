@@ -29,7 +29,9 @@ const notes = args.flatMap((arg, index) => (arg === '--note' ? [args[index + 1] 
 
 const sha256File = (relativePath) => {
   try {
-    return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+    return createHash('sha256')
+      .update(readFileSync(path.join(repoRoot, relativePath)))
+      .digest('hex');
   } catch {
     return null;
   }
@@ -47,7 +49,9 @@ const gitRevision = async () => {
 const buildRevision = await gitRevision();
 const generatedNotes = [];
 if (buildRevision === null) {
-  generatedNotes.push('git revision unavailable (git missing or not a repository); build/algorithm revisions are null.');
+  generatedNotes.push(
+    'git revision unavailable (git missing or not a repository); build/algorithm revisions are null.',
+  );
 }
 generatedNotes.push(
   'Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.',

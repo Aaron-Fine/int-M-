@@ -75,7 +75,10 @@ describe('createRenderTraceRing', () => {
         mergeCpuMs: 99,
       }),
     );
-    ring.recordFrame(frame(7, 'stable'), delivery({ source: 'semantic-cache', originComputeId: 41, requestToPresentMs: 4 }));
+    ring.recordFrame(
+      frame(7, 'stable'),
+      delivery({ source: 'semantic-cache', originComputeId: 41, requestToPresentMs: 4 }),
+    );
 
     const [trace] = ring.snapshot();
     expect(trace?.computeId).toEqual(41);
@@ -117,7 +120,9 @@ describe('createRenderTraceRing', () => {
     const traces = ring.snapshot();
     expect(traces.find((trace) => trace.requestId === 1)?.computeId).toEqual(41);
     expect(traces.find((trace) => trace.requestId === 2)?.computeId).toEqual(41);
-    expect(traces.find((trace) => trace.requestId === 2)?.frames[0]?.source).toEqual('inflight-replay');
+    expect(traces.find((trace) => trace.requestId === 2)?.frames[0]?.source).toEqual(
+      'inflight-replay',
+    );
     expect(traces.find((trace) => trace.requestId === 2)?.frames[0]?.originComputeId).toEqual(41);
     expect(traces.find((trace) => trace.requestId === 3)?.computeId).toBeUndefined();
     expect(traces.find((trace) => trace.requestId === 3)?.frames[0]?.originComputeId).toEqual(41);
@@ -226,7 +231,7 @@ describe('createRenderTraceRing', () => {
     ring.beginRequest(request(1));
     ring.recordFrame(frame(1, 'stable'), delivery());
 
-    const snapshot = ring.snapshot() as unknown as Array<{ requestId: number; frames: unknown[] }>;
+    const snapshot = ring.snapshot() as unknown as { requestId: number; frames: unknown[] }[];
     snapshot.pop();
     snapshot[0]?.frames.pop();
     expect(ring.snapshot()).toHaveLength(1);
@@ -253,7 +258,9 @@ describe('createRenderTraceRing', () => {
     expect(viewKeyHash(viewport, 'stability', quality)).toEqual(
       viewKeyHash({ ...viewport, center: { ...viewport.center } }, 'stability', { ...quality }),
     );
-    expect(viewKeyHash(viewport, 'period', quality)).not.toEqual(viewKeyHash(viewport, 'stability', quality));
+    expect(viewKeyHash(viewport, 'period', quality)).not.toEqual(
+      viewKeyHash(viewport, 'stability', quality),
+    );
     expect(viewKeyHash(viewport, 'stability', { ...quality, maxIterations: 256 })).not.toEqual(
       viewKeyHash(viewport, 'stability', quality),
     );

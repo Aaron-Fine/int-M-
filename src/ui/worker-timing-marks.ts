@@ -103,7 +103,11 @@ export interface RenderTraceRing {
   /** Begins a request summary. Any request it displaces is recorded as superseded. */
   beginRequest(summary: RenderRequestSummary): void;
   recordFrame(frame: FrameMessage, delivery: FrameDelivery): void;
-  recordCancellation(requestId: number | string, cancelAckMs: number, childQuiescenceMs?: number): void;
+  recordCancellation(
+    requestId: number | string,
+    cancelAckMs: number,
+    childQuiescenceMs?: number,
+  ): void;
   failOpenRequests(): void;
   noteMainThreadLongTask(durationMs: number): void;
   snapshot(): readonly RenderTrace[];
@@ -128,9 +132,7 @@ const toFrameTrace = (frame: FrameMessage, delivery: FrameDelivery): FrameTrace 
   };
 };
 
-export const createRenderTraceRing = (
-  options: RenderTraceRingOptions = {},
-): RenderTraceRing => {
+export const createRenderTraceRing = (options: RenderTraceRingOptions = {}): RenderTraceRing => {
   const capacity = options.capacity ?? RENDER_TRACE_RING_CAPACITY;
   const completed: RenderTrace[] = [];
   const open = new Map<number | string, OpenRequest>();

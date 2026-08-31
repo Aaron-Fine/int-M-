@@ -29,21 +29,21 @@ corpus version (`schemaVersion` bump and a new document section).
 
 ## Cases
 
-| ID | Class | Center (re, im) | spanY | ≈ mag | Profile | Designation |
-| -- | ----- | --------------- | ----- | ----- | ------- | ----------- |
-| `mi-easy-default-full` | Easy | −0.75, 0 | 2.5 | 1× | Balanced | screening |
-| `mi-easy-exterior-heavy` | Easy | 2.5, 1 | 2 | 1.25× | Balanced | screening |
-| `mi-easy-main-cardioid` | Easy | 0.1, 0.05 | 0.2 | 12.5× | Balanced | screening |
-| `mi-easy-period2-bulb` | Easy | −1.05, 0.05 | 0.15 | ~16.7× | Balanced | screening |
-| `mi-hard-rabbit-boundary` | Hard known | −0.1225611668766535, 0.7448617666197435 | 0.3 | ~8.3× | Balanced | release-gate |
-| `mi-hard-supplied-126x` | Hard known | −0.158902249, −1.034028 | 0.019841269841269841269 | 126× | Detailed | release-gate |
-| `mi-hard-supplied-609x` | Hard known | −1.94130973, −0.0000974722949 | 0.0041050903119868637110 | 609× | Detailed | release-gate |
-| `mi-hard-supplied-13x` | Hard known | 0.305376533, 0.552677981 | 0.19230769230769230769 | 13× | Detailed | release-gate |
-| `mi-fallback-unknown-high-period` | Fallback | −0.7436438870371587, 0.1318259042053119 | 0.00001 | 250,000× | Balanced | release-gate |
-| `mi-fallback-weak-attraction` | Fallback | −0.1205, 0.8268 | 0.005 | 500× | Balanced | release-gate |
-| `mi-fallback-ambiguous-boundary` | Fallback | 0.3, 0.008 | 0.02 | 125× | Balanced | release-gate |
-| `mi-fallback-budget-exhaustion` | Fallback | −1.401155189092, 0 | 0.001 | 2,500× | Balanced | release-gate |
-| `mi-scale-6mx-basilica-rim` | Scale | −1.25, 0 | 0.00000041666666666666667 | 6,000,000× | Balanced | release-gate |
+| ID                                | Class      | Center (re, im)                         | spanY                     | ≈ mag      | Profile  | Designation  |
+| --------------------------------- | ---------- | --------------------------------------- | ------------------------- | ---------- | -------- | ------------ |
+| `mi-easy-default-full`            | Easy       | −0.75, 0                                | 2.5                       | 1×         | Balanced | screening    |
+| `mi-easy-exterior-heavy`          | Easy       | 2.5, 1                                  | 2                         | 1.25×      | Balanced | screening    |
+| `mi-easy-main-cardioid`           | Easy       | 0.1, 0.05                               | 0.2                       | 12.5×      | Balanced | screening    |
+| `mi-easy-period2-bulb`            | Easy       | −1.05, 0.05                             | 0.15                      | ~16.7×     | Balanced | screening    |
+| `mi-hard-rabbit-boundary`         | Hard known | −0.1225611668766535, 0.7448617666197435 | 0.3                       | ~8.3×      | Balanced | release-gate |
+| `mi-hard-supplied-126x`           | Hard known | −0.158902249, −1.034028                 | 0.019841269841269841269   | 126×       | Detailed | release-gate |
+| `mi-hard-supplied-609x`           | Hard known | −1.94130973, −0.0000974722949           | 0.0041050903119868637110  | 609×       | Detailed | release-gate |
+| `mi-hard-supplied-13x`            | Hard known | 0.305376533, 0.552677981                | 0.19230769230769230769    | 13×        | Detailed | release-gate |
+| `mi-fallback-unknown-high-period` | Fallback   | −0.7436438870371587, 0.1318259042053119 | 0.00001                   | 250,000×   | Balanced | release-gate |
+| `mi-fallback-weak-attraction`     | Fallback   | −0.1205, 0.8268                         | 0.005                     | 500×       | Balanced | release-gate |
+| `mi-fallback-ambiguous-boundary`  | Fallback   | 0.3, 0.008                              | 0.02                      | 125×       | Balanced | release-gate |
+| `mi-fallback-budget-exhaustion`   | Fallback   | −1.401155189092, 0                      | 0.001                     | 2,500×     | Balanced | release-gate |
+| `mi-scale-6mx-basilica-rim`       | Scale      | −1.25, 0                                | 0.00000041666666666666667 | 6,000,000× | Balanced | release-gate |
 
 The three `mi-hard-supplied-*` cases are the supplied hard views. Per plan §9
 they are recorded here as exact center+span seeds, not as screenshot
@@ -72,7 +72,7 @@ supplied views are measured at Detailed because they anchor the worst declared
 hard-view budget. All are release-gate cases.
 
 - `mi-hard-rabbit-boundary` — centered on catalog `mi-p3-rabbit`, widened until
-  the view contains the rabbit interior *plus* its boundary filaments and the
+  the view contains the rabbit interior _plus_ its boundary filaments and the
   surrounding exterior (a tight span would be pure interior and would not
   exercise the boundary).
 - `mi-hard-supplied-126x` — near catalog `mi-p4-03`; a period-doubling tower
