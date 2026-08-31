@@ -21,5 +21,5 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["tools/phase0-browser-benchmark.ts"]
+  "include": ["tools/benchmark/validate-corpus.ts", "tools/phase0-browser-benchmark.ts"]
 }
