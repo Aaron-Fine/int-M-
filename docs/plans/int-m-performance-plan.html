@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Mandelbrot Interiority — Phase 2 Performance Improvement Plan</title>
+  <style>
+    :root {
+      --bg: #0d1411;
+      --panel: #151e19;
+      --panel-2: #1b2720;
+      --text: #eef4ee;
+      --muted: #b8c5ba;
+      --line: #34463a;
+      --accent: #ff8a65;
+      --accent-2: #77d9a4;
+      --warn: #ffd166;
+      --danger: #ff7d86;
+      --code: #0a100d;
+      --max: 1180px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.58 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: #9de3bd; text-underline-offset: .18em; }
+    a:hover { color: #c8f4db; }
+    .skip { position: absolute; left: -9999px; top: 0; }
+    .skip:focus { left: 1rem; top: 1rem; z-index: 10; padding: .65rem 1rem; background: var(--accent); color: #111; }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: radial-gradient(circle at 10% 10%, #273a2e, transparent 36%), linear-gradient(135deg, #111a15, #0d1411 72%);
+    }
+    .hero, main, footer { width: min(calc(100% - 2rem), var(--max)); margin-inline: auto; }
+    .hero { padding: 4rem 0 3rem; }
+    .eyebrow { margin: 0 0 .5rem; color: var(--accent-2); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: .78rem; }
+    h1, h2, h3, h4 { font-family: Georgia, "Times New Roman", serif; line-height: 1.16; text-wrap: balance; }
+    h1 { margin: 0; max-width: 900px; font-size: clamp(2.25rem, 6vw, 4.8rem); }
+    h2 { margin: 3.4rem 0 1rem; font-size: clamp(1.7rem, 3vw, 2.4rem); scroll-margin-top: 1rem; }
+    h3 { margin: 2rem 0 .65rem; font-size: 1.35rem; }
+    h4 { margin: 1.35rem 0 .45rem; font-size: 1.05rem; }
+    p { max-width: 78ch; }
+    .lede { max-width: 72ch; margin: 1.2rem 0; color: #d5dfd6; font-size: 1.15rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.5rem; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: .25rem .7rem; color: var(--muted); background: rgba(0,0,0,.18); font-size: .86rem; }
+    main { padding-bottom: 4rem; }
+    nav.toc { margin: 1.5rem 0 2.5rem; padding: 1.2rem 1.35rem; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+    nav.toc ol { columns: 2; column-gap: 2rem; margin: .5rem 0 0; padding-left: 1.3rem; }
+    nav.toc li { break-inside: avoid; margin: .28rem 0; }
+    .callout, .decision, .warning { margin: 1.25rem 0; padding: 1rem 1.15rem; border-left: 4px solid var(--accent-2); background: var(--panel); border-radius: 0 10px 10px 0; }
+    .decision { border-left-color: var(--accent); }
+    .warning { border-left-color: var(--warn); }
+    .danger { border-left-color: var(--danger); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .card { padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+    .card h3, .card h4 { margin-top: .2rem; }
+    .card p:last-child, .card ul:last-child { margin-bottom: .15rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: .94rem; }
+    caption { text-align: left; color: var(--muted); margin-bottom: .45rem; }
+    th, td { padding: .65rem .7rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--panel-2); color: var(--text); }
+    tbody tr:nth-child(even) { background: rgba(255,255,255,.018); }
+    .table-wrap { overflow-x: auto; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { color: #ffd8c9; }
+    pre { overflow-x: auto; padding: 1rem; background: var(--code); border: 1px solid var(--line); border-radius: 10px; color: #dff6e8; }
+    .formula { margin: .8rem 0; padding: .8rem 1rem; background: var(--code); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; font: 1rem/1.6 Georgia, serif; }
+    .pipeline { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; counter-reset: step; }
+    .pipeline li { position: relative; padding: 1rem; min-height: 9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+    .pipeline li::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 1.7rem; height: 1.7rem; margin-bottom: .55rem; border-radius: 50%; background: var(--accent); color: #121712; font-weight: 900; }
+    .pipeline strong { display: block; margin-bottom: .35rem; }
+    .status { white-space: nowrap; font-weight: 800; }
+    .ship { color: var(--accent-2); }
+    .experiment { color: var(--warn); }
+    .stop { color: var(--danger); }
+    details { margin: .75rem 0; padding: .7rem .9rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+    summary { cursor: pointer; font-weight: 800; }
+    ol, ul { max-width: 82ch; }
+    li { margin: .32rem 0; }
+    .small { color: var(--muted); font-size: .9rem; }
+    .tag { display: inline-block; margin: .1rem .2rem .1rem 0; padding: .12rem .45rem; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); font-size: .78rem; }
+    footer { border-top: 1px solid var(--line); padding: 2rem 0 3rem; color: var(--muted); }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .pipeline { grid-template-columns: 1fr 1fr; }
+      nav.toc ol { columns: 1; }
+    }
+    @media (max-width: 520px) {
+      .hero { padding-top: 2.5rem; }
+      .pipeline { grid-template-columns: 1fr; }
+      th, td { padding: .5rem; }
+    }
+    @media print {
+      :root { --bg: #fff; --panel: #f4f6f4; --panel-2: #e9eee9; --text: #111; --muted: #445; --line: #aab4aa; --code: #f2f2f2; }
+      body { font-size: 10pt; }
+      a { color: #164d2f; }
+      header { background: #fff; }
+      .hero { padding: 1.5rem 0; }
+      nav.toc { break-after: page; }
+      h2 { break-before: page; }
+      h2:first-of-type { break-before: auto; }
+      .card, table, pre, .callout, .decision, .warning { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to plan</a>
+  <header>
+    <div class="hero">
+      <p class="eyebrow">Mandelbrot Interiority · Phase 2</p>
+      <h1>Performance Improvement Plan</h1>
+      <p class="lede">A reviewed, test-gated roadmap for making shallow and difficult interior renders substantially faster without weakening the mathematical meaning of the image or making the interface less responsive.</p>
+      <div class="meta" aria-label="Document metadata">
+        <span class="pill">Status: proposed engineering contract</span>
+        <span class="pill">Assumption: Phase 1 closed cleanly</span>
+        <span class="pill">Baseline revision: 4fd4fdd</span>
+        <span class="pill">Prepared: 2026-08-27</span>
+        <span class="pill">Revised: 2026-08-30 (rev 2) — review amendments + PoC specification (§5, §11)</span>
+        <span class="pill">Revised: 2026-08-30 (rev 3) — workstream F demoted to conditional/deferred; factual corrections (§1, §2, §5, §8, §9, §11)</span>
+        <span class="pill">Revised: 2026-08-30 (rev 4) — conditional workstreams M/N/O added; PoC scope extended (§5, §11, §12)</span>
+        <span class="pill">Targets: current stable Chrome and Firefox</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <nav class="toc" aria-label="Contents">
+      <strong>Contents</strong>
+      <ol>
+        <li><a href="#context">System context</a></li>
+        <li><a href="#diagnosis">Current diagnosis</a></li>
+        <li><a href="#invariants">Correctness invariants</a></li>
+        <li><a href="#architecture">Target architecture</a></li>
+        <li><a href="#workstreams">Workstreams and gates</a></li>
+        <li><a href="#catalog">Catalog and mathematics</a></li>
+        <li><a href="#simd">Wasm SIMD design</a></li>
+        <li><a href="#observability">Observability contract</a></li>
+        <li><a href="#benchmarks">Benchmark contract</a></li>
+        <li><a href="#requirements">Requirements and traceability</a></li>
+        <li><a href="#sequence">Delivery sequence</a></li>
+        <li><a href="#risks">Risks, kill gates, exclusions</a></li>
+        <li><a href="#references">References</a></li>
+      </ol>
+    </nav>
+
+    <section id="context">
+      <h2>1. System context</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Product</h3>
+          <p><em>Mandelbrot Interiority</em> is a TypeScript/Vite browser atlas that visualizes internal Mandelbrot dynamics, not merely escape-time color. Each pixel may carry:</p>
+          <ul>
+            <li>classification: escaped, attracting cycle, or unresolved;</li>
+            <li>detected primitive period;</li>
+            <li>multiplier magnitude and argument;</li>
+            <li>stability exponent κ = −log|λ| / p.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Current runtime</h3>
+          <ul>
+            <li>CPU binary64 orbit classifier in Web Workers.</li>
+            <li>Supervisor worker plus four nested tile workers.</li>
+            <li>Coarse preview followed by stable semantic frame.</li>
+            <li>Maximum raster edge 1024 (768 on the Quick profile) and zoom-product ceiling 6,000,000×.</li>
+            <li>Chrome and Firefox are release targets; no backend is required.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Existing quality policies</caption>
+          <thead><tr><th>Profile</th><th>Maximum iterations</th><th>Systematic period ceiling today</th><th>Coarse stride</th></tr></thead>
+          <tbody>
+            <tr><td>Quick</td><td>256</td><td>16</td><td>12</td></tr>
+            <tr><td>Balanced</td><td>512</td><td>32</td><td>8</td></tr>
+            <tr><td>Detailed</td><td>1024</td><td>64</td><td>8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Relevant implementation surfaces</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Surface</th><th>Current responsibility</th><th>Expected Phase 2 change</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/domain/orbit.ts</code></td><td>Per-point orbit and staged cycle classification</td><td>Allocation-free scalar kernel, checkpoint candidates, common verifier, period policy</td></tr>
+            <tr><td><code>src/render/classify-rows.ts</code></td><td>Raster row classification</td><td>Primitive output buffers, backend dispatch, microband accounting</td></tr>
+            <tr><td><code>src/worker/tile-pool.ts</code></td><td>Four-worker tiled execution</td><td>Measured dynamic queue if static-band skew justifies it</td></tr>
+            <tr><td><code>src/render/semantic-store.ts</code></td><td>Semantic frame storage/cache</td><td>Stable-only cache invariant and compact schemas</td></tr>
+            <tr><td><code>src/ui/worker-timing-marks.ts</code></td><td>Performance marks</td><td>Bounded ring, corrected timing semantics, opt-in diagnostics</td></tr>
+            <tr><td><code>tools/generate_catalog.py</code></td><td>Dense low-period catalog generation</td><td>Deferred with workstream F; retained as a low-period cross-check if F's evidence gate fires</td></tr>
+            <tr><td><code>catalog/components.v1.json</code></td><td>Eleven named period 1–4 component centers</td><td>Retained as-is; the generated period-12 core and patches ship only if workstream F is accepted</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="decision">
+        <strong>Scope boundary.</strong> Phase 1 closeout, its manual accessibility record, and its release-browser checklist are assumed complete. Phase 2 may reuse those procedures, but it does not reopen Phase 1 unless a performance change causes a regression.
+      </div>
+    </section>
+
+    <section id="diagnosis">
+      <h2>2. Current diagnosis</h2>
+      <h3>Primary hot path</h3>
+      <p>After warmup, the current classifier advances the orbit and scans candidate lags from period 1 through <code>maxPeriod</code>. For points that remain unresolved for most of the budget, the dominant comparison count is approximately:</p>
+      <div class="formula">orbit steps × candidate lags ≈ O(maxIterations × maxPeriod) per pixel</div>
+      <p>That makes the Balanced worst case roughly 512 × 32 lag comparisons and Detailed roughly 1024 × 64, before verification and output work. The difficult screenshots supplied during diagnosis showed classification dominating elapsed time across multiple views rather than one isolated UI action.</p>
+
+      <div class="grid">
+        <article class="card">
+          <h3>Secondary costs</h3>
+          <ul>
+            <li>Per-pixel <code>Complex</code>, result, and evidence allocations.</li>
+            <li>Static horizontal bands despite spatially uneven orbit difficulty.</li>
+            <li>Per-pixel <code>Complex</code>, result, and evidence allocations also drive scavenger GC during renders: pause time and <code>classifyMs</code> variance grow, and that same variance weakens the paired-interval gates in section 9.</li>
+            <li>Row yields use nested <code>setTimeout(0)</code>, which browsers clamp to a 4 ms minimum after five nesting levels (the HTML timer-nesting rule); part of the current yield budget is timer policy, not compute.</li>
+            <li>Supervisor plus stable child semantic buffers: roughly 42 MiB at 1024² before RGBA; if coarse buffers overlap in lifetime, a conservative semantic peak is roughly 63 MiB before Wasm arenas and RGBA.</li>
+            <li>Full-frame recoloring/assembly risks if dynamic subtiles are implemented naively.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Measurement defects</h3>
+          <ul>
+            <li>Cached/replayed frames can expose timing copied from the original request.</li>
+            <li><code>classifyMs</code> is not semantically equivalent in serial and nested-worker paths.</li>
+            <li>Marks and long-task observation can accumulate.</li>
+            <li>Easy default-view medians conceal hard interior tails.</li>
+          </ul>
+        </article>
+      </div>
+
+      <h3>Evidence available before Phase 2</h3>
+      <ul>
+        <li>Easy/default tiled 1024² measurements were approximately 0.90 s median in Chrome and 1.24 s in Firefox on the earlier target environment.</li>
+        <li>Hard supplied period-4 views were approximately 11–23 s, with classification accounting for most of the time.</li>
+        <li>The three hard-view anchors to retain in the corpus are approximately: 126× at (−0.158902249, −1.034028), 609× at (−1.94130973, −0.0000974722949), and 13× at (0.305376533, 0.552677981).</li>
+        <li class="small">Provenance: these values come from the Phase 0/1 diagnosis records under <code>evidence/</code> and the difficult-screenshot review, recorded on an earlier target environment. They are not directly comparable with <code>docs/PHASE0_BENCHMARK.md</code>, which reports a ≈1.96 s Chrome stable median at 1024² on different hardware; figures from different environments must not be mixed.</li>
+      </ul>
+      <div class="warning">
+        <strong>Interpretation limit.</strong> These values motivate the work but are not Phase 2 release baselines. Hardware, browser builds, viewport size, warmup, cache state, and measurement semantics must be recorded again by the benchmark contract below.
+      </div>
+    </section>
+
+    <section id="invariants">
+      <h2>3. Correctness and product invariants</h2>
+      <ol>
+        <li><strong>Candidate generation is not proof.</strong> Approximate cycle checkpoints, catalog proximity, Newton correction, low-period algebraic relations, and spatial indexes may propose a period/cycle only.</li>
+        <li><strong>One verifier decides.</strong> Every attracting result passes the same finite-value, primitive-period, closure, residual, and attraction checks regardless of source or backend.</li>
+        <li><strong>Primitive period is explicit.</strong> A period <em>p</em> candidate must be reduced against every proper divisor of <em>p</em>; a multiple of a smaller cycle must never be emitted as primitive.</li>
+        <li><strong>Uncertainty stays visible.</strong> Numerical ambiguity, budget exhaustion, unsupported opportunistic periods, or verifier disagreement produce unresolved/fallback, not a confident class.</li>
+        <li><strong>Cache changes speed, never truth.</strong> Disabling identity, atlas, session, or semantic caches cannot alter a completed semantic result.</li>
+        <li><strong>Backend parity.</strong> Scalar TypeScript, scalar Wasm, and SIMD Wasm must agree under the same tolerance policy and semantic fixtures.</li>
+        <li><strong>Responsiveness remains bounded.</strong> Coarse preview, cancellation, and worker yields remain functional; a faster total render may not create long uninterruptible kernels.</li>
+        <li><strong>Systematic and opportunistic claims differ.</strong> Quality describes the guaranteed search budget; independently found higher periods may be displayed only after verification and with origin metadata.</li>
+      </ol>
+
+      <h3>Semantic compatibility contract</h3>
+      <p>Phase 2 is conservative but not required to be bit-identical to the legacy classifier. Categorical status and primitive period are judged against independent high-precision fixtures and deterministic stratified holdouts. A changed legacy answer may ship only when the oracle supports the change. False attracting results and wrong primitive periods are release blockers; numerically ambiguous cases remain unresolved. Multiplier magnitude, angle, and κ are compared with declared tolerances rather than cross-browser binary hashes. At superattracting points |λ| = 0 and κ is infinite: comparisons treat such points by identity (both sides |λ| = 0) rather than by arithmetic on infinities, and that rule is versioned with the tolerance policy.</p>
+
+      <h3>Common numerical verifier</h3>
+      <p>For <em>f</em><sub>c</sub>(z) = z² + c and a proposed period <em>p</em>, the verifier must:</p>
+      <ol>
+        <li>reject non-finite state, residual, or derivative values;</li>
+        <li>check <em>f</em><sub>c</sub><sup>p</sup>(z) − z against a scale-aware residual tolerance;</li>
+        <li>test every proper divisor <em>d</em> of <em>p</em> and reduce if closure is already present;</li>
+        <li>compute λ = (f<sub>c</sub><sup>p</sup>)′(z) and require |λ| &lt; 1 − margin;</li>
+        <li>near tolerance boundaries, require a second closure/contraction check or return unresolved;</li>
+        <li>emit period, |λ|, arg λ, κ, evidence code, and verifier revision.</li>
+      </ol>
+      <p>Use distinct thresholds τ<sub>candidate</sub> &gt; τ<sub>accept</sub> and a three-way divisor policy: accept closure below a scaled acceptance bound; exclude a smaller divisor only above a larger separation bound; treat the gap as ambiguous. Residual tolerance, binary64 error allowance, attraction margin, and scale normalization are versioned policy, exercised against higher-precision fixtures, and documented in <code>PERFORMANCE-MATHEMATICS.md</code>. A repeated check using the same arithmetic is consistency evidence, not certification.</p>
+    </section>
+
+    <section id="architecture">
+      <h2>4. Target classifier architecture</h2>
+      <ol class="pipeline" aria-label="Target classifier pipeline">
+        <li><strong>Cheap closed-form paths</strong>Main-cardioid period 1 and period-2 bulb tests evaluated in binary64; escaped points leave early. These tests already exist in <code>src/domain/orbit.ts</code> (<code>analyticInterior</code>); Phase 2 preserves them and migrates their acceptance to the versioned verifier policy (scale-aware tolerance, attraction margin) instead of reimplementing them.</li>
+        <li><strong>Orbit + checkpoint</strong>Advance primitive scalar or SIMD lanes and maintain the approximate checkpoint schedule defined below.</li>
+        <li><strong>Candidate queues</strong>Combine checkpoint lag, catalog/chart seed, or optional p3/p4 relation into same-period work queues.</li>
+        <li><strong>Verify or fall back</strong>Run the common verifier; emit semantics only on success, otherwise continue, fall back, or remain unresolved.</li>
+      </ol>
+      <div class="callout">
+        <strong>Brent cycle detection, defined at first use.</strong> In <a href="https://doi.org/10.1007/BF01933190">Richard Brent’s 1980 cycle-detection algorithm</a>, a sequence x<sub>n+1</sub> = f(x<sub>n</sub>) is searched for an exact repetition using O(1) stored states. One state advances every step while a stationary checkpoint is retained. After 1, 2, 4, 8, … advances without equality, the current state becomes the new checkpoint and the interval doubles. Exact equality yields a cycle-length candidate with O(μ + L) function evaluations, where μ is the nonrepeating prefix length and L is the cycle length. This document reserves λ for the complex multiplier.
+      </div>
+      <p>This project borrows only Brent’s exponentially spaced checkpoint schedule. For the complex orbit z<sub>n+1</sub> = z<sub>n</sub>² + c, an attracting orbit converges asymptotically and normally does not repeat exactly in binary64. At each step the kernel compares the current z<sub>n</sub> with the retained checkpoint z<sub>k</sub>. When |z<sub>n</sub> − z<sub>k</sub>| falls below the permissive threshold τ<sub>candidate</sub>, the lag q = n − k is proposed as a possible period. When the current checkpoint interval is exhausted, the kernel stores the current state as the next checkpoint, doubles the interval, and continues.</p>
+      <p>That is why the plan calls the method <strong>Brent-inspired approximate checkpointing</strong>, not Brent cycle detection: approximate proximity destroys Brent’s exact finite-state guarantee. A hit may propose the primitive period p, a multiple kp, or an accidental near-return. It never classifies a pixel. Rejected candidates are capped per pixel; the common verifier tests closure with the stricter τ<sub>accept</sub>, reduces proper divisors, recomputes λ, and falls back when exclusion is ambiguous. The implementation specification must freeze the checkpoint update schedule, both tolerances, rejection budget, maximum detection delay, and fallback behavior before benchmarking.</p>
+      <div class="formula">Near weak attraction, required work behaves roughly as n ≈ n<sub>transient</sub> + p · log(τ/e<sub>0</sub>) / log|λ|, which grows without bound as |λ| → 1.</div>
+      <p>Therefore a maximum period does not guarantee detection without an adequate iteration and verification budget. Changing 32 to 12, 24, 48, or 64 is not intrinsically SIMD-friendly; speed comes from removing the all-lag scan and batching same-stage/same-period work.</p>
+
+      <h3>Alternative and complementary detection schedules</h3>
+      <p>The power-of-two checkpoint schedule is one member of a family; two relatives must be A/B-tested against it behind the legacy differential flag before any schedule is frozen:</p>
+      <ul>
+        <li><strong>Convergence-triggered single scan.</strong> Per iteration, compare |z<sub>n</sub> − z<sub>n−1</sub>| against a scale-aware step gate; only when it fires, run one full lag scan from the current state. Failed scans re-arm the trigger at a quarter of the previous threshold, capped per pixel. Cost is one gate per iteration plus a bounded number of O(maxPeriod) scans, and the single scan finds the minimal lag directly, avoiding checkpoint multiple-of-<em>p</em> churn and the rejection-retry ambiguity.</li>
+        <li><strong>Staggered harmonic lag testing.</strong> Test lag <em>p</em> only every <em>p</em>-th iteration. Average comparisons per iteration fall from maxPeriod to ≈ H(maxPeriod) ≈ 4 at 32, with detection delayed by less than <em>p</em> iterations. This is the near-zero-risk fallback if checkpoint or trigger sensitivity regresses on the holdouts.</li>
+        <li><strong>Exhaustion scan.</strong> When a schedule-based kernel ends its orbit budget unresolved, one final full lag scan recovers most missed detections at O(maxPeriod) cost per affected pixel. It is on by default for the conditional schedules and its measured value is reported separately.</li>
+      </ul>
+      <p>Two implementation rules follow. First, rejection-retry semantics must be frozen explicitly: a checkpoint or trigger candidate that fails verification is retested against the same retained state after a doubling re-arm gap, not dropped through a full interval. Second, gate C requires a <em>matched-budget detection analysis</em> on the stratified holdouts — per-pixel detected-period deltas versus the legacy scan at equal iteration budgets — so detection delay is visible as a distribution, not only as an aggregate unresolved-rate delta.</p>
+
+      <h3>Period policy buckets</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Meaning</th><th>Initial policy</th></tr></thead>
+          <tbody>
+            <tr><td><code>systematicMaxPeriod</code></td><td>Periods the quality profile deliberately searches within the orbit budget</td><td>Quick 16; Balanced 32; Detailed 64</td></tr>
+            <tr><td><code>opportunisticMaxPeriod</code></td><td>Highest period allowed from an independent candidate source, subject to verification and bounded cost</td><td>Derived from session-atlas content, experiment limits, and any loaded catalog/patch support; not marketed as guaranteed coverage</td></tr>
+            <tr><td><code>maxIterations</code></td><td>Maximum orbit work independent of either period ceiling</td><td>Quick 256; Balanced 512; Detailed 1024 initially unchanged</td></tr>
+            <tr><td><code>evidenceSource</code></td><td>How the candidate was proposed</td><td>analytic, checkpoint, catalog, chart, algebraic, fallback</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption>Operational candidate buckets; final boundaries remain benchmark policy, not mathematical facts</caption>
+          <thead><tr><th>Bucket</th><th>Candidate sources</th><th>Budget</th><th>Acceptance</th><th>User claim</th></tr></thead>
+          <tbody>
+            <tr><td>1–2</td><td>Closed-form tests</td><td>Constant</td><td>Conservative binary64 criterion / verifier at ambiguity</td><td>Systematic</td></tr>
+            <tr><td>3–4</td><td>Checkpoint; optional algebraic candidate</td><td>Profile bounded</td><td>Common verifier</td><td>Systematic</td></tr>
+            <tr><td>5–12</td><td>Checkpoint; generated-core seed only if F ships</td><td>Profile bounded</td><td>Common verifier</td><td>Systematic (catalog-assisted only if F ships)</td></tr>
+            <tr><td>13–32 or 64</td><td>Checkpoint</td><td>Quality dependent</td><td>Common verifier</td><td>Systematic within profile</td></tr>
+            <tr><td>Above profile cap</td><td>Loaded extension or session seed</td><td>Localized and bounded</td><td>Same common verifier</td><td>Opportunistic refinement</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Recommended UI copy: <q>Systematically checks through period 32 within 512 iterations. Higher periods may appear when independently found and verified.</q> The UI must not imply exhaustive classification up to an opportunistic maximum.</p>
+    </section>
+
+    <section id="workstreams">
+      <h2>5. Workstreams and ship gates</h2>
+      <div class="decision">
+        <strong>A closeable Phase 2.</strong> Required closeout scope is A–D plus Chrome/Firefox release evidence and the documentation/requirements package. Dynamic microbands (E), the generated period-12 catalog core and its marker UI (F), catalog-seeded Newton (G, including adjacent-pixel transplantation), p3/p4 algebra (H), Wasm SIMD (I), rigorous subdivision (J), worker pool sizing (K), trap-radius early accept (L), conjugate symmetry mirroring (M), cost-weighted static banding (N), and cross-profile semantic carryover (O) are conditional experiments. Each may be accepted or rejected with retained evidence without blocking Phase 2 closure.
+      </div>
+      <div class="decision">
+        <strong>Workstream F disposition (rev 3): not required for performance closeout.</strong> Four facts decide this. First, the checkpoint classifier (C) detects periods 5–12 systematically with no catalog data, so the 2× hard-view exit criterion never touches F. Second, this plan's own coverage analysis (§6) shows an arbitrary deep view may contain no period-12-or-lower center, so F cannot be load-bearing for speed at the zoom ceiling. Third, catalog seeding matters only through Newton (G), which is itself conditional and has independent seed sources (the session atlas and adjacent-pixel transplantation). Fourth, F is the largest single deliverable in this plan — a pinned exact/ball-arithmetic toolchain, degree-2048 root isolation, independent cross-checking, a binary schema, and marker UI — and its ship gate is correctness, not speed: it is an atlas product feature wearing a performance-plan hat. F is therefore demoted to a conditional, evidence-gated workstream ordered after C and the Newton proof of concept. The default disposition is deferral of the generated core to a product (atlas) phase; the curated 11 centers remain shipped and keep their Phase 1 validation. F is reopened only if C/PoC evidence quantifies seed value that checkpoint detection alone cannot provide.
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Workstream</th><th>Deliverable</th><th>Ship gate</th><th>Kill / defer condition</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>A. Performance contract</strong></td>
+              <td>Versioned corpus, harness, raw JSON, semantic hashes, environment manifest, corrected timing vocabulary</td>
+              <td>Reproducible runs in stable Chrome and Firefox; cache/replay/cancel sources distinguishable</td>
+              <td>None; prerequisite for all later claims</td>
+            </tr>
+            <tr>
+              <td><strong>B. Allocation-free scalar kernel</strong></td>
+              <td>Pass <code>cRe/cIm</code>; primitive output buffers; rich object only for inspector; no per-pixel heap objects; plus the variance claim — allocation removal tightens <code>classifyMs</code> spread, strengthening every later paired-interval gate</td>
+              <td>≥10% classifier or ≥8% end-to-end improvement in both browsers; semantic parity</td>
+              <td>Reject if below both thresholds or memory/correctness regresses</td>
+            </tr>
+            <tr>
+              <td><strong>C. Checkpoint classifier</strong></td>
+              <td>Power-of-two approximate checkpoint, bounded candidate list, shared verifier, proper-divisor reduction, legacy differential mode; frozen rejection-retry (doubling re-arm) and exhaustion-scan semantics; A/B against trigger-scan and staggered schedules; matched-budget detection analysis</td>
+              <td>Lag comparisons reduced &gt;50%; weighted median ≥25%; hard views ≥2×; no case &gt;5% slower</td>
+              <td>Any false attracting result or wrong primitive period; unresolved rate +&gt;0.1 percentage point</td>
+            </tr>
+            <tr>
+              <td><strong>D. Period policy</strong></td>
+              <td>Separate systematic/opportunistic ceilings, evidence metadata, user-facing language and tests</td>
+              <td>Higher-period verified hits display without raising the quality barrier; no guarantee ambiguity</td>
+              <td>Candidate-source leakage into confidence semantics</td>
+            </tr>
+            <tr>
+              <td><strong>E. Dynamic microbands (conditional)</strong></td>
+              <td>Pull-based 16–32 queued microbands, reusable transferable buffers (zero-copy output), cancellation between kernels, one final stable assembly, center-out scheduling</td>
+              <td>Only if baseline slowest/mean elapsed &gt;1.2; hard paired median/p90 ≥10% better with adequate samples; easy &lt;3% slower</td>
+              <td>Static bands retained if skew is insignificant or message/merge overhead dominates</td>
+            </tr>
+            <tr>
+              <td><strong>F. Period-12 core (conditional — deferred by default)</strong></td>
+              <td>Reproducible 4,016-center exact-period core, compact index, UI LOD, hashes and validation report. Largest single item in this plan: pinned exact/ball toolchain, degree-2048 root isolation, independent cross-check, binary schema, marker UI. Scoped as one deferred unit; not split across this phase</td>
+              <td>Evidence gate first: C and the Newton PoC must quantify seed value that checkpoint detection alone cannot provide. If attempted: counts, residuals, divisor exclusions and conjugate closure verified independently</td>
+              <td>Default: defer to a product (atlas) phase. Do not ship generated data if the offline toolchain cannot reproduce and cross-check it</td>
+            </tr>
+            <tr>
+              <td><strong>G. Catalog-seeded Newton (conditional)</strong></td>
+              <td>Local predictor plus bounded correction, session atlas, adjacent-pixel verified-cycle seeds (raster-coherent transplantation), multiplier-map-derived attempt guard |B|·|Δc|, common verifier</td>
+              <td>≥90% eligible attempts converge in ≤3 corrections; failures &lt;3% overhead; targeted ≥20%, weighted ≥10%; transplant hit rate and wasted-attempt overhead reported per view</td>
+              <td>Disable where λ approaches 1 or branch ambiguity defeats conservative attempt regions</td>
+            </tr>
+            <tr>
+              <td><strong>H. p3/p4 algebraic experiment (conditional)</strong></td>
+              <td>Offline multiplier relations, robust candidate solver comparison, verifier integration</td>
+              <td>Targeted ≥15% or weighted ≥5%; fallback ≤5%; zero incorrect results</td>
+              <td>Keep research-only if inversion/branch selection costs exceed orbit/Newton path</td>
+            </tr>
+            <tr>
+              <td><strong>I. Wasm SIMD (conditional)</strong></td>
+              <td>f64x2 SoA kernel, per-worker arena, scalar tail, self-test, TypeScript fallback</td>
+              <td>Classifier ≥1.5× and end-to-end ≥1.25× in both browsers; no hard case &gt;10% slower</td>
+              <td>Do not ship merely because SIMD is available; reject on insufficient end-to-end gain</td>
+            </tr>
+            <tr>
+              <td><strong>J. Rigorous subdivision research (conditional)</strong></td>
+              <td>Interval/Krawczyk feasibility study for certified block fill</td>
+              <td>Only certified enclosures may skip stable per-pixel work</td>
+              <td>Never ship corner/edge agreement as stable proof</td>
+            </tr>
+            <tr>
+              <td><strong>K. Worker pool sizing (conditional)</strong></td>
+              <td>Pool sized from <code>navigator.hardwareConcurrency</code> (capped at 8) instead of the fixed four-worker cap, with per-worker memory re-check</td>
+              <td>Hard-view wall-clock ≥20% better on a ≥8-core target class in both browsers; easy views &lt;3% slower; memory within the versioned budget</td>
+              <td>Keep four workers if startup, merge, or memory overhead dominates; measure before attempting E</td>
+            </tr>
+            <tr>
+              <td><strong>L. Trap-radius early accept (research)</strong></td>
+              <td>Numerically estimated trapping disk around a verified neighbor cycle: accept when the orbit enters a disk where f<sub>c</sub><sup>p</sup> is contracting, before τ-accept closure; per-pixel λ still computed</td>
+              <td>Oracle-validated: zero false attracting results across the corpus; measurable iteration savings on weak-attraction strata</td>
+              <td>Research-only until the acceptance argument is certified; any oracle disagreement is an immediate kill</td>
+            </tr>
+            <tr>
+              <td><strong>M. Conjugate symmetry mirroring (conditional)</strong></td>
+              <td>Dispatch-level row dedup: for viewports intersecting their conjugate, classify only the canonical half and mirror the rest with arg λ negated (status, period, |λ|, κ, escape and smooth iteration are identical under z ↦ z̄, since the orbit starts at 0 ∈ ℝ). Mirrored coordinates are built by exact negation of the imaginary part, or a sub-ulp sampling offset is declared in the versioned tolerance policy; results carry a <code>conjugate-mirror</code> evidence source. Composes with every backend and schedule</td>
+              <td>≥1.6× classifier on real-axis-symmetric easy cases in both browsers with semantic parity under the tolerance policy; no corpus case beyond the normative regression cap</td>
+              <td>Reject if the coordinate policy produces oracle-visible mismatches on boundary holdouts, if real-axis-crossing views prove too rare in practice to matter, or if merge complexity outweighs the gain</td>
+            </tr>
+            <tr>
+              <td><strong>N. Cost-weighted static banding (conditional — precedes E)</strong></td>
+              <td>Split stable bands by equal estimated cost — derived from the already-computed coarse pass (escape iterations, unresolved fraction) — instead of equal height. Static, deterministic, no protocol change</td>
+              <td>Attempted before E whenever E's skew gate (baseline slowest/mean elapsed &gt;1.2) fires. Ships if hard paired median/p90 ≥10% better with easy &lt;3% slower — E's bar at lower complexity. If N meets the bar, E is killed with retained evidence</td>
+              <td>Kill if the coarse-pass cost signal mispredicts stable-pass cost; E may then be attempted on the residual skew</td>
+            </tr>
+            <tr>
+              <td><strong>O. Cross-profile semantic carryover (conditional)</strong></td>
+              <td>On a quality-profile change at an unchanged viewport, carry budget-independent pixels (escaped at the fixed bailout radius; verifier-accepted attracting) into the new stable frame and recompute unresolved pixels only; cache key includes algorithm, policy, and verifier revisions</td>
+              <td>Paired profile-upgrade stable time ≤1.25× the unresolved-pixel share of a full recompute on corpus cases; carried pixels preserved exactly; any revision mismatch forces a full recompute</td>
+              <td>Kill if merge/provenance complexity or unresolved-heavy views erase the savings</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small">Percent gates are computed from the frozen benchmark corpus and reported per browser, per case, and as a declared weighted aggregate. A weighted win may not conceal a correctness failure or a case beyond the stated regression cap.</p>
+
+      <h3>Renderer-path efficiency details</h3>
+      <p>Small, individually gated changes ride along the required workstreams; each is measured and none is assumed:</p>
+      <ul>
+        <li><strong>Zero-copy output.</strong> Pre-slice the supervisor semantic frame and hand each tile worker transferable views it classifies into directly, eliminating per-band allocations and the merge memcpy (~21 MiB per 1024² stable frame). Part of E's reusable-buffer deliverable; measured via <code>mergeCpuMs</code> and allocation counts.</li>
+        <li><strong>Yield mechanism.</strong> Replace nested <code>setTimeout(0)</code> yields with <code>MessageChannel</code> ports. Browsers clamp nested timers to a 4 ms minimum after five nestings, so the current yield budget is partly timer policy; measured via <code>cancel-to-child-quiescence</code> and <code>bandElapsedMs</code> minus <code>bandComputeMs</code>.</li>
+        <li><strong>Center-out band scheduling.</strong> Order static or microbands from the viewport center outward so mid-screen presents first — a perceived-latency change with zero throughput cost, gated on time-to-first-50%-rows.</li>
+        <li><strong>Packed status+period output.</strong> Pack status and primitive period into one <code>Uint32</code> (period ≤ 2²⁴), merging two stores into one per pixel and saving ~5% of semantic-frame bytes (20% of the status+period fields) plus the corresponding copy traffic; adopt only together with zero-copy.</li>
+        <li><strong>Ring-buffer micro-costs.</strong> If the legacy ring survives anywhere: power-of-two capacity with mask indexing, no out-of-bounds sentinel reads, and the warmup-invariant lag bound hoisted out of the inner loop.</li>
+      </ul>
+
+      <div class="decision">
+        <strong>Pre-implementation proof of concept (specified, not yet landed).</strong> A self-contained harness at <code>poc/performance/</code> exercises the control (the current algorithm), the allocation-free scalar kernel, the scan/staggered/checkpoint/trigger schedules, interior-distance-estimated period guessing as a candidate source, neighbor-informed lag ordering, bounded exhaustion extension, adjacent-pixel transplantation with the multiplier-map attempt guard, trap-radius early accept, packed output, distance-estimated preview, and conjugate-mirror semantic parity — independently and in combination — against a double-double oracle and the legacy differential. A browser companion (<code>poc/performance/browser/</code>) measures pool sizing, zero-copy transfer, yield mechanism, band order, conjugate-mirroring savings, and coarse-pass cost-estimate quality for workstream N. PoC evidence is directional (Node/V8 approximates Chrome); it feeds PR 1's corpus and gate choices and does not replace Stage A browser evidence. The harness does not exist as of revision 4; landing it is delivery Step 0 (§11) and a prerequisite for PR 1.
+      </div>
+    </section>
+
+    <section id="catalog">
+      <h2>6. Catalog, Newton iteration, and mathematical representations</h2>
+      <h3>How much catalog?</h3>
+      <p><strong>Status: conditional on workstream F.</strong> The required Phase 2 scope ships only the curated identity layer; this section is the specification that applies if F's evidence gate fires. Under F, the recommended always-available mathematical core is exhaustive through primitive period 12: 4,016 hyperbolic component centers. It is small enough for a compact numerical index and bounded enough to generate and validate rigorously. It is a low-period identity and seed atlas, <strong>not</strong> general spatial coverage at this project’s zoom ceiling. At 6,000,000×, a nominal 2.5-unit vertical span is only about 4.17×10<sup>−7</sup>; an arbitrary view may contain no period-12-or-lower center.</p>
+      <div class="table-wrap">
+        <table>
+          <caption>Exact-period center counts for quadratic maps</caption>
+          <thead><tr><th>Period</th><th>New centers</th><th>Cumulative</th><th>Period</th><th>New centers</th><th>Cumulative</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>1</td><td>7</td><td>63</td><td>116</td></tr>
+            <tr><td>2</td><td>1</td><td>2</td><td>8</td><td>120</td><td>236</td></tr>
+            <tr><td>3</td><td>3</td><td>5</td><td>9</td><td>252</td><td>488</td></tr>
+            <tr><td>4</td><td>6</td><td>11</td><td>10</td><td>495</td><td>983</td></tr>
+            <tr><td>5</td><td>15</td><td>26</td><td>11</td><td>1,023</td><td>2,006</td></tr>
+            <tr><td>6</td><td>27</td><td>53</td><td>12</td><td>2,010</td><td>4,016</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The counts follow Möbius inversion:</p>
+      <div class="formula">a<sub>n</sub> = Σ<sub>d|n</sub> μ(n/d) · 2<sup>d−1</sup> = 2<sup>n−1</sup> − Σ<sub>d|n, d&lt;n</sub> a<sub>d</sub>.</div>
+
+      <h3>Four-layer catalog architecture</h3>
+      <ol>
+        <li><strong>Curated identity layer.</strong> Keep the existing 11 named centers for navigation, tests, explanations, and stable IDs.</li>
+        <li><strong>Exhaustive period-12 core (ships only with F).</strong> Compact center/period/index data always available to workers; budget ≤256 KiB encoded and ≤512 KiB resident. The earlier 130–200 KiB estimate is a hypothesis until the binary schema is fixed.</li>
+        <li><strong>Demand-loaded performance patches (ship only with F).</strong> Content-hashed, cancellable 32–128 KiB compressed shards keyed by a static spatial index. A patch may include cycle seed, parameter derivative, conservative attempt region, residual/error bound, generator revision, and verifier revision.</li>
+        <li><strong>Ephemeral session atlas.</strong> Worker-local 8–16 MiB LRU of successfully verified local cycles. Session data accelerates revisits but is never silently promoted to shipped catalog truth.</li>
+      </ol>
+      <p>Center locations and seed applicability bounds are separate indexes: a deeply zoomed component may have its center far offscreen. The curated 11 remain direct navigation controls and are the only shipped markers in the required scope. If F ships, dynamic results use deterministic clustering plus an accessible search/list and a roving-focus composite, targeting at most 20–30 simultaneous interactive markers; every suppressed item remains reachable by search/list, selected identity is retained, and shard arrival does not reorder current keyboard focus.</p>
+      <div class="decision">
+        <strong>Deterministic stable and refined frames.</strong> Any bundled core that ships participates in the initial <code>stable</code> computation. A render snapshots algorithm, policy, catalog, and loaded seed-set (including session-atlas) revisions at start; arriving shards never mutate it in flight. Optional shards may later change unresolved to a verified opportunistic result only through an explicit <code>refined</code> frame with evidence. Cache provenance includes all snapshot revisions. Missing, corrupt, slow, or canceled shards fall back without blocking stable rendering.
+      </div>
+
+      <h3>Offline generation and independent validation</h3>
+      <p>Let P<sub>1</sub>(c)=c and P<sub>n+1</sub>(c)=P<sub>n</sub>(c)²+c, so P<sub>n</sub>(c)=f<sub>c</sub><sup>n</sup>(0). The production generator constructs the exact-period critical-orbit center factor H<sub>n</sub>(c)=P<sub>n</sub>(c)/∏<sub>d|n,d&lt;n</sub>H<sub>d</sub>(c) using exact integer-polynomial division. This avoids conflating center factors with generic formal-period dynatomic polynomials.</p>
+      <p>The existing dense-polynomial/Durand–Kerner generator is retained only as a low-period cross-check. The implementation milestone must select one hermetic, pinned primary toolchain (container, versions, precision escalation, licenses, deterministic rounding) based on FLINT/Arb-class exact and ball arithmetic, with MPSolve-class solving as an independent cross-check where practical. A menu of unpinned tools is not an accepted generator design.</p>
+      <ul>
+        <li>Verify expected primitive-period counts for each p ≤ 12.</li>
+        <li>Re-run at higher precision and bound root movement.</li>
+        <li>Check center residual, proper-divisor exclusion, and conjugate closure.</li>
+        <li>Require disjoint root enclosures, correct real-root handling, and no duplicate roots.</li>
+        <li>Assign deterministic ordering, stable IDs, content hashes, tool versions, precision, and tolerance metadata.</li>
+          <li>Cross-check low periods with an independent method; do not let the runtime file be its own oracle.</li>
+          <li>Record the offline compute budget: degree-2048 ball root isolation is feasible but not free; the runbook states expected wall time and CI smoke policy (recount and spot-check, not per-pull-request regeneration).</li>
+        </ul>
+
+      <h3>How Newton feeds the SIMD-friendly design</h3>
+      <p>For a proposed period p, define:</p>
+      <div class="formula">F<sub>p</sub>(z,c) = f<sub>c</sub><sup>p</sup>(z) − z &nbsp;&nbsp; and &nbsp;&nbsp; ∂F<sub>p</sub>/∂z = λ − 1.</div>
+      <p>Along an orbit, the parameter derivative obeys the inexpensive recurrence:</p>
+      <div class="formula">B<sub>j+1</sub> = 2z<sub>j</sub>B<sub>j</sub> + 1, &nbsp; B<sub>0</sub> = 0, &nbsp; so locally &nbsp; dz*/dc = B/(1 − λ).</div>
+      <p>A catalog entry or verified neighboring pixel predicts a cycle point at the new parameter. The seed must retain a defined cycle phase; multiplier is phase-invariant but the Newton seed is not. Eligible candidates are bucketed by period, then a small bounded number of Newton corrections can run in lockstep across independent pixels. This is more SIMD-friendly than mixing arbitrary periods in one lane group because every lane performs the same p-step recurrence. Newton may converge to a lower-period or repelling root; the verifier remains separate.</p>
+      <div class="warning">
+        <strong>Conditioning guard.</strong> The predictor becomes ill-conditioned as λ → 1, especially near parabolic boundaries. Conservative attempt regions, denominator thresholds, bounded corrections, and immediate fallback are mandatory. Attempt regions are derived from the multiplier map (the Douady–Hubbard λ-isomorphism) rather than tuned constants: a seed is eligible when its first-order displacement estimate |B|·|Δc|/|1 − λ| stays inside the versioned guard, which degrades exactly as λ → 1. At superattracting centers λ = 0, Koenigs linearization is not the right local coordinate; Böttcher-type coordinates are the adjacent theory, but they remain research-only here.
+      </div>
+
+      <h3>Low-period algebra and partial closed forms</h3>
+      <p>The full raster problem has no useful global closed form, but several subproblems do:</p>
+      <ul>
+        <li>Main-cardioid membership/period-1 and period-2 bulb membership use exact mathematical formulas evaluated in binary64; ambiguity remains a numerical concern.</li>
+        <li>Proper-divisor sets, expected exact-period counts, and some low-period multiplier relations can be generated exactly offline.</li>
+        <li>For periods 3 and 4, low-degree relations Q<sub>p</sub>(c,λ)=0 may generate candidates faster than long orbit scans in selected regions; branch selection and numerical conditioning remain iterative verification problems.</li>
+        <li>Affine viewport mapping, pixel coordinates, and palette transforms are closed-form housekeeping and should stay outside the hot inner recurrence.</li>
+      </ul>
+      <p>Any radical or polynomial solution is evaluated as a floating candidate and passed through the same verifier. “Closed form” does not waive numerical branch, cancellation, or residual analysis.</p>
+
+      <h3>Spatial subdivision</h3>
+      <p>A Morton/quadtree representation is useful immediately for catalog sharding, demand loading, viewport queries, scheduling, cache locality, and prioritization. It is not safe evidence that all pixels in a rectangle share a semantic result. Corners and edges can agree while the interior contains fine Mandelbrot structure.</p>
+      <p>Stable block skipping is a separate research track requiring a <em>parametric</em> rigorous enclosure method—such as interval arithmetic plus a Krawczyk-style test—that proves escape or existence/uniqueness, exact period, and attraction uniformly over the whole parameter block. Even a certified uniform period does not justify one multiplier color: λ(c), its angle, and κ vary, so color fill also needs a rigorous semantic/palette variation bound. Approximate subdivision may drive only the coarse preview, and exterior/interior distance estimation — both derived from the same parameter-derivative recurrence B<sub>j+1</sub> = 2z<sub>j</sub>B<sub>j</sub> + 1 — is its concrete tool: exterior distance bounds block-fill escaped regions and interior bounds block-fill within verified components, at preview-only fidelity.</p>
+    </section>
+
+    <section id="simd">
+      <h2>7. Wasm SIMD design for Chrome and Firefox</h2>
+      <div class="decision">
+        <strong>Compatibility conclusion.</strong> Fixed-width WebAssembly SIMD is available in modern Chrome and Firefox, including <code>f64x2</code>. The plan still feature-detects the actual module and preserves the TypeScript scalar path because browser support alone does not guarantee speed, successful instantiation, or parity on every target environment.
+      </div>
+      <h3>Kernel shape</h3>
+      <ul>
+        <li>A small pinned Rust <code>wasm32-unknown-unknown</code> crate using stable Wasm SIMD intrinsics; no relaxed SIMD and no fast-math assumptions.</li>
+        <li>The SIMD module is a separate artifact from any scalar Wasm module. Unsupported engines can reject SIMD at validation time, so TypeScript—not code inside that module—is the mandatory fallback.</li>
+        <li>Scalar Wasm is a gated stepping stone, not a throwaway: it ships independently if it clears ≥1.2× the staged TypeScript classifier with parity, and SIMD Wasm must then beat scalar Wasm by its own ≥1.20× to ship.</li>
+        <li>One private Wasm instance and pre-sized aligned arena per tile worker; no shared linear memory, Wasm threads, <code>SharedArrayBuffer</code>, or cross-origin-isolation dependency.</li>
+        <li>Compile the shipping module once in the supervisor and structured-clone the compiled <code>WebAssembly.Module</code> to child workers; instantiate with private memory per child.</li>
+        <li>Structure-of-arrays inputs: real and imaginary components packed separately. Independent pixels occupy lanes.</li>
+        <li>Same-stage and, for Newton/verification, same-period queues reduce divergence. Completed lanes are masked; remaining items refill only at safe batch boundaries.</li>
+        <li>Scalar odd tail and scalar fallback for small or badly divergent queues.</li>
+        <li>No JavaScript↔Wasm crossing per pixel; batches amortize calls and copies.</li>
+        <li>Never await Wasm before coarse presentation. If concurrent compilation measurably harms coarse latency, start it after coarse and let the first stable pass use TypeScript.</li>
+        <li>Feature and failure handling covers asset/MIME/CSP, validation, compile, link, instantiate, worker start, and runtime trap. The deployment CSP is reviewed explicitly; it is not weakened silently.</li>
+        <li>Classify a microband inside Wasm, copy its output once to a recyclable transferable buffer, and avoid returning private Wasm memory directly.</li>
+      </ul>
+
+      <h3>SIMD acceptance details</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dimension</th><th>Required evidence</th></tr></thead>
+          <tbody>
+            <tr><td>Speed</td><td>Compare staged TypeScript, scalar Wasm, and SIMD Wasm. SIMD classifier ≥1.20× scalar Wasm, combined classifier ≥1.50× staged TypeScript, and end-to-end ≥1.25× staged TypeScript in each release browser.</td></tr>
+            <tr><td>Tail risk</td><td>No corpus case beyond the final noise-aware 5%/20 ms regression rule; report period-bucket lane utilization and fallback rates.</td></tr>
+            <tr><td>Responsiveness</td><td>Kernel-call p95 ≤25 ms and p99 ≤50 ms; cancel-to-child-quiescence p95 ≤50 ms; cold compilation may not delay first coarse preview.</td></tr>
+            <tr><td>Overhead</td><td>Packing, egress copy, and merge ≤15% of stable wall time; conservative peak memory &lt;25% above staged TypeScript; fixed 16-byte-aligned arenas and zero hot-path <code>memory.grow</code>.</td></tr>
+            <tr><td>Correctness</td><td>Semantic hashes and boundary fixtures match the versioned tolerance policy; feature-detection, compile, instantiate, self-test, and runtime failures all exercise scalar fallback.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="observability">
+      <h2>8. Low-overhead observability contract</h2>
+      <p>The plan does not recommend per-pixel tracing. Observability is split into a tiny always-on request summary and an explicitly enabled diagnostic mode. Counters are accumulated in preallocated worker-local structures and reported once per band or final frame.</p>
+
+      <h3>Always-on: bounded local ring</h3>
+      <p>Retain the last 32 request summaries, no remote telemetry, no per-pixel timers, and no unbounded User Timing marks. A <code>requestId</code> identifies UI intent; a <code>computeId</code> identifies actual semantic work and survives rebinding/replay. Environment metadata is stored once per session.</p>
+      <pre><code>RenderTrace {
+  requestId, computeId?, viewKeyHash, width, height, profile,
+  backend, workerCount, outcome, frames[],
+  cancelAckMs?, childQuiescenceMs?,
+  mainLongTaskCount, maxMainLongTaskMs
+}
+
+FrameTrace {
+  stage: "coarse" | "stable" | "refined",
+  source: "computed" | "semantic-cache" | "inflight-replay" | "recolor",
+  originComputeId?, requestToPresentMs, workerWallMs?, colorizeMs,
+  maxBandElapsedMs?, imbalanceRatio?, mergeCpuMs?
+}</code></pre>
+      <p><code>requestToPresentMs</code> ends at the next presentation opportunity after image upload; it is not proof of physical paint. <code>workerWallMs</code> spans worker/supervisor start through complete semantic assembly. <code>bandComputeMs</code> excludes explicit yields, while <code>bandElapsedMs</code> includes them. Aggregate compute is diagnostic and is never called wall or CPU time. Cache, replay, and recolor frames carry fresh delivery timing with compute fields absent, never zero or copied.</p>
+      <p>Cancellation has two meanings: <code>cancelAckMs</code> for user-visible acknowledgment and <code>childQuiescenceMs</code> for all affected children stopping or the pool resetting. Main-thread Long Task data is summarized as count/max; it says nothing about worker long tasks.</p>
+
+      <h3>Opt-in: <code>?perf=1</code> or benchmark mode</h3>
+      <p>Add integer counters only where they answer a decision:</p>
+      <ul>
+        <li>final classification totals and systematic/opportunistic period buckets;</li>
+        <li>analytic/checkpoint/catalog/chart/algebraic/fallback path hits;</li>
+        <li>candidate proposals, verifier rejects by reason, Newton corrections, and fallback transitions;</li>
+        <li>sampled orbit-iteration histogram rather than every pixel’s history;</li>
+        <li>catalog shard load/hit, worker imbalance, SIMD lane utilization, packing/copy time.</li>
+      </ul>
+      <div class="decision">
+        <strong>Overhead budgets.</strong> Normal mode has no hot-loop instrumentation branch, retains ≤64 KiB, and averages ≤0.2 ms recorder work per frame — enforced per render, since 0.2 ms is below reliable single-frame attribution; paired end-to-end non-inferiority allows at most 2% overhead. Opt-in diagnostics allow at most 5%. The classifier selects lean or instrumented functions outside the raster loop, samples iteration histograms deterministically (for example 1/1024 pixels), and transfers one compact summary per band. If a metric exceeds the budget, move it to an offline experiment.
+      </div>
+    </section>
+
+    <section id="benchmarks">
+      <h2>9. Benchmark and evidence contract</h2>
+      <h3>Frozen corpus</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Class</th><th>Required cases</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>Easy</td><td>Default full-set, exterior-heavy, main cardioid, period-2 bulb</td><td>Protect startup and common navigation from regression</td></tr>
+            <tr><td>Hard known</td><td>Period-3 rabbit plus boundary; the three supplied hard period-4 views</td><td>Exercise long-lived interior orbits and current complaint</td></tr>
+            <tr><td>Catalog (conditional)</td><td>Representative period 8, period 12, loaded high-period patch hit, cold/warm shard states</td><td>Runs only if F or G ships; measures candidate and loading value honestly</td></tr>
+            <tr><td>Fallback</td><td>Unknown high-period region, weak attraction, ambiguous boundary, unresolved budget exhaustion</td><td>Ensure heuristics fail safely and cheaply</td></tr>
+            <tr><td>Scale</td><td>Representative 6,000,000× view</td><td>Protect the declared product zoom envelope</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Three evidence suites, one manifest</h3>
+      <ul>
+        <li><strong>Performance suite:</strong> exact viewport rectangles (decimal-string corners or center plus span/aspect), raster, DPR, profile, and expected workload stratum.</li>
+        <li><strong>Correctness suite:</strong> independent high-precision point and raster oracles for status, primitive period, residual, multiplier, and expected ambiguity.</li>
+        <li><strong>Operational suite:</strong> cancellation, cache hit, in-flight replay, recolor, cold worker, cold Wasm, and fallback recovery; cold/warm catalog and corrupt shard join the suite only if F ships.</li>
+      </ul>
+      <p>The screenshot-derived hard views are seeds for exact records, not themselves the records. Add deterministic stratified holdouts across exterior, periods 1–4, 5–8, 9–12, uncataloged/higher-period, weak attraction, boundary, high-unresolved, and SIMD-divergent pixels so catalog patches cannot overfit the frozen named cases.</p>
+
+      <h3>Protocol</h3>
+      <ol>
+        <li>Run current stable branded Chrome and Firefox—not only automation-bundled engines—on the declared target laptop class, with CPU, cores, RAM, OS/kernel, exact browser build, power/battery mode, headed state, device-pixel ratio, viewport, build and algorithm/catalog revisions, worker count, and backend recorded. DevTools is closed. The harness runs the production bundle (<code>vite build</code> + <code>vite preview</code>), never the dev server; build mode is part of the recorded environment.</li>
+        <li>Use shipping viewport 1024×640 plus square 768² and 1024² diagnostic rasters.</li>
+        <li>Separate cold page/process, cold worker/Wasm compile, cold catalog shard, cold semantic cache, warm code/pool/catalog, computed, cache, replay, and recolor cases.</li>
+        <li>Use 9–11 paired repetitions for full-corpus median screening, at least 21 paired repetitions for release-gate cases, at least 40 observations for any reported p95, and at least 50 interactions per cancellation distribution. Store every sample.</li>
+        <li>Report median, median absolute deviation, paired interval, min/max, and p95 only with adequate samples. Hash discrete status/period fields with documented byte order; compare continuous evidence by tolerances and distributions.</li>
+        <li>Paired intervals are 95% bias-corrected accelerated (BCa) bootstrap intervals on paired per-case differences (log-ratios for speed ratios), computed from stored paired samples with the resampling seed recorded in the manifest. Per-case regression caps are evaluated per case without family-wise adjustment; the expected count of chance flags across the corpus is reported alongside each gate result.</li>
+        <li>Declare a machine-time envelope in the manifest: 21 paired release-gate repetitions over 11–23 s hard cases imply hours per browser per variant, so the manifest distinguishes screening cases (9–11 reps) from release-gate cases (21+) and a full gate run targets ≤4 h per browser per variant on the declared target hardware.</li>
+        <li>Randomize or alternate baseline/candidate order to reduce thermal and temporal bias. A single run may not establish a ship claim.</li>
+        <li>Keep benchmark assertions out of ordinary wall-clock CI. CI validates semantics, schemas, deterministic fixtures, fallbacks, and smoke budgets; controlled evidence runs support performance decisions.</li>
+      </ol>
+
+      <h3>Normative regression caps</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Scope</th><th>Rule</th></tr></thead>
+          <tbody>
+            <tr><td>General per-case regression</td><td>Paired median exceeds max(5%, 20 ms) with a paired interval excluding zero, in either browser</td></tr>
+            <tr><td>Workstream-specific allowances</td><td>May loosen a cap only when the workstream gate states it (SIMD allows a 10% hard-case tail); nothing may loosen a correctness gate</td></tr>
+            <tr><td>Weighted aggregates</td><td>May not conceal a per-case regression beyond the caps above</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Program-level success</h3>
+      <ul>
+        <li><strong>Correctness dominates speed:</strong> zero false attracting results and zero wrong primitive periods against oracle/holdout evidence.</li>
+        <li><strong>Absolute product targets:</strong> coarse and stable latency budgets are frozen after the clean Stage A target-hardware baseline and take precedence over arbitrary ratios. An absolute user-facing hard-view budget is declared with them (for example, worst declared hard view at Detailed on target hardware); if the 2× exit criterion cannot meet that budget, closure requires the conditional workstreams' dispositions plus an explicit product decision, not silent acceptance of a still-slow view.</li>
+        <li><strong>Cumulative target:</strong> aim for at least 3× on the predefined hard-corpus geometric/weighted aggregate; this is a program target, not a reason to ship a failed experiment.</li>
+        <li><strong>Per-PR admission:</strong> use each workstream’s stated benefit gate. Reject a regression when the paired median exceeds max(5%, 20 ms) and its paired interval excludes zero; both browsers pass independently.</li>
+        <li><strong>Semantic change:</strong> unresolved-rate increase ≤0.1 percentage point unless supported by the oracle and explicitly approved; legacy mismatch alone is not failure.</li>
+      </ul>
+    </section>
+
+    <section id="requirements">
+      <h2>10. Requirements, mathematics documentation, and traceability</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Requirement</th><th>Primary evidence</th></tr></thead>
+          <tbody>
+            <tr><td>MI-PERF-001</td><td>The offline toolchain shall reproduce the declared corpus and retain build, environment, raw observations, metric definitions, and semantic-comparison evidence for every normative run.</td><td>Corpus manifest, raw samples, environment record, evidence hashes</td></tr>
+            <tr><td>MI-PERF-002</td><td>The classifier shall perform finite, profile-bounded systematic detection and may report a higher opportunistic period only after the same primitive-period and attraction checks.</td><td>Oracle/differential fixtures, verifier tests, policy UI tests</td></tr>
+            <tr><td>MI-PERF-003</td><td>The curated identity layer shall remain intact. If workstream F ships, the generated period-12 core shall be deterministically reproducible and versioned extension shards shall load without blocking rendering or weakening the curated catalog.</td><td>Generator report, hashes, offline/cold/warm/corrupt-shard tests (conditional on F)</td></tr>
+            <tr><td>MI-PERF-004</td><td>No checkpoint, catalog, algebraic, Newton, SIMD, or subdivision path shall emit attracting-cycle status without the common declared acceptance procedure; exhausted or ambiguous work shall remain unresolved.</td><td>Oracle fixtures, candidate rejection tests, continuous-field tolerance report</td></tr>
+            <tr><td>MI-PERF-005</td><td>An optional accelerated kernel shall be capability-detected and self-tested, preserve the semantic contract, and automatically use the scalar Worker CPU path on unsupported or failed execution.</td><td>Chrome/Firefox evidence, forced-failure tests, backend parity</td></tr>
+            <tr><td>MI-PERF-006</td><td>Rendering shall remain progressive, cancellable, memory-bounded, and within versioned responsiveness and stable-frame budgets on the supported target class.</td><td>End-to-end cancel/cache tests, memory high-water, browser evidence</td></tr>
+            <tr><td>MI-PERF-007</td><td>Always-on observation shall operate only at request/band boundaries, distinguish computed, cached, replayed, and recolored frames, and meet retention/overhead limits.</td><td>Timing schema tests, overhead benchmark, ring-size tests</td></tr>
+            <tr><td>MI-PERF-008</td><td>Catalog presentation — the curated centers and, if F ships, dynamic marker loading and clustering — shall remain keyboard-operable, screen-reader understandable, focus-stable, and bounded in simultaneous interactive markers.</td><td>Accessibility record, marker cap, focus and search/list tests</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Define verification objectives <code>MI-VER-PERF-001</code> through <code>005</code> for: benchmark/observability; classifier agreement/rejection; catalog completeness/determinism/accessibility; rendering/cancellation/memory/browser budgets; and optional acceleration capability/equivalence/fallback. Add a trace matrix from each requirement to SysML subject/satisfaction, verification objective, implementation area, normative evidence, ADR, owning PR, and closeout state. Preserve regression trace to existing MI-UX requirements rather than silently superseding them.</p>
+
+      <h3>Required documentation changes</h3>
+      <ul>
+        <li><code>docs/PERFORMANCE-PLAN.md</code>: implementation roadmap, gates, status, evidence links.</li>
+        <li><code>docs/PERFORMANCE-MATHEMATICS.md</code>: formulas, tolerances, claim taxonomy, conditioning, primitive-period verification, representations.</li>
+        <li><code>docs/verification/PERFORMANCE-CORPUS.md</code>: case IDs, viewport parameters, expected semantic invariants, protocol.</li>
+        <li><code>docs/verification/REQUIREMENTS.md</code>: add MI-PERF-001 through 008 with test/evidence mapping.</li>
+        <li><code>docs/PLAN.md</code>, <code>docs/RESEARCH.md</code>, <code>docs/IMPLEMENTATION.md</code>, <code>catalog/README.md</code>, and <code>model/MandelbrotInteriority.sysml</code>: align architecture, generator, and verification language.</li>
+        <li>ADR 0003: staged classifier and period-policy boundary.</li>
+        <li>ADR 0004: catalog disposition — curated identity layer retained; generated core and runtime shards deferred unless F's evidence gate fires.</li>
+        <li>ADR 0005: conditional Wasm SIMD backend and scalar fallback.</li>
+      </ul>
+      <p>Normative evidence lives under <code>evidence/phase-2/&lt;date&gt;-&lt;commit&gt;/</code> with <code>environment.json</code>, <code>raw-observations.json</code>, <code>semantic-comparison.json</code>, <code>catalog-generation.json</code> (when F ships), optional <code>wasm-build.json</code>, human <code>summary.md</code>, and a SHA-256 manifest. Viewport coordinates are decimal strings; browser, OS, CPU, power, cache reset, harness command/version, repetitions, exclusions, generator/compiler dependencies, and content hashes are retained.</p>
+      <p>Process weight is bounded to project scale: the trace matrix may live as a section of <code>docs/verification/REQUIREMENTS.md</code>, and the SHA-256 manifest is emitted by a checked-in script, never assembled by hand. PoC evidence lands in <code>poc/performance/results/</code> with the same raw-sample discipline at reduced repetition counts, explicitly labeled directional.</p>
+
+      <h3>Claim taxonomy for the mathematics document</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Label</th><th>Examples</th><th>Required wording/evidence</th></tr></thead>
+          <tbody>
+            <tr><td>Mathematical identity/theorem</td><td>Center counts, derivative recurrences</td><td>Exact statement independent of implementation</td></tr>
+            <tr><td>Closed form evaluated in binary64</td><td>Main cardioid and period-2 bulb tests</td><td>Exact formula, but not unqualified floating certification</td></tr>
+            <tr><td>Symbolically exact object</td><td>Integer center factors and low-period relations</td><td>Separate symbolic generation from floating roots</td></tr>
+            <tr><td>Certified numerical result</td><td>Disjoint interval/ball root enclosures and completeness</td><td>Tool, precision, bounds, rerun, provenance</td></tr>
+            <tr><td>Floating validated result</td><td>Closure, primitive-period reduction, |λ| margin</td><td>Version tolerances, error policy, residuals, independent checks</td></tr>
+            <tr><td>Heuristic candidate</td><td>Checkpoint lag, catalog proximity, local chart predictor</td><td>Explicitly deny proof status; document fallback</td></tr>
+            <tr><td>Experimental</td><td>p3/p4 acceleration, Koenigs/Böttcher coordinates, rigorous block fill</td><td>Ship/kill gate and unresolved research questions</td></tr>
+            <tr><td>Rejected unsafe shortcut</td><td>Stable fill from matching corners/edges</td><td>Record why semantic variation invalidates it</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sequence">
+      <h2>11. Delivery sequence and dependency logic</h2>
+      <ol>
+        <li><strong>Step 0 — Proof-of-concept harness (<code>poc/performance/</code>; M).</strong> Directional, oracle-checked variant evidence (schedules, DE period guessing, neighbor-informed lag ordering, bounded exhaustion extension, transplantation, trap, conjugate-mirror parity, renderer-path details) that feeds PR 1's corpus and gate choices. Specified at revision 2; <em>not yet landed as of revision 4</em> — it is a Phase 2 entry deliverable and must precede PR 1.</li>
+        <li><strong>PR 1 — Corpus, timing, and bounded observability (M).</strong> Establish truth before optimizing it.</li>
+        <li><strong>PR 2 — Allocation-free scalar kernel (S–M).</strong> Remove obvious overhead with minimal algorithm change.</li>
+        <li><strong>PR 3 — Common verifier and semantic oracle (M).</strong> Freeze candidate acceptance before adding candidate sources.</li>
+        <li><strong>PR 4 — Checkpoint candidates (M–L).</strong> Attack the O(iterations × periods) scan behind a legacy differential flag.</li>
+        <li><strong>PR 5 — Period policy buckets and product language (S).</strong> Separate systematic cost from opportunistic verified discoveries.</li>
+        <li><strong>Conditional PR — Conjugate symmetry mirroring (workstream M; size S–M).</strong> Dispatch-level row dedup for viewports intersecting their conjugate; cheap and multiplicative with every backend and schedule, so it goes first among the conditionals.</li>
+        <li><strong>Conditional PR — Cross-profile semantic carryover (workstream O; size S–M).</strong> Carry budget-independent (escaped, verified-attracting) pixels across profile upgrades at an unchanged viewport; recompute unresolved only.</li>
+        <li><strong>Conditional PR — Cost-weighted static banding (workstream N; size S).</strong> Split stable bands by coarse-pass estimated cost instead of equal height; attempted before E, and meeting E's bar kills E with retained evidence.</li>
+        <li><strong>Conditional PR — Dynamic microbands (workstream E; size M).</strong> Attempt only on residual skew that N demonstrably leaves; emit one stable frame first.</li>
+        <li><strong>Conditional PR — Catalog/session/adjacent-pixel Newton candidates (transplantation) (M).</strong> Use same-period queues and common verification; the raster-coherent seed source reaches zooms the catalog cannot.</li>
+        <li><strong>Conditional PR — Reproducible period-12 generator and compact core (workstream F; L — the largest single item in this plan).</strong> Attempt only if C and the Newton PoC quantify seed value checkpoint detection alone cannot provide; ship data only after independent validation. Default disposition is deferral to a product (atlas) phase.</li>
+        <li><strong>Conditional PR — Dynamic catalog LOD and accessibility (M).</strong> Ships only together with F; otherwise the curated 11 keep their existing Phase 1 validation.</li>
+        <li><strong>Conditional PR — p3/p4 algebraic path (M).</strong> Merge only if its targeted or weighted gate is met.</li>
+        <li><strong>Conditional PR — Wasm SIMD backend (L).</strong> Optimize the stable algorithm and compare TypeScript, scalar Wasm, and SIMD Wasm; scalar Wasm may ship first under its own gate.</li>
+        <li><strong>Conditional PR — Pool sizing, zero-copy output, yield mechanism, band order (S–M).</strong> Workstream K plus the renderer-path efficiency details; one measured bundle or separate small PRs.</li>
+        <li><strong>Research track — Rigorous subdivision (open-ended).</strong> Separate from release until a certified whole-block enclosure exists.</li>
+        <li><strong>Research track — Trap-radius early accept (open-ended).</strong> Workstream L; oracle-gated, research-only.</li>
+      </ol>
+      <p class="small">Sizes are relative single-engineer focused-effort estimates at project scale (S &lt; 1 week, M ≈ 1–3 weeks, L &gt; 3 weeks). They order risk and sequencing; they are not commitments.</p>
+      <div class="decision">
+        <strong>Sequencing rationale.</strong> SIMD is intentionally late. A vectorized O(iterations × periods) algorithm can still waste most of its work; changing the scalar algorithm first produces value on every browser and exposes homogeneous work queues that SIMD can exploit.
+      </div>
+    </section>
+
+    <section id="risks">
+      <h2>12. Risks, kill gates, and explicit exclusions</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Highest-risk assumptions</h3>
+          <ul>
+            <li>Approximate checkpoint candidates preserve detection sensitivity after removing the full lag scan.</li>
+            <li>(Conditional, F only — off the closeout critical path after the rev 3 demotion) Period-12 proximity predicts enough useful cycles at the product zoom ceiling.</li>
+            <li>Newton attempts stay well-conditioned often enough to repay bucketing and verification.</li>
+            <li>Wasm packing/copy and lane divergence do not erase f64x2 gains in Firefox.</li>
+            <li>Dynamic scheduling helps hard views without recolor/message overhead hurting common cases.</li>
+            <li>Adjacent-pixel transplantation and its attempt guard degrade gracefully near parabolic boundaries (|B|·|Δc| blows up) and do not shift attraction/unresolved boundaries.</li>
+            <li>Schedule-based detection (checkpoint or trigger) does not push detection past the iteration budget on weakly attracting pixels.</li>
+            <li>Conjugate-mirror coordinate construction stays inside the versioned tolerance policy; a sub-ulp sampling offset must not flip boundary pixels against the oracle.</li>
+            <li>The coarse-pass cost signal predicts stable-pass cost well enough for N to balance bands; otherwise E remains the fallback.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Mitigations</h3>
+          <ul>
+            <li>Legacy differential backend and invariant fixtures.</li>
+            <li>Per-case gates and conservative attempt regions.</li>
+            <li>Independent generator validation and content hashes.</li>
+            <li>Backend feature/self-tests and scalar fallback.</li>
+            <li>Measure skew first; throttle assembly; cache final stable frames only.</li>
+            <li>PoC differential runs and double-double oracle adjudication before any schedule or seed policy is frozen; matched-budget detection analysis in gate C.</li>
+          </ul>
+        </article>
+      </div>
+
+      <h3>Explicitly out of scope</h3>
+      <ul>
+        <li>Reopening Phase 1 closeout absent a regression.</li>
+        <li>Changing the product zoom ceiling or adopting perturbation/deep-zoom arithmetic in this phase.</li>
+        <li>WebGPU as the default solution; it remains a separately gated architecture decision.</li>
+        <li>Wasm threads, <code>SharedArrayBuffer</code>, or COOP/COEP deployment changes.</li>
+        <li>Remote performance telemetry or per-pixel production tracing.</li>
+        <li>Rendering all 4,016 catalog entries as DOM controls.</li>
+        <li>Using a catalog lookup, Newton convergence, multiplier relation, or matching subdivision samples as proof without the common verifier.</li>
+        <li>f32/f64 mixed-precision pre-passes for exterior pixels: they accelerate only exterior-heavy (already fast) views and complicate backend parity.</li>
+        <li>Incremental per-pixel coordinate stepping and other sub-ulp coordinate shortcuts; per-pixel exact affine math stays.</li>
+        <li>Hand-tuned micro-fixes with no hot-loop cost (for example <code>Math.hypot</code> outside candidate paths) — evaluated and rejected.</li>
+        <li>Scalar Wasm as a required deliverable: it is a gated stepping stone under workstream I, not an obligation.</li>
+      </ul>
+
+      <h3>Final Phase 2 exit criteria</h3>
+      <ul>
+        <li>Required workstreams meet their individual gates in both stable browsers; every conditional experiment has a recorded accept/reject disposition.</li>
+        <li>The required checkpoint path achieves at least 2× on declared worst hard cases and the frozen absolute latency budgets. The 3× integrated hard-corpus goal remains a program target, not a reason to hold closure open indefinitely if optional experiments fail honestly.</li>
+        <li>Categorical results satisfy the high-precision oracle/holdout contract; reviewed conservative changes from legacy output are documented.</li>
+        <li>If F ships, the dynamic catalog UI passes keyboard, screen-reader, focus, clustering, and marker-cap validation; otherwise the curated layer's existing Phase 1 accessibility validation stands.</li>
+        <li>Mathematics, requirements, ADRs, implementation, generator, evidence, and SysML views agree.</li>
+        <li>Every experiment that did not ship is recorded with its measurements and kill rationale.</li>
+      </ul>
+
+      <h3>Working glossary</h3>
+      <dl>
+        <dt><strong>Candidate</strong></dt><dd>A proposed lag, period, or cycle seed that has no semantic authority until accepted.</dd>
+        <dt><strong>Common verifier</strong></dt><dd>The sole floating acceptance procedure for finite state, closure, primitive period, attraction, and ambiguity.</dd>
+        <dt><strong>Systematic period ceiling</strong></dt><dd>The profile-bounded period range deliberately searched; meaningful only with its iteration and verification budgets.</dd>
+        <dt><strong>Opportunistic result</strong></dt><dd>A higher-period candidate found by loaded/session data and accepted by the same verifier.</dd>
+        <dt><strong>Stable frame</strong></dt><dd>The deterministic complete result for the render-start snapshot of algorithm, policy, catalog, and seed revisions.</dd>
+        <dt><strong>Refined frame</strong></dt><dd>An explicit later frame that may replace unresolved pixels after optional data arrives; it never silently mutates stable.</dd>
+        <dt><strong>Core / patch / shard / session atlas</strong></dt><dd>Bundled period-12 index (ships only if F is accepted) / optional targeted seed data / transfer unit / bounded ephemeral verified local cache.</dd>
+        <dt><strong>Certified</strong></dt><dd>Reserved for interval/ball or equivalent proof, not ordinary binary64 consistency checks.</dd>
+      </dl>
+    </section>
+
+    <section id="references">
+      <h2>13. Primary and adjacent literature</h2>
+      <p class="small">These sources establish adjacent algorithms and browser capabilities; they do not substitute for project-specific correctness or performance evidence.</p>
+      <ol>
+        <li>Richard P. Brent, <a href="https://doi.org/10.1007/BF01933190">An improved Monte Carlo factorization algorithm</a> (cycle-finding checkpoint structure).</li>
+        <li>WebAssembly Community Group, <a href="https://github.com/WebAssembly/simd/blob/main/proposals/simd/SIMD.md">Fixed-width SIMD proposal</a> and <a href="https://webassembly.github.io/spec/versions/core/WebAssembly-2.0.pdf">WebAssembly Core Specification 2.0</a>.</li>
+        <li>V8, <a href="https://v8.dev/features/simd">WebAssembly SIMD</a>; Mozilla, <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1695585">Firefox Wasm SIMD enablement</a>.</li>
+        <li>Rust, <a href="https://doc.rust-lang.org/core/arch/wasm32/index.html">wasm32 architecture intrinsics</a> and <a href="https://doc.rust-lang.org/rustc/platform-support/wasm32-unknown-unknown.html">wasm32-unknown-unknown target</a>.</li>
+        <li>WebAssembly, <a href="https://webassembly.org/getting-started/js-api/">JavaScript API guide</a>; MDN, <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">Using Web Workers</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src">CSP script-src / Wasm policy</a>.</li>
+        <li>Hiroki Murakami, <a href="https://arxiv.org/pdf/2403.17315">Multipliers and dynatomic curves for the Mandelbrot set</a>.</li>
+        <li>Anthony Giarrusso and Yuval Fisher, <a href="https://www.ams.org/journals/proc/1995-123-12/S0002-9939-1995-1301497-3/S0002-9939-1995-1301497-3.pdf">A parameterization of the period 3 hyperbolic components of the Mandelbrot set</a>.</li>
+        <li>Anna Belova and Igors Gorbovickis, <a href="https://arxiv.org/abs/1902.10444">Critical points of the multiplier map</a>.</li>
+        <li>John Milnor, <a href="https://arxiv.org/pdf/math/9905169">Periodic orbits, external rays and the Mandelbrot set</a>.</li>
+        <li>Patrick Morton, <a href="https://eudml.org/doc/90474">Arithmetic properties of periodic points of quadratic maps</a>.</li>
+        <li>Dario A. Bini, <a href="https://arxiv.org/pdf/2307.12009">Numerical computation of polynomial roots: a survey</a>.</li>
+        <li>Dario A. Bini and Giuseppe Fiorentino, <a href="https://doi.org/10.1007/s002110050552">Design, analysis, and implementation of a multiprecision polynomial rootfinder</a> (MPSolve).</li>
+        <li>Fredrik Johansson, <a href="https://arxiv.org/abs/1611.02831">Arb: efficient arbitrary-precision midpoint-radius interval arithmetic</a>.</li>
+        <li>R. Baker Kearfott, <a href="https://doi.org/10.1137/1.9781611970906">Rigorous Global Search: Continuous Problems</a> (interval Newton/Krawczyk methods).</li>
+        <li>Dzmitry Dudko and Dierk Schleicher, <a href="https://arxiv.org/pdf/1008.5355">Homeomorphisms between limbs of the Mandelbrot set</a>.</li>
+        <li>Jasmin Raissy / modern holomorphic dynamics survey context via Lasse Rempe-Gillen et al.; for a focused linearization overview see Tobias Reppekus, <a href="https://arxiv.org/abs/2309.05824">Fixed points and local holomorphic dynamics</a>.</li>
+        <li>Adrien Douady and John H. Hubbard, <a href="https://www.numdam.org/item/ASENS_1985_4_18_2_287_0/">Étude dynamique des polynômes complexes</a>.</li>
+      </ol>
+    </section>
+
+  </main>
+
+  <footer>
+    <p><strong>Mandelbrot Interiority — Phase 2 Performance Improvement Plan.</strong> Self-contained review artifact. External links are references only; the document has no runtime dependencies, scripts, fonts, or network-loaded styles.</p>
+  </footer>
+</body>
+</html>

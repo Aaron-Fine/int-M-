@@ -1,0 +1,2255 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-08-29T16:26:40.539Z",
+  "commit": "4fd4fdd98009d141f1a82a7524b3e9b12caf8f54",
+  "baseUrl": "http://127.0.0.1:4173/",
+  "headless": true,
+  "budgets": {
+    "coarse768Ms": 150,
+    "coarse1024Ms": 250,
+    "stable768Ms": 2000,
+    "stable1024Ms": 2250,
+    "cancellationP95Ms": 50,
+    "longTaskMs": 50
+  },
+  "sampleCount": 5,
+  "cancelPresses": 24,
+  "host": {
+    "cpuGovernor": "powersave"
+  },
+  "browsers": [
+    {
+      "name": "chromium",
+      "kind": "Playwright Chromium / Chrome for Testing",
+      "version": "151.0.7922.34",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+      "viewport": {
+        "width": 1440,
+        "height": 1200,
+        "deviceScaleFactor": 1
+      },
+      "firstUse": {
+        "guideVisibleBeforeStable": true,
+        "guideVisibleAfterStable": true,
+        "coldFirstStableMs": 551
+      },
+      "pool": {
+        "afterFirstStable": {
+          "hardwareConcurrency": 8,
+          "inferredPoolSize": 4,
+          "pageWorkers": [
+            "http://127.0.0.1:4173/assets/render.worker-DLk4pHZz.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+          ],
+          "cdpWorkers": {
+            "render": 1,
+            "tile": 4,
+            "targets": [
+              {
+                "title": "mandelbrot-renderer",
+                "url": "http://127.0.0.1:4173/assets/render.worker-DLk4pHZz.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              }
+            ]
+          }
+        },
+        "afterWarm": {
+          "hardwareConcurrency": 8,
+          "inferredPoolSize": 4,
+          "pageWorkers": [
+            "http://127.0.0.1:4173/assets/render.worker-DLk4pHZz.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+          ],
+          "cdpWorkers": {
+            "render": 1,
+            "tile": 4,
+            "targets": [
+              {
+                "title": "mandelbrot-renderer",
+                "url": "http://127.0.0.1:4173/assets/render.worker-DLk4pHZz.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              },
+              {
+                "title": "mandelbrot-tile",
+                "url": "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+              }
+            ]
+          }
+        }
+      },
+      "cases": [
+        {
+          "id": "balanced-768",
+          "edge": 768,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 768,
+            "backingHeight": 768,
+            "cssWidth": 768,
+            "cssHeight": 768,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "39"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "6"
+              },
+              "requestId": "6",
+              "latest": {
+                "requestId": 6,
+                "coarseMs": 87,
+                "stableMs": 536.2
+              },
+              "worker": {
+                "coarseClassifyMs": 17.3,
+                "coarseColorizeMs": 31,
+                "coarseYieldWaitMs": 26.9,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 421.4,
+                "stableColorizeMs": 29.9,
+                "stableYieldWaitMs": 74.3,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "8"
+              },
+              "requestId": "8",
+              "latest": {
+                "requestId": 8,
+                "coarseMs": 82.6,
+                "stableMs": 516
+              },
+              "worker": {
+                "coarseClassifyMs": 16.3,
+                "coarseColorizeMs": 35.2,
+                "coarseYieldWaitMs": 27.6,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 393.9,
+                "stableColorizeMs": 40,
+                "stableYieldWaitMs": 74.3,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "10"
+              },
+              "requestId": "10",
+              "latest": {
+                "requestId": 10,
+                "coarseMs": 84.4,
+                "stableMs": 567.7
+              },
+              "worker": {
+                "coarseClassifyMs": 18.8,
+                "coarseColorizeMs": 30.6,
+                "coarseYieldWaitMs": 27,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 442.8,
+                "stableColorizeMs": 31,
+                "stableYieldWaitMs": 74.4,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "12"
+              },
+              "requestId": "12",
+              "latest": {
+                "requestId": 12,
+                "coarseMs": 77.3,
+                "stableMs": 527.5
+              },
+              "worker": {
+                "coarseClassifyMs": 12.7,
+                "coarseColorizeMs": 31.8,
+                "coarseYieldWaitMs": 26.2,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 415.7,
+                "stableColorizeMs": 30.8,
+                "stableYieldWaitMs": 74.8,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "14"
+              },
+              "requestId": "14",
+              "latest": {
+                "requestId": 14,
+                "coarseMs": 101.8,
+                "stableMs": 518.6
+              },
+              "worker": {
+                "coarseClassifyMs": 20.1,
+                "coarseColorizeMs": 36.7,
+                "coarseYieldWaitMs": 27.6,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 391.4,
+                "stableColorizeMs": 32.8,
+                "stableYieldWaitMs": 74.5,
+                "stableYieldCount": 96
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 84.4,
+            "coarseMaxMs": 101.8,
+            "stableMedianMs": 527.5,
+            "stableMaxMs": 567.7,
+            "cancellationAllCount": 42,
+            "cancellationInFlightCount": 42,
+            "cancellationAllP95Ms": 13.8,
+            "cancellationInFlightP95Ms": 13.8,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": [],
+            "worker": {
+              "coarseClassifyMedianMs": 17.3,
+              "coarseColorizeMedianMs": 31.8,
+              "stableClassifyMedianMs": 415.7,
+              "stableColorizeMedianMs": 31,
+              "coarseYieldWaitMedianMs": 27,
+              "stableYieldWaitMedianMs": 74.4,
+              "coarseYieldCountMedian": 12,
+              "stableYieldCountMedian": 96
+            }
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 15,
+                "ms": 6.4
+              },
+              {
+                "requestId": 16,
+                "ms": 9.6
+              },
+              {
+                "requestId": 16,
+                "ms": 2.3
+              },
+              {
+                "requestId": 17,
+                "ms": 11.6
+              },
+              {
+                "requestId": 17,
+                "ms": 6.1
+              },
+              {
+                "requestId": 18,
+                "ms": 10.8
+              },
+              {
+                "requestId": 18,
+                "ms": 4.9
+              },
+              {
+                "requestId": 19,
+                "ms": 10
+              },
+              {
+                "requestId": 19,
+                "ms": 4.9
+              },
+              {
+                "requestId": 20,
+                "ms": 10.4
+              },
+              {
+                "requestId": 20,
+                "ms": 6
+              },
+              {
+                "requestId": 21,
+                "ms": 4.1
+              },
+              {
+                "requestId": 22,
+                "ms": 13.7
+              },
+              {
+                "requestId": 22,
+                "ms": 9.9
+              },
+              {
+                "requestId": 23,
+                "ms": 14
+              },
+              {
+                "requestId": 23,
+                "ms": 10
+              },
+              {
+                "requestId": 24,
+                "ms": 14.6
+              },
+              {
+                "requestId": 24,
+                "ms": 10.5
+              },
+              {
+                "requestId": 25,
+                "ms": 13.7
+              },
+              {
+                "requestId": 25,
+                "ms": 10
+              },
+              {
+                "requestId": 26,
+                "ms": 13.6
+              },
+              {
+                "requestId": 26,
+                "ms": 9.9
+              },
+              {
+                "requestId": 27,
+                "ms": 13.8
+              },
+              {
+                "requestId": 27,
+                "ms": 10.3
+              },
+              {
+                "requestId": 28,
+                "ms": 6.2
+              },
+              {
+                "requestId": 29,
+                "ms": 11.6
+              },
+              {
+                "requestId": 29,
+                "ms": 8.3
+              },
+              {
+                "requestId": 30,
+                "ms": 8
+              },
+              {
+                "requestId": 31,
+                "ms": 13.4
+              },
+              {
+                "requestId": 31,
+                "ms": 9
+              },
+              {
+                "requestId": 32,
+                "ms": 11.5
+              },
+              {
+                "requestId": 32,
+                "ms": 7.2
+              },
+              {
+                "requestId": 33,
+                "ms": 10.7
+              },
+              {
+                "requestId": 33,
+                "ms": 6.4
+              },
+              {
+                "requestId": 34,
+                "ms": 10.1
+              },
+              {
+                "requestId": 34,
+                "ms": 6.2
+              },
+              {
+                "requestId": 35,
+                "ms": 4.4
+              },
+              {
+                "requestId": 36,
+                "ms": 10.1
+              },
+              {
+                "requestId": 36,
+                "ms": 5.9
+              },
+              {
+                "requestId": 37,
+                "ms": 11.8
+              },
+              {
+                "requestId": 37,
+                "ms": 8.5
+              },
+              {
+                "requestId": 38,
+                "ms": 8.7
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 15,
+                "ms": 6.4
+              },
+              {
+                "requestId": 16,
+                "ms": 9.6
+              },
+              {
+                "requestId": 16,
+                "ms": 2.3
+              },
+              {
+                "requestId": 17,
+                "ms": 11.6
+              },
+              {
+                "requestId": 17,
+                "ms": 6.1
+              },
+              {
+                "requestId": 18,
+                "ms": 10.8
+              },
+              {
+                "requestId": 18,
+                "ms": 4.9
+              },
+              {
+                "requestId": 19,
+                "ms": 10
+              },
+              {
+                "requestId": 19,
+                "ms": 4.9
+              },
+              {
+                "requestId": 20,
+                "ms": 10.4
+              },
+              {
+                "requestId": 20,
+                "ms": 6
+              },
+              {
+                "requestId": 21,
+                "ms": 4.1
+              },
+              {
+                "requestId": 22,
+                "ms": 13.7
+              },
+              {
+                "requestId": 22,
+                "ms": 9.9
+              },
+              {
+                "requestId": 23,
+                "ms": 14
+              },
+              {
+                "requestId": 23,
+                "ms": 10
+              },
+              {
+                "requestId": 24,
+                "ms": 14.6
+              },
+              {
+                "requestId": 24,
+                "ms": 10.5
+              },
+              {
+                "requestId": 25,
+                "ms": 13.7
+              },
+              {
+                "requestId": 25,
+                "ms": 10
+              },
+              {
+                "requestId": 26,
+                "ms": 13.6
+              },
+              {
+                "requestId": 26,
+                "ms": 9.9
+              },
+              {
+                "requestId": 27,
+                "ms": 13.8
+              },
+              {
+                "requestId": 27,
+                "ms": 10.3
+              },
+              {
+                "requestId": 28,
+                "ms": 6.2
+              },
+              {
+                "requestId": 29,
+                "ms": 11.6
+              },
+              {
+                "requestId": 29,
+                "ms": 8.3
+              },
+              {
+                "requestId": 30,
+                "ms": 8
+              },
+              {
+                "requestId": 31,
+                "ms": 13.4
+              },
+              {
+                "requestId": 31,
+                "ms": 9
+              },
+              {
+                "requestId": 32,
+                "ms": 11.5
+              },
+              {
+                "requestId": 32,
+                "ms": 7.2
+              },
+              {
+                "requestId": 33,
+                "ms": 10.7
+              },
+              {
+                "requestId": 33,
+                "ms": 6.4
+              },
+              {
+                "requestId": 34,
+                "ms": 10.1
+              },
+              {
+                "requestId": 34,
+                "ms": 6.2
+              },
+              {
+                "requestId": 35,
+                "ms": 4.4
+              },
+              {
+                "requestId": 36,
+                "ms": 10.1
+              },
+              {
+                "requestId": 36,
+                "ms": 5.9
+              },
+              {
+                "requestId": 37,
+                "ms": 11.8
+              },
+              {
+                "requestId": 37,
+                "ms": 8.5
+              },
+              {
+                "requestId": 38,
+                "ms": 8.7
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:worker-coarse-classify",
+            "mi:worker-coarse-colorize",
+            "mi:worker-yield-wait",
+            "mi:worker-stable-classify",
+            "mi:worker-stable-colorize",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-requested",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        },
+        {
+          "id": "balanced-1024",
+          "edge": 1024,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 1024,
+            "backingHeight": 1024,
+            "cssWidth": 1024,
+            "cssHeight": 1024,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "76"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "43"
+              },
+              "requestId": "43",
+              "latest": {
+                "requestId": 43,
+                "coarseMs": 136.8,
+                "stableMs": 955.3
+              },
+              "worker": {
+                "coarseClassifyMs": 28.1,
+                "coarseColorizeMs": 52.9,
+                "coarseYieldWaitMs": 45.3,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 764,
+                "stableColorizeMs": 58.9,
+                "stableYieldWaitMs": 107.3,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "45"
+              },
+              "requestId": "45",
+              "latest": {
+                "requestId": 45,
+                "coarseMs": 133.5,
+                "stableMs": 866.9
+              },
+              "worker": {
+                "coarseClassifyMs": 28.7,
+                "coarseColorizeMs": 50.4,
+                "coarseYieldWaitMs": 42.8,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 674.7,
+                "stableColorizeMs": 51.8,
+                "stableYieldWaitMs": 107.5,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "47"
+              },
+              "requestId": "47",
+              "latest": {
+                "requestId": 47,
+                "coarseMs": 133.6,
+                "stableMs": 867
+              },
+              "worker": {
+                "coarseClassifyMs": 27.1,
+                "coarseColorizeMs": 49.3,
+                "coarseYieldWaitMs": 42.2,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 680.5,
+                "stableColorizeMs": 50.2,
+                "stableYieldWaitMs": 107.2,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "49"
+              },
+              "requestId": "49",
+              "latest": {
+                "requestId": 49,
+                "coarseMs": 129.7,
+                "stableMs": 864.8
+              },
+              "worker": {
+                "coarseClassifyMs": 25,
+                "coarseColorizeMs": 51.9,
+                "coarseYieldWaitMs": 42.5,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 686.6,
+                "stableColorizeMs": 54,
+                "stableYieldWaitMs": 107.2,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "51"
+              },
+              "requestId": "51",
+              "latest": {
+                "requestId": 51,
+                "coarseMs": 134.9,
+                "stableMs": 801.8
+              },
+              "worker": {
+                "coarseClassifyMs": 35.1,
+                "coarseColorizeMs": 48.9,
+                "coarseYieldWaitMs": 42.1,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 611.5,
+                "stableColorizeMs": 59.4,
+                "stableYieldWaitMs": 107.6,
+                "stableYieldCount": 128
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 133.6,
+            "coarseMaxMs": 136.8,
+            "stableMedianMs": 866.9,
+            "stableMaxMs": 955.3,
+            "cancellationAllCount": 47,
+            "cancellationInFlightCount": 47,
+            "cancellationAllP95Ms": 13.7,
+            "cancellationInFlightP95Ms": 13.7,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": [],
+            "worker": {
+              "coarseClassifyMedianMs": 28.1,
+              "coarseColorizeMedianMs": 50.4,
+              "stableClassifyMedianMs": 680.5,
+              "stableColorizeMedianMs": 54,
+              "coarseYieldWaitMedianMs": 42.5,
+              "stableYieldWaitMedianMs": 107.3,
+              "coarseYieldCountMedian": 16,
+              "stableYieldCountMedian": 128
+            }
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 52,
+                "ms": 11.6
+              },
+              {
+                "requestId": 52,
+                "ms": 6.4
+              },
+              {
+                "requestId": 53,
+                "ms": 11.1
+              },
+              {
+                "requestId": 53,
+                "ms": 6.1
+              },
+              {
+                "requestId": 54,
+                "ms": 12.8
+              },
+              {
+                "requestId": 54,
+                "ms": 9.2
+              },
+              {
+                "requestId": 55,
+                "ms": 10.2
+              },
+              {
+                "requestId": 55,
+                "ms": 5.3
+              },
+              {
+                "requestId": 56,
+                "ms": 9.5
+              },
+              {
+                "requestId": 56,
+                "ms": 4
+              },
+              {
+                "requestId": 57,
+                "ms": 11.6
+              },
+              {
+                "requestId": 57,
+                "ms": 7.4
+              },
+              {
+                "requestId": 58,
+                "ms": 12.9
+              },
+              {
+                "requestId": 58,
+                "ms": 9.1
+              },
+              {
+                "requestId": 59,
+                "ms": 12.5
+              },
+              {
+                "requestId": 59,
+                "ms": 9.2
+              },
+              {
+                "requestId": 60,
+                "ms": 14.8
+              },
+              {
+                "requestId": 60,
+                "ms": 11.8
+              },
+              {
+                "requestId": 61,
+                "ms": 7.9
+              },
+              {
+                "requestId": 61,
+                "ms": 3.1
+              },
+              {
+                "requestId": 62,
+                "ms": 13.7
+              },
+              {
+                "requestId": 62,
+                "ms": 10.2
+              },
+              {
+                "requestId": 63,
+                "ms": 6.5
+              },
+              {
+                "requestId": 63,
+                "ms": 2.8
+              },
+              {
+                "requestId": 64,
+                "ms": 8.2
+              },
+              {
+                "requestId": 64,
+                "ms": 3.9
+              },
+              {
+                "requestId": 65,
+                "ms": 14
+              },
+              {
+                "requestId": 65,
+                "ms": 10.3
+              },
+              {
+                "requestId": 66,
+                "ms": 10.4
+              },
+              {
+                "requestId": 66,
+                "ms": 7.4
+              },
+              {
+                "requestId": 67,
+                "ms": 13.1
+              },
+              {
+                "requestId": 67,
+                "ms": 9.7
+              },
+              {
+                "requestId": 68,
+                "ms": 8.5
+              },
+              {
+                "requestId": 68,
+                "ms": 5.2
+              },
+              {
+                "requestId": 69,
+                "ms": 12.4
+              },
+              {
+                "requestId": 69,
+                "ms": 7.9
+              },
+              {
+                "requestId": 70,
+                "ms": 11.7
+              },
+              {
+                "requestId": 70,
+                "ms": 6.8
+              },
+              {
+                "requestId": 71,
+                "ms": 12.3
+              },
+              {
+                "requestId": 71,
+                "ms": 9.1
+              },
+              {
+                "requestId": 72,
+                "ms": 12.5
+              },
+              {
+                "requestId": 72,
+                "ms": 8.6
+              },
+              {
+                "requestId": 73,
+                "ms": 10.9
+              },
+              {
+                "requestId": 73,
+                "ms": 7.8
+              },
+              {
+                "requestId": 74,
+                "ms": 6.1
+              },
+              {
+                "requestId": 74,
+                "ms": 2
+              },
+              {
+                "requestId": 75,
+                "ms": 13.1
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 52,
+                "ms": 11.6
+              },
+              {
+                "requestId": 52,
+                "ms": 6.4
+              },
+              {
+                "requestId": 53,
+                "ms": 11.1
+              },
+              {
+                "requestId": 53,
+                "ms": 6.1
+              },
+              {
+                "requestId": 54,
+                "ms": 12.8
+              },
+              {
+                "requestId": 54,
+                "ms": 9.2
+              },
+              {
+                "requestId": 55,
+                "ms": 10.2
+              },
+              {
+                "requestId": 55,
+                "ms": 5.3
+              },
+              {
+                "requestId": 56,
+                "ms": 9.5
+              },
+              {
+                "requestId": 56,
+                "ms": 4
+              },
+              {
+                "requestId": 57,
+                "ms": 11.6
+              },
+              {
+                "requestId": 57,
+                "ms": 7.4
+              },
+              {
+                "requestId": 58,
+                "ms": 12.9
+              },
+              {
+                "requestId": 58,
+                "ms": 9.1
+              },
+              {
+                "requestId": 59,
+                "ms": 12.5
+              },
+              {
+                "requestId": 59,
+                "ms": 9.2
+              },
+              {
+                "requestId": 60,
+                "ms": 14.8
+              },
+              {
+                "requestId": 60,
+                "ms": 11.8
+              },
+              {
+                "requestId": 61,
+                "ms": 7.9
+              },
+              {
+                "requestId": 61,
+                "ms": 3.1
+              },
+              {
+                "requestId": 62,
+                "ms": 13.7
+              },
+              {
+                "requestId": 62,
+                "ms": 10.2
+              },
+              {
+                "requestId": 63,
+                "ms": 6.5
+              },
+              {
+                "requestId": 63,
+                "ms": 2.8
+              },
+              {
+                "requestId": 64,
+                "ms": 8.2
+              },
+              {
+                "requestId": 64,
+                "ms": 3.9
+              },
+              {
+                "requestId": 65,
+                "ms": 14
+              },
+              {
+                "requestId": 65,
+                "ms": 10.3
+              },
+              {
+                "requestId": 66,
+                "ms": 10.4
+              },
+              {
+                "requestId": 66,
+                "ms": 7.4
+              },
+              {
+                "requestId": 67,
+                "ms": 13.1
+              },
+              {
+                "requestId": 67,
+                "ms": 9.7
+              },
+              {
+                "requestId": 68,
+                "ms": 8.5
+              },
+              {
+                "requestId": 68,
+                "ms": 5.2
+              },
+              {
+                "requestId": 69,
+                "ms": 12.4
+              },
+              {
+                "requestId": 69,
+                "ms": 7.9
+              },
+              {
+                "requestId": 70,
+                "ms": 11.7
+              },
+              {
+                "requestId": 70,
+                "ms": 6.8
+              },
+              {
+                "requestId": 71,
+                "ms": 12.3
+              },
+              {
+                "requestId": 71,
+                "ms": 9.1
+              },
+              {
+                "requestId": 72,
+                "ms": 12.5
+              },
+              {
+                "requestId": 72,
+                "ms": 8.6
+              },
+              {
+                "requestId": 73,
+                "ms": 10.9
+              },
+              {
+                "requestId": 73,
+                "ms": 7.8
+              },
+              {
+                "requestId": 74,
+                "ms": 6.1
+              },
+              {
+                "requestId": 74,
+                "ms": 2
+              },
+              {
+                "requestId": 75,
+                "ms": 13.1
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:worker-coarse-classify",
+            "mi:worker-coarse-colorize",
+            "mi:worker-yield-wait",
+            "mi:worker-stable-classify",
+            "mi:worker-stable-colorize",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-requested",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        }
+      ],
+      "unforcedSidecar": {
+        "id": "unforced-16-10",
+        "canvas": {
+          "backingWidth": 1024,
+          "backingHeight": 640,
+          "cssWidth": 1082,
+          "cssHeight": 676.25,
+          "devicePixelRatio": 1,
+          "renderStage": "stable",
+          "requestId": "77"
+        }
+      },
+      "tabOrder": [
+        {
+          "tag": "button",
+          "role": null,
+          "name": "How to use the explorer",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "StabilityMultiplierPeriod",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "QuickBalancedDetailed",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag to pan",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag a box to zoom into an area",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Show named components and internal addresses",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom out",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom in",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Restore the full-set view (0)",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "canvas",
+          "role": null,
+          "name": "Interactive Mandelbrot set. Use arrow keys to pan, plus and minus to zoom, and Enter to inspect the center.",
+          "outline": "rgb(24, 103, 192) 0px 0px 0px 3.52px inset"
+        },
+        {
+          "tag": "summary",
+          "role": null,
+          "name": "How to read these values",
+          "outline": "none"
+        },
+        {
+          "tag": "body",
+          "role": null,
+          "name": "Skip to explorer MMandelbrot InteriorityA structural view from the insideGuideIn",
+          "outline": "none"
+        },
+        {
+          "tag": "a",
+          "role": null,
+          "name": "Skip to explorer",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        }
+      ],
+      "overflow200": {
+        "zoom": 2,
+        "clientWidth": 1440,
+        "scrollWidth": 1440,
+        "clientHeight": 1200,
+        "scrollHeight": 2400,
+        "overflowedX": false
+      },
+      "vision": {
+        "protanopia": "/tmp/intm-closeout/evidence/phase-1/vision-protanopia.png",
+        "deuteranopia": "/tmp/intm-closeout/evidence/phase-1/vision-deuteranopia.png",
+        "tritanopia": "/tmp/intm-closeout/evidence/phase-1/vision-tritanopia.png"
+      },
+      "consoleMessages": [],
+      "pageErrors": []
+    },
+    {
+      "name": "firefox",
+      "kind": "Playwright Firefox (branded launch failed: Error: browserType.launch: Failed to launch the browser process.\nBrowser logs:\n\n<launching> /usr/bin/firefox -no-remote -headless -profile /tmp/playwright_firefoxdev_profile-WxmmMd -juggler-pipe -silent\n<launched> pid=75090\n[pid=75090][err] *** You are running in headless mode.\n[pid=75090][err] [Parent 75090, Main Thread] WARNING: g_dbus_connection_unregister_object: assertion 'G_IS_DBUS_CONNECTION (connection)' failed: 'glib warning', file toolkit/xre/nsSigHandlers.cpp:200\n[pid=75090][err] \n[pid=75090][err] (org.mozilla.firefox:75090): GLib-GIO-CRITICAL **: 10:27:07.916: g_dbus_connection_unregister_object: assertion 'G_IS_DBUS_CONNECTION (connection)' failed\n[pid=75090][err] [Parent 75090, Main Thread] WARNING: nsDBusRemoteServer: Unable to unregister root object from within onNameLost!: 'glib warning', file toolkit/xre/nsSigHandlers.cpp:200\n[pid=75090][err] \n[pid=75090][err] ** (org.mozilla.firefox:75090): WARNING **: 10:27:07.916: nsDBusRemoteServer: Unable to unregister root object from within onNameLost!\n[pid=75090] <process did exit: exitCode=0, signal=null>\n[pid=75090] starting temporary directories cleanup\nCall log:\n\u001b[2m  - <launching> /usr/bin/firefox -no-remote -headless -profile /tmp/playwright_firefoxdev_profile-WxmmMd -juggler-pipe -silent\u001b[22m\n\u001b[2m  - <launched> pid=75090\u001b[22m\n\u001b[2m  - [pid=75090][err] *** You are running in headless mode.\u001b[22m\n\u001b[2m  - [pid=75090][err] [Parent 75090, Main Thread] WARNING: g_dbus_connection_unregister_object: assertion 'G_IS_DBUS_CONNECTION (connection)' failed: 'glib warning', file toolkit/xre/nsSigHandlers.cpp:200\u001b[22m\n\u001b[2m  - [pid=75090][err]\u001b[22m\n\u001b[2m  - [pid=75090][err] (org.mozilla.firefox:75090): GLib-GIO-CRITICAL **: 10:27:07.916: g_dbus_connection_unregister_object: assertion 'G_IS_DBUS_CONNECTION (connection)' failed\u001b[22m\n\u001b[2m  - [pid=75090][err] [Parent 75090, Main Thread] WARNING: nsDBusRemoteServer: Unable to unregister root object from within onNameLost!: 'glib warning', file toolkit/xre/nsSigHandlers.cpp:200\u001b[22m\n\u001b[2m  - [pid=75090][err]\u001b[22m\n\u001b[2m  - [pid=75090][err] ** (org.mozilla.firefox:75090): WARNING **: 10:27:07.916: nsDBusRemoteServer: Unable to unregister root object from within onNameLost!\u001b[22m\n\u001b[2m  - [pid=75090] <process did exit: exitCode=0, signal=null>\u001b[22m\n\u001b[2m  - [pid=75090] starting temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=75090] <gracefully close start>\u001b[22m\n\u001b[2m  - [pid=75090] <kill>\u001b[22m\n\u001b[2m  - [pid=75090] <skipped force kill spawnedProcess.killed=false processClosed=true>\u001b[22m\n\u001b[2m  - [pid=75090] finished temporary directories cleanup\u001b[22m\n\u001b[2m  - [pid=75090] <gracefully close end>\u001b[22m\n)",
+      "version": "153.0",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+      "viewport": {
+        "width": 1440,
+        "height": 1200,
+        "deviceScaleFactor": 1
+      },
+      "firstUse": {
+        "guideVisibleBeforeStable": true,
+        "guideVisibleAfterStable": true,
+        "coldFirstStableMs": 868
+      },
+      "pool": {
+        "afterFirstStable": {
+          "hardwareConcurrency": 8,
+          "inferredPoolSize": 4,
+          "pageWorkers": [
+            "http://127.0.0.1:4173/assets/render.worker-DLk4pHZz.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+          ],
+          "cdpWorkers": null
+        },
+        "afterWarm": {
+          "hardwareConcurrency": 8,
+          "inferredPoolSize": 4,
+          "pageWorkers": [
+            "http://127.0.0.1:4173/assets/render.worker-DLk4pHZz.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js",
+            "http://127.0.0.1:4173/assets/tile.worker-glxXKSkS.js"
+          ],
+          "cdpWorkers": null
+        }
+      },
+      "cases": [
+        {
+          "id": "balanced-768",
+          "edge": 768,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 768,
+            "backingHeight": 768,
+            "cssWidth": 768,
+            "cssHeight": 768,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "40"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "7"
+              },
+              "requestId": "7",
+              "latest": {
+                "requestId": 7,
+                "coarseMs": 95,
+                "stableMs": 562
+              },
+              "worker": {
+                "coarseClassifyMs": 14,
+                "coarseColorizeMs": 30,
+                "coarseYieldWaitMs": 36,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 435,
+                "stableColorizeMs": 31,
+                "stableYieldWaitMs": 86,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "9"
+              },
+              "requestId": "9",
+              "latest": {
+                "requestId": 9,
+                "coarseMs": 87,
+                "stableMs": 587
+              },
+              "worker": {
+                "coarseClassifyMs": 16,
+                "coarseColorizeMs": 30,
+                "coarseYieldWaitMs": 34,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 460,
+                "stableColorizeMs": 29,
+                "stableYieldWaitMs": 88,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "11"
+              },
+              "requestId": "11",
+              "latest": {
+                "requestId": 11,
+                "coarseMs": 85,
+                "stableMs": 586
+              },
+              "worker": {
+                "coarseClassifyMs": 14,
+                "coarseColorizeMs": 29,
+                "coarseYieldWaitMs": 35,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 467,
+                "stableColorizeMs": 27,
+                "stableYieldWaitMs": 87,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "13"
+              },
+              "requestId": "13",
+              "latest": {
+                "requestId": 13,
+                "coarseMs": 82,
+                "stableMs": 698
+              },
+              "worker": {
+                "coarseClassifyMs": 20,
+                "coarseColorizeMs": 25,
+                "coarseYieldWaitMs": 33,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 571,
+                "stableColorizeMs": 44,
+                "stableYieldWaitMs": 90,
+                "stableYieldCount": 96
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 768,
+                "backingHeight": 768,
+                "cssWidth": 768,
+                "cssHeight": 768,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "15"
+              },
+              "requestId": "15",
+              "latest": {
+                "requestId": 15,
+                "coarseMs": 88,
+                "stableMs": 688
+              },
+              "worker": {
+                "coarseClassifyMs": 13,
+                "coarseColorizeMs": 31,
+                "coarseYieldWaitMs": 37,
+                "coarseYieldCount": 12,
+                "stableClassifyMs": 560,
+                "stableColorizeMs": 36,
+                "stableYieldWaitMs": 87,
+                "stableYieldCount": 96
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 87,
+            "coarseMaxMs": 95,
+            "stableMedianMs": 587,
+            "stableMaxMs": 698,
+            "cancellationAllCount": 24,
+            "cancellationInFlightCount": 24,
+            "cancellationAllP95Ms": 1,
+            "cancellationInFlightP95Ms": 1,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": [],
+            "worker": {
+              "coarseClassifyMedianMs": 14,
+              "coarseColorizeMedianMs": 30,
+              "stableClassifyMedianMs": 467,
+              "stableColorizeMedianMs": 31,
+              "coarseYieldWaitMedianMs": 35,
+              "stableYieldWaitMedianMs": 87,
+              "coarseYieldCountMedian": 12,
+              "stableYieldCountMedian": 96
+            }
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 16,
+                "ms": 1
+              },
+              {
+                "requestId": 17,
+                "ms": 1
+              },
+              {
+                "requestId": 18,
+                "ms": 0
+              },
+              {
+                "requestId": 19,
+                "ms": 0
+              },
+              {
+                "requestId": 20,
+                "ms": 1
+              },
+              {
+                "requestId": 21,
+                "ms": 0
+              },
+              {
+                "requestId": 22,
+                "ms": 0
+              },
+              {
+                "requestId": 23,
+                "ms": 0
+              },
+              {
+                "requestId": 24,
+                "ms": 1
+              },
+              {
+                "requestId": 25,
+                "ms": 1
+              },
+              {
+                "requestId": 26,
+                "ms": 1
+              },
+              {
+                "requestId": 27,
+                "ms": 0
+              },
+              {
+                "requestId": 28,
+                "ms": 0
+              },
+              {
+                "requestId": 29,
+                "ms": 0
+              },
+              {
+                "requestId": 30,
+                "ms": 1
+              },
+              {
+                "requestId": 31,
+                "ms": 1
+              },
+              {
+                "requestId": 32,
+                "ms": 1
+              },
+              {
+                "requestId": 33,
+                "ms": 1
+              },
+              {
+                "requestId": 34,
+                "ms": 1
+              },
+              {
+                "requestId": 35,
+                "ms": 1
+              },
+              {
+                "requestId": 36,
+                "ms": 1
+              },
+              {
+                "requestId": 37,
+                "ms": 0
+              },
+              {
+                "requestId": 38,
+                "ms": 1
+              },
+              {
+                "requestId": 39,
+                "ms": 1
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 16,
+                "ms": 1
+              },
+              {
+                "requestId": 17,
+                "ms": 1
+              },
+              {
+                "requestId": 18,
+                "ms": 0
+              },
+              {
+                "requestId": 19,
+                "ms": 0
+              },
+              {
+                "requestId": 20,
+                "ms": 1
+              },
+              {
+                "requestId": 21,
+                "ms": 0
+              },
+              {
+                "requestId": 22,
+                "ms": 0
+              },
+              {
+                "requestId": 23,
+                "ms": 0
+              },
+              {
+                "requestId": 24,
+                "ms": 1
+              },
+              {
+                "requestId": 25,
+                "ms": 1
+              },
+              {
+                "requestId": 26,
+                "ms": 1
+              },
+              {
+                "requestId": 27,
+                "ms": 0
+              },
+              {
+                "requestId": 28,
+                "ms": 0
+              },
+              {
+                "requestId": 29,
+                "ms": 0
+              },
+              {
+                "requestId": 30,
+                "ms": 1
+              },
+              {
+                "requestId": 31,
+                "ms": 1
+              },
+              {
+                "requestId": 32,
+                "ms": 1
+              },
+              {
+                "requestId": 33,
+                "ms": 1
+              },
+              {
+                "requestId": 34,
+                "ms": 1
+              },
+              {
+                "requestId": 35,
+                "ms": 1
+              },
+              {
+                "requestId": 36,
+                "ms": 1
+              },
+              {
+                "requestId": 37,
+                "ms": 0
+              },
+              {
+                "requestId": 38,
+                "ms": 1
+              },
+              {
+                "requestId": 39,
+                "ms": 1
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:worker-coarse-classify",
+            "mi:worker-coarse-colorize",
+            "mi:worker-yield-wait",
+            "mi:worker-stable-classify",
+            "mi:worker-stable-colorize",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-requested",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        },
+        {
+          "id": "balanced-1024",
+          "edge": 1024,
+          "quality": "balanced",
+          "canvas": {
+            "backingWidth": 1024,
+            "backingHeight": 1024,
+            "cssWidth": 1024,
+            "cssHeight": 1024,
+            "devicePixelRatio": 1,
+            "renderStage": "stable",
+            "requestId": "77"
+          },
+          "samples": [
+            {
+              "index": 0,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "44"
+              },
+              "requestId": "44",
+              "latest": {
+                "requestId": 44,
+                "coarseMs": 134,
+                "stableMs": 951
+              },
+              "worker": {
+                "coarseClassifyMs": 29,
+                "coarseColorizeMs": 50,
+                "coarseYieldWaitMs": 49,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 762,
+                "stableColorizeMs": 49,
+                "stableYieldWaitMs": 121,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 1,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "46"
+              },
+              "requestId": "46",
+              "latest": {
+                "requestId": 46,
+                "coarseMs": 148,
+                "stableMs": 998
+              },
+              "worker": {
+                "coarseClassifyMs": 29,
+                "coarseColorizeMs": 52,
+                "coarseYieldWaitMs": 56,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 796,
+                "stableColorizeMs": 46,
+                "stableYieldWaitMs": 119,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 2,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "48"
+              },
+              "requestId": "48",
+              "latest": {
+                "requestId": 48,
+                "coarseMs": 136,
+                "stableMs": 953
+              },
+              "worker": {
+                "coarseClassifyMs": 27,
+                "coarseColorizeMs": 45,
+                "coarseYieldWaitMs": 53,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 761,
+                "stableColorizeMs": 52,
+                "stableYieldWaitMs": 117,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 3,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "50"
+              },
+              "requestId": "50",
+              "latest": {
+                "requestId": 50,
+                "coarseMs": 133,
+                "stableMs": 1000
+              },
+              "worker": {
+                "coarseClassifyMs": 23,
+                "coarseColorizeMs": 47,
+                "coarseYieldWaitMs": 52,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 807,
+                "stableColorizeMs": 54,
+                "stableYieldWaitMs": 122,
+                "stableYieldCount": 128
+              }
+            },
+            {
+              "index": 4,
+              "canvas": {
+                "backingWidth": 1024,
+                "backingHeight": 1024,
+                "cssWidth": 1024,
+                "cssHeight": 1024,
+                "devicePixelRatio": 1,
+                "renderStage": "stable",
+                "requestId": "52"
+              },
+              "requestId": "52",
+              "latest": {
+                "requestId": 52,
+                "coarseMs": 137,
+                "stableMs": 969
+              },
+              "worker": {
+                "coarseClassifyMs": 24,
+                "coarseColorizeMs": 51,
+                "coarseYieldWaitMs": 52,
+                "coarseYieldCount": 16,
+                "stableClassifyMs": 771,
+                "stableColorizeMs": 54,
+                "stableYieldWaitMs": 121,
+                "stableYieldCount": 128
+              }
+            }
+          ],
+          "summary": {
+            "coarseMedianMs": 136,
+            "coarseMaxMs": 148,
+            "stableMedianMs": 969,
+            "stableMaxMs": 1000,
+            "cancellationAllCount": 24,
+            "cancellationInFlightCount": 24,
+            "cancellationAllP95Ms": 1,
+            "cancellationInFlightP95Ms": 1,
+            "longTaskCount": 0,
+            "longTasksOver50Ms": [],
+            "worker": {
+              "coarseClassifyMedianMs": 27,
+              "coarseColorizeMedianMs": 50,
+              "stableClassifyMedianMs": 771,
+              "stableColorizeMedianMs": 52,
+              "coarseYieldWaitMedianMs": 52,
+              "stableYieldWaitMedianMs": 121,
+              "coarseYieldCountMedian": 16,
+              "stableYieldCountMedian": 128
+            }
+          },
+          "cancellations": {
+            "all": [
+              {
+                "requestId": 53,
+                "ms": 0
+              },
+              {
+                "requestId": 54,
+                "ms": 1
+              },
+              {
+                "requestId": 55,
+                "ms": 0
+              },
+              {
+                "requestId": 56,
+                "ms": 0
+              },
+              {
+                "requestId": 57,
+                "ms": 1
+              },
+              {
+                "requestId": 58,
+                "ms": 0
+              },
+              {
+                "requestId": 59,
+                "ms": 0
+              },
+              {
+                "requestId": 60,
+                "ms": 0
+              },
+              {
+                "requestId": 61,
+                "ms": 1
+              },
+              {
+                "requestId": 62,
+                "ms": 0
+              },
+              {
+                "requestId": 63,
+                "ms": 1
+              },
+              {
+                "requestId": 64,
+                "ms": 1
+              },
+              {
+                "requestId": 65,
+                "ms": 2
+              },
+              {
+                "requestId": 66,
+                "ms": 1
+              },
+              {
+                "requestId": 67,
+                "ms": 1
+              },
+              {
+                "requestId": 68,
+                "ms": 1
+              },
+              {
+                "requestId": 69,
+                "ms": 1
+              },
+              {
+                "requestId": 70,
+                "ms": 1
+              },
+              {
+                "requestId": 71,
+                "ms": 1
+              },
+              {
+                "requestId": 72,
+                "ms": 0
+              },
+              {
+                "requestId": 73,
+                "ms": 1
+              },
+              {
+                "requestId": 74,
+                "ms": 0
+              },
+              {
+                "requestId": 75,
+                "ms": 0
+              },
+              {
+                "requestId": 76,
+                "ms": 0
+              }
+            ],
+            "inFlight": [
+              {
+                "requestId": 53,
+                "ms": 0
+              },
+              {
+                "requestId": 54,
+                "ms": 1
+              },
+              {
+                "requestId": 55,
+                "ms": 0
+              },
+              {
+                "requestId": 56,
+                "ms": 0
+              },
+              {
+                "requestId": 57,
+                "ms": 1
+              },
+              {
+                "requestId": 58,
+                "ms": 0
+              },
+              {
+                "requestId": 59,
+                "ms": 0
+              },
+              {
+                "requestId": 60,
+                "ms": 0
+              },
+              {
+                "requestId": 61,
+                "ms": 1
+              },
+              {
+                "requestId": 62,
+                "ms": 0
+              },
+              {
+                "requestId": 63,
+                "ms": 1
+              },
+              {
+                "requestId": 64,
+                "ms": 1
+              },
+              {
+                "requestId": 65,
+                "ms": 2
+              },
+              {
+                "requestId": 66,
+                "ms": 1
+              },
+              {
+                "requestId": 67,
+                "ms": 1
+              },
+              {
+                "requestId": 68,
+                "ms": 1
+              },
+              {
+                "requestId": 69,
+                "ms": 1
+              },
+              {
+                "requestId": 70,
+                "ms": 1
+              },
+              {
+                "requestId": 71,
+                "ms": 1
+              },
+              {
+                "requestId": 72,
+                "ms": 0
+              },
+              {
+                "requestId": 73,
+                "ms": 1
+              },
+              {
+                "requestId": 74,
+                "ms": 0
+              },
+              {
+                "requestId": 75,
+                "ms": 0
+              },
+              {
+                "requestId": 76,
+                "ms": 0
+              }
+            ]
+          },
+          "longTasks": [],
+          "markNames": [
+            "mi:app-mount",
+            "mi:guidance-interaction",
+            "mi:interaction-feedback",
+            "mi:worker-coarse-classify",
+            "mi:worker-coarse-colorize",
+            "mi:worker-yield-wait",
+            "mi:worker-stable-classify",
+            "mi:worker-stable-colorize",
+            "mi:render-request",
+            "mi:coarse-presented",
+            "mi:cancellation-requested",
+            "mi:cancellation-acknowledged",
+            "mi:stable-presented"
+          ]
+        }
+      ],
+      "unforcedSidecar": {
+        "id": "unforced-16-10",
+        "canvas": {
+          "backingWidth": 1024,
+          "backingHeight": 640,
+          "cssWidth": 1082,
+          "cssHeight": 676.25,
+          "devicePixelRatio": 1,
+          "renderStage": "stable",
+          "requestId": "78"
+        }
+      },
+      "tabOrder": [
+        {
+          "tag": "button",
+          "role": null,
+          "name": "How to use the explorer",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "StabilityMultiplierPeriod",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "select",
+          "role": null,
+          "name": "QuickBalancedDetailed",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag to pan",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Drag a box to zoom into an area",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Show named components and internal addresses",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom out",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Zoom in",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "button",
+          "role": null,
+          "name": "Restore the full-set view (0)",
+          "outline": "rgb(255, 255, 255) 0px 0px 0px 2.4px, rgb(24, 103, 192) 0px 0px 0px 4.8px"
+        },
+        {
+          "tag": "canvas",
+          "role": null,
+          "name": "Interactive Mandelbrot set. Use arrow keys to pan, plus and minus to zoom, and Enter to inspect the center.",
+          "outline": "rgb(24, 103, 192) 0px 0px 0px 3.52px inset"
+        },
+        {
+          "tag": "summary",
+          "role": null,
+          "name": "How to read these values",
+          "outline": "none"
+        }
+      ],
+      "overflow200": {
+        "zoom": 2,
+        "clientWidth": 1440,
+        "scrollWidth": 1440,
+        "clientHeight": 1200,
+        "scrollHeight": 2400,
+        "overflowedX": false
+      },
+      "vision": null,
+      "consoleMessages": [],
+      "pageErrors": []
+    }
+  ],
+  "production": null
+}

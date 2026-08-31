@@ -1,8 +1,8 @@
 # Phase 0 and Phase 1 closeout evidence
 
-- Assessment date: 2026-08-18
+- Assessment date: 2026-08-29
 - Assessed merged production baseline:
-  [`3b549eb`](https://github.com/Aaron-Fine/int-M-/commit/3b549ebcfad610b163750de0627d0bbea6509134)
+  [`4fd4fdd`](https://github.com/Aaron-Fine/int-M-/commit/4fd4fdd98009d141f1a82a7524b3e9b12caf8f54)
 - Status vocabulary:
   - **Pass** — criterion is implemented and has repeatable evidence.
   - **Partial** — meaningful evidence exists, but part of the criterion is
@@ -19,14 +19,14 @@ reconsideration gates in [ADR 0002](../decisions/0002-phase-0-renderer-zoom-and-
 
 ## Executive disposition
 
-| Phase   | Readiness              | Disposition                                                                                                                                                                                                                                       |
-| ------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 0 | **Closed**             | All six exit criteria pass; Worker CPU and a `6,000,000×` product ceiling are selected                                                                                                                                                            |
-| Phase 1 | **Not ready to close** | Recovery, interaction, inspector, phone layout, CI, and the merged production smoke are evidenced; 1024² stable presentation misses 2.25 s on the target laptop; branded Chrome, pointer-pan, and manual accessibility evidence remain incomplete |
+| Phase   | Readiness  | Disposition                                                                                                                                                                |
+| ------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 0 | **Closed** | All six exit criteria pass; Worker CPU and a `6,000,000×` product ceiling are selected                                                                                     |
+| Phase 1 | **Closed** | All sixteen active requirements pass on the `4fd4fdd` production baseline. Aaron (AF) accepted the final manual evidence and documented closeout deviations on 2026-08-29. |
 
-The vertical slice is nevertheless deployable and coherent. The remaining
-items are evidence and requirement gaps, not a reason to discard the current
-CPU architecture.
+The vertical slice is deployable and coherent. Broader performance work for
+period-4-heavy regions is accepted into Phase 2 and does not reopen the Phase 1
+budgets or closeout.
 
 ## Phase 0 exit criteria
 
@@ -41,21 +41,21 @@ CPU architecture.
 
 ## Phase 1 deliverable evidence
 
-| Deliverable                                                                   | State                           | Evidence and remaining work                                                                                                                                                                                                                                                                                     |
-| ----------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vite, strict TypeScript, vanilla DOM/CSS                                      | **Pass**                        | `npm run check`; separate app, worker, Node, and e2e TypeScript projects                                                                                                                                                                                                                                        |
-| Orbit, palette, and raster work off the main thread                           | **Pass**                        | Worker entry/runtime boundary; worker tests confirm only RGBA crosses to the UI                                                                                                                                                                                                                                 |
-| Pan, point zoom, bounded area zoom, and reset                                 | **Pass functionally**           | Immediate presentation transforms, viewport unit tests, and automated area/keyboard navigation; manual release-browser pointer-pan and pointer-cancel evidence remains                                                                                                                                          |
-| Selected Worker CPU renderer                                                  | **Pass**                        | Renderer-neutral protocol, `CpuRenderer`, target-hardware evidence, and accepted ADR 0002                                                                                                                                                                                                                       |
-| Stability, multiplier, and restrained period views with legends               | **Pass**                        | Semantic coloring tests, semantic-frame reuse tests, and browser legend scenarios                                                                                                                                                                                                                               |
-| Outcome, evidence, selected-point inspector, definitions, and adaptive labels | **Pass**                        | Persistent non-color marker, adjacent canvas semantics, viewport-aware coordinate precision, orbit tests, and arbitrary-point browser scenarios                                                                                                                                                                 |
-| Quick, Balanced, and Detailed finite budgets                                  | **Pass**                        | Quality-profile unit tests and browser selection scenario                                                                                                                                                                                                                                                       |
-| Progressive rendering, cancellation, cache, and resolution cap                | **Partial**                     | CPU renderer and worker tests plus browser evidence that one request advances through requested, coarse, and stable presentation with matching IDs. Target-laptop 768² presentation and cancellation p95 pass; 1024² stable misses 2.25 s.                                                                      |
-| Worker failure recovery and manual retry                                      | **Pass functionally**           | Replaceable Worker lifecycle, 48 unit tests, and browser injection for automatic recovery, bounded persistent failure, continued controls, and manual retry                                                                                                                                                     |
-| Guided first use                                                              | **Pass**                        | The guide remains visible and controls remain enabled while the first render reaches Stable frame, then it is dismissible                                                                                                                                                                                       |
-| Keyboard and color-vision accessibility                                       | **Partial**                     | Keyboard, Axe, forced-colors, phone reflow, and narrow evidence/error/retry scenarios are automated. Target-laptop tab order and Chromium vision-deficiency screenshots are supporting data. Manual assistive-technology, 200% text zoom, native high-contrast, and branded-browser color-vision review remain. |
-| Static analysis and browser coverage                                          | **Pass when CI is green**       | The dated [automation baseline](../../evidence/phase-1/automation-2026-08-18.md) pins `3b549eb`, CI run 32080021953, 48 unit tests, the production build, and 26 Firefox/Chromium scenarios                                                                                                                     |
-| Cloudflare Pages production and PR previews                                   | **Pass for merged PR #9 build** | The [2026-08-18 production observation](../../evidence/deployment/cloudflare-2026-08-18.md) records the PR #9 assets, stable rendering, interaction, the zoom ceiling, and console health on `3b549eb`                                                                                                          |
+| Deliverable                                                                   | State                  | Evidence and remaining work                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vite, strict TypeScript, vanilla DOM/CSS                                      | **Pass**               | `npm run check`; separate app, worker, Node, and e2e TypeScript projects                                                                                                                                                                                        |
+| Orbit, palette, and raster work off the main thread                           | **Pass**               | Worker entry/runtime boundary; worker tests confirm only RGBA crosses to the UI                                                                                                                                                                                 |
+| Pan, point zoom, bounded area zoom, and reset                                 | **Pass**               | Immediate presentation transforms, viewport tests, automated navigation, and reviewer-accepted pointer-pan/pointer-cancel results                                                                                                                               |
+| Selected Worker CPU renderer                                                  | **Pass**               | Renderer-neutral protocol, `CpuRenderer`, target-hardware evidence, and accepted ADR 0002                                                                                                                                                                       |
+| Stability, multiplier, and restrained period views with legends               | **Pass**               | Semantic coloring tests, semantic-frame reuse tests, and browser legend scenarios                                                                                                                                                                               |
+| Outcome, evidence, selected-point inspector, definitions, and adaptive labels | **Pass**               | Persistent non-color marker, adjacent canvas semantics, viewport-aware coordinate precision, orbit tests, and arbitrary-point browser scenarios                                                                                                                 |
+| Quick, Balanced, and Detailed finite budgets                                  | **Pass**               | Quality-profile unit tests and browser selection scenario                                                                                                                                                                                                       |
+| Progressive rendering, cancellation, cache, and resolution cap                | **Pass**               | CPU/worker tests and browser evidence cover ordered presentation. The exact-candidate target replay passes 768²/1024² presentation, cancellation, and Chromium long-task budgets; see the [2026-08-29 record](../../evidence/phase-1/automation-2026-08-29.md). |
+| Worker failure recovery and manual retry                                      | **Pass**               | Replaceable Worker lifecycle and browser injection cover automatic recovery, bounded persistent failure, continued controls, and manual retry                                                                                                                   |
+| Guided first use                                                              | **Pass**               | The guide remains visible and controls remain enabled while the first render reaches Stable frame, then it is dismissible                                                                                                                                       |
+| Keyboard and color-vision accessibility                                       | **Pass**               | Keyboard, Axe, forced-colors, phone reflow, tab order, exact-candidate CVD matrix, and the reviewer-signed [manual closeout](../../evidence/phase-1/manual-closeout-2026-08-29.md) cover the accepted Phase 1 baseline.                                         |
+| Static analysis and browser coverage                                          | **Pass**               | The [final-candidate record](../../evidence/phase-1/automation-2026-08-29.md) pins `4fd4fdd`, the npm 11 gate, 81 unit tests, production build, and 31 passing managed Firefox/Chromium scenarios.                                                              |
+| Cloudflare Pages production and PR previews                                   | **Pass for `4fd4fdd`** | The [2026-08-29 production observation](../../evidence/deployment/cloudflare-2026-08-29.md) records matching assets on both domains, stable rendering, the zoom ceiling, console/network health, and supplied branded-Chrome presentation evidence.             |
 
 ## Evidence commands
 
@@ -71,22 +71,21 @@ curl -sSIL https://int-m.pages.dev
 The Playwright container used by CI is authoritative when local managed browser
 binaries are unavailable.
 
-The remaining target-device work has a concise
-[home-test procedure](PHASE1-HOME-TEST.md) and a committed
-[evidence template](../../evidence/phase-1/manual-template.md).
+The completed target-device review is recorded in the
+[final closeout form](../../evidence/phase-1/manual-closeout-2026-08-29.md).
 
-## Phase 1 closeout actions that remain
+## Phase 1 closeout disposition
 
 The ordered implementation and evidence backlog is maintained in the
 [Phase 1 closeout TODO](PHASE1-TODO.md).
 
-1. Meet or revise the 1024² stable presentation budget (measured 2.364 s
-   Chromium / 2.627 s Firefox versus 2.25 s on 2026-08-18).
-2. Complete the manual WCAG 2.2 AA, keyboard-focus, canvas semantics, 200%
-   text zoom/reflow, forced-colors, target-size, and simulated color-vision
-   review on branded Firefox and Chrome.
-3. Record branded stable Chrome (not installed here) plus headed branded
-   Firefox pointer-pan / Escape-cancel evidence. Production on `3b549eb` is
-   already re-observed.
+No Phase 1 actions remain. Aaron (AF) approved the manual record and directed
+that all results be marked Pass on 2026-08-29. The record transparently notes
+that Browserling Chrome 138 was accepted in place of a locally installed
+current-stable Chrome and that browser accessibility tools plus automated
+coverage were accepted without a separately narrated Orca session.
 
-These actions block Phase 1, not the completed Phase 0 decision baseline.
+Known Phase 2 performance work: the closeout timing cells cover the documented
+default/easy cases, while regions dense with period-4 components remain
+expensive under the current algorithms. That follow-up is accepted and does not
+invalidate the passing Phase 1 budgets.

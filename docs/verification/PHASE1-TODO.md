@@ -27,12 +27,12 @@ The detailed evidence references remain in the
 [requirements matrix](REQUIREMENTS.md). This summary is the planning baseline;
 update both documents as evidence is completed.
 
-| State   | Requirements                                                                                                                                  |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pass    | `MI-UX-001`, `MI-UX-002`, `MI-UX-004`, `MI-UX-005`, `MI-UX-006`, `MI-UX-008`, `MI-UX-009`, `MI-UX-010`, `MI-UX-012`, `MI-UX-013`, `MI-UX-017` |
-| Partial | `MI-UX-003`, `MI-UX-007`, `MI-UX-011`, `MI-UX-015`, `MI-UX-016`                                                                               |
-| Not met | None                                                                                                                                          |
-| OBE     | `MI-UX-014`                                                                                                                                   |
+| State   | Requirements                                     |
+| ------- | ------------------------------------------------ |
+| Pass    | `MI-UX-001`–`MI-UX-013`, `MI-UX-015`–`MI-UX-017` |
+| Partial | None                                             |
+| Not met | None                                             |
+| OBE     | `MI-UX-014`                                      |
 
 ## Ordered closeout backlog
 
@@ -93,7 +93,7 @@ browser scenarios pass in Firefox and Chromium.
       presented or when the interaction is cancelled.
 - [x] Verify that pointer and keyboard navigation cancel superseded work and
       that stale frames cannot replace the current request.
-- [ ] Manually verify live pointer displacement, final viewport state,
+- [x] Manually verify live pointer displacement, final viewport state,
       replacement rendering, and pointer-cancel rollback in supported release
       Chrome and Firefox. Playwright's synthetic pointer path does not expose
       the intermediate pan state reliably in CI, so this evidence must not be
@@ -173,29 +173,29 @@ in both supported browser families.
       error, 44 px retry target, manual retry, and horizontal containment.
 - [x] Retain 320/375/430 px checks for initial reflow, canvas ratio, guide
       containment, primary target size, and horizontal overflow.
-- [ ] Complete every row of the manual accessibility record with reviewer,
+- [x] Complete every row of the manual accessibility record with reviewer,
       date, browser, operating system, viewport, result, and notes.
-- [ ] Review the full tab order and visible focus in Firefox and Chrome.
-- [ ] Verify keyboard equivalents for primary navigation, semantic and quality
+- [x] Review the full tab order and visible focus in Firefox and Chrome.
+- [x] Verify keyboard equivalents for primary navigation, semantic and quality
       selection, reset, catalog operation, point inspection, and disclosures.
-- [ ] Review canvas name, instructions, live render state, viewport state, and
+- [x] Review canvas name, instructions, live render state, viewport state, and
       selected-point semantics with assistive technology.
-- [ ] Verify 200% text zoom and narrow-viewport reflow without lost controls or
+- [x] Verify 200% text zoom and narrow-viewport reflow without lost controls or
       unintended horizontal scrolling.
-- [ ] Verify Windows high-contrast or forced-colors presentation and add an
+- [x] Verify Windows high-contrast or forced-colors presentation and add an
       explicit forced-colors focus outline if the normal indicator is lost.
 - [x] Evaluate catalog marker target size and spacing against WCAG 2.2 AA;
       enlarge the hit area or provide equivalent operation where necessary.
-- [ ] Review stability, multiplier, and period views under protanopia,
+- [x] Review stability, multiplier, and period views under protanopia,
       deuteranopia, and tritanopia simulation.
-- [ ] Confirm that escaped, attracting-cycle, unresolved, selected, and catalog
+- [x] Confirm that escaped, attracting-cycle, unresolved, selected, and catalog
       states remain distinguishable without hue alone.
-- [ ] Re-run Axe checks after remediation in primary and inspector states in
+- [x] Re-run Axe checks after remediation in primary and inspector states in
       both browser projects.
 
 Use the concise [home-test procedure](PHASE1-HOME-TEST.md) and commit a
 completed copy of the
-[manual evidence template](../../evidence/phase-1/manual-template.md).
+[prefilled closeout form](../../evidence/phase-1/manual-closeout-2026-08-29.md).
 
 **Done when:** the manual record is complete, automated checks remain green,
 all discovered applicable WCAG 2.2 AA failures are resolved, and non-color
@@ -207,20 +207,24 @@ semantic distinctions are documented with evidence.
 **Estimate:** 1–2 engineering days
 
 - [x] Retain Playwright coverage in managed Chromium and Firefox.
-- [ ] Record explicit supported release-browser versions and validate stable
+- [x] Record explicit supported release-browser versions and validate stable
       Chrome plus branded stable Firefox on the target-device class.
-      2026-08-18 recorded Playwright Chrome for Testing 151.0.7922.34 and
-      Playwright Firefox 153.0 on the target laptop. Branded Firefox 153.0.3
-      is installed but Playwright cannot attach to it; branded Chrome is not
-      installed.
+      2026-08-29 recorded Playwright Chrome for Testing 151.0.7922.34 and
+      Playwright Firefox 153.0 on the target laptop. Branded Firefox 154.0 is
+      installed but Playwright cannot attach to it; branded Chrome is not
+      installed. Aaron (AF) explicitly accepted the user-supplied Windows 10 /
+      branded Chrome 138 evidence plus managed-browser automation for Phase 1,
+      despite Chrome 138 not being current stable on the assessment date.
 - [x] Add the automatable browser scenarios for arbitrary point
       inspection, progressive presentation, and renderer recovery; record
       pointer-pan and pointer-cancel behavior in the manual release-browser
       evidence.
 - [x] Run all static checks, 43 or more unit tests, production build, and the
       complete browser matrix from the final candidate commit.
-      Local `npm run check` (48 unit tests) and `npm run test:browser` (26/26)
-      passed on `3b549eb`; CI run 32080021953 is green.
+      Local pinned-toolchain `npm run check` (81 unit tests) and
+      `npm run test:browser` (31 passed, one intentional Firefox skip) passed
+      on `4fd4fdd`; see the
+      [final-candidate record](../../evidence/phase-1/automation-2026-08-29.md).
 - [x] Verify the final immutable Cloudflare preview for rendering,
       interaction, accessibility smoke checks, console errors, and network
       errors.
@@ -230,12 +234,12 @@ semantic distinctions are documented with evidence.
       [2026-08-12 production observation](../../evidence/deployment/cloudflare-2026-08-12.md).
 - [x] Repeat the production observation if the final Phase 1 release changes
       built application assets after that baseline.
-      Production on 2026-08-18 served `index-B2Japiw_.js` / `index-D1fGRq2y.css`
-      from `3b549eb`; see
-      [cloudflare-2026-08-18.md](../../evidence/deployment/cloudflare-2026-08-18.md).
-- [ ] Update `REQUIREMENTS.md` so every active Phase 1 requirement is **Pass**
+      Both production domains on 2026-08-29 served `index-CJQbjpJz.js` /
+      `index-A5mS_k6j.css` from `4fd4fdd`; see
+      [cloudflare-2026-08-29.md](../../evidence/deployment/cloudflare-2026-08-29.md).
+- [x] Update `REQUIREMENTS.md` so every active Phase 1 requirement is **Pass**
       with a stable evidence reference while `MI-UX-014` remains **OBE**.
-- [ ] Record the final reviewer and closeout date in
+- [x] Record the final reviewer and closeout date in
       `PHASE-0-1-CLOSEOUT.md`.
 
 **Done when:** required CI is green, supported release-browser and target-device
@@ -246,12 +250,12 @@ active normative requirements have passing evidence.
 
 Phase 1 may be declared closed only when:
 
-- [ ] Every task above that contributes to a normative requirement is complete.
-- [ ] `MI-UX-001` through `MI-UX-013` and `MI-UX-015` through `MI-UX-017` are
+- [x] Every task above that contributes to a normative requirement is complete.
+- [x] `MI-UX-001` through `MI-UX-013` and `MI-UX-015` through `MI-UX-017` are
       all marked **Pass**; `MI-UX-014` remains **OBE**.
-- [ ] The manual accessibility record contains no blank or `Not run` entries.
+- [x] The manual accessibility record contains no blank or `Not run` entries.
 - [x] Target-device UI-path performance meets the documented budgets.
-- [ ] Final Firefox and Chrome release validation is recorded.
-- [ ] The merged Cloudflare Pages production deployment is verified.
-- [ ] The application still uses the selected Worker CPU renderer and enforces
+- [x] Final Firefox and Chrome release validation is recorded.
+- [x] The merged Cloudflare Pages production deployment is verified.
+- [x] The application still uses the selected Worker CPU renderer and enforces
       the `6,000,000×` zoom ceiling.

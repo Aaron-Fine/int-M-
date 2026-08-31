@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "general": { "model": "openrouter/z-ai/glm-5.3-flash" },
+    "explore": { "model": "openrouter/google/gemini-3.7-flash" },
+    "scout": { "model": "openrouter/z-ai/glm-5.3-flash" }
+  }
+}
