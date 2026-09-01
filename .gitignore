@@ -32,3 +32,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+# Symlinked node_modules in worktrees (dir pattern alone does not match symlinks)
+node_modules
