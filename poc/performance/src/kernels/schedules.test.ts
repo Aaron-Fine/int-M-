@@ -70,6 +70,9 @@ describe('schedule kernels: known-cycle detection', () => {
         const result = kernel.classify(fixture.cRe, fixture.cIm, balanced);
 
         expect(result.status).toBe('attracting');
+        if (result.status !== 'attracting') {
+          throw new Error('expected an attracting classification');
+        }
         expect(result.period).toBe(fixture.period);
         if (fixture.analytic) {
           // The closed-form paths are preserved in every kernel (plan 4).
@@ -338,7 +341,7 @@ describe('schedule kernels: parity with control on interior strata', () => {
         const baseline = control.classify(point.cRe, point.cIm, balanced);
         const result = kernel.classify(point.cRe, point.cIm, balanced);
         expect(result.status).toBe(baseline.status);
-        if (baseline.status === 'attracting') {
+        if (baseline.status === 'attracting' && result.status === 'attracting') {
           expect(result.period).toBe(baseline.period);
         }
       }

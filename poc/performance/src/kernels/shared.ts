@@ -8,8 +8,6 @@
 
 import { VERIFIER_THRESHOLDS, verifyCycle } from '../verifier.ts';
 
-export type KernelStatus = 'escaped' | 'attracting' | 'unresolved';
-
 export interface KernelMetrics {
   /** Primary deterministic cost metric: candidate lag distance evaluations. */
   lagComparisons: number;
@@ -23,18 +21,35 @@ export interface KernelMetrics {
   rejectedNotAttracting: number;
 }
 
-export interface KernelResult {
-  readonly status: KernelStatus;
-  readonly iterations: number;
-  readonly evidence: string;
-  readonly metrics: KernelMetrics;
-  readonly period?: number;
-  readonly multiplierMagnitude?: number;
-  readonly multiplierAngle?: number;
-  readonly kappa?: number;
-  readonly escapeIteration?: number;
-  readonly magnitudeSquared?: number;
-}
+/**
+ * Discriminated result union: each status carries exactly the fields the
+ * production result boundary would carry for that status.
+ */
+export type KernelResult =
+  | {
+      readonly status: 'attracting';
+      readonly iterations: number;
+      readonly evidence: string;
+      readonly metrics: KernelMetrics;
+      readonly period: number;
+      readonly multiplierMagnitude: number;
+      readonly multiplierAngle: number;
+      readonly kappa: number;
+    }
+  | {
+      readonly status: 'escaped';
+      readonly iterations: number;
+      readonly evidence: string;
+      readonly metrics: KernelMetrics;
+      readonly escapeIteration: number;
+      readonly magnitudeSquared: number;
+    }
+  | {
+      readonly status: 'unresolved';
+      readonly iterations: number;
+      readonly evidence: string;
+      readonly metrics: KernelMetrics;
+    };
 
 export interface KernelOptions {
   readonly maxIterations: number;

@@ -1,0 +1,108 @@
+{
+  "harnessRevision": "poc-harness-1.0.0",
+  "nodeVersion": "v24.19.0",
+  "platform": "linux x64",
+  "corpusSeed": 5065040,
+  "corpusSize": 228,
+  "verifier": {
+    "revision": "poc-verifier-1.0.0",
+    "thresholds": {
+      "tauAccept": 1e-10,
+      "closureRelaxation": 100,
+      "tauCandidate": 1e-8,
+      "tauExclude": 0.000001,
+      "attractMargin": 1e-12
+    }
+  },
+  "candidateRejectionBudget": 64,
+  "schedulePolicies": {
+    "checkpoint": {
+      "revision": "poc-checkpoint-1.0.0"
+    },
+    "trigger": {
+      "revision": "poc-trigger-1.0.0",
+      "thresholds": {
+        "initialGate": 1e-8,
+        "gateReArmDivisor": 4,
+        "maxScansPerPixel": 8
+      }
+    },
+    "staggered": {
+      "revision": "poc-staggered-1.0.0"
+    }
+  },
+  "ddOracle": {
+    "options": {
+      "maxIterations": 4096,
+      "maxPeriod": 96,
+      "warmup": 16,
+      "candidateTolerance": 1e-14,
+      "acceptanceTolerance": 1e-26,
+      "exclusionTolerance": 1e-20,
+      "newtonSteps": 8,
+      "candidateVerifyBudget": 64
+    }
+  },
+  "gate": {
+    "zeroToleranceFor": "schedule variants",
+    "gateFailures": 0,
+    "legacyBaselineWrongPrimitivePeriod": 8
+  },
+  "profiles": [
+    {
+      "name": "quick",
+      "maxIterations": 256,
+      "maxPeriod": 16,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    },
+    {
+      "name": "balanced",
+      "maxIterations": 512,
+      "maxPeriod": 32,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    },
+    {
+      "name": "detailed",
+      "maxIterations": 1024,
+      "maxPeriod": 64,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    }
+  ],
+  "wallTime": {
+    "note": "directional — Node/V8 evidence, not release evidence",
+    "warmupPasses": 2,
+    "timedPasses": 5,
+    "medianClassifyMs": {
+      "quick": {
+        "control": 0.832634,
+        "checkpoint.exhaustion-on": 0.460263,
+        "checkpoint.exhaustion-off": 0.425198,
+        "trigger.exhaustion-on": 0.416,
+        "trigger.exhaustion-off": 0.200124,
+        "staggered.exhaustion-on": 0.9512,
+        "staggered.exhaustion-off": 0.388496
+      },
+      "balanced": {
+        "control": 1.749635,
+        "checkpoint.exhaustion-on": 0.306516,
+        "checkpoint.exhaustion-off": 0.175545,
+        "trigger.exhaustion-on": 0.223926,
+        "trigger.exhaustion-off": 0.213388,
+        "staggered.exhaustion-on": 1.357767,
+        "staggered.exhaustion-off": 1.368058
+      },
+      "detailed": {
+        "control": 5.202976,
+        "checkpoint.exhaustion-on": 0.296057,
+        "checkpoint.exhaustion-off": 0.267593,
+        "trigger.exhaustion-on": 0.528606,
+        "trigger.exhaustion-off": 0.400269,
+        "staggered.exhaustion-on": 4.593596,
+        "staggered.exhaustion-off": 3.957833
+      }
+    }
+  }
+}
