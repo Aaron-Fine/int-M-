@@ -32,6 +32,7 @@ describe('deterministic corpus', () => {
     expect(counts.get('cardioid')).toBe(40);
     expect(counts.get('period-2-bulb')).toBe(24);
     expect(counts.get('rabbit-neighborhood')).toBe(24);
+    expect(counts.get('period-5')).toBe(3);
     expect(counts.get('hard-view-anchor')).toBe(30);
     expect(counts.get('weak-attraction')).toBe(20);
     expect(counts.get('superattracting')).toBe(11);

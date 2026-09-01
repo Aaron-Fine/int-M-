@@ -17,6 +17,7 @@ export type CorpusStratum =
   | 'cardioid'
   | 'period-2-bulb'
   | 'rabbit-neighborhood'
+  | 'period-5'
   | 'hard-view-anchor'
   | 'weak-attraction'
   | 'superattracting'
@@ -68,6 +69,38 @@ const SUPERATTRACTING_CENTERS: readonly (readonly [number, number])[] = Object.f
  * the systematic profiles, exercising unresolved-budget behavior.
  */
 const FEIGENBAUM_RE = -1.4011551890920506;
+
+/**
+ * Milestone 4 fixture stratum: the corpus had no period >= 5 point, which
+ * the schedule-kernel contract requires. The center is the known period-5
+ * bulb center near -0.5045 + 0.5629i and the offsets are deterministic;
+ * every point is kept only when the dd oracle confirms an attracting
+ * period-5 cycle (same oracle-grounding rule as rabbit-neighborhood).
+ */
+const PERIOD_5_CENTER: readonly [number, number] = Object.freeze([-0.504505098022, 0.5629264446]);
+
+const PERIOD_5_OFFSETS: readonly (readonly [number, number])[] = Object.freeze([
+  [0, 0],
+  [3e-4, 0],
+  [0, -3e-4],
+]);
+
+const buildPeriod5 = (push: Sink): void => {
+  let count = 0;
+  const [centerRe, centerIm] = PERIOD_5_CENTER;
+  for (const [dRe, dIm] of PERIOD_5_OFFSETS) {
+    const re = centerRe + dRe;
+    const im = centerIm + dIm;
+    const oracle = classifyDD(re, im, { maxIterations: 4096, maxPeriod: 32 });
+    if (oracle.status === 'attracting-cycle' && oracle.period === 5) {
+      count += 1;
+      push('period-5', re, im);
+    }
+  }
+  if (count < PERIOD_5_OFFSETS.length) {
+    throw new Error(`period-5 stratum incomplete: ${count}/${PERIOD_5_OFFSETS.length}`);
+  }
+};
 
 /**
  * Exact period-1 multiplier map: for lambda = |lambda| e^{i theta} the
@@ -270,6 +303,7 @@ export const buildCorpus = (): CorpusPoint[] => {
   buildCardioid(rng, push);
   buildPeriod2Bulb(rng, push);
   buildRabbitNeighborhood(rng, push);
+  buildPeriod5(push);
   buildHardViewAnchors(push);
   buildWeakAttraction(rng, push);
   buildBoundary(rng, push);
@@ -284,6 +318,7 @@ export const CORPUS_STRATA: readonly CorpusStratum[] = Object.freeze([
   'cardioid',
   'period-2-bulb',
   'rabbit-neighborhood',
+  'period-5',
   'hard-view-anchor',
   'weak-attraction',
   'boundary',

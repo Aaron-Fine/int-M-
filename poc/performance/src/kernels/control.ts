@@ -107,10 +107,15 @@ export class ControlKernel implements ClassificationKernel {
         metrics.verifierCalls += 1;
         const verified = forwardClosure(cRe, cIm, zRe, zIm, period, closureToleranceSquared);
         if (!verified.closes) {
+          metrics.rejectedNoClosure += 1;
           continue;
         }
-        if (!Number.isFinite(verified.magnitude) || verified.magnitude >= 1) {
-          metrics.rejectedCandidates += 1;
+        if (!Number.isFinite(verified.magnitude)) {
+          metrics.rejectedNonFinite += 1;
+          continue;
+        }
+        if (verified.magnitude >= 1) {
+          metrics.rejectedNotAttracting += 1;
           continue;
         }
         return {
