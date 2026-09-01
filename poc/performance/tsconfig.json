@@ -1,0 +1,4 @@
+{
+  "extends": "../../tsconfig.poc.json",
+  "include": ["src/**/*.ts"]
+}

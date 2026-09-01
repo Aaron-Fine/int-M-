@@ -3,6 +3,8 @@ catalog/
 dist/
 docs/PLAN.md
 docs/RESEARCH.md
+# Authored plan documents: prettier's HTML rewrite (3k+ diff lines) is not a
+# formatting fix, it is a re-authoring. Keep the check green without it.
 docs/plans/
 node_modules/
 playwright-report/
