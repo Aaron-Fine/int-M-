@@ -3,6 +3,12 @@ export interface Complex {
   readonly im: number;
 }
 
+/** Mutable complex holder for allocation-free hot paths. */
+export interface MutableComplex {
+  re: number;
+  im: number;
+}
+
 /**
  * A viewport is expressed in complex-plane units, independent of raster size.
  * `spanY` is authoritative; the horizontal span follows the raster aspect ratio.

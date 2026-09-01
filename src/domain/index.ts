@@ -24,6 +24,7 @@ export type {
   Complex,
   EscapedOrbitResult,
   EvidenceFlag,
+  MutableComplex,
   OrbitOptions,
   OrbitResult,
   OrbitStatus,
