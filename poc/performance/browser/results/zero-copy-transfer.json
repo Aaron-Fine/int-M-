@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "measurement": "zero-copy-transfer",
+  "capturedAt": "2026-09-01T05:20:10.350Z",
+  "environment": {
+    "schemaVersion": 1,
+    "capturedAt": "2026-09-01T05:20:10.349Z",
+    "browser": {
+      "build": "151.0.7922.34",
+      "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": { "width": 1280, "height": 720 }
+    },
+    "cpu": { "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz", "cores": 8 },
+    "memoryTotalBytes": 16465719296,
+    "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
+    "revisions": {
+      "build": "fc40f77c24e6ee9a3fa0edd33eec213c6d2965a5",
+      "algorithm": "fc40f77c24e6ee9a3fa0edd33eec213c6d2965a5",
+      "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+      "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+    },
+    "render": { "workerCount": 1, "backend": "microbench-page (frame echo worker)" },
+    "harness": {
+      "command": "node /tmp/opencode/worktrees/int-M-wt-poc/tools/benchmark/capture-environment.mjs",
+      "version": "0.1.0",
+      "node": "v24.19.0"
+    },
+    "hardwareConcurrency": 8,
+    "notes": [
+      "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+      "Headless Chromium via Playwright; directional PoC evidence, not Stage A release evidence (plan §9 runs stable branded Chrome/Firefox on the declared target class).",
+      "Power mode is not detectable from the page; browser.powerMode stays null."
+    ]
+  },
+  "samples": [
+    {
+      "rep": 0,
+      "mode": "copy",
+      "postMs": 23.599999994039536,
+      "roundtripMs": 42.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 0,
+      "mode": "transfer",
+      "postMs": 0.20000000298023224,
+      "roundtripMs": 0.10000000894069672,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 1,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.09999999403953552,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 1,
+      "mode": "copy",
+      "postMs": 17.799999997019768,
+      "roundtripMs": 43.400000005960464,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 2,
+      "mode": "copy",
+      "postMs": 29.899999991059303,
+      "roundtripMs": 48.70000000298023,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 2,
+      "mode": "transfer",
+      "postMs": 0.20000000298023224,
+      "roundtripMs": 0.29999999701976776,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 3,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.29999999701976776,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 3,
+      "mode": "copy",
+      "postMs": 17.700000002980232,
+      "roundtripMs": 44,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 4,
+      "mode": "copy",
+      "postMs": 17,
+      "roundtripMs": 48.70000000298023,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 4,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.29999999701976776,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 5,
+      "mode": "transfer",
+      "postMs": 0.10000000894069672,
+      "roundtripMs": 0.09999999403953552,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 5,
+      "mode": "copy",
+      "postMs": 21.5,
+      "roundtripMs": 53.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 6,
+      "mode": "copy",
+      "postMs": 17.599999994039536,
+      "roundtripMs": 51.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 6,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.30000001192092896,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 7,
+      "mode": "transfer",
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 0.20000000298023224,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 7,
+      "mode": "copy",
+      "postMs": 25,
+      "roundtripMs": 49.099999994039536,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 8,
+      "mode": "copy",
+      "postMs": 26,
+      "roundtripMs": 53.6000000089407,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 8,
+      "mode": "transfer",
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 1.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 9,
+      "mode": "transfer",
+      "postMs": 0.10000000894069672,
+      "roundtripMs": 24.399999991059303,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 9,
+      "mode": "copy",
+      "postMs": 33.80000001192093,
+      "roundtripMs": 52.69999998807907,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 10,
+      "mode": "copy",
+      "postMs": 25.200000002980232,
+      "roundtripMs": 57.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 10,
+      "mode": "transfer",
+      "postMs": 21.600000008940697,
+      "roundtripMs": 1.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 11,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.5999999940395355,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 11,
+      "mode": "copy",
+      "postMs": 22.900000005960464,
+      "roundtripMs": 51.8999999910593,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 12,
+      "mode": "copy",
+      "postMs": 18.600000008940697,
+      "roundtripMs": 30.099999994039536,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 12,
+      "mode": "transfer",
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 0.10000000894069672,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 13,
+      "mode": "transfer",
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 0.10000000894069672,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 13,
+      "mode": "copy",
+      "postMs": 16.69999998807907,
+      "roundtripMs": 51.5,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 14,
+      "mode": "copy",
+      "postMs": 21.700000002980232,
+      "roundtripMs": 45.099999994039536,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 14,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.20000000298023224,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 15,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.10000000894069672,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 15,
+      "mode": "copy",
+      "postMs": 13.5,
+      "roundtripMs": 29,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 16,
+      "mode": "copy",
+      "postMs": 12.5,
+      "roundtripMs": 34.29999999701977,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 16,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.29999999701976776,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 17,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 17,
+      "mode": "copy",
+      "postMs": 14.900000005960464,
+      "roundtripMs": 36.599999994039536,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 18,
+      "mode": "copy",
+      "postMs": 17.900000005960464,
+      "roundtripMs": 42.3999999910593,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 18,
+      "mode": "transfer",
+      "postMs": 0.20000000298023224,
+      "roundtripMs": 1.7999999970197678,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 19,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.7999999970197678,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 19,
+      "mode": "copy",
+      "postMs": 32.29999999701977,
+      "roundtripMs": 57.400000005960464,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 20,
+      "mode": "copy",
+      "postMs": 27.900000005960464,
+      "roundtripMs": 56.099999994039536,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 20,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 3,
+      "bytes": 13762560,
+      "intact": true
+    }
+  ],
+  "summary": {
+    "width": 1024,
+    "height": 640,
+    "bytesPerRoundtrip": 13762560,
+    "repsPerMode": 21,
+    "copy": { "postMs": 21.5, "roundtripMs": 48.70000000298023 },
+    "transfer": { "postMs": 0, "roundtripMs": 0.29999999701976776 },
+    "decision": "If transfer roundtrips beat copy roundtrips by a clear margin at ~12.75 MiB per 1024x640 frame (~21 MiB at 1024x1024), pre-sliced transferable band views eliminate the per-band merge memcpy cost the plan prices."
+  },
+  "notes": [
+    "Channels are the real semantic-frame channels (u8 status, u32 period, two f64 channels at 1024x640) filled with a deterministic pattern; integrity is verified after every roundtrip.",
+    "Roundtrip = main post -> worker echoes the channels back in the same mode, so both arms pay two crossings; order alternates copy/transfer per rep.",
+    "In Chrome the posting thread pays the structured clone synchronously, so postMs captures the copy cost directly; transfer postMs should be near zero."
+  ]
+}

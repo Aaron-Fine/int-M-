@@ -77,3 +77,84 @@ export interface PoolSizingResult {
   readonly spawnMsByWorkerCount: Record<string, number>;
   readonly samples: readonly PoolSizingSample[];
 }
+
+/* ---------- yield mechanism / zero-copy / band order (plan §12, M3) ---------- */
+
+export type YieldMechanism = 'settimeout' | 'messagechannel';
+
+export interface YieldChainEntry {
+  readonly mechanism: YieldMechanism;
+  /** Raw per-hop latency (ms), hop order preserved so the clamp is visible. */
+  readonly perHopMs: readonly number[];
+}
+
+export interface YieldCancelSample {
+  readonly rep: number;
+  readonly mechanism: YieldMechanism;
+  /** cancel() until the workload loop actually exited. */
+  readonly quiescenceMs: number;
+  readonly rowReached: number;
+  readonly workloadWallMs: number;
+}
+
+export interface YieldAbResult {
+  readonly hops: number;
+  readonly cancelReps: number;
+  readonly chains: readonly YieldChainEntry[];
+  readonly cancelSamples: readonly YieldCancelSample[];
+}
+
+export interface ZeroCopySample {
+  readonly rep: number;
+  readonly mode: 'copy' | 'transfer';
+  /** Main-thread duration of the postMessage call itself. */
+  readonly postMs: number;
+  /** Main post until the echoed channels were back on the main thread. */
+  readonly roundtripMs: number;
+  readonly bytes: number;
+  readonly intact: boolean;
+}
+
+export interface ZeroCopyResult {
+  readonly width: number;
+  readonly height: number;
+  readonly bytesPerRoundtrip: number;
+  readonly repsPerMode: number;
+  readonly samples: readonly ZeroCopySample[];
+}
+
+export interface BandOrderSample {
+  readonly profile: 'uniform' | 'edges-heavy';
+  readonly strategy: BandOrderStrategy;
+  readonly rep: number;
+  readonly ttfbMs: number;
+  readonly t50RowsMs: number;
+  readonly totalMs: number;
+}
+
+export type BandOrderStrategy = 'top-to-bottom' | 'center-out';
+
+export interface BandOrderResult {
+  readonly rows: number;
+  readonly bandCount: number;
+  readonly rowsPerBand: number;
+  readonly workerCount: number;
+  readonly reps: number;
+  readonly samples: readonly BandOrderSample[];
+}
+
+export interface YieldAbParams {
+  readonly hops: number;
+  readonly cancelReps: number;
+}
+
+export interface ZeroCopyParams {
+  readonly repsPerMode: number;
+}
+
+export interface BandOrderParams {
+  readonly rows: number;
+  readonly bandCount: number;
+  readonly workerCount: number;
+  readonly reps: number;
+}

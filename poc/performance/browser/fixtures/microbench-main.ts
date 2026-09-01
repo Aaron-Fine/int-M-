@@ -1,6 +1,15 @@
-import type { EnvironmentSample, MicrobenchApi } from './microbench-api';
+import type {
+  BandOrderParams,
+  EnvironmentSample,
+  MicrobenchApi,
+  PoolSizingParams,
+  YieldAbParams,
+  ZeroCopyParams,
+} from './microbench-api';
+import { runBandOrder } from './band-order';
 import { runPoolSizing } from './pool-sizing';
-import type { PoolSizingParams, PoolSizingResult } from './microbench-api';
+import { runYieldAb } from './yield-ab';
+import { runZeroCopy } from './transfer-ab';
 
 type Runner = (params: unknown) => Promise<unknown>;
 
@@ -39,23 +48,37 @@ const sampleEnvironment = async (): Promise<EnvironmentSample> => {
   };
 };
 
-const runPoolSizingTyped = async (params: unknown): Promise<PoolSizingResult> => {
-  const typed = params as PoolSizingParams;
-  if (
-    typeof typed.caseId !== 'string' ||
-    !Array.isArray(typed.sizes) ||
-    typeof typed.measuredReps !== 'number'
-  ) {
-    throw new Error(
-      'pool-sizing runner requires { caseId, profileId, edge, sizes, warmupReps, measuredReps }',
-    );
+const requireKeys = (params: unknown, keys: readonly string[]): Record<string, unknown> => {
+  if (typeof params !== 'object' || params === null) {
+    throw new Error(`runner params must be an object containing: ${keys.join(', ')}`);
   }
-  return runPoolSizing(typed);
+  const record = params as Record<string, unknown>;
+  for (const key of keys) {
+    if (!(key in record)) {
+      throw new Error(`runner params missing key: ${key}`);
+    }
+  }
+  return record;
 };
 
 const runners: Record<string, Runner> = {
   environment: () => sampleEnvironment(),
-  'pool-sizing': (params) => runPoolSizingTyped(params),
+  'pool-sizing': (params) => {
+    requireKeys(params, ['caseId', 'profileId', 'edge', 'sizes', 'measuredReps']);
+    return runPoolSizing(params as PoolSizingParams);
+  },
+  'yield-ab': (params) => {
+    requireKeys(params, ['hops', 'cancelReps']);
+    return runYieldAb(params as YieldAbParams);
+  },
+  'zero-copy': (params) => {
+    requireKeys(params, ['repsPerMode']);
+    return runZeroCopy(params as ZeroCopyParams);
+  },
+  'band-order': (params) => {
+    requireKeys(params, ['rows', 'bandCount', 'workerCount', 'reps']);
+    return runBandOrder(params as BandOrderParams);
+  },
 };
 
 const api: MicrobenchApi = {
