@@ -22,9 +22,13 @@
  *    candidate is retested after a longer, better-converged lag instead of
  *    being dropped through a full interval. The gap doubles again on each
  *    further failure.
- * 4. Outside a re-arm wait and without a proposal on that step, when
- *    q >= interval the current state becomes the next checkpoint and the
- *    interval doubles, capped at maxPeriod (the systematic period ceiling).
+ * 4. Outside a re-arm wait and without a proposal on that step, the
+ *    interval-exhaustion update is evaluated on its own: when q >= interval
+ *    the current state becomes the next checkpoint and the interval
+ *    doubles, capped at maxPeriod (the systematic period ceiling). This
+ *    includes proximity hits whose lag exceeds the ceiling - they roll the
+ *    checkpoint like any other exhausted interval instead of stalling
+ *    against a stale state.
  * 5. The shared rejected-candidate budget (ProposalBudget) stops all
  *    proposals and their comparisons for the pixel once exhausted; the
  *    orbit walk continues so escape classification is unaffected.
@@ -49,7 +53,7 @@ import {
 } from './shared.ts';
 import type { ClassificationKernel, KernelOptions, KernelResult } from './shared.ts';
 
-export const CHECKPOINT_REVISION = 'poc-checkpoint-1.0.0';
+export const CHECKPOINT_REVISION = 'poc-checkpoint-1.0.1';
 
 export class CheckpointKernel implements ClassificationKernel {
   public readonly name = 'checkpoint' as const;
@@ -139,10 +143,14 @@ export class CheckpointKernel implements ClassificationKernel {
         metrics.lagComparisons += 1;
         const distanceRe = zRe - checkpointRe;
         const distanceIm = zIm - checkpointIm;
+        // Proposal path: a proximity hit with lag inside the systematic
+        // ceiling proposes (z_n, q) to the common verifier.
+        let proposed = false;
         if (
           distanceRe * distanceRe + distanceIm * distanceIm <= proposalThresholdSquared(zRe, zIm) &&
           lag <= maxPeriod
         ) {
+          proposed = true;
           const candidate = verifyCandidate(cRe, cIm, zRe, zIm, lag, metrics, this.#budget);
           if (candidate !== undefined) {
             return acceptedResult('checkpoint-candidate', iteration, candidate, metrics);
@@ -150,8 +158,20 @@ export class CheckpointKernel implements ClassificationKernel {
           // Frozen rejection-retry: retain the checkpoint and re-arm.
           reArmAt = iteration + reArmGap;
           reArmGap *= 2;
-        } else if (lag >= interval) {
-          // Interval exhausted: the current state becomes the next checkpoint.
+        }
+        // Interval-exhaustion update, evaluated independently of the
+        // proposal branch: any step that did not make a proposal rolls the
+        // checkpoint when the interval is exhausted. A proximity hit whose
+        // lag exceeds the systematic ceiling (lag > maxPeriod, possible
+        // after a rejection re-arm or when the orbit collapsed onto its
+        // cycle before the first comparison) behaves exactly like an
+        // exhausted interval: store the current state, double the
+        // interval, re-establish the lag from the new checkpoint. Nesting
+        // this update under the distance test instead would let a stale
+        // checkpoint survive the whole budget (a hit with an over-ceiling
+        // lag never rolls, proposals stay impossible, every remaining step
+        // compares against the old state).
+        if (!proposed && lag >= interval) {
           checkpointRe = zRe;
           checkpointIm = zIm;
           checkpointIteration = iteration;

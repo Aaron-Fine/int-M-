@@ -150,6 +150,18 @@ implementation.
   binary64 collapse), so the trigger detects p >= 2 cycles only via the
   exhaustion scan (45-48 corpus points per profile). This is visible in the
   exhaustion-off variants: unresolved rate jumps by ~19-21 percentage points.
+- **Schedule-design finding for PR 4 (plan section 4 A/B decision):** the
+  trigger's p >= 2 blindness above is a property of the §4 gate definition
+  itself, not of the PoC implementation: on a settled p-cycle the step
+  `|z_n - z_{n-1}|` converges to the (O(1)) distance between consecutive
+  cycle points, so the gate cannot fire and every p >= 2 detection waits for
+  the exhaustion scan (see the trigger detection-delay distributions in
+  `summary.json`: maxLate 232/488/1000 = budget end). PR 4 must resolve this
+  before freezing a schedule choice - either redefine the gate (e.g. a
+  cycle-aware or relative step criterion), accept the exhaustion-scan
+  dependency as the trigger's operating mode, or drop the trigger from the
+  A/B. Choosing with only the aggregate unresolved-rate numbers would hide
+  the effect; the per-point delay distributions are the deciding evidence.
 - On this corpus the exhaustion scan recovers nothing for checkpoint or
   staggered at PoC profiles: their per-step/per-multiple cadence already
   covers the final state. The measured value of the exhaustion scan is

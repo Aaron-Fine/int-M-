@@ -17,7 +17,7 @@
   "candidateRejectionBudget": 64,
   "schedulePolicies": {
     "checkpoint": {
-      "revision": "poc-checkpoint-1.0.0"
+      "revision": "poc-checkpoint-1.0.1"
     },
     "trigger": {
       "revision": "poc-trigger-1.0.0",
@@ -77,31 +77,31 @@
     "timedPasses": 5,
     "medianClassifyMs": {
       "quick": {
-        "control": 0.832634,
-        "checkpoint.exhaustion-on": 0.460263,
-        "checkpoint.exhaustion-off": 0.425198,
-        "trigger.exhaustion-on": 0.416,
-        "trigger.exhaustion-off": 0.200124,
-        "staggered.exhaustion-on": 0.9512,
-        "staggered.exhaustion-off": 0.388496
+        "control": 0.723262,
+        "checkpoint.exhaustion-on": 0.671449,
+        "checkpoint.exhaustion-off": 0.871938,
+        "trigger.exhaustion-on": 0.635798,
+        "trigger.exhaustion-off": 0.195252,
+        "staggered.exhaustion-on": 0.934485,
+        "staggered.exhaustion-off": 0.42718
       },
       "balanced": {
-        "control": 1.749635,
-        "checkpoint.exhaustion-on": 0.306516,
-        "checkpoint.exhaustion-off": 0.175545,
-        "trigger.exhaustion-on": 0.223926,
-        "trigger.exhaustion-off": 0.213388,
-        "staggered.exhaustion-on": 1.357767,
-        "staggered.exhaustion-off": 1.368058
+        "control": 1.708174,
+        "checkpoint.exhaustion-on": 0.244876,
+        "checkpoint.exhaustion-off": 0.243961,
+        "trigger.exhaustion-on": 0.300363,
+        "trigger.exhaustion-off": 0.22351,
+        "staggered.exhaustion-on": 1.377591,
+        "staggered.exhaustion-off": 1.381681
       },
       "detailed": {
-        "control": 5.202976,
-        "checkpoint.exhaustion-on": 0.296057,
-        "checkpoint.exhaustion-off": 0.267593,
-        "trigger.exhaustion-on": 0.528606,
-        "trigger.exhaustion-off": 0.400269,
-        "staggered.exhaustion-on": 4.593596,
-        "staggered.exhaustion-off": 3.957833
+        "control": 6.381386,
+        "checkpoint.exhaustion-on": 0.297436,
+        "checkpoint.exhaustion-off": 0.311956,
+        "trigger.exhaustion-on": 0.453962,
+        "trigger.exhaustion-off": 0.477605,
+        "staggered.exhaustion-on": 4.250893,
+        "staggered.exhaustion-off": 4.819855
       }
     }
   }

@@ -131,6 +131,32 @@ describe('schedule kernels: known-cycle detection', () => {
       metrics: { lagComparisons: 1, verifierCalls: 1 },
     });
   });
+
+  it('checkpoint rolls a stale checkpoint whose lag exceeds the period ceiling', () => {
+    // Regression guard for the interval-exhaustion update. At the quick
+    // profile the first post-warmup comparison on the rabbit center happens
+    // at lag 24 > maxPeriod 16 with the orbit already collapsed onto the
+    // cycle (z_24 ~ 1e-16 from the z_0 = 0 checkpoint): a proximity hit
+    // whose lag exceeds the systematic ceiling. That hit must behave like
+    // an exhausted interval - store z_24, double the interval, re-establish
+    // the lag - so the next window proposes small lags and detection
+    // happens in-loop. A structure that only rolls when the proposal
+    // threshold was NOT met keeps the stale checkpoint (every remaining
+    // step compares against it, no proposal is ever possible) and pushes
+    // detection to the exhaustion scan: evidence 'exhaustion-scan' at
+    // iterations 256 with ~40x more comparisons instead of the frozen
+    // numbers below.
+    const result = new CheckpointKernel(64).classify(RABBIT_CENTER[0], RABBIT_CENTER[1], quick);
+
+    expect(result).toMatchObject({
+      status: 'attracting',
+      period: 3,
+      iterations: 29,
+      evidence: 'checkpoint-candidate',
+      metrics: { lagComparisons: 6, verifierCalls: 1, verifierAmbiguous: 0 },
+    });
+    expect(result.iterations).toBeLessThan(quick.maxIterations);
+  });
 });
 
 describe('schedule kernels: cost on unresolved/late strata', () => {
