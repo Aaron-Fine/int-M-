@@ -1,4 +1,6 @@
 import type { EnvironmentSample, MicrobenchApi } from './microbench-api';
+import { runPoolSizing } from './pool-sizing';
+import type { PoolSizingParams, PoolSizingResult } from './microbench-api';
 
 type Runner = (params: unknown) => Promise<unknown>;
 
@@ -37,8 +39,23 @@ const sampleEnvironment = async (): Promise<EnvironmentSample> => {
   };
 };
 
+const runPoolSizingTyped = async (params: unknown): Promise<PoolSizingResult> => {
+  const typed = params as PoolSizingParams;
+  if (
+    typeof typed.caseId !== 'string' ||
+    !Array.isArray(typed.sizes) ||
+    typeof typed.measuredReps !== 'number'
+  ) {
+    throw new Error(
+      'pool-sizing runner requires { caseId, profileId, edge, sizes, warmupReps, measuredReps }',
+    );
+  }
+  return runPoolSizing(typed);
+};
+
 const runners: Record<string, Runner> = {
   environment: () => sampleEnvironment(),
+  'pool-sizing': (params) => runPoolSizingTyped(params),
 };
 
 const api: MicrobenchApi = {

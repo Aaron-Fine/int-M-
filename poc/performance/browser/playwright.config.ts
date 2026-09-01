@@ -35,7 +35,10 @@ export default defineConfig({
   webServer: {
     command: `node ${JSON.stringify(path.join(browserDir, 'scripts/build-and-preview.mjs'))}`,
     url: `http://127.0.0.1:${port}/poc-bench/index.html`,
-    reuseExistingServer: false,
+    // Default: build + serve fresh for every run (deterministic evidence).
+    // Set MI_POC_REUSE=1 to reuse a manually started preview server while
+    // iterating on measurements.
+    reuseExistingServer: Boolean(process.env['MI_POC_REUSE']),
     timeout: 300_000,
   },
 });

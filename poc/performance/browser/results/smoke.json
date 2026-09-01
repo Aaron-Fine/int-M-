@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "measurement": "smoke",
-  "capturedAt": "2026-09-01T04:25:54.646Z",
+  "capturedAt": "2026-09-01T04:31:47.498Z",
   "environment": {
     "schemaVersion": 1,
-    "capturedAt": "2026-09-01T04:25:54.645Z",
+    "capturedAt": "2026-09-01T04:31:47.496Z",
     "browser": {
       "build": "151.0.7922.34",
       "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
@@ -17,8 +17,8 @@
     "memoryTotalBytes": 16465719296,
     "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
     "revisions": {
-      "build": "a6e183838a2c465dd1cc8e40aa2f094465267c90",
-      "algorithm": "a6e183838a2c465dd1cc8e40aa2f094465267c90",
+      "build": "825193ed5cb120a9d69c5e6f0e31c23b9c43d4e4",
+      "algorithm": "825193ed5cb120a9d69c5e6f0e31c23b9c43d4e4",
       "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
       "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
     },
@@ -40,25 +40,25 @@
       "hardwareConcurrency": 8,
       "devicePixelRatio": 1,
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
-      "echoWorkerRoundtripMs": 8.299999997019768
+      "echoWorkerRoundtripMs": 22.100000008940697
     },
     {
       "hardwareConcurrency": 8,
       "devicePixelRatio": 1,
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
-      "echoWorkerRoundtripMs": 6
+      "echoWorkerRoundtripMs": 12.899999991059303
     },
     {
       "hardwareConcurrency": 8,
       "devicePixelRatio": 1,
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
-      "echoWorkerRoundtripMs": 5.9000000059604645
+      "echoWorkerRoundtripMs": 16.799999997019768
     }
   ],
   "summary": {
-    "runnerNames": ["environment"],
+    "runnerNames": ["environment", "pool-sizing"],
     "samplesRecorded": 3,
-    "medianEchoWorkerRoundtripMs": 6
+    "medianEchoWorkerRoundtripMs": 16.799999997019768
   },
   "notes": [
     "Smoke milestone (M1): proves the production bundle boots and the microbench page + worker mechanics load.",
