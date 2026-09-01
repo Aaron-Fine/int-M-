@@ -35,7 +35,7 @@ import {
   ZOOM_FACTOR,
 } from './view-state';
 import { RendererWorkerClient } from './renderer-worker-client';
-import { recordWorkerTimingMarks } from './worker-timing-marks';
+import { createRenderTraceRing, expectedWorkerCount, viewKeyHash } from './worker-timing-marks';
 
 interface ApplicationState {
   viewport: Viewport;
@@ -50,6 +50,9 @@ interface ApplicationState {
   qualityProfile: QualityProfileId;
   selectedPoint?: Complex;
   selectedCatalogId?: string;
+  requestStartedAtMs: number;
+  cancelRequestedAtMs: number;
+  cancelRequestedRequestId: number;
 }
 
 interface CanvasPoint {
@@ -72,9 +75,11 @@ declare global {
 
 export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
+  const renderTraces = createRenderTraceRing();
   const longTaskObserver = PerformanceObserver.supportedEntryTypes.includes('longtask')
     ? new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
+          renderTraces.noteMainThreadLongTask(entry.duration);
           performance.mark('mi:long-task', {
             detail: { startTime: entry.startTime, duration: entry.duration },
           });
@@ -93,6 +98,9 @@ export function mountApplication(host: HTMLElement): () => void {
     dragging: false,
     interactionMode: 'pan',
     qualityProfile: DEFAULT_QUALITY_PROFILE_ID,
+    requestStartedAtMs: 0,
+    cancelRequestedAtMs: 0,
+    cancelRequestedRequestId: 0,
   };
 
   const renderCanvas = element('canvas', {
@@ -463,6 +471,8 @@ export function mountApplication(host: HTMLElement): () => void {
   function scheduleRender(immediate = false): void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (state.activeRequestId > 0 && state.frameStage !== 'stable') {
+      state.cancelRequestedAtMs = performance.now();
+      state.cancelRequestedRequestId = state.activeRequestId;
       performance.mark('mi:cancellation-requested', {
         detail: { requestId: state.activeRequestId },
       });
@@ -491,6 +501,8 @@ export function mountApplication(host: HTMLElement): () => void {
     state.frameStage = 'none';
     canvasShell.dataset['renderStage'] = 'requested';
     canvasShell.dataset['renderRequestId'] = String(state.activeRequestId);
+    const quality = currentQualityProfile();
+    state.requestStartedAtMs = performance.now();
     performance.mark('mi:render-request', {
       detail: { requestId: state.activeRequestId },
     });
@@ -500,14 +512,24 @@ export function mountApplication(host: HTMLElement): () => void {
       viewport: state.viewport,
       size,
       semanticView: state.semanticView,
-      quality: currentQualityProfile().quality,
+      quality: quality.quality,
     } satisfies MainToWorkerMessage);
+    renderTraces.beginRequest({
+      requestId: state.activeRequestId,
+      viewKeyHash: viewKeyHash(state.viewport, state.semanticView, quality.quality),
+      width: size.width,
+      height: size.height,
+      profile: quality.id,
+      backend: 'cpu',
+      workerCount: expectedWorkerCount(
+        typeof navigator === 'undefined' ? undefined : navigator.hardwareConcurrency,
+      ),
+    });
   }
 
   function presentFrame(frame: FrameMessage): void {
     if (frame.requestId !== state.activeRequestId) return;
 
-    recordWorkerTimingMarks(frame);
     const pixels = new ImageData(frame.rgba, frame.width, frame.height);
     renderCanvas.width = frame.width;
     renderCanvas.height = frame.height;
@@ -523,6 +545,10 @@ export function mountApplication(host: HTMLElement): () => void {
     requestAnimationFrame(() => {
       performance.mark(`mi:${frame.stage}-presented`, {
         detail: { requestId: frame.requestId },
+      });
+      renderTraces.recordFrame(frame, {
+        requestToPresentMs: performance.now() - state.requestStartedAtMs,
+        colorizeMs: frame.workerTiming?.colorizeMs,
       });
     });
 
@@ -971,6 +997,14 @@ export function mountApplication(host: HTMLElement): () => void {
         performance.mark('mi:cancellation-acknowledged', {
           detail: { requestId: message.requestId },
         });
+        if (message.requestId === state.cancelRequestedRequestId && state.cancelRequestedAtMs > 0) {
+          renderTraces.recordCancellation(
+            message.requestId,
+            performance.now() - state.cancelRequestedAtMs,
+          );
+          state.cancelRequestedAtMs = 0;
+          state.cancelRequestedRequestId = 0;
+        }
         break;
       case 'error':
         break;
@@ -986,11 +1020,13 @@ export function mountApplication(host: HTMLElement): () => void {
     {
       onMessage: handleWorkerMessage,
       onRecovering: () => {
+        renderTraces.failOpenRequests();
         status.className = 'status status--working';
         statusText.textContent = 'Renderer interrupted. Recovering automatically…';
         retryRendererButton.hidden = true;
       },
       onPersistentFailure: () => {
+        renderTraces.failOpenRequests();
         clearPresentationPreview();
         status.className = 'status status--error';
         statusText.textContent = 'Renderer could not recover. Controls remain available.';

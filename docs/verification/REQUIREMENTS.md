@@ -45,3 +45,53 @@ row. A blank row is not a pass. Use the
 | Deuteranopia simulation                                                     | Pass    | Pass   | Exact-candidate matrix and reviewer sign-off                           |
 | Tritanopia simulation                                                       | Pass    | Pass   | Exact-candidate matrix and reviewer sign-off                           |
 | Unresolved, selected, escaped, and catalog states remain distinguishable    | Pass    | Pass   | Exact-candidate matrix and reviewer sign-off                           |
+
+## Phase 2 performance requirements
+
+Added per the Phase 2 performance plan §10. The requirement text and primary
+evidence columns mirror the plan's table; evidence organization follows the
+[phase-2 evidence contract](../../evidence/phase-2/README.md) and the frozen
+[benchmark corpus](PERFORMANCE-CORPUS.md). As with the Phase 1 matrix above,
+implemented behavior is distinguished from evidence sufficient to close a
+requirement; nothing here is closed yet.
+
+| Requirement   | Requirement text                                                                                                                                                                                                                                   | Primary evidence                                                                   |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `MI-PERF-001` | The offline toolchain shall reproduce the declared corpus and retain build, environment, raw observations, metric definitions, and semantic-comparison evidence for every normative run.                                                           | Corpus manifest, raw samples, environment record, evidence hashes                  |
+| `MI-PERF-002` | The classifier shall perform finite, profile-bounded systematic detection and may report a higher opportunistic period only after the same primitive-period and attraction checks.                                                                 | Oracle/differential fixtures, verifier tests, policy UI tests                      |
+| `MI-PERF-003` | The curated identity layer shall remain intact. If workstream F ships, the generated period-12 core shall be deterministically reproducible and versioned extension shards shall load without blocking rendering or weakening the curated catalog. | Generator report, hashes, offline/cold/warm/corrupt-shard tests (conditional on F) |
+| `MI-PERF-004` | No checkpoint, catalog, algebraic, Newton, SIMD, or subdivision path shall emit attracting-cycle status without the common declared acceptance procedure; exhausted or ambiguous work shall remain unresolved.                                     | Oracle fixtures, candidate rejection tests, continuous-field tolerance report      |
+| `MI-PERF-005` | An optional accelerated kernel shall be capability-detected and self-tested, preserve the semantic contract, and automatically use the scalar Worker CPU path on unsupported or failed execution.                                                  | Chrome/Firefox evidence, forced-failure tests, backend parity                      |
+| `MI-PERF-006` | Rendering shall remain progressive, cancellable, memory-bounded, and within versioned responsiveness and stable-frame budgets on the supported target class.                                                                                       | End-to-end cancel/cache tests, memory high-water, browser evidence                 |
+| `MI-PERF-007` | Always-on observation shall operate only at request/band boundaries, distinguish computed, cached, replayed, and recolored frames, and meet retention/overhead limits.                                                                             | Timing schema tests, overhead benchmark, ring-size tests                           |
+| `MI-PERF-008` | Catalog presentation — the curated centers and, if F ships, dynamic marker loading and clustering — shall remain keyboard-operable, screen-reader understandable, focus-stable, and bounded in simultaneous interactive markers.                   | Accessibility record, marker cap, focus and search/list tests                      |
+
+### Verification objectives
+
+Defined per plan §10:
+
+- `MI-VER-PERF-001` — benchmark/observability.
+- `MI-VER-PERF-002` — classifier agreement/rejection.
+- `MI-VER-PERF-003` — catalog completeness/determinism/accessibility.
+- `MI-VER-PERF-004` — rendering/cancellation/memory/browser budgets.
+- `MI-VER-PERF-005` — optional acceleration capability/equivalence/fallback.
+
+### Traceability matrix
+
+Owning PR "PR 1" refers to this change (corpus, timing, bounded
+observability). Requirements not touched by PR 1 have no assigned PR yet.
+MI-PERF-006 and MI-PERF-008 preserve the regression trace to the Phase 1 UX
+requirements rather than superseding them: rendering responsiveness and
+cancellation remain evidence for `MI-UX-003`/`MI-UX-007`, and catalog
+presentation for `MI-UX-011`/`MI-UX-015`/`MI-UX-016`.
+
+| Requirement   | Verification objective | Implementation area                                                                | Owning PR                                             | Evidence artifact                                                                             | Closeout state |
+| ------------- | ---------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------- |
+| `MI-PERF-001` | `MI-VER-PERF-001`      | `tools/benchmark/` (corpus, validator, environment capture, manifest), corpus docs | PR 1                                                  | Frozen corpus + validation tests; environment.json, raw observations, manifest.sha256 per run | Open           |
+| `MI-PERF-002` | `MI-VER-PERF-002`      | `src/domain/orbit.ts`, `src/render/classify-rows.ts`, period policy                | Unassigned                                            | Oracle/differential fixtures, verifier tests, policy UI tests                                 | Open           |
+| `MI-PERF-003` | `MI-VER-PERF-003`      | `catalog/`, `src/catalog/`, optional generated core (workstream F)                 | Unassigned (conditional)                              | Generator report, hashes, offline/cold/warm/corrupt-shard tests                               | Open           |
+| `MI-PERF-004` | `MI-VER-PERF-002`      | Classifier acceptance paths (`src/render/`, `src/domain/`)                         | Unassigned                                            | Oracle fixtures, candidate rejection tests, continuous-field tolerance report                 | Open           |
+| `MI-PERF-005` | `MI-VER-PERF-005`      | Optional Wasm SIMD kernel behind the scalar Worker CPU fallback                    | Unassigned (conditional)                              | Chrome/Firefox evidence, forced-failure tests, backend parity                                 | Open           |
+| `MI-PERF-006` | `MI-VER-PERF-004`      | `src/render/`, `src/worker/`, `src/ui/` render pipeline                            | Unassigned                                            | End-to-end cancel/cache tests, memory high-water, browser evidence                            | Open           |
+| `MI-PERF-007` | `MI-VER-PERF-001`      | `src/ui/worker-timing-marks.ts` bounded render trace ring                          | PR 1                                                  | Ring/schema/caching tests (worker-timing-marks.test.ts); overhead benchmark pending           | Open           |
+| `MI-PERF-008` | `MI-VER-PERF-003`      | `src/ui/` catalog presentation (Phase 1 surface; dynamic markers conditional on F) | Phase 1 evidence retained; dynamic markers unassigned | Accessibility record, marker cap, focus and search/list tests                                 | Open           |
