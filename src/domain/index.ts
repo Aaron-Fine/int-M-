@@ -1,5 +1,16 @@
 export * from './complex';
-export { classifyOrbit, DEFAULT_ORBIT_OPTIONS, OrbitClassifier, OrbitScratch } from './orbit';
+export {
+  classifyInto,
+  classifyOrbit,
+  createOrbitSample,
+  DEFAULT_ORBIT_OPTIONS,
+  materializeOrbitResult,
+  ORBIT_EVIDENCE_CODE,
+  OrbitClassifier,
+  resolveOrbitOptions,
+  OrbitScratch,
+} from './orbit';
+export type { OrbitSample, OrbitStatusCode } from './orbit';
 export {
   colorForAttracting,
   colorForEscaped,

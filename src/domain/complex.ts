@@ -5,11 +5,10 @@ import type { Complex } from './types';
  * worker-friendly `{ re, im }` representation used at domain boundaries.
  *
  * TODO: Keep this module deliberately minimal: remove helpers without call
- * sites, rename `complexSqrt` to `principalComplexSqrt`, and add tests for its
- * branch semantics. Introduce a general complex-number library only if the
+ * sites. Introduce a general complex-number library only if the
  * non-rendering mathematics grows beyond a small, reviewable operation set.
- * Per-pixel hot paths should continue to use scalar real/imaginary values to
- * avoid allocating an object on every iteration.
+ * Per-pixel hot paths use scalar real/imaginary values to avoid allocating
+ * an object on every iteration (see classifyInto in ./orbit.ts).
  */
 
 export const complexMagnitudeSquared = (value: Complex): number =>
@@ -30,14 +29,3 @@ export const complexSquareAdd = (value: Complex, addend: Complex): Complex => ({
   re: value.re * value.re - value.im * value.im + addend.re,
   im: 2 * value.re * value.im + addend.im,
 });
-
-/** Principal square root. */
-export const complexSqrt = (value: Complex): Complex => {
-  const magnitude = Math.hypot(value.re, value.im);
-  const re = Math.sqrt(Math.max(0, (magnitude + value.re) / 2));
-  const imMagnitude = Math.sqrt(Math.max(0, (magnitude - value.re) / 2));
-  return {
-    re,
-    im: value.im < 0 ? -imMagnitude : imMagnitude,
-  };
-};
