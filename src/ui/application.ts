@@ -79,11 +79,13 @@ declare global {
     };
     /**
      * Opt-in (?perf=1) render-trace diagnostic boundary, performance plan §8.
-     * Absent unless requested; exposes the bounded ring's snapshot plus the
-     * most recently completed trace for the Stage A evidence harness.
+     * Absent unless requested; exposes the bounded ring's snapshot, the most
+     * recently completed trace, and the live viewport for the Stage A
+     * evidence harness.
      */
     __miRenderTrace?: {
       readonly snapshot: () => readonly RenderTrace[];
+      readonly viewport: () => Viewport;
       lastTrace: RenderTrace | undefined;
     };
   }
@@ -105,10 +107,6 @@ export function mountApplication(host: HTMLElement): () => void {
         }
       : {}),
   });
-  if (benchmark.perfEnabled) {
-    perfHook = { snapshot: () => renderTraces.snapshot(), lastTrace: undefined };
-    window.__miRenderTrace = perfHook;
-  }
   const longTaskObserver = PerformanceObserver.supportedEntryTypes.includes('longtask')
     ? new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
@@ -135,6 +133,14 @@ export function mountApplication(host: HTMLElement): () => void {
     cancelRequestedAtMs: 0,
     cancelRequestedRequestId: 0,
   };
+  if (benchmark.perfEnabled) {
+    perfHook = {
+      snapshot: () => renderTraces.snapshot(),
+      viewport: () => ({ ...state.viewport }),
+      lastTrace: undefined,
+    };
+    window.__miRenderTrace = perfHook;
+  }
 
   const renderCanvas = element('canvas', {
     className: 'explorer__canvas',
