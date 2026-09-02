@@ -7,6 +7,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -25,6 +26,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -43,6 +45,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -61,6 +64,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -79,6 +83,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -97,6 +102,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -115,6 +121,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -133,6 +140,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -151,6 +159,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -169,6 +178,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -187,6 +197,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -205,6 +216,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -223,6 +235,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -241,6 +254,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -259,6 +273,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -277,6 +292,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -295,6 +311,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -313,6 +330,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -331,6 +349,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -349,6 +368,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -367,6 +387,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -385,6 +406,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -403,6 +425,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -421,6 +444,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -439,6 +463,7 @@
     "status": "escaped",
     "iterations": 8,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -457,6 +482,7 @@
     "status": "escaped",
     "iterations": 4,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -475,6 +501,7 @@
     "status": "escaped",
     "iterations": 13,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -493,6 +520,7 @@
     "status": "escaped",
     "iterations": 2,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -511,6 +539,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -529,6 +558,7 @@
     "status": "escaped",
     "iterations": 2,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -547,6 +577,7 @@
     "status": "escaped",
     "iterations": 5,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -565,6 +596,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -583,6 +615,7 @@
     "status": "escaped",
     "iterations": 5,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -601,6 +634,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -619,6 +653,7 @@
     "status": "escaped",
     "iterations": 4,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -637,6 +672,7 @@
     "status": "escaped",
     "iterations": 2,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -655,6 +691,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -673,6 +710,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -691,6 +729,7 @@
     "status": "escaped",
     "iterations": 4,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -709,6 +748,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -727,6 +767,7 @@
     "status": "escaped",
     "iterations": 2,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -745,6 +786,7 @@
     "status": "escaped",
     "iterations": 4,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -763,6 +805,7 @@
     "status": "escaped",
     "iterations": 5,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -781,6 +824,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -799,6 +843,7 @@
     "status": "escaped",
     "iterations": 3,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -817,6 +862,7 @@
     "status": "escaped",
     "iterations": 8,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -835,6 +881,7 @@
     "status": "escaped",
     "iterations": 36,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 12,
       "verifierCalls": 0,
@@ -853,6 +900,7 @@
     "status": "escaped",
     "iterations": 1,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -871,6 +919,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -893,6 +942,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -915,6 +965,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -937,6 +988,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -959,6 +1011,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -981,6 +1034,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1003,6 +1057,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1025,6 +1080,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1047,6 +1103,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1069,6 +1126,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1091,6 +1149,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1113,6 +1172,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1135,6 +1195,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1157,6 +1218,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1179,6 +1241,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1201,6 +1264,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1223,6 +1287,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1245,6 +1310,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1267,6 +1333,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1289,6 +1356,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1311,6 +1379,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1333,6 +1402,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1355,6 +1425,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1377,6 +1448,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1399,6 +1471,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1421,6 +1494,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1443,6 +1517,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1465,6 +1540,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1487,6 +1563,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1509,6 +1586,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1531,6 +1609,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1553,6 +1632,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1575,6 +1655,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1597,6 +1678,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1619,6 +1701,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1641,6 +1724,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1663,6 +1747,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1685,6 +1770,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1707,6 +1793,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1729,6 +1816,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1751,6 +1839,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1773,6 +1862,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1795,6 +1885,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1817,6 +1908,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1839,6 +1931,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1861,6 +1954,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1883,6 +1977,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1905,6 +2000,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1927,6 +2023,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1949,6 +2046,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1971,6 +2069,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -1993,6 +2092,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2015,6 +2115,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2037,6 +2138,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2059,6 +2161,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2081,6 +2184,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2103,6 +2207,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2125,6 +2230,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2147,6 +2253,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2169,6 +2276,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2191,6 +2299,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2213,6 +2322,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2235,6 +2345,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2257,6 +2368,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -2279,6 +2391,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2301,6 +2414,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2323,6 +2437,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2345,6 +2460,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2367,6 +2483,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2389,6 +2506,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2411,6 +2529,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2433,6 +2552,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2455,6 +2575,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2477,6 +2598,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2499,6 +2621,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2521,6 +2644,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2543,6 +2667,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2565,6 +2690,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2587,6 +2713,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2609,6 +2736,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2631,6 +2759,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2653,6 +2782,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2675,6 +2805,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2697,6 +2828,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2719,6 +2851,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2741,6 +2874,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2763,6 +2897,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2785,6 +2920,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -2807,6 +2943,7 @@
     "status": "attracting",
     "iterations": 35,
     "evidence": "de-guess-candidate",
+    "packed": 33554437,
     "metrics": {
       "lagComparisons": 12,
       "verifierCalls": 1,
@@ -2829,6 +2966,7 @@
     "status": "attracting",
     "iterations": 35,
     "evidence": "de-guess-candidate",
+    "packed": 33554437,
     "metrics": {
       "lagComparisons": 12,
       "verifierCalls": 1,
@@ -2851,6 +2989,7 @@
     "status": "attracting",
     "iterations": 35,
     "evidence": "de-guess-candidate",
+    "packed": 33554437,
     "metrics": {
       "lagComparisons": 12,
       "verifierCalls": 1,
@@ -2873,6 +3012,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -2891,6 +3031,7 @@
     "status": "escaped",
     "iterations": 39,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 15,
       "verifierCalls": 0,
@@ -2909,6 +3050,7 @@
     "status": "escaped",
     "iterations": 47,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 23,
       "verifierCalls": 0,
@@ -2927,6 +3069,7 @@
     "status": "escaped",
     "iterations": 39,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 15,
       "verifierCalls": 0,
@@ -2945,6 +3088,7 @@
     "status": "attracting",
     "iterations": 90,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 67,
       "verifierCalls": 1,
@@ -2967,6 +3111,7 @@
     "status": "attracting",
     "iterations": 166,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 143,
       "verifierCalls": 1,
@@ -2989,6 +3134,7 @@
     "status": "escaped",
     "iterations": 29,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 5,
       "verifierCalls": 0,
@@ -3007,6 +3153,7 @@
     "status": "attracting",
     "iterations": 202,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 179,
       "verifierCalls": 1,
@@ -3029,6 +3176,7 @@
     "status": "escaped",
     "iterations": 33,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 9,
       "verifierCalls": 0,
@@ -3047,6 +3195,7 @@
     "status": "attracting",
     "iterations": 90,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 67,
       "verifierCalls": 1,
@@ -3069,6 +3218,7 @@
     "status": "escaped",
     "iterations": 17,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3087,6 +3237,7 @@
     "status": "escaped",
     "iterations": 21,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3105,6 +3256,7 @@
     "status": "escaped",
     "iterations": 19,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3123,6 +3275,7 @@
     "status": "escaped",
     "iterations": 33,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 9,
       "verifierCalls": 0,
@@ -3141,6 +3294,7 @@
     "status": "attracting",
     "iterations": 158,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 135,
       "verifierCalls": 1,
@@ -3163,6 +3317,7 @@
     "status": "escaped",
     "iterations": 25,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 1,
       "verifierCalls": 0,
@@ -3181,6 +3336,7 @@
     "status": "escaped",
     "iterations": 19,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3199,6 +3355,7 @@
     "status": "escaped",
     "iterations": 25,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 1,
       "verifierCalls": 0,
@@ -3217,6 +3374,7 @@
     "status": "escaped",
     "iterations": 21,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3235,6 +3393,7 @@
     "status": "attracting",
     "iterations": 158,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 135,
       "verifierCalls": 1,
@@ -3257,6 +3416,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3275,6 +3435,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3293,6 +3454,7 @@
     "status": "escaped",
     "iterations": 19,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3311,6 +3473,7 @@
     "status": "attracting",
     "iterations": 214,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 191,
       "verifierCalls": 1,
@@ -3333,6 +3496,7 @@
     "status": "attracting",
     "iterations": 202,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 195,
       "verifierCalls": 2,
@@ -3355,6 +3519,7 @@
     "status": "escaped",
     "iterations": 31,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 0,
@@ -3373,6 +3538,7 @@
     "status": "escaped",
     "iterations": 15,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3391,6 +3557,7 @@
     "status": "escaped",
     "iterations": 14,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3409,6 +3576,7 @@
     "status": "escaped",
     "iterations": 16,
     "evidence": "escape-radius",
+    "packed": 16777216,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3427,6 +3595,7 @@
     "status": "attracting",
     "iterations": 202,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 195,
       "verifierCalls": 2,
@@ -3449,6 +3618,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3471,6 +3641,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3493,6 +3664,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3515,6 +3687,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3537,6 +3710,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3559,6 +3733,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3581,6 +3756,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3603,6 +3779,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3625,6 +3802,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3647,6 +3825,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3669,6 +3848,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3691,6 +3871,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3713,6 +3894,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3735,6 +3917,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3757,6 +3940,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3779,6 +3963,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3801,6 +3986,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3823,6 +4009,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3845,6 +4032,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3867,6 +4055,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -3889,6 +4078,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3907,6 +4097,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3925,6 +4116,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3943,6 +4135,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3961,6 +4154,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3979,6 +4173,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -3997,6 +4192,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4015,6 +4211,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4033,6 +4230,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4051,6 +4249,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4069,6 +4268,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4087,6 +4287,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4105,6 +4306,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4123,6 +4325,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4141,6 +4344,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4159,6 +4363,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4177,6 +4382,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-main-cardioid",
+    "packed": 33554433,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -4199,6 +4405,7 @@
     "status": "attracting",
     "iterations": 0,
     "evidence": "analytic-period-2-bulb",
+    "packed": 33554434,
     "metrics": {
       "lagComparisons": 0,
       "verifierCalls": 0,
@@ -4221,6 +4428,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -4243,6 +4451,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -4265,6 +4474,7 @@
     "status": "attracting",
     "iterations": 29,
     "evidence": "de-guess-candidate",
+    "packed": 33554435,
     "metrics": {
       "lagComparisons": 6,
       "verifierCalls": 1,
@@ -4287,6 +4497,7 @@
     "status": "attracting",
     "iterations": 30,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 1,
@@ -4309,6 +4520,7 @@
     "status": "attracting",
     "iterations": 30,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 1,
@@ -4331,6 +4543,7 @@
     "status": "attracting",
     "iterations": 30,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 1,
@@ -4353,6 +4566,7 @@
     "status": "attracting",
     "iterations": 30,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 1,
@@ -4375,6 +4589,7 @@
     "status": "attracting",
     "iterations": 30,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 1,
@@ -4397,6 +4612,7 @@
     "status": "attracting",
     "iterations": 30,
     "evidence": "de-guess-candidate",
+    "packed": 33554436,
     "metrics": {
       "lagComparisons": 7,
       "verifierCalls": 1,
@@ -4419,6 +4635,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4437,6 +4654,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4455,6 +4673,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4473,6 +4692,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4491,6 +4711,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4509,6 +4730,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4527,6 +4749,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4545,6 +4768,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4563,6 +4787,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4581,6 +4806,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4599,6 +4825,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,
@@ -4617,6 +4844,7 @@
     "status": "unresolved",
     "iterations": 256,
     "evidence": "iteration-limit",
+    "packed": 50331648,
     "metrics": {
       "lagComparisons": 249,
       "verifierCalls": 0,

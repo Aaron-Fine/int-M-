@@ -39,6 +39,13 @@ import {
 } from './kernels/transplant.ts';
 import { TRAP_REVISION, TRAP_THRESHOLDS, TrapKernel } from './kernels/trap.ts';
 import { GRIDS_REVISION, GRID_SIZE, GRID_SPECS, buildGrids, type GridPoint } from './grids.ts';
+import {
+  PACKED_OUTPUT_REVISION,
+  packStatusPeriod,
+  unpackPeriod,
+  unpackStatus,
+} from './kernels/packed.ts';
+import { HARD_VIEW_ANCHORS } from './corpus.ts';
 import { CANDIDATE_REJECTION_BUDGET } from './kernels/shared.ts';
 import { VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier.ts';
 import { buildCorpus, CORPUS_SEED } from './corpus.ts';
@@ -140,6 +147,8 @@ interface PointRecord {
   readonly status: KernelResult['status'];
   readonly iterations: number;
   readonly evidence: string;
+  /** Packed status+period word (plan section 5 renderer-path encoding). */
+  readonly packed: number;
   readonly period?: number;
   readonly multiplierMagnitude?: number;
   readonly multiplierAngle?: number;
@@ -153,6 +162,13 @@ const recordOf = (
   variant: Variant,
   result: KernelResult,
 ): PointRecord => {
+  const period = result.status === 'attracting' ? result.period : 0;
+  const packed = packStatusPeriod(result.status, period);
+  // Round-trip identity is asserted for EVERY corpus classification; a
+  // mismatch is a harness bug and fails the run.
+  if (unpackStatus(packed) !== result.status || unpackPeriod(packed) !== period) {
+    throw new Error(`packed round-trip mismatch at ${point.id}: ${packed}`);
+  }
   const base: PointRecord = {
     id: point.id,
     stratum: point.stratum,
@@ -161,6 +177,7 @@ const recordOf = (
     status: result.status,
     iterations: result.iterations,
     evidence: result.evidence,
+    packed,
     metrics: { ...result.metrics },
   };
   if (result.status !== 'attracting') {
@@ -843,6 +860,88 @@ const runGridSection = (
   return { grids, gateFailures, lambdaBuckets };
 };
 
+/**
+ * Packed status+period output measurement (plan section 5 renderer-path
+ * details): one 1024^2 raster slice cut from hard view anchor 0, classified
+ * by the checkpoint kernel at the quick profile, written both as the packed
+ * Uint32 word per pixel (the production zero-copy store shape) and as the
+ * current two-field layout (Uint8 status + Uint32 period). Byte counts are
+ * the allocated buffer sizes (measured, not estimated) and the decode pass
+ * asserts round-trip identity on every pixel.
+ */
+const runPackedOutputSection = (): Record<string, unknown> => {
+  const anchor = HARD_VIEW_ANCHORS[0];
+  if (anchor === undefined) {
+    throw new Error('missing hard view anchor 0');
+  }
+  const size = 1024;
+  const unitsPerPixel = 2.5 / anchor.zoom / size;
+  const pixelCount = size * size;
+  const options = profileOptions(PROFILES[0], true);
+  const kernel = new CheckpointKernel(64);
+
+  // The packed word is what a production kernel would store per pixel.
+  const packedWords = new Uint32Array(pixelCount);
+  // The current two-field layout: status and period as separate channels.
+  const statusField = new Uint8Array(pixelCount);
+  const periodField = new Uint32Array(pixelCount);
+
+  let offset = 0;
+  for (let y = 0; y < size; y += 1) {
+    const cIm = anchor.im - (y + 0.5 - size / 2) * unitsPerPixel;
+    for (let x = 0; x < size; x += 1) {
+      const cRe = anchor.re + (x + 0.5 - size / 2) * unitsPerPixel;
+      const result = kernel.classify(cRe, cIm, options);
+      const period = result.status === 'attracting' ? result.period : 0;
+      const word = packStatusPeriod(result.status, period);
+      packedWords[offset] = word;
+      statusField[offset] =
+        result.status === 'escaped' ? 1 : result.status === 'attracting' ? 2 : 3;
+      periodField[offset] = period;
+      offset += 1;
+    }
+  }
+
+  // Decode pass: the runner reads the packed words for reporting and
+  // asserts round-trip identity against the two-field layout.
+  let mismatches = 0;
+  const statusCounts = { escaped: 0, attracting: 0, unresolved: 0 };
+  for (let index = 0; index < pixelCount; index += 1) {
+    const word = packedWords[index] ?? 0;
+    const status = unpackStatus(word);
+    const period = unpackPeriod(word);
+    statusCounts[status] += 1;
+    const expectedStatus = statusField[index] ?? 0;
+    const expectedPeriod = periodField[index] ?? 0;
+    const statusCode = status === 'escaped' ? 1 : status === 'attracting' ? 2 : 3;
+    if (statusCode !== expectedStatus || period !== expectedPeriod) {
+      mismatches += 1;
+    }
+  }
+
+  const packedBytes = packedWords.byteLength;
+  const twoFieldBytes = statusField.byteLength + periodField.byteLength;
+  return {
+    revision: PACKED_OUTPUT_REVISION,
+    encoding:
+      'status in bits 24..31 (1 escaped, 2 attracting, 3 unresolved), period <= 2^24-1 in bits 0..23',
+    slice: {
+      anchor: { re: anchor.re, im: anchor.im, zoom: anchor.zoom },
+      size,
+      profile: 'quick (checkpoint kernel)',
+    },
+    pixels: pixelCount,
+    roundTripMismatches: mismatches,
+    statusCounts,
+    bytes: {
+      packedWord: packedBytes,
+      twoFieldLayout: twoFieldBytes,
+      saved: twoFieldBytes - packedBytes,
+      savedPercentOfTwoFields: (twoFieldBytes - packedBytes) / twoFieldBytes,
+    },
+  };
+};
+
 const run = (): number => {
   const corpus = buildCorpus();
   const oracle = new Map<string, DDClassification>();
@@ -893,6 +992,7 @@ const run = (): number => {
         oracleGate:
           'any false attracting or wrong primitive period fails the run (workstream L kill gate)',
       },
+      packedOutput: { revision: PACKED_OUTPUT_REVISION },
     },
     ddOracle: { options: DEFAULT_DD_ORACLE_OPTIONS },
     gate: {
@@ -1044,6 +1144,7 @@ const run = (): number => {
     specs: GRID_SPECS,
     profiles: gridProfiles,
   };
+  summary['packedOutput'] = runPackedOutputSection();
 
   const gate = manifest['gate'] as Record<string, unknown>;
   gate['legacyBaselineWrongPrimitivePeriod'] = legacyWrongPrimitivePeriod;

@@ -306,15 +306,25 @@ implementation.
   argument is numerical (linear-regime disk + verifier), not a certified
   enclosure; plan §12/L keeps it research-only.
 
+- **Packed status+period output** (`kernels/packed.ts`, revision
+  `poc-packed-1.0.0`): frozen encoding — status code in bits 24–31
+  (0 reserved, 1 escaped, 2 attracting, 3 unresolved), primitive period ≤
+  2²⁴−1 in bits 0–23 (non-attracting statuses pack period 0; a period that
+  does not fit throws). End-to-end in the harness output path: every
+  corpus classification carries its packed word in `run.ts` records with
+  the decode asserted (`packedOutput` section), and a 1024² raster slice
+  of hard anchor 0 (quick profile, checkpoint kernel) is written in both
+  layouts: **packed 4,194,304 B vs two-field 5,242,880 B = 1,048,576 B
+  saved per 1024² frame (exactly 20% of the status+period bytes, matching
+  the plan's estimate), round-trip mismatches 0/1,048,576 pixels.** Byte
+  counts are allocated `byteLength`s, not estimates; adopting it remains
+  gated on the zero-copy tile pipeline (plan §5).
+
 ## Roadmap: specified but not yet implemented variants
 
 These are plan §5/§11 Step 0 candidates not implemented in this harness yet,
 with the code points where they plug in:
 
-- **Packed status+period output** — pack status and primitive period into a
-  single Uint32 at the result boundary (`kernels/shared.ts:KernelResult`
-  consumers, `run.ts:recordOf`); measurable only with the production
-  zero-copy tile pipeline.
 - **Distance-estimated preview** — a cheap preview classifier consuming
   `multiplierMagnitude`/`kappa` fields of `KernelResult` to render
   smooth interior color early; a separate preview kernel beside

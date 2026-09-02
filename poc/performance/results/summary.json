@@ -81220,5 +81220,31 @@
         }
       }
     }
+  },
+  "packedOutput": {
+    "revision": "poc-packed-1.0.0",
+    "encoding": "status in bits 24..31 (1 escaped, 2 attracting, 3 unresolved), period <= 2^24-1 in bits 0..23",
+    "slice": {
+      "anchor": {
+        "re": -0.158902249,
+        "im": -1.034028,
+        "zoom": 126
+      },
+      "size": 1024,
+      "profile": "quick (checkpoint kernel)"
+    },
+    "pixels": 1048576,
+    "roundTripMismatches": 0,
+    "statusCounts": {
+      "escaped": 761639,
+      "attracting": 149930,
+      "unresolved": 137007
+    },
+    "bytes": {
+      "packedWord": 4194304,
+      "twoFieldLayout": 5242880,
+      "saved": 1048576,
+      "savedPercentOfTwoFields": 0.2
+    }
   }
 }

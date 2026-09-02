@@ -46,9 +46,12 @@ describe('trap: frozen policy and gate behavior', () => {
         hits += 1;
         // Verifier-only acceptance: same primitive period as the baseline
         // on every hit.
-        expect(baseline.status).toBe('attracting');
-        if (baseline.status === 'attracting') {
-          expect(result.period).toBe(baseline.period);
+        if (
+          result.status !== 'attracting' ||
+          baseline.status !== 'attracting' ||
+          result.period !== baseline.period
+        ) {
+          throw new Error(`trap hit period mismatch at ${point.id}`);
         }
         expect(result.metrics.lagComparisons).toBe(0);
       }
