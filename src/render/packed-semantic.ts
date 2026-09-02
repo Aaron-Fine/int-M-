@@ -13,6 +13,8 @@
  *   this only fires on a kernel bug.
  */
 
+import type { SemanticStatusCode } from './renderer';
+
 export const PACKED_OUTPUT_REVISION = 'poc-packed-1.0.0';
 
 /** Frozen status codes (0 reserved so a zero word is never valid). */
@@ -26,14 +28,11 @@ export const PACK_STATUS_CODES = Object.freeze({
 export const PACK_PERIOD_BITS = 24;
 export const PACK_PERIOD_MAX = (1 << PACK_PERIOD_BITS) - 1;
 
-/** Production semantic status code (0 unresolved, 1 escaped, 2 attracting). */
-export type SemanticStatusCodePacked = 0 | 1 | 2;
-
-const packedCodeOf = (status: SemanticStatusCodePacked): number =>
+const packedCodeOf = (status: SemanticStatusCode): number =>
   status === 0 ? PACK_STATUS_CODES.unresolved : status;
 
 /** Packs a production status code and primitive period into one Uint32. */
-export const packStatusPeriod = (status: SemanticStatusCodePacked, period: number): number => {
+export const packStatusPeriod = (status: SemanticStatusCode, period: number): number => {
   if (!Number.isInteger(period) || period < 0 || period > PACK_PERIOD_MAX) {
     throw new Error(`period ${period} does not fit ${PACK_PERIOD_BITS} bits`);
   }
@@ -44,7 +43,7 @@ export const packStatusPeriod = (status: SemanticStatusCodePacked, period: numbe
 };
 
 /** Decodes the production status code from a packed word. */
-export const unpackStatus = (word: number): SemanticStatusCodePacked => {
+export const unpackStatus = (word: number): SemanticStatusCode => {
   const code = word >>> PACK_PERIOD_BITS;
   switch (code) {
     case PACK_STATUS_CODES.escaped:
