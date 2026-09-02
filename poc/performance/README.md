@@ -238,14 +238,33 @@ implementation.
 - The corpus is ~225 points across 10 strata (hundreds, not thousands, per
   plan §9 holdout discipline at PoC scale).
 
+- **Neighbor-informed lag ordering** (`kernels/neighbor.ts`, revision
+  `poc-neighbor-1.0.0`): consumes the previously classified left
+  neighbor's detected primitive period as a hint. Frozen policy: one
+  hinted lag comparison per step (tauCandidate proximity proposes
+  `(z_n, h)` to the common verifier; checkpoint-style doubling re-arm on
+  rejection), the frozen trigger step gate + hint-ordered full scan as the
+  fallback when the hint cannot match, hint-ordered exhaustion scan.
+  Measured on the deterministic 16x16 grids (`src/grids.ts`, committed
+  specs): coherent interior grids detect 255/256 pixels through the hint
+  alone at 0.085-0.168x checkpoint comparisons (rabbit, co-rabbit,
+  period-5); mixed-content anchor grids land at 0.31-0.82x. **Honest
+  caveat**: hint quality depends entirely on spatial coherence - when the
+  hint chain breaks at content transitions the kernel falls back to the
+  p >= 2-blind step gate, and on weakly attracting mixed grids (weak-p6a at
+  balanced) the neighbor misses MORE detections than the checkpoint (144 vs
+  109 unresolved): the checkpoint's per-step cadence samples the
+  oscillating closure residual at many states and hits acceptance dips,
+  while the hint-less pixels depend on one exhaustion-scan state. Flat
+  matrix rows (`neighbor.exhaustion-*`) use the previous corpus point's
+  period as a documented weak-hint control. Single-neighbor (left) evidence
+  only - no top-neighbor pooling in the PoC.
+
 ## Roadmap: specified but not yet implemented variants
 
 These are plan §5/§11 Step 0 candidates not implemented in this harness yet,
 with the code points where they plug in:
 
-- **Neighbor-informed lag ordering** — order the lags scanned by
-  `kernels/shared.ts:fullLagScan` using already-classified neighbor pixels
-  instead of ascending order; the scan is the single choke point.
 - **Adjacent-pixel transplantation with multiplier-map attempt guard** —
   seed a pixel's verifier attempt from a neighbor's verified cycle, gated by
   the multiplier-map bound `|B| * |dc|`; plugs in above

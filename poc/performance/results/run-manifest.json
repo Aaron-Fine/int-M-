@@ -37,6 +37,10 @@
         "rearmInteriorB": 1000000
       },
       "opportunisticCeiling": 96
+    },
+    "neighbor": {
+      "revision": "poc-neighbor-1.0.0",
+      "fallbackTrigger": "frozen trigger thresholds"
     }
   },
   "ddOracle": {
@@ -54,7 +58,8 @@
   "gate": {
     "zeroToleranceFor": "schedule variants",
     "gateFailures": 0,
-    "legacyBaselineWrongPrimitivePeriod": 8
+    "legacyBaselineWrongPrimitivePeriod": 8,
+    "gridGateFailures": 0
   },
   "profiles": [
     {
@@ -85,43 +90,49 @@
     "timedPasses": 5,
     "medianClassifyMs": {
       "quick": {
-        "checkpoint.exhaustion-on": 0.622833,
-        "control": 0.75355,
-        "checkpoint.exhaustion-off": 0.151254,
-        "trigger.exhaustion-on": 0.838064,
-        "trigger.exhaustion-off": 0.189505,
-        "staggered.exhaustion-on": 1.15248,
-        "staggered.exhaustion-off": 0.441726,
-        "de-guess.exhaustion-on": 0.149638,
-        "de-guess.exhaustion-off": 0.141421,
-        "de-guess.opportunistic.exhaustion-on": 0.151624,
-        "de-guess.opportunistic.exhaustion-off": 0.127625
+        "checkpoint.exhaustion-on": 0.367829,
+        "control": 0.73229,
+        "checkpoint.exhaustion-off": 0.124145,
+        "trigger.exhaustion-on": 0.76209,
+        "trigger.exhaustion-off": 0.126405,
+        "staggered.exhaustion-on": 1.303188,
+        "staggered.exhaustion-off": 0.668527,
+        "de-guess.exhaustion-on": 0.156352,
+        "de-guess.exhaustion-off": 0.151577,
+        "de-guess.opportunistic.exhaustion-on": 0.157078,
+        "de-guess.opportunistic.exhaustion-off": 0.142648,
+        "neighbor.exhaustion-on": 0.233001,
+        "neighbor.exhaustion-off": 0.201471
       },
       "balanced": {
-        "checkpoint.exhaustion-on": 0.192684,
-        "control": 1.680693,
-        "checkpoint.exhaustion-off": 0.174544,
-        "trigger.exhaustion-on": 0.225548,
-        "trigger.exhaustion-off": 0.198549,
-        "staggered.exhaustion-on": 1.380132,
-        "staggered.exhaustion-off": 1.598552,
-        "de-guess.exhaustion-on": 0.217387,
-        "de-guess.exhaustion-off": 0.286006,
-        "de-guess.opportunistic.exhaustion-on": 0.259795,
-        "de-guess.opportunistic.exhaustion-off": 0.239287
+        "checkpoint.exhaustion-on": 0.175454,
+        "control": 1.778768,
+        "checkpoint.exhaustion-off": 0.277237,
+        "trigger.exhaustion-on": 0.385743,
+        "trigger.exhaustion-off": 0.192861,
+        "staggered.exhaustion-on": 1.632032,
+        "staggered.exhaustion-off": 1.46002,
+        "de-guess.exhaustion-on": 0.283356,
+        "de-guess.exhaustion-off": 0.287704,
+        "de-guess.opportunistic.exhaustion-on": 0.226839,
+        "de-guess.opportunistic.exhaustion-off": 0.209638,
+        "neighbor.exhaustion-on": 0.421369,
+        "neighbor.exhaustion-off": 0.645023
       },
       "detailed": {
-        "checkpoint.exhaustion-on": 0.257167,
-        "control": 5.248609,
-        "checkpoint.exhaustion-off": 0.276511,
-        "trigger.exhaustion-on": 0.380604,
-        "trigger.exhaustion-off": 0.352354,
-        "staggered.exhaustion-on": 4.584845,
-        "staggered.exhaustion-off": 4.170944,
-        "de-guess.exhaustion-on": 0.54245,
-        "de-guess.exhaustion-off": 0.499438,
-        "de-guess.opportunistic.exhaustion-on": 0.344996,
-        "de-guess.opportunistic.exhaustion-off": 0.329911
+        "checkpoint.exhaustion-on": 0.260246,
+        "control": 6.770824,
+        "checkpoint.exhaustion-off": 0.441554,
+        "trigger.exhaustion-on": 0.386369,
+        "trigger.exhaustion-off": 0.385739,
+        "staggered.exhaustion-on": 4.901847,
+        "staggered.exhaustion-off": 4.304239,
+        "de-guess.exhaustion-on": 0.428385,
+        "de-guess.exhaustion-off": 0.340416,
+        "de-guess.opportunistic.exhaustion-on": 0.346848,
+        "de-guess.opportunistic.exhaustion-off": 0.351555,
+        "neighbor.exhaustion-on": 0.805945,
+        "neighbor.exhaustion-off": 0.759223
       }
     }
   }

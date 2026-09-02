@@ -29,8 +29,10 @@ import {
   DeGuessKernel,
   DE_OPPORTUNISTIC_CEILING,
 } from './kernels/de-guess.ts';
+import { NeighborKernel, NEIGHBOR_REVISION } from './kernels/neighbor.ts';
 import { StaggeredKernel, STAGGERED_REVISION } from './kernels/staggered.ts';
 import { TriggerKernel, TRIGGER_REVISION, TRIGGER_THRESHOLDS } from './kernels/trigger.ts';
+import { GRIDS_REVISION, GRID_SIZE, GRID_SPECS, buildGrids, type GridPoint } from './grids.ts';
 import { CANDIDATE_REJECTION_BUDGET } from './kernels/shared.ts';
 import { VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier.ts';
 import { buildCorpus, CORPUS_SEED } from './corpus.ts';
@@ -88,6 +90,15 @@ const variants = (): Variant[] => [
       exhaustionScan,
     })),
   ),
+  // Neighbor-informed lag ordering: in the flat matrix the hint is the
+  // PREVIOUS CORPUS POINT's detected period (the documented weak-hint
+  // control; the corpus is a point list, not a raster). The real raster
+  // measurement is the grid section below.
+  ...[true, false].map((exhaustionScan) => ({
+    key: `neighbor.exhaustion-${exhaustionScan ? 'on' : 'off'}`,
+    kernel: new NeighborKernel(64),
+    exhaustionScan,
+  })),
 ];
 
 const profileOptions = (
@@ -329,23 +340,32 @@ const median = (values: number[]): number => {
     : (lower + (sorted[middle] ?? Number.NaN)) / 2;
 };
 
-/** One untimed classification pass over the corpus (used for warmup and recording). */
+/**
+ * One untimed classification pass over the corpus (used for warmup and
+ * recording). The neighbor variant classifies sequentially, feeding the
+ * previous point's detected primitive period as the hint: a deliberate
+ * weak-hint control for the flat matrix (the corpus is a point list, so
+ * adjacency is by list order, not by raster geometry).
+ */
 const classifyCorpus = (
   variant: Variant,
   corpus: ReturnType<typeof buildCorpus>,
   profile: (typeof PROFILES)[number],
-): PointRecord[] =>
-  corpus.map((point) =>
-    recordOf(
-      point,
-      variant,
-      variant.kernel.classify(
-        point.cRe,
-        point.cIm,
-        profileOptions(profile, variant.exhaustionScan),
-      ),
-    ),
+): PointRecord[] => {
+  const options = profileOptions(profile, variant.exhaustionScan);
+  const kernel = variant.kernel;
+  if (kernel instanceof NeighborKernel) {
+    let previousPeriod = 0;
+    return corpus.map((point) => {
+      const result = kernel.classifyWithHint(point.cRe, point.cIm, options, previousPeriod);
+      previousPeriod = result.status === 'attracting' ? result.period : 0;
+      return recordOf(point, variant, result);
+    });
+  }
+  return corpus.map((point) =>
+    recordOf(point, variant, variant.kernel.classify(point.cRe, point.cIm, options)),
   );
+};
 
 const timedPassMs = (
   variant: Variant,
@@ -511,6 +531,187 @@ const aggregateStrata = (strata: Map<string, StratumStats>): StratumStats => {
   return totals;
 };
 
+// ---------------------------------------------------------------------------
+// Raster-grid section (neighbor / transplant / trap variants).
+// The corpus is a point list; these deterministic grids simulate the raster
+// layer with left-neighbor evidence in raster order.
+// ---------------------------------------------------------------------------
+
+interface GridRecord {
+  readonly id: string;
+  readonly grid: string;
+  readonly status: KernelResult['status'];
+  readonly iterations: number;
+  readonly evidence: string;
+  readonly period?: number;
+  readonly metrics: KernelResult['metrics'];
+}
+
+interface GridStats {
+  points: number;
+  totalLagComparisons: number;
+  totalIterations: number;
+  attracting: number;
+  hintDetections: number;
+  unresolved: number;
+  falseAttracting: number;
+  wrongPrimitivePeriod: number;
+  unadjudicatedAttracting: number;
+  missedDetections: number;
+}
+
+const emptyGridStats = (): GridStats => ({
+  points: 0,
+  totalLagComparisons: 0,
+  totalIterations: 0,
+  attracting: 0,
+  hintDetections: 0,
+  unresolved: 0,
+  falseAttracting: 0,
+  wrongPrimitivePeriod: 0,
+  unadjudicatedAttracting: 0,
+  missedDetections: 0,
+});
+
+const gridRecordOf = (point: GridPoint, kernelName: string, result: KernelResult): GridRecord => ({
+  id: point.id,
+  grid: point.grid,
+  status: result.status,
+  iterations: result.iterations,
+  evidence: result.evidence,
+  ...(result.status === 'attracting' ? { period: result.period } : {}),
+  metrics: result.metrics,
+});
+
+const foldGridStats = (stats: GridStats, record: GridRecord, truth: DDClassification): void => {
+  stats.points += 1;
+  stats.totalLagComparisons += record.metrics.lagComparisons;
+  stats.totalIterations += record.iterations;
+  if (record.evidence === 'neighbor-hint') {
+    stats.hintDetections += 1;
+  }
+  if (record.status === 'unresolved') {
+    stats.unresolved += 1;
+  }
+  if (record.status !== 'attracting') {
+    if (truth.status === 'attracting-cycle') {
+      stats.missedDetections += 1;
+    }
+    return;
+  }
+  stats.attracting += 1;
+  if (truth.status === 'escaped') {
+    stats.falseAttracting += 1;
+  } else if (truth.status === 'unresolved') {
+    stats.unadjudicatedAttracting += 1;
+  } else if (truth.period !== record.period) {
+    stats.wrongPrimitivePeriod += 1;
+  }
+};
+
+const finalizeGridStats = (
+  stats: GridStats,
+): GridStats & {
+  unresolvedRate: number;
+  hintShareOfDetections: number | null;
+} => ({
+  ...stats,
+  unresolvedRate: rate(stats.unresolved, stats.points),
+  hintShareOfDetections: stats.attracting === 0 ? null : stats.hintDetections / stats.attracting,
+});
+
+/**
+ * Classify one grid in raster order with the checkpoint baseline and the
+ * neighbor kernel (hint = previous pixel's detected period), fold both
+ * against the oracle, and return the per-grid comparison plus the gate
+ * counts. The per-point iteration deltas (neighbor - checkpoint, both
+ * attracting) keep the detection-delay distribution honest.
+ */
+const classifyGridPair = (
+  points: readonly GridPoint[],
+  oracle: Map<string, DDClassification>,
+  profile: (typeof PROFILES)[number],
+): Record<string, unknown> => {
+  const options = profileOptions(profile, true);
+  const checkpoint = new CheckpointKernel(64);
+  const neighbor = new NeighborKernel(64);
+
+  const checkpointRecords: GridRecord[] = [];
+  const neighborRecords: GridRecord[] = [];
+  let previousPeriod = 0;
+  for (const point of points) {
+    checkpointRecords.push(
+      gridRecordOf(point, 'checkpoint', checkpoint.classify(point.cRe, point.cIm, options)),
+    );
+    const result = neighbor.classifyWithHint(point.cRe, point.cIm, options, previousPeriod);
+    previousPeriod = result.status === 'attracting' ? result.period : 0;
+    neighborRecords.push(gridRecordOf(point, 'neighbor', result));
+  }
+
+  const foldAll = (records: readonly GridRecord[]): GridStats => {
+    const stats = emptyGridStats();
+    for (const record of records) {
+      const truth = oracle.get(record.id);
+      if (truth === undefined) {
+        throw new Error(`missing grid oracle adjudication for ${record.id}`);
+      }
+      foldGridStats(stats, record, truth);
+    }
+    return stats;
+  };
+
+  const checkpointStats = foldAll(checkpointRecords);
+  const neighborStats = foldAll(neighborRecords);
+  const iterationDeltas = neighborRecords.flatMap((record, index) => {
+    const baseline = checkpointRecords[index];
+    if (record.status !== 'attracting' || baseline?.status !== 'attracting') {
+      return [];
+    }
+    return [{ id: record.id, iterationDelta: record.iterations - baseline.iterations }];
+  });
+
+  return {
+    points: points.length,
+    checkpoint: finalizeGridStats(checkpointStats),
+    neighbor: finalizeGridStats(neighborStats),
+    comparisonsVsCheckpoint:
+      checkpointStats.totalLagComparisons === 0
+        ? null
+        : neighborStats.totalLagComparisons / checkpointStats.totalLagComparisons,
+    iterationDeltas,
+  };
+};
+
+const runGridSection = (
+  gridPoints: readonly GridPoint[],
+  oracle: Map<string, DDClassification>,
+  profile: (typeof PROFILES)[number],
+): { grids: Record<string, unknown>; gateFailures: number } => {
+  const byGrid = new Map<string, GridPoint[]>();
+  for (const point of gridPoints) {
+    const list = byGrid.get(point.grid) ?? [];
+    list.push(point);
+    byGrid.set(point.grid, list);
+  }
+
+  const grids: Record<string, unknown> = {};
+  let gateFailures = 0;
+  for (const [name, points] of byGrid) {
+    const report = classifyGridPair(points, oracle, profile);
+    grids[name] = report;
+    for (const key of ['checkpoint', 'neighbor'] as const) {
+      const stats = report[key] as GridStats;
+      if (stats.falseAttracting > 0 || stats.wrongPrimitivePeriod > 0) {
+        console.error(
+          `GATE FAILURE grids/${profile.name}/${name}/${key}: falseAttracting=${stats.falseAttracting} wrongPrimitivePeriod=${stats.wrongPrimitivePeriod}`,
+        );
+        gateFailures += 1;
+      }
+    }
+  }
+  return { grids, gateFailures };
+};
+
 const run = (): number => {
   const corpus = buildCorpus();
   const oracle = new Map<string, DDClassification>();
@@ -519,9 +720,18 @@ const run = (): number => {
     // (4096 x 96) dominates every PoC profile, so it is valid for all.
     oracle.set(point.id, classifyDD(point.cRe, point.cIm));
   }
+  // The grid strata (neighbor/transplant/trap measurements) are
+  // oracle-adjudicated once per run, same budget discipline.
+  const gridPoints = buildGrids();
+  for (const point of gridPoints) {
+    if (!oracle.has(point.id)) {
+      oracle.set(point.id, classifyDD(point.cRe, point.cIm));
+    }
+  }
 
   mkdirSync(RESULTS_DIR, { recursive: true });
   let gateFailures = 0;
+  let gridGateFailures = 0;
   let legacyWrongPrimitivePeriod = 0;
   const manifest: Record<string, unknown> = {
     harnessRevision: HARNESS_REVISION,
@@ -540,6 +750,7 @@ const run = (): number => {
         thresholds: DE_GUESS_THRESHOLDS,
         opportunisticCeiling: DE_OPPORTUNISTIC_CEILING,
       },
+      neighbor: { revision: NEIGHBOR_REVISION, fallbackTrigger: 'frozen trigger thresholds' },
     },
     ddOracle: { options: DEFAULT_DD_ORACLE_OPTIONS },
     gate: {
@@ -672,8 +883,27 @@ const run = (): number => {
     }
   }
 
+  // Raster-grid section: measured at the balanced and detailed profiles
+  // (the weak-attraction seed pixels need the detailed budget; the corpus
+  // profile floors are documented per profile in the grid specs).
+  const gridProfiles: Record<string, unknown> = {};
+  for (const profile of [PROFILES[1], PROFILES[2]]) {
+    const section = runGridSection(gridPoints, oracle, profile);
+    gridProfiles[profile.name] = section.grids;
+    gridGateFailures += section.gateFailures;
+  }
+  summary['grids'] = {
+    revision: GRIDS_REVISION,
+    note: 'deterministic raster grids simulating the production left-neighbor evidence (the corpus is a point list); single-neighbor hints, raster order, no top-neighbor pooling; oracle-adjudicated with the same zero gate as the matrix',
+    gridSize: GRID_SIZE,
+    specs: GRID_SPECS,
+    profiles: gridProfiles,
+  };
+
   const gate = manifest['gate'] as Record<string, unknown>;
   gate['legacyBaselineWrongPrimitivePeriod'] = legacyWrongPrimitivePeriod;
+  gate['gridGateFailures'] = gridGateFailures;
+  gateFailures += gridGateFailures;
   writeFileSync(join(RESULTS_DIR, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
   writeFileSync(join(RESULTS_DIR, 'run-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   console.error(`results written to ${RESULTS_DIR}`);
