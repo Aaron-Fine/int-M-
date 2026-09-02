@@ -19,6 +19,7 @@
     "useUnknownInCatchVariables": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "types": ["node"]
   },
   "include": ["poc/performance/src/**/*.ts", "poc/performance/browser/**/*.ts"]

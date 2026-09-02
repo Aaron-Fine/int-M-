@@ -1,5 +1,6 @@
 import type {
   BandOrderParams,
+  ConjugateMirrorParams,
   EnvironmentSample,
   MicrobenchApi,
   PoolSizingParams,
@@ -7,11 +8,15 @@ import type {
   ZeroCopyParams,
 } from './microbench-api';
 import { runBandOrder } from './band-order';
+import { runConjugateMirror } from './conjugate-mirror';
 import { runPoolSizing } from './pool-sizing';
 import { runYieldAb } from './yield-ab';
 import { runZeroCopy } from './transfer-ab';
 
-type Runner = (params: unknown) => Promise<unknown>;
+// Runners may be synchronous (conjugate-mirror) or async (worker-driven
+// measurements); both satisfy `=> unknown`, and the API contract stays
+// promise-based for the specs.
+type Runner = (params: unknown) => unknown;
 
 const startEchoWorker = (): Worker =>
   new Worker(new URL('./echo.worker.ts', import.meta.url), {
@@ -79,16 +84,20 @@ const runners: Record<string, Runner> = {
     requireKeys(params, ['rows', 'bandCount', 'workerCount', 'reps']);
     return runBandOrder(params as BandOrderParams);
   },
+  'conjugate-mirror': (params) => {
+    requireKeys(params, ['viewId', 'centerRe', 'spanY', 'edge', 'profileId', 'warmupReps', 'reps']);
+    return runConjugateMirror(params as ConjugateMirrorParams);
+  },
 };
 
 const api: MicrobenchApi = {
   runnerNames: Object.keys(runners),
-  run: async (name: string, params?: unknown): Promise<unknown> => {
+  run: (name: string, params?: unknown): Promise<unknown> => {
     const runner = runners[name];
     if (runner === undefined) {
       throw new Error(`unknown microbench runner: ${name}`);
     }
-    return runner(params);
+    return Promise.resolve(runner(params));
   },
 };
 

@@ -1,4 +1,4 @@
-import corpusJson from '../../../../tools/benchmark/corpus.v1.json';
+import corpusJson from '../../../../tools/benchmark/corpus.v1.json' with { type: 'json' };
 import type { Viewport } from '../../../../src/domain';
 import type { QualityProfileId } from './microbench-api';
 
@@ -20,10 +20,20 @@ const corpus = corpusJson as unknown as { readonly cases: readonly RawCorpusCase
 
 export interface CorpusCase {
   readonly id: string;
-  readonly corpusClass: string;
+  corpusClass: string;
   readonly viewport: Viewport;
   readonly profileId: QualityProfileId;
   readonly designation: string;
+  /**
+   * Exact decimal strings from the frozen manifest, for measurements that
+   * must assemble a derived viewport (e.g. a conjugate-symmetric variant)
+   * from the same records instead of restating decimals in a spec.
+   */
+  readonly raw: {
+    readonly centerRe: string;
+    readonly centerIm: string;
+    readonly spanY: string;
+  };
 }
 
 export const getCorpusCase = (caseId: string): CorpusCase => {
@@ -44,5 +54,6 @@ export const getCorpusCase = (caseId: string): CorpusCase => {
     },
     profileId,
     designation: found.designation,
+    raw: { centerRe: found.center.re, centerIm: found.center.im, spanY: found.spanY },
   };
 };

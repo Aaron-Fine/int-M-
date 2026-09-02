@@ -158,3 +158,53 @@ export interface BandOrderParams {
   readonly workerCount: number;
   readonly reps: number;
 }
+
+/* ---------- conjugate mirroring (workstream M, M4) ---------- */
+
+export interface MirrorParityMismatch {
+  readonly y: number;
+  readonly x: number;
+  readonly field: string;
+  readonly fullValue: number | string;
+  readonly mirroredValue: number | string;
+}
+
+export interface ConjugateMirrorParams {
+  /** Labels the derived symmetric view in results (corpus case or variant). */
+  readonly viewId: string;
+  /** Exact corpus decimal strings; converted to binary64 in the page. */
+  readonly centerRe: string;
+  readonly spanY: string;
+  readonly edge: number;
+  readonly profileId: QualityProfileId;
+  /** Untimed full cycle of both arms before the measured reps (JIT/IC warm). */
+  readonly warmupReps: number;
+  readonly reps: number;
+}
+
+export interface ConjugateMirrorResult {
+  readonly viewId: string;
+  readonly centerRe: number;
+  readonly spanY: number;
+  readonly edge: number;
+  readonly profileId: QualityProfileId;
+  readonly warmupReps: number;
+  readonly quality: {
+    readonly maxIterations: number;
+    readonly maxPeriod: number;
+    readonly coarseStride: number;
+  };
+  readonly samples: readonly {
+    readonly rep: number;
+    readonly fullMs: number;
+    readonly halfMs: number;
+    readonly mirrorFillMs: number;
+    readonly combinedMs: number;
+  }[];
+  readonly parity: {
+    readonly pixelsCompared: number;
+    readonly mismatchCount: number;
+    readonly mismatchesByField: Record<string, number>;
+    readonly examples: readonly MirrorParityMismatch[];
+  };
+}

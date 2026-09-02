@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "measurement": "conjugate-mirror",
+  "capturedAt": "2026-09-02T03:28:42.377Z",
+  "environment": {
+    "schemaVersion": 1,
+    "capturedAt": "2026-09-02T03:28:42.376Z",
+    "browser": {
+      "build": "151.0.7922.34",
+      "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": { "width": 1280, "height": 720 }
+    },
+    "cpu": { "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz", "cores": 8 },
+    "memoryTotalBytes": 16465719296,
+    "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
+    "revisions": {
+      "build": "3c9f21d4c0a8b4b03ed8797b5ffd1391437a3da2",
+      "algorithm": "3c9f21d4c0a8b4b03ed8797b5ffd1391437a3da2",
+      "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+      "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+    },
+    "render": {
+      "workerCount": null,
+      "backend": "microbench-page (src/domain OrbitClassifier, main thread)"
+    },
+    "harness": {
+      "command": "node /tmp/opencode/worktrees/int-M-wt-poc/tools/benchmark/capture-environment.mjs",
+      "version": "0.1.0",
+      "node": "v24.19.0"
+    },
+    "hardwareConcurrency": 8,
+    "notes": [
+      "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+      "Headless Chromium via Playwright; directional PoC evidence, not Stage A release evidence (plan §9 runs stable branded Chrome/Firefox on the declared target class).",
+      "Power mode is not detectable from the page; browser.powerMode stays null."
+    ]
+  },
+  "samples": [
+    {
+      "viewId": "mi-easy-default-full",
+      "rep": 0,
+      "fullMs": 470.70000000298023,
+      "halfMs": 219.29999999701977,
+      "mirrorFillMs": 3.6000000089406967,
+      "combinedMs": 222.90000000596046
+    },
+    {
+      "viewId": "mi-easy-default-full",
+      "rep": 1,
+      "fullMs": 378.80000001192093,
+      "halfMs": 216.1000000089407,
+      "mirrorFillMs": 2.7999999970197678,
+      "combinedMs": 218.90000000596046
+    },
+    {
+      "viewId": "mi-easy-default-full",
+      "rep": 2,
+      "fullMs": 433.3999999910593,
+      "halfMs": 208.59999999403954,
+      "mirrorFillMs": 4.799999997019768,
+      "combinedMs": 213.3999999910593
+    },
+    {
+      "viewId": "mi-easy-default-full",
+      "rep": 3,
+      "fullMs": 418.79999999701977,
+      "halfMs": 192.30000001192093,
+      "mirrorFillMs": 4.399999991059303,
+      "combinedMs": 196.70000000298023
+    },
+    {
+      "viewId": "mi-easy-default-full",
+      "rep": 4,
+      "fullMs": 441.8999999910593,
+      "halfMs": 199,
+      "mirrorFillMs": 3.5,
+      "combinedMs": 202.5
+    },
+    {
+      "viewId": "mi-hard-supplied-126x-symmetric",
+      "rep": 0,
+      "fullMs": 54.79999999701977,
+      "halfMs": 19.700000002980232,
+      "mirrorFillMs": 4.200000002980232,
+      "combinedMs": 23.900000005960464
+    },
+    {
+      "viewId": "mi-hard-supplied-126x-symmetric",
+      "rep": 1,
+      "fullMs": 43.29999999701977,
+      "halfMs": 22.200000002980232,
+      "mirrorFillMs": 3.5,
+      "combinedMs": 25.700000002980232
+    },
+    {
+      "viewId": "mi-hard-supplied-126x-symmetric",
+      "rep": 2,
+      "fullMs": 44.20000000298023,
+      "halfMs": 21.299999997019768,
+      "mirrorFillMs": 3.4000000059604645,
+      "combinedMs": 24.700000002980232
+    },
+    {
+      "viewId": "mi-hard-supplied-126x-symmetric",
+      "rep": 3,
+      "fullMs": 44.1000000089407,
+      "halfMs": 21,
+      "mirrorFillMs": 3.3999999910593033,
+      "combinedMs": 24.399999991059303
+    },
+    {
+      "viewId": "mi-hard-supplied-126x-symmetric",
+      "rep": 4,
+      "fullMs": 49.5,
+      "halfMs": 21.299999997019768,
+      "mirrorFillMs": 4.800000011920929,
+      "combinedMs": 26.100000008940697
+    }
+  ],
+  "summary": {
+    "cases": [
+      {
+        "viewId": "mi-easy-default-full",
+        "source": "corpus case as-is (center.im = 0 in the manifest)",
+        "centerRe": -0.75,
+        "spanY": 2.5,
+        "edge": 512,
+        "profileId": "balanced",
+        "warmupReps": 1,
+        "classificationFullMs": {
+          "n": 5,
+          "median": 433.3999999910593,
+          "min": 378.80000001192093,
+          "max": 470.70000000298023,
+          "mean": 428.7199999988079
+        },
+        "classificationCanonicalHalfMs": {
+          "n": 5,
+          "median": 208.59999999403954,
+          "min": 192.30000001192093,
+          "max": 219.29999999701977,
+          "mean": 207.0600000023842
+        },
+        "mirrorFillMs": {
+          "n": 5,
+          "median": 3.6000000089406967,
+          "min": 2.7999999970197678,
+          "max": 4.799999997019768,
+          "mean": 3.819999998807907
+        },
+        "halfPlusMirrorMs": {
+          "n": 5,
+          "median": 213.3999999910593,
+          "min": 196.70000000298023,
+          "max": 222.90000000596046,
+          "mean": 210.8800000011921
+        },
+        "wallTimeRatioFullOverHalfPlusMirror": 2.0309278350947384,
+        "semanticParity": {
+          "pixelsCompared": 131072,
+          "mismatchCount": 0,
+          "mismatchesByField": {},
+          "examples": [],
+          "verdict": "PASS: mirrored raster is semantically identical (status, period, |lambda|, kappa, iterations, evidence; arg-lambda negation cancels in the assembled comparison)"
+        },
+        "workstreamMGate": {
+          "bar": ">=1.6x classifier on real-axis-symmetric easy cases (both browsers) with semantic parity",
+          "measuredRatio": 2.0309278350947384,
+          "verdict": "PASS: at or above the 1.6x bar on this view class",
+          "note": "Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, the hard variant is a stress case above the gate difficulty. Chromium only in this harness (see README limitations)."
+        }
+      },
+      {
+        "viewId": "mi-hard-supplied-126x-symmetric",
+        "source": "corpus case with center.im forced from -1.034028 to exactly 0",
+        "centerRe": -0.158902249,
+        "spanY": 0.01984126984126984,
+        "edge": 512,
+        "profileId": "balanced",
+        "warmupReps": 1,
+        "classificationFullMs": {
+          "n": 5,
+          "median": 44.20000000298023,
+          "min": 43.29999999701977,
+          "max": 54.79999999701977,
+          "mean": 47.18000000119209
+        },
+        "classificationCanonicalHalfMs": {
+          "n": 5,
+          "median": 21.299999997019768,
+          "min": 19.700000002980232,
+          "max": 22.200000002980232,
+          "mean": 21.1
+        },
+        "mirrorFillMs": {
+          "n": 5,
+          "median": 3.5,
+          "min": 3.3999999910593033,
+          "max": 4.800000011920929,
+          "mean": 3.8600000023841856
+        },
+        "halfPlusMirrorMs": {
+          "n": 5,
+          "median": 24.700000002980232,
+          "min": 23.900000005960464,
+          "max": 26.100000008940697,
+          "mean": 24.960000002384184
+        },
+        "wallTimeRatioFullOverHalfPlusMirror": 1.7894736841152707,
+        "semanticParity": {
+          "pixelsCompared": 131072,
+          "mismatchCount": 0,
+          "mismatchesByField": {},
+          "examples": [],
+          "verdict": "PASS: mirrored raster is semantically identical (status, period, |lambda|, kappa, iterations, evidence; arg-lambda negation cancels in the assembled comparison)"
+        },
+        "workstreamMGate": {
+          "bar": ">=1.6x classifier on real-axis-symmetric easy cases (both browsers) with semantic parity",
+          "measuredRatio": 1.7894736841152707,
+          "verdict": "PASS: at or above the 1.6x bar on this view class",
+          "note": "Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, the hard variant is a stress case above the gate difficulty. Chromium only in this harness (see README limitations)."
+        }
+      }
+    ]
+  },
+  "notes": [
+    "Both arms use the app real classifier (src/domain/orbit.ts OrbitClassifier) per pixel via createViewportTransform, on the main thread with no yields; wall time is classification plus mirror fill.",
+    "Timed loops write only numeric semantic fields (status, period, |lambda|, arg lambda, kappa, iterations); the per-pixel evidence string materialization the parity comparison needs is confined to a separate untimed pass, so timed classification matches what the production frame writes.",
+    "Mirror fill copies six numeric fields and negates arg lambda; the production frame carries four channels, so the measured fill is a conservative overestimate of the production mirror cost.",
+    "Mirrored coordinates are built by exact negation of the imaginary part: center.im = 0 makes the viewport transform exactly conjugate-symmetric, so pixel (x, h-1-y) is exactly conj(pixel (x, y)) in binary64.",
+    "Canonical half = top half rows (im > 0). Even edge (512) avoids a self-mirror row; one untimed warmup cycle of both arms precedes the 5 measured reps, whose order alternates per rep.",
+    "Parity is deterministic and computed once from dedicated evidence-capturing rasters. A mismatch above 1e-12 on any of status/period/|lambda|/kappa/iterations/evidence, or any arg-lambda negation residual, is recorded as a finding and fails the spec."
+  ]
+}
