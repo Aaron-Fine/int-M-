@@ -14,17 +14,16 @@ import { RenderCancelledError } from './render-cancelled-error';
 import type { DynamicsRenderRequest, SemanticStageTiming } from './renderer';
 import type { BandArrays } from './row-bands';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
+import {
+  createYieldScheduler,
+  defaultRowYieldScheduler,
+  type YieldMechanism,
+} from './yield-scheduler';
 
 const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) {
     throw new RenderCancelledError();
   }
-};
-
-const yieldToWorkerEventLoop = async (): Promise<void> => {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
 };
 
 const nowMs = (): number => performance.now();
@@ -86,6 +85,11 @@ export async function classifyRows(
   // with the 'legacy-scan' default, and no worker-protocol field changes —
   // the mode rides in the classifier options built here.
   classifierMode?: ClassifierMode,
+  // Yield mechanism (renderer-path detail, plan §5): 'message-channel'
+  // replaces the nested setTimeout(0) row yields whose budget was largely
+  // the 4 ms nested-timer clamp. Absent = the default MessageChannel
+  // scheduler; 'timeout' is the paired-evidence measurement arm.
+  yieldMechanism?: YieldMechanism,
 ): Promise<ClassifyRowsResult> {
   const { width } = request.size;
   const length = (y1 - y0) * width;
@@ -107,6 +111,12 @@ export async function classifyRows(
   const point: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
+  // The 'timeout' arm is the paired-easurement measurement arm; it is created
+  // per call because its pending set must not outlive the band.
+  const rowYields =
+    yieldMechanism === 'timeout'
+      ? createYieldScheduler({ mechanism: 'timeout' })
+      : defaultRowYieldScheduler();
   const wallStarted = nowMs();
   let yieldWaitMs = 0;
   let yieldCount = 0;
@@ -123,7 +133,10 @@ export async function classifyRows(
 
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
       const yieldStarted = nowMs();
-      await yieldToWorkerEventLoop();
+      // MessageChannel port yield by default: no 4 ms nested-timer clamp, so
+      // cancellation preempts between kernels on the same (or sooner)
+      // schedule as the previous setTimeout(0) yields.
+      await rowYields.yieldToEventLoop();
       yieldWaitMs += nowMs() - yieldStarted;
       yieldCount += 1;
     }

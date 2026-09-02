@@ -1,4 +1,5 @@
 import type { ClassifierMode, RasterSize, RenderQuality, Viewport } from '../domain';
+import type { YieldMechanism } from '../render/yield-scheduler';
 
 export interface TileClassifyMessage {
   readonly type: 'tile-classify';
@@ -11,6 +12,11 @@ export interface TileClassifyMessage {
   readonly quality: RenderQuality;
   /** Additive optional classifier mode; absent on the default path. */
   readonly classifierMode?: ClassifierMode;
+  /**
+   * Additive optional row-yield mechanism (renderer-path detail); absent =
+   * the default MessageChannel scheduler.
+   */
+  readonly yieldMechanism?: YieldMechanism;
 }
 
 export interface TileResultMessage {

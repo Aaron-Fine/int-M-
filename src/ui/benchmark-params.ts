@@ -1,6 +1,7 @@
 import type { ClassifierMode, Viewport } from '../domain';
 import { CLASSIFIER_MODES } from '../domain';
 import type { BandOrder } from '../render';
+import { isYieldMechanism, type YieldMechanism } from '../render/yield-scheduler';
 import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from './view-state';
 
 /**
@@ -24,6 +25,11 @@ export interface BenchmarkParams {
    * or invalid. Diagnostic arm selector for the center-out scheduling gate.
    */
   readonly bandOrder?: BandOrder | undefined;
+  /**
+   * Validated `?yieldMechanism=` row-yield mechanism; absent when missing or
+   * invalid. Diagnostic arm selector for the yield-mechanism gate.
+   */
+  readonly yieldMechanism?: YieldMechanism | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -75,6 +81,7 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     perfEnabled: boolean;
     classifierMode?: ClassifierMode;
     bandOrder?: BandOrder;
+    yieldMechanism?: YieldMechanism;
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
@@ -86,6 +93,10 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const bandOrder = params.get('bandOrder');
   if (bandOrder !== null && (BAND_ORDERS as readonly string[]).includes(bandOrder)) {
     result.bandOrder = bandOrder as BandOrder;
+  }
+  const yieldMechanism = params.get('yieldMechanism');
+  if (yieldMechanism !== null && isYieldMechanism(yieldMechanism)) {
+    result.yieldMechanism = yieldMechanism;
   }
   const viewport = parseViewParam(params.get('view'));
   if (viewport !== undefined) result.viewport = viewport;

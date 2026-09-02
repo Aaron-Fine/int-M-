@@ -52,6 +52,7 @@ export function createTileHandler(
         message.y1,
         signal,
         message.classifierMode,
+        message.yieldMechanism,
       );
       if (signal.aborted) return;
       const result = {

@@ -47,6 +47,7 @@ const classifyFull = async (
     request.size.height,
     signal,
     request.classifierMode,
+    request.yieldMechanism,
   );
   throwIfAborted(signal);
   return {

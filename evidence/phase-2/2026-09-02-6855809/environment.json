@@ -36,7 +36,8 @@
   "notes": [
     "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
     "Renderer-path paired run (m1-center-out, chromium); production bundle via vite build + vite preview.",
-    "Renderer-path detail 'm1-center-out' run (chromium): arms centerOut, legacy; dists feature."
+    "Renderer-path detail 'm1-center-out' run (chromium): arms centerOut, legacy; dists feature.",
+    "m2-yield detail measured on the M2 working-tree build (commit 09efabd, MessageChannel default yield scheduler; arms ?yieldMechanism=message-channel|timeout). Provenance for every detail is documented in summary.md."
   ],
   "browsers": {
     "chromium": {
@@ -50,10 +51,8 @@
         "height": 764
       },
       "automation": "Playwright 1.62.1 automation-bundled chromium, headless",
-      "label": "automation-bundled headless engine — directional only, not release evidence per plan §9",
-      "workerCount": [
-        4
-      ],
+      "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
+      "workerCount": [4],
       "backend": "cpu",
       "samples": 72
     }
@@ -66,7 +65,7 @@
     "outOfScope": "cancellation interactions and cache/replay/recolor distributions are out of scope for renderer-path paired runs",
     "raster": "shipping-1024x640",
     "classifierMode": "fixed to legacy-scan for every arm: renderer-path arms isolate scheduling/transfer/layout, not classifier-mode variance",
-    "wallMetric": "requestToPresentMs of the computed stable frame (plan §8); t50RowsMs derived from bandsElapsedMs (band-completion observability)",
+    "wallMetric": "requestToPresentMs of the computed stable frame (plan \u00a78); t50RowsMs derived from bandsElapsedMs (band-completion observability)",
     "hashByteOrder": "SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas",
     "engineLabels": "chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol"
   }

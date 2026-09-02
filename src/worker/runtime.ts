@@ -42,6 +42,7 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   ...(message.quality === undefined ? {} : { quality: message.quality }),
   ...(message.classifierMode === undefined ? {} : { classifierMode: message.classifierMode }),
   ...(message.bandOrder === undefined ? {} : { bandOrder: message.bandOrder }),
+  ...(message.yieldMechanism === undefined ? {} : { yieldMechanism: message.yieldMechanism }),
 });
 
 export class RenderWorkerRuntime {

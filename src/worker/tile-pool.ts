@@ -156,6 +156,7 @@ class TilePoolImpl implements TilePool {
       request.size.height,
       signal,
       classifierMode,
+      request.yieldMechanism,
     );
     throwIfAborted(signal);
     return frameFromBand(request, band);
@@ -247,6 +248,9 @@ class TilePoolImpl implements TilePool {
       y1: band.y1,
       quality: active.quality,
       ...(active.classifierMode === undefined ? {} : { classifierMode: active.classifierMode }),
+      ...(active.request.yieldMechanism === undefined
+        ? {}
+        : { yieldMechanism: active.request.yieldMechanism }),
     };
     worker.postMessage(message);
     this.#drain?.remaining.add(bandIndex);

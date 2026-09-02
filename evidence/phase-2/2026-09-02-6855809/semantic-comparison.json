@@ -1301,6 +1301,654 @@
         }
       ],
       "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "arm": "timeout",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "arm": "timeout",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "arm": "timeout",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m2-yield",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "arm": "channel",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "arm": "timeout",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
     }
   ]
 }

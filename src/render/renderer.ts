@@ -7,6 +7,7 @@ import type {
   SemanticView,
   Viewport,
 } from '../domain';
+import type { YieldMechanism } from './yield-scheduler';
 
 export type RenderStage = 'coarse' | 'stable';
 
@@ -57,6 +58,13 @@ export interface DynamicsRenderRequest {
    * stable-pass dispatch schedule, never the semantic result.
    */
   readonly bandOrder?: BandOrder;
+  /**
+   * Row-yield mechanism (renderer-path detail, plan §5). Absent means the
+   * default MessageChannel port yield; 'timeout' is the diagnostic arm that
+   * keeps the nested setTimeout(0) yields (4 ms nested-timer clamp) for
+   * paired evidence.
+   */
+  readonly yieldMechanism?: YieldMechanism;
 }
 
 /**

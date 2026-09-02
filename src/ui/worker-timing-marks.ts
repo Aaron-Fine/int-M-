@@ -40,6 +40,10 @@ export interface FrameTrace {
    * indexed by band in row order (band-boundary observability, plan §8).
    */
   readonly bandsElapsedMs?: readonly number[] | undefined;
+  /** Total time the frame's bands spent suspended at row yields. */
+  readonly yieldWaitMs?: number | undefined;
+  /** Number of row yields across the frame's bands. */
+  readonly yieldCount?: number | undefined;
 }
 
 export interface RenderTrace {
@@ -89,6 +93,8 @@ export interface FrameDelivery {
   readonly imbalanceRatio?: number | undefined;
   readonly mergeCpuMs?: number | undefined;
   readonly bandsElapsedMs?: readonly number[] | undefined;
+  readonly yieldWaitMs?: number | undefined;
+  readonly yieldCount?: number | undefined;
 }
 
 export interface RenderTraceRingOptions {
@@ -136,6 +142,8 @@ const toFrameTrace = (frame: FrameMessage, delivery: FrameDelivery): FrameTrace 
     imbalanceRatio: computed ? delivery.imbalanceRatio : undefined,
     mergeCpuMs: computed ? delivery.mergeCpuMs : undefined,
     bandsElapsedMs: computed ? delivery.bandsElapsedMs : undefined,
+    yieldWaitMs: computed ? delivery.yieldWaitMs : undefined,
+    yieldCount: computed ? delivery.yieldCount : undefined,
   };
 };
 

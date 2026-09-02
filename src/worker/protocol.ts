@@ -8,6 +8,7 @@ import type {
   Viewport,
 } from '../domain';
 import type { BandOrder, RenderStage } from '../render';
+import type { YieldMechanism } from '../render/yield-scheduler';
 
 export type RequestId = string | number;
 
@@ -29,6 +30,11 @@ export interface RenderMessage {
    * Additive optional field: absent on the default path (center-out order).
    */
   readonly bandOrder?: BandOrder;
+  /**
+   * Diagnostic row-yield mechanism (renderer-path detail evidence).
+   * Additive optional field: absent on the default path (MessageChannel).
+   */
+  readonly yieldMechanism?: YieldMechanism;
 }
 
 export interface InspectMessage {

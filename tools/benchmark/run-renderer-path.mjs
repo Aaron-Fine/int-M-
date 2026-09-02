@@ -352,6 +352,8 @@ const measureOnce = async (page, spec) => {
     bandsElapsedMs: stableFrame.bandsElapsedMs ?? null,
     colorizeMs: stableFrame.colorizeMs ?? null,
     mergeCpuMs: stableFrame.mergeCpuMs ?? null,
+    yieldWaitMs: stableFrame.yieldWaitMs ?? null,
+    yieldCount: stableFrame.yieldCount ?? null,
     workerCount: trace.workerCount,
     backend: trace.backend,
     semanticHash: state.semanticHash,
@@ -585,6 +587,13 @@ for (const caseInfo of selectedCases) {
   );
   const valuesFor = (arm) =>
     warm.filter((sample) => sample.arm === arm).map((sample) => sample.requestToPresentMs);
+  const yieldFor = (arm) =>
+    median(
+      warm
+        .filter((sample) => sample.arm === arm)
+        .map((sample) => sample.yieldWaitMs)
+        .filter((value) => value !== null),
+    );
   const [firstArm, secondArm] = arms;
   const firstMedian = median(valuesFor(firstArm.label));
   const secondMedian = median(valuesFor(secondArm.label));
@@ -615,6 +624,8 @@ for (const caseInfo of selectedCases) {
     regressionFlag: flag,
     firstT50Ms: t50For(firstArm.label),
     secondT50Ms: t50For(secondArm.label),
+    firstYieldWaitMs: yieldFor(firstArm.label),
+    secondYieldWaitMs: yieldFor(secondArm.label),
   });
 }
 process.stderr.write(
@@ -622,8 +633,8 @@ process.stderr.write(
 );
 for (const row of summaryRows) {
   process.stderr.write(
-    `  ${row.caseId}: ${row.firstArm} ${formatMs(row.firstMedianMs)} (t50 ${formatMs(row.firstT50Ms)}) vs ` +
-      `${row.secondArm} ${formatMs(row.secondMedianMs)} (t50 ${formatMs(row.secondT50Ms)}) Δ ${row.deltaMs === undefined ? '—' : row.deltaMs.toFixed(1)} ms ` +
+    `  ${row.caseId}: ${row.firstArm} ${formatMs(row.firstMedianMs)} (t50 ${formatMs(row.firstT50Ms)}, yieldWait ${formatMs(row.firstYieldWaitMs)}) vs ` +
+      `${row.secondArm} ${formatMs(row.secondMedianMs)} (t50 ${formatMs(row.secondT50Ms)}, yieldWait ${formatMs(row.secondYieldWaitMs)}) Δ ${row.deltaMs === undefined ? '—' : row.deltaMs.toFixed(1)} ms ` +
       `cap ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? 'FLAGGED' : 'ok'}\n`,
   );
 }
