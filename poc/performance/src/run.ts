@@ -695,7 +695,12 @@ const finalizeGridStats = (
   hintShareOfDetections: stats.attracting === 0 ? null : stats.hintDetections / stats.attracting,
 });
 
-/** |lambda| buckets for the transplant guard-refusal report (frozen edges). */
+/**
+ * |lambda| buckets for the transplant guard-refusal report. Provenance:
+ * reporting-only edges (not acceptance policy): 0.5/0.9 split the corpus's
+ * strong vs moderately attracting cycles, 0.99 marks the parabolic-adjacent
+ * regime the plan section 6 guard exists for. No gate reads these.
+ */
 const LAMBDA_BUCKETS = [
   { key: 'below-0.5', max: 0.5 },
   { key: '0.5-0.9', max: 0.9 },

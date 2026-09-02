@@ -53655,7 +53655,7 @@
               "trapHits": 12,
               "trapProposals": 69,
               "trapNewtonFailures": 4,
-              "trapOrbitWork": 572,
+              "trapOrbitWork": 1084,
               "unresolvedRate": 0.05078125,
               "hintShareOfDetections": 0
             },
@@ -54141,7 +54141,7 @@
               "trapHits": 5,
               "trapProposals": 42,
               "trapNewtonFailures": 3,
-              "trapOrbitWork": 256,
+              "trapOrbitWork": 768,
               "unresolvedRate": 0.015625,
               "hintShareOfDetections": 0
             },
@@ -66911,7 +66911,7 @@
               "trapHits": 16,
               "trapProposals": 79,
               "trapNewtonFailures": 4,
-              "trapOrbitWork": 720,
+              "trapOrbitWork": 1744,
               "unresolvedRate": 0.03125,
               "hintShareOfDetections": 0
             },
@@ -67457,7 +67457,7 @@
               "trapHits": 7,
               "trapProposals": 47,
               "trapNewtonFailures": 3,
-              "trapOrbitWork": 320,
+              "trapOrbitWork": 1344,
               "unresolvedRate": 0.0078125,
               "hintShareOfDetections": 0
             },

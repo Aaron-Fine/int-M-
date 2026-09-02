@@ -261,8 +261,10 @@ export class TrapKernel implements ClassificationKernel {
     let proposals = 0;
     let stepsSinceProposal = Number.POSITIVE_INFINITY;
     let orbitWork = 0;
+    let walkSteps = 0;
 
     for (let iteration = 1; iteration <= options.maxIterations; iteration += 1) {
+      walkSteps += 1;
       const nextRe = zRe * zRe - zIm * zIm + cRe;
       zIm = 2 * zRe * zIm + cIm;
       zRe = nextRe;
@@ -333,7 +335,10 @@ export class TrapKernel implements ClassificationKernel {
         return acceptedResult('trap-hit', iteration, candidate, metrics);
       }
     }
-    metrics.trapOrbitWork = orbitWork;
+    // Abandoned walk: the main-loop steps are overhead the `iterations`
+    // metric will not see (the fallback kernel counts its own walk), so
+    // they are folded into trapOrbitWork for honest overhead accounting.
+    metrics.trapOrbitWork = orbitWork + walkSteps;
     return undefined;
   }
 }
