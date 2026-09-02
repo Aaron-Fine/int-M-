@@ -1,0 +1,54 @@
+# Stage A browser evidence — 2026-09-02 @ 6f49f19
+
+Paired legacy-scan vs checkpoint classifier evidence from the production bundle (`vite build` + `vite preview`), driven through the real application UI by `tools/benchmark/run-stage-a.mjs`. Medians below are **warm** samples (8 pairs per case; cold rep 0 is stored raw in raw-observations.json and excluded). Wall metric: stable-frame `requestToPresentMs` (plan §8).
+
+**Label:** automation-bundled headless chromium via Playwright — directional only, not release evidence per plan §9 (branded stable browsers, headed, declared target hardware).
+
+## Headline (paired warm medians, ms)
+
+| Case | Designation | legacy-scan median (MAD) | checkpoint median (MAD) | Δ (ckpt−legacy) | Regression flag max(5%, 20 ms) |
+| --- | --- | --- | --- | --- | --- |
+| mi-easy-default-full | screening | 396.8 ms (8.7 ms) | 263.4 ms (6.4 ms) | -133.4 ms | no |
+| mi-easy-exterior-heavy | screening | 187.2 ms (4.1 ms) | 188.4 ms (3.8 ms) | 1.3 ms | no |
+| mi-easy-main-cardioid | screening | 266.3 ms (8.0 ms) | 259.9 ms (8.9 ms) | -6.3 ms | no |
+| mi-easy-period2-bulb | screening | 397.8 ms (29.3 ms) | 403.7 ms (34.5 ms) | 5.9 ms | no |
+| mi-hard-rabbit-boundary | release-gate | 3943.5 ms (541.2 ms) | 598.0 ms (134.6 ms) | -3345.4 ms | no |
+| mi-hard-supplied-126x | release-gate | 8509.8 ms (930.5 ms) | 766.2 ms (26.7 ms) | -7743.7 ms | no |
+| mi-hard-supplied-609x | release-gate | 2940.8 ms (167.2 ms) | 694.1 ms (64.9 ms) | -2246.7 ms | no |
+| mi-hard-supplied-13x | release-gate | 6764.8 ms (992.0 ms) | 830.2 ms (134.8 ms) | -5934.6 ms | no |
+| mi-fallback-unknown-high-period | release-gate | 9390.5 ms (699.9 ms) | 1245.9 ms (130.6 ms) | -8144.6 ms | no |
+| mi-fallback-weak-attraction | release-gate | 21149.0 ms (1404.0 ms) | 1253.3 ms (278.6 ms) | -19895.8 ms | no |
+| mi-fallback-ambiguous-boundary | release-gate | 1281.3 ms (55.5 ms) | 350.3 ms (13.1 ms) | -931.0 ms | no |
+| mi-fallback-budget-exhaustion | release-gate | 13646.7 ms (635.5 ms) | 1067.4 ms (251.5 ms) | -12579.3 ms | no |
+| mi-scale-6mx-basilica-rim | release-gate | 9206.7 ms (621.5 ms) | 725.3 ms (69.6 ms) | -8481.4 ms | no |
+
+The flag column applies the median part of the plan §9 cap only; the BCa paired interval excluding zero is not computed at 9 screening reps and remains release-gate work.
+
+## Semantic comparison (stable-frame RGBA hash)
+
+Hash: sha-256 over row-major RGBA bytes (documented byte order). This is a palette-inclusive proxy — the ring exposes no per-pixel period histogram. Checkpoint detections are oracle-certified additions, so mismatches are enumerated findings.
+
+| Case | matches | mismatches | mismatch repetitions |
+| --- | --- | --- | --- |
+| mi-easy-default-full | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-easy-exterior-heavy | 9 | 0 | — |
+| mi-easy-main-cardioid | 9 | 0 | — |
+| mi-easy-period2-bulb | 9 | 0 | — |
+| mi-hard-rabbit-boundary | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-hard-supplied-126x | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-hard-supplied-609x | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-hard-supplied-13x | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-fallback-unknown-high-period | 9 | 0 | — |
+| mi-fallback-weak-attraction | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-fallback-ambiguous-boundary | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-fallback-budget-exhaustion | 0 | 9 | 0, 1, 2, 3, 4, 5, 6, 7, 8 |
+| mi-scale-6mx-basilica-rim | 9 | 0 | — |
+
+## Scope and honesty notes
+
+- Cold/warm: repetition 0 is cold (fresh browser context per arm; the browser process is shared, so process-level code caches are not cold). Repetitions 1+ re-navigate one persistent page (warm).
+- Cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope for this first pass.
+- requestToPresentMs ends at the next presentation opportunity after image upload; it is not proof of physical paint (plan §8).
+- Detected-period histograms are not exposed by the ring; the RGBA hash is a palette-inclusive proxy for semantic comparison.
+- 9 paired repetitions = screening protocol (plan §9); release-gate cases need 21+ reps, BCa paired intervals, branded stable browsers, and declared target hardware.
+

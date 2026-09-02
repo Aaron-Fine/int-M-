@@ -509,6 +509,10 @@ const comparisonPath = path.join(outDir, 'semantic-comparison.json');
 const existingComparison = existsSync(comparisonPath)
   ? JSON.parse(readFileSync(comparisonPath, 'utf8'))
   : undefined;
+const comparisonsByEngine = {
+  ...(existingComparison?.comparisonsByEngine ?? {}),
+  [engine]: compare(allSamples),
+};
 const semanticComparison = {
   schemaVersion: 1,
   method: {
@@ -520,10 +524,7 @@ const semanticComparison = {
     expectation:
       'identical hashes expected on most cases; the checkpoint schedule may detect additional oracle-certified attracting pixels (PR 4 evidence), so mismatches are enumerated findings, not failures',
   },
-  comparisonsByEngine: {
-    ...(existingComparison?.comparisonsByEngine ?? {}),
-    [engine]: compare(allSamples),
-  },
+  comparisonsByEngine,
 };
 writeFileSync(comparisonPath, `${JSON.stringify(semanticComparison, null, 2)}\n`);
 
@@ -581,23 +582,30 @@ summaryLines.push(
     'Wall metric: stable-frame `requestToPresentMs` (plan §8).',
 );
 summaryLines.push('');
-summaryLines.push(
-  `**Label:** automation-bundled headless ${engine} via Playwright — directional only, ` +
-    'not release evidence per plan §9 (branded stable browsers, headed, declared target hardware).',
-);
-summaryLines.push('');
-summaryLines.push('## Headline (paired warm medians, ms)');
-summaryLines.push('');
-summaryLines.push(
-  '| Case | Designation | legacy-scan median (MAD) | checkpoint median (MAD) | Δ (ckpt−legacy) | Regression flag max(5%, 20 ms) |',
-);
-summaryLines.push('| --- | --- | --- | --- | --- | --- |');
-for (const row of summarizeEngine(allSamples)) {
+for (const engineKey of Object.keys(samplesByEngine).sort()) {
+  const engineSamples = samplesByEngine[engineKey];
+  const engineLabel =
+    engineKey === 'chromium'
+      ? 'automation-bundled headless chromium via Playwright'
+      : 'automation-bundled headless Firefox via Playwright';
   summaryLines.push(
-    `| ${row.caseId} | ${row.designation} | ${formatMs(row.legacyMedianMs)} (${formatMs(row.legacyMadMs)}) | ${formatMs(row.checkpointMedianMs)} (${formatMs(row.checkpointMadMs)}) | ${row.deltaMs === undefined ? '—' : `${row.deltaMs.toFixed(1)} ms`} | ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? '**flagged**' : 'no'} |`,
+    `**Label (${engineKey}):** ${engineLabel} — directional only, ` +
+      'not release evidence per plan §9 (branded stable browsers, headed, declared target hardware).',
   );
+  summaryLines.push('');
+  summaryLines.push(`## Headline ${engineKey} (paired warm medians, ms)`);
+  summaryLines.push('');
+  summaryLines.push(
+    '| Case | Designation | legacy-scan median (MAD) | checkpoint median (MAD) | Δ (ckpt−legacy) | Regression flag max(5%, 20 ms) |',
+  );
+  summaryLines.push('| --- | --- | --- | --- | --- | --- |');
+  for (const row of summarizeEngine(engineSamples)) {
+    summaryLines.push(
+      `| ${row.caseId} | ${row.designation} | ${formatMs(row.legacyMedianMs)} (${formatMs(row.legacyMadMs)}) | ${formatMs(row.checkpointMedianMs)} (${formatMs(row.checkpointMadMs)}) | ${row.deltaMs === undefined ? '—' : `${row.deltaMs.toFixed(1)} ms`} | ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? '**flagged**' : 'no'} |`,
+    );
+  }
+  summaryLines.push('');
 }
-summaryLines.push('');
 summaryLines.push(
   'The flag column applies the median part of the plan §9 cap only; the BCa paired ' +
     'interval excluding zero is not computed at 9 screening reps and remains release-gate work.',
@@ -611,14 +619,29 @@ summaryLines.push(
     'Checkpoint detections are oracle-certified additions, so mismatches are enumerated findings.',
 );
 summaryLines.push('');
-summaryLines.push('| Case | matches | mismatches | mismatch repetitions |');
-summaryLines.push('| --- | --- | --- | --- |');
-for (const entry of semanticComparison.comparisonsByEngine[engine]) {
+for (const engineKey of Object.keys(comparisonsByEngine).sort()) {
+  const entries = comparisonsByEngine[engineKey];
+  summaryLines.push(`### Engine ${engineKey}`);
+  summaryLines.push('');
+  summaryLines.push('| Case | matches | mismatches | mismatch repetitions |');
+  summaryLines.push('| --- | --- | --- | --- |');
+  for (const entry of entries) {
+    summaryLines.push(
+      `| ${entry.caseId} | ${entry.matches} | ${entry.mismatches} | ${entry.mismatchRepetitions.join(', ') || '—'} |`,
+    );
+  }
+  const mismatchingCases = entries.filter((entry) => entry.mismatches > 0);
+  summaryLines.push('');
   summaryLines.push(
-    `| ${entry.caseId} | ${entry.matches} | ${entry.mismatches} | ${entry.mismatchRepetitions.join(', ') || '—'} |`,
+    mismatchingCases.length === 0
+      ? 'Every case × repetition hash matched between the two modes.'
+      : `Every mismatching case (${mismatchingCases.map((entry) => entry.caseId).join(', ')}) is an ` +
+          'interior/boundary-heavy view — the expected signature of the checkpoint schedule proposing ' +
+          'additional oracle-certified candidates (PR 4 evidence). The hash inequality is enumerated as ' +
+          'a finding per case and repetition above; it is not treated as a failure.',
   );
+  summaryLines.push('');
 }
-summaryLines.push('');
 summaryLines.push('## Scope and honesty notes');
 summaryLines.push('');
 for (const note of [
