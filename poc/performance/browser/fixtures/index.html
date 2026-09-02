@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mandelbrot Interiority — PoC microbench</title>
+  </head>
+  <body>
+    <h1>Mandelbrot Interiority — PoC microbench</h1>
+    <p>
+      Standalone measurement page for the browser PoC harness
+      (<code>poc/performance/browser/</code>). Runners are driven from the Playwright specs via
+      <code>window.__miPocBench.run(name)</code>; every runner returns raw per-repetition samples.
+      Evidence is directional (headless Chromium) and does not replace Stage A browser evidence.
+    </p>
+    <p id="status">Loading microbench runners…</p>
+    <script type="module" src="./microbench-main.ts"></script>
+  </body>
+</html>
