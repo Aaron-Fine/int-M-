@@ -377,6 +377,17 @@ Deepen the same story without changing its shape:
 - optimize the selected renderer from measured profiles; and
 - formalize semantic and image regression tests.
 
+The performance part of this phase is governed by a separate reviewed
+contract, the [performance improvement plan](plans/int-m-performance-plan.html),
+with its own invariants, workstream gates, and benchmark protocol. The
+implementation roadmap and current status of that work — PoC harness, frozen
+benchmark corpus, allocation-free scalar kernel, common verifier, checkpoint
+classifier behind a differential flag, and period policy — are tracked in
+[PERFORMANCE-PLAN.md](PERFORMANCE-PLAN.md), with the underlying mathematics
+and tolerance policy in
+[PERFORMANCE-MATHEMATICS.md](PERFORMANCE-MATHEMATICS.md). Those documents
+extend this plan; they do not change its story or its bounded-zoom thesis.
+
 ### Phase 3 — measured numerical extension
 
 Only if real use demonstrates a meaningful gap within the Phase 0-selected

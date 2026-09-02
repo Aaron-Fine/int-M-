@@ -33,22 +33,25 @@ npm run dev
 
 Vite serves the application at `http://127.0.0.1:5173`. The other common commands are:
 
-| Command                          | Purpose                                               |
-| -------------------------------- | ----------------------------------------------------- |
-| `npm run format`                 | Format supported source and documentation             |
-| `npm run format:check`           | Check formatting without changing files               |
-| `npm run lint`                   | Run ESLint with typed, strict TypeScript rules        |
-| `npm run typecheck`              | Check UI, worker, Node, and browser-test projects     |
-| `npm run catalog:check`          | Independently regenerate and validate catalog data    |
-| `npm run fixtures:check`         | Regenerate high-precision orbit fixtures              |
-| `npm run evidence:cpu`           | Measure the CPU renderer and print environment data   |
-| `node tools/measure_ui_path.mjs` | Collect target-device UI-path presentation marks      |
-| `npm run test:unit`              | Run deterministic unit and worker tests               |
-| `npm run test:browser`           | Run end-to-end tests in Chromium and Firefox          |
-| `npm run build`                  | Type-check and create production assets in `dist/`    |
-| `npm run build:assets`           | Create assets after an already-successful type-check  |
-| `npm run preview`                | Serve the production build at `http://127.0.0.1:4173` |
-| `npm run check`                  | Run the fast local pre-PR checks                      |
+| Command                          | Purpose                                                  |
+| -------------------------------- | -------------------------------------------------------- |
+| `npm run format`                 | Format supported source and documentation                |
+| `npm run format:check`           | Check formatting without changing files                  |
+| `npm run lint`                   | Run ESLint with typed, strict TypeScript rules           |
+| `npm run typecheck`              | Check UI, worker, Node, and browser-test projects        |
+| `npm run catalog:check`          | Independently regenerate and validate catalog data       |
+| `npm run fixtures:check`         | Regenerate high-precision orbit fixtures                 |
+| `npm run evidence:cpu`           | Measure the CPU renderer and print environment data      |
+| `npm run poc:perf`               | Run the PoC differential harness (directional evidence)  |
+| `npm run poc:bench:pr2`          | Run the pr2 allocation microbench (directional evidence) |
+| `npm run poc:bench:pr4`          | Run the pr4 checkpoint microbench (directional evidence) |
+| `node tools/measure_ui_path.mjs` | Collect target-device UI-path presentation marks         |
+| `npm run test:unit`              | Run deterministic unit and worker tests                  |
+| `npm run test:browser`           | Run end-to-end tests in Chromium and Firefox             |
+| `npm run build`                  | Type-check and create production assets in `dist/`       |
+| `npm run build:assets`           | Create assets after an already-successful type-check     |
+| `npm run preview`                | Serve the production build at `http://127.0.0.1:4173`    |
+| `npm run check`                  | Run the fast local pre-PR checks                         |
 
 Install Playwright's managed browsers once on a development machine:
 
@@ -192,6 +195,34 @@ site, so no runtime secret should be necessary.
 WebAssembly renderer uses shared memory, add and test
 `Cross-Origin-Embedder-Policy: require-corp` alongside the existing opener policy; that change can
 affect externally loaded resources and should not be made speculatively.
+
+## Phase 2 performance implementation
+
+The Phase 2 performance work extends these conventions with a frozen
+acceptance boundary and a directional evidence harness; the governing contract
+is the [performance improvement plan](plans/int-m-performance-plan.html), and
+[PERFORMANCE-PLAN.md](PERFORMANCE-PLAN.md) tracks the current status of every
+workstream and gate.
+
+- Acceptance is versioned policy: `src/domain/verifier.ts` (revision
+  `src-verifier-1.0.0`) is the only code path that writes attracting status.
+  Candidate sources — the PR 4 checkpoint schedule
+  (`src/domain/checkpoint.ts`, revision `src-checkpoint-1.0.0`) and any future
+  catalog, chart, algebra, or Newton path — propose only.
+- The classifier mode is a versioned option (`OrbitOptions.classifierMode`):
+  `'legacy-scan'` is the shipped default, `'checkpoint'` runs the schedule,
+  and `'differential'` runs both kernels per pixel, reports the legacy answer,
+  and counts disagreements. The default changes only on Stage A browser
+  evidence per the benchmark contract.
+- The period policy (`src/domain/period-policy.ts`, revision
+  `period-policy-1.0.0`) separates the systematic search budget from
+  opportunistic verified discoveries and stamps evidence-source origin
+  metadata; it never alters acceptance.
+- `poc/performance/` is a self-contained directional harness (Node/V8,
+  double-double oracle) and `poc/performance/browser/` a directional browser
+  companion; their results are committed, labeled directional, and are not
+  release evidence. Normative runs land under `evidence/phase-2/` per the
+  [phase-2 evidence contract](../evidence/phase-2/README.md).
 
 ## Requirements traceability
 
