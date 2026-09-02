@@ -16,10 +16,15 @@ const frame = (stage: SemanticFrame['stage']): SemanticFrame => ({
   stage,
   size: request.size,
   sampleStride: stage === 'coarse' ? 4 : 1,
-  status: new Uint8Array(48),
-  period: new Uint32Array(48),
-  smoothIterationOrMultiplierMagnitude: new Float64Array(48),
-  multiplierAngle: new Float64Array(48),
+  bands: [
+    {
+      y0: 0,
+      y1: 6,
+      packedStatusPeriod: new Uint32Array(48),
+      smoothIterationOrMultiplierMagnitude: new Float64Array(48),
+      multiplierAngle: new Float64Array(48),
+    },
+  ],
   progress: stage === 'coarse' ? 0.2 : 1,
 });
 

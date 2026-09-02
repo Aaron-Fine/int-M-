@@ -37,7 +37,8 @@
     "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
     "Renderer-path paired run (m1-center-out, chromium); production bundle via vite build + vite preview.",
     "Renderer-path detail 'm1-center-out' run (chromium): arms centerOut, legacy; dists feature.",
-    "m2-yield detail measured on the M2 working-tree build (commit 09efabd, MessageChannel default yield scheduler; arms ?yieldMechanism=message-channel|timeout). Provenance for every detail is documented in summary.md."
+    "m2-yield detail measured on the M2 working-tree build (commit 09efabd, MessageChannel default yield scheduler; arms ?yieldMechanism=message-channel|timeout). Provenance for every detail is documented in summary.md.",
+    "m3-zero-copy-packed detail measured on the M3 working-tree build (commit 837695b, packed poc-packed-1.0.0 layout + pre-sliced transferable band views default; arms ?frameOutput=zero-copy|legacy-merge)."
   ],
   "browsers": {
     "chromium": {

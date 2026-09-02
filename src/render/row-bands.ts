@@ -1,18 +1,16 @@
-import type { SemanticFrame } from './renderer';
-
 export interface RowBand {
   readonly y0: number;
   readonly y1: number;
 }
 
-export interface BandArrays {
-  readonly status: Uint8Array;
-  readonly period: Uint32Array;
-  readonly smoothIterationOrMultiplierMagnitude: Float64Array;
-  readonly multiplierAngle: Float64Array;
-}
-
-/** Remainder-front exclusive [y0, y1) covering [0, height). Stride-1 only. */
+/**
+ * Remainder-front exclusive [y0, y1) row bands covering [0, height).
+ * Stride-1 only.
+ *
+ * Band row ranges are the storage partition of the semantic frame: each band
+ * owns its packed status+period, smooth, and angle buffers, so band results
+ * need no merge copy.
+ */
 export function splitRowBands(height: number, bandCount: number): readonly RowBand[] {
   if (height < 1 || bandCount < 1) throw new RangeError('height and bandCount must be >= 1');
   const count = Math.min(bandCount, height);
@@ -68,19 +66,4 @@ export function orderRowBandsForDispatch(
   const firstWave = centerOut.slice(0, Math.min(waveSize, centerOut.length));
   const remainder = centerOut.slice(firstWave.length).sort((a, b) => a - b);
   return [...firstWave, ...remainder];
-}
-
-/** Merge a band's four channels into a full-raster frame at y0 * width. */
-export function copyBandIntoFrame(
-  frame: Pick<
-    SemanticFrame,
-    'status' | 'period' | 'smoothIterationOrMultiplierMagnitude' | 'multiplierAngle' | 'size'
-  >,
-  band: BandArrays & RowBand,
-): void {
-  const offset = band.y0 * frame.size.width;
-  frame.status.set(band.status, offset);
-  frame.period.set(band.period, offset);
-  frame.smoothIterationOrMultiplierMagnitude.set(band.smoothIterationOrMultiplierMagnitude, offset);
-  frame.multiplierAngle.set(band.multiplierAngle, offset);
 }

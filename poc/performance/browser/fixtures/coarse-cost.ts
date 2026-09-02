@@ -1,4 +1,5 @@
 import { classifyRows } from '../../../../src/render/classify-rows';
+import { unpackStatus } from '../../../../src/render/packed-semantic';
 import { getQualityProfile } from '../../../../src/ui/view-state';
 import type { DynamicsRenderRequest } from '../../../../src/render/renderer';
 import type { RenderQuality } from '../../../../src/domain';
@@ -53,7 +54,8 @@ export const runCoarseCost = async (params: CoarseCostParams): Promise<CoarseCos
     let escapeIterationSum = 0;
     for (let x = 0; x < params.edge; x += coarseStride) {
       const offset = y * params.edge + x;
-      const status = coarse.status[offset] ?? 0;
+      const word = coarse.packedStatusPeriod[offset] ?? 0;
+      const status = unpackStatus(word);
       if (status === 1) {
         escaped += 1;
         escapeIterationSum += coarse.smoothIterationOrMultiplierMagnitude[offset] ?? 0;

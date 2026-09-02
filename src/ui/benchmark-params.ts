@@ -1,6 +1,6 @@
 import type { ClassifierMode, Viewport } from '../domain';
 import { CLASSIFIER_MODES } from '../domain';
-import type { BandOrder } from '../render';
+import type { BandOrder, FrameOutput } from '../render';
 import { isYieldMechanism, type YieldMechanism } from '../render/yield-scheduler';
 import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from './view-state';
 
@@ -30,6 +30,11 @@ export interface BenchmarkParams {
    * invalid. Diagnostic arm selector for the yield-mechanism gate.
    */
   readonly yieldMechanism?: YieldMechanism | undefined;
+  /**
+   * Validated `?frameOutput=` stable-frame output path; absent when missing
+   * or invalid. Diagnostic arm selector for the zero-copy gate.
+   */
+  readonly frameOutput?: FrameOutput | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -82,6 +87,7 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     classifierMode?: ClassifierMode;
     bandOrder?: BandOrder;
     yieldMechanism?: YieldMechanism;
+    frameOutput?: FrameOutput;
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
@@ -97,6 +103,10 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const yieldMechanism = params.get('yieldMechanism');
   if (yieldMechanism !== null && isYieldMechanism(yieldMechanism)) {
     result.yieldMechanism = yieldMechanism;
+  }
+  const frameOutput = params.get('frameOutput');
+  if (frameOutput === 'zero-copy' || frameOutput === 'legacy-merge') {
+    result.frameOutput = frameOutput;
   }
   const viewport = parseViewParam(params.get('view'));
   if (viewport !== undefined) result.viewport = viewport;

@@ -11,8 +11,8 @@ import {
   type RenderQuality,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
-import type { DynamicsRenderRequest, SemanticStageTiming } from './renderer';
-import type { BandArrays } from './row-bands';
+import { packStatusPeriod } from './packed-semantic';
+import type { DynamicsRenderRequest, SemanticBand, SemanticStageTiming } from './renderer';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
 import {
   createYieldScheduler,
@@ -28,7 +28,18 @@ const throwIfAborted = (signal: AbortSignal): void => {
 
 const nowMs = (): number => performance.now();
 
-export interface ClassifyRowsResult extends BandArrays {
+/**
+ * Pre-sliced output buffers a caller (tile worker via the supervisor's
+ * zero-copy band views) can hand to classifyRows, eliminating the per-band
+ * output allocations. Lengths must match the band exactly.
+ */
+export interface BandOutputBuffers {
+  readonly packedStatusPeriod: Uint32Array<ArrayBuffer>;
+  readonly smoothIterationOrMultiplierMagnitude: Float64Array<ArrayBuffer>;
+  readonly multiplierAngle: Float64Array<ArrayBuffer>;
+}
+
+export interface ClassifyRowsResult extends SemanticBand {
   readonly timing: SemanticStageTiming;
   /**
    * Differential-mode disagreement record (classifierMode 'differential'
@@ -39,13 +50,14 @@ export interface ClassifyRowsResult extends BandArrays {
 }
 
 /**
- * Copies one primitive classification record into the band channels. The
- * channel encoding is unchanged: smooth escape iteration or multiplier
- * magnitude in the primary Float64 channel, multiplier angle secondary, and
- * zero period/angle for non-attracting statuses.
+ * Writes one primitive classification record into the band storage. The
+ * channel encoding is packed (poc-packed-1.0.0): status and primitive period
+ * share one Uint32; the smooth escape iteration or multiplier magnitude and
+ * the multiplier angle keep their Float64 channels; period/angle are zero
+ * for non-attracting statuses.
  */
 const writeSampleToBand = (
-  band: BandArrays,
+  band: BandOutputBuffers,
   width: number,
   y0: number,
   y1: number,
@@ -59,14 +71,14 @@ const writeSampleToBand = (
   const primary =
     status === 1 ? sample.smoothIteration : status === 2 ? sample.multiplierMagnitude : 0;
   const secondary = status === 2 ? sample.multiplierAngle : 0;
+  const word = packStatusPeriod(status, period);
 
   const limitY = Math.min(y1, y + stride);
   const limitX = Math.min(width, x + stride);
   for (let writeY = y; writeY < limitY; writeY += 1) {
     for (let writeX = x; writeX < limitX; writeX += 1) {
       const offset = (writeY - y0) * width + writeX;
-      band.status[offset] = status;
-      band.period[offset] = period;
+      band.packedStatusPeriod[offset] = word;
       band.smoothIterationOrMultiplierMagnitude[offset] = primary;
       band.multiplierAngle[offset] = secondary;
     }
@@ -80,25 +92,31 @@ export async function classifyRows(
   y0: number,
   y1: number,
   signal: AbortSignal,
-  // Versioned classifier mode (PR 4). Optional and last: every existing
-  // call site (supervisor, tile workers, tests) keeps its exact behavior
-  // with the 'legacy-scan' default, and no worker-protocol field changes —
-  // the mode rides in the classifier options built here.
+  // Versioned classifier mode (PR 4). Optional: every existing call site
+  // keeps its exact behavior with the 'legacy-scan' default.
   classifierMode?: ClassifierMode,
-  // Yield mechanism (renderer-path detail, plan §5): 'message-channel'
-  // replaces the nested setTimeout(0) row yields whose budget was largely
-  // the 4 ms nested-timer clamp. Absent = the default MessageChannel
-  // scheduler; 'timeout' is the paired-evidence measurement arm.
+  // Yield mechanism (renderer-path detail): 'message-channel' replaces the
+  // nested setTimeout(0) row yields whose budget was largely the 4 ms
+  // nested-timer clamp; 'timeout' is the paired-evidence measurement arm.
   yieldMechanism?: YieldMechanism,
+  // Pre-sliced output buffers (zero-copy detail): when present the band is
+  // classified directly into them and nothing is allocated per call.
+  output?: BandOutputBuffers,
 ): Promise<ClassifyRowsResult> {
   const { width } = request.size;
   const length = (y1 - y0) * width;
-  const band: BandArrays = {
-    status: new Uint8Array(length),
-    period: new Uint32Array(length),
+  const band: BandOutputBuffers = output ?? {
+    packedStatusPeriod: new Uint32Array(length),
     smoothIterationOrMultiplierMagnitude: new Float64Array(length),
     multiplierAngle: new Float64Array(length),
   };
+  if (
+    band.packedStatusPeriod.length !== length ||
+    band.smoothIterationOrMultiplierMagnitude.length !== length ||
+    band.multiplierAngle.length !== length
+  ) {
+    throw new RangeError('band output buffers must match the band size');
+  }
   const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
@@ -111,7 +129,7 @@ export async function classifyRows(
   const point: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
-  // The 'timeout' arm is the paired-easurement measurement arm; it is created
+  // The 'timeout' arm is the paired-evidence measurement arm; it is created
   // per call because its pending set must not outlive the band.
   const rowYields =
     yieldMechanism === 'timeout'
@@ -143,11 +161,15 @@ export async function classifyRows(
   }
 
   throwIfAborted(signal);
-  // exactOptionalPropertyTypes: build the optional field via a narrowed
-  // conditional spread so the key is absent (not undefined) in the default.
+  // exactOptionalPropertyTypes: build the optional fields via narrowed
+  // conditional spreads so keys are absent (not undefined) in the default.
   const differentialStats = classifierMode === 'differential' ? classifier.differentialStats : null;
   return {
-    ...band,
+    y0,
+    y1,
+    packedStatusPeriod: band.packedStatusPeriod,
+    smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
+    multiplierAngle: band.multiplierAngle,
     timing: {
       classifyMs: nowMs() - wallStarted - yieldWaitMs,
       yieldWaitMs,

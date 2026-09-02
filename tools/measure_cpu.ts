@@ -55,11 +55,14 @@ const measureRender = async (
   let semanticBytes = 0;
 
   await renderer.render(measurementCase.request, new AbortController().signal, (frame) => {
-    semanticBytes =
-      frame.status.byteLength +
-      frame.period.byteLength +
-      frame.smoothIterationOrMultiplierMagnitude.byteLength +
-      frame.multiplierAngle.byteLength;
+    semanticBytes = frame.bands.reduce(
+      (sum, band) =>
+        sum +
+        band.packedStatusPeriod.byteLength +
+        band.smoothIterationOrMultiplierMagnitude.byteLength +
+        band.multiplierAngle.byteLength,
+      0,
+    );
     if (frame.stage === 'coarse') coarseAt = performance.now();
     if (frame.stage === 'stable') stableAt = performance.now();
   });

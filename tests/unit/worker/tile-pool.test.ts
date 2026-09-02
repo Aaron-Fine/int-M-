@@ -9,6 +9,11 @@ import {
   splitRowBands,
 } from '../../../src/render/row-bands';
 import { createTilePool } from '../../../src/worker/tile-pool';
+import { unpackPeriod, unpackStatus } from '../../../src/render/packed-semantic';
+
+/** Raw packed word mirroring the production encoding (markers included). */
+const wordFor = (status: number, period: number): number =>
+  ((status === 0 ? 3 : status) * 0x1000000) | period;
 import type {
   SupervisorToTileMessage,
   TileClassifyMessage,
@@ -17,6 +22,7 @@ import type {
   TileToSupervisorMessage,
   TileWorkerHandle,
 } from '../../../src/worker/tile-protocol';
+import type { SemanticFrame as SemanticFrameLike } from '../../../src/render';
 
 const BALANCED: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 const SMALL_QUALITY: RenderQuality = { maxIterations: 32, maxPeriod: 4, coarseStride: 8 };
@@ -96,10 +102,10 @@ const bandResult = (
     jobId: classify.jobId,
     y0: classify.y0,
     y1: classify.y1,
-    status: new Uint8Array(length).fill(fillStatus),
-    period: new Uint32Array(length).fill(fillPeriod),
+    packedStatusPeriod: new Uint32Array(length).fill(wordFor(fillStatus, fillPeriod)),
     smoothIterationOrMultiplierMagnitude: new Float64Array(length),
     multiplierAngle: new Float64Array(length),
+    outputRevision: 'poc-packed-1.0.0' as const,
     yieldWaitMs,
     yieldCount,
   };
@@ -110,6 +116,18 @@ const cancelled = (classify: TileClassifyMessage) => ({
   generation: classify.generation,
   jobId: classify.jobId,
 });
+
+/** Every pixel of every band, as [status, period] pairs of packed words. */
+const frameWords = (frame: SemanticFrameLike): Uint32Array => {
+  const total = frame.bands.reduce((sum, band) => sum + band.packedStatusPeriod.length, 0);
+  const words = new Uint32Array(total);
+  let offset = 0;
+  for (const band of frame.bands) {
+    words.set(band.packedStatusPeriod, offset);
+    offset += band.packedStatusPeriod.length;
+  }
+  return words;
+};
 
 /** Answers the (unique) outstanding classify with the given job id. */
 const answerJobId = (
@@ -218,7 +236,7 @@ describe('createTilePool', () => {
     const frame = await pending;
     expect(classifyPosts(workers[0]!).map((post) => post.jobId)).toEqual([2, 0, 4]);
     expect(classifyPosts(workers[1]!).map((post) => post.jobId)).toEqual([3, 1, 5]);
-    expect(frame.status.every((value) => value === 1)).toBe(true);
+    expect([...frameWords(frame)].every((word) => unpackStatus(word) === 1)).toBe(true);
   });
 
   it('dispatches top-to-bottom when the legacy diagnostic order is requested', async () => {
@@ -342,12 +360,11 @@ describe('createTilePool', () => {
 
     expect(factory).not.toHaveBeenCalled();
     expect(pool.size).toBe(1);
-    expect(frame.status).toEqual(expected.status);
-    expect(frame.period).toEqual(expected.period);
-    expect(frame.smoothIterationOrMultiplierMagnitude).toEqual(
+    expect(frame.bands[0]!.packedStatusPeriod).toEqual(expected.packedStatusPeriod);
+    expect(frame.bands[0]!.smoothIterationOrMultiplierMagnitude).toEqual(
       expected.smoothIterationOrMultiplierMagnitude,
     );
-    expect(frame.multiplierAngle).toEqual(expected.multiplierAngle);
+    expect(frame.bands[0]!.multiplierAngle).toEqual(expected.multiplierAngle);
     expect(frame.stage).toBe('stable');
     expect(frame.sampleStride).toBe(1);
   });
@@ -378,7 +395,7 @@ describe('createTilePool', () => {
     replyAll(workers, 2);
     const frame = await second;
     expect(workers.reduce((sum, worker) => sum + classifyPosts(worker).length, 0)).toBe(12);
-    expect(frame.status[0]).toBe(2);
+    expect(unpackStatus(frameWords(frame)[0]!)).toBe(2);
   });
 
   it('classifyStable_rejectsWhenSignalAbortsEvenIfChildrenNeverReply', async () => {
@@ -440,8 +457,8 @@ describe('createTilePool', () => {
     workers[0]!.emit(bandResult(gen2[0]!, 1));
     replyAll(workers, 1);
     const frame = await second;
-    expect(frame.status.every((value) => value === 1)).toBe(true);
-    expect(frame.period.every((value) => value === 0)).toBe(true);
+    expect([...frameWords(frame)].every((word) => unpackStatus(word) === 1)).toBe(true);
+    expect([...frameWords(frame)].every((word) => unpackPeriod(word) === 0)).toBe(true);
   });
 
   it('classifyStable_overlappingDrainsBeforeSecondDispatch leftover job cannot complete the new generation', async () => {
@@ -505,10 +522,11 @@ describe('createTilePool', () => {
     workers[0]!.emit(bandResult(gen2[0]!, 1));
     replyAll(workers, 1);
     const frame = await second;
+    const words = frameWords(frame);
     const leftoverStart = bands[2]!.y0 * request.size.width;
-    expect(frame.status[leftoverStart]).toBe(1);
-    expect(frame.period[leftoverStart]).toBe(0);
-    expect(frame.status.every((value) => value === 1)).toBe(true);
+    expect(unpackStatus(words[leftoverStart]!)).toBe(1);
+    expect(unpackPeriod(words[leftoverStart]!)).toBe(0);
+    expect([...words].every((word) => unpackStatus(word) === 1)).toBe(true);
   });
 
   it('does not dispatch the next classify until children settle', async () => {

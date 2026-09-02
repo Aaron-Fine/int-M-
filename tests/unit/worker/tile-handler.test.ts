@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_VIEWPORT, type ClassifierMode, type RenderQuality } from '../../../src/domain';
 import { classifyRows } from '../../../src/render/classify-rows';
 import { RenderCancelledError } from '../../../src/render';
+import { packStatusPeriod } from '../../../src/render/packed-semantic';
 import { createTileHandler } from '../../../src/worker/tile-handler';
 import type {
   SupervisorToTileMessage,
@@ -47,13 +48,25 @@ describe('tile-handler', () => {
     const host = recordingHost();
     const seenModes: (ClassifierMode | undefined)[] = [];
     const handle = createTileHandler(host, {
-      classifyRows: (_request, _quality, _stride, _y0, _y1, _signal, classifierMode) => {
+      classifyRows: (
+        _request,
+        _quality,
+        _stride,
+        _y0,
+        _y1,
+        _signal,
+        classifierMode,
+        _yieldMechanism,
+        output,
+      ) => {
         seenModes.push(classifierMode);
         return Promise.resolve({
-          status: new Uint8Array(4 * 8),
-          period: new Uint32Array(4 * 8),
-          smoothIterationOrMultiplierMagnitude: new Float64Array(4 * 8),
-          multiplierAngle: new Float64Array(4 * 8),
+          y0: 3,
+          y1: 7,
+          packedStatusPeriod: output?.packedStatusPeriod ?? new Uint32Array(4 * 8),
+          smoothIterationOrMultiplierMagnitude:
+            output?.smoothIterationOrMultiplierMagnitude ?? new Float64Array(4 * 8),
+          multiplierAngle: output?.multiplierAngle ?? new Float64Array(4 * 8),
           timing: { classifyMs: 1, yieldWaitMs: 0, yieldCount: 0 },
         });
       },
@@ -89,10 +102,10 @@ describe('tile-handler', () => {
       jobId: message.jobId,
       y0: message.y0,
       y1: message.y1,
-      status: expected.status,
-      period: expected.period,
+      packedStatusPeriod: expected.packedStatusPeriod,
       smoothIterationOrMultiplierMagnitude: expected.smoothIterationOrMultiplierMagnitude,
       multiplierAngle: expected.multiplierAngle,
+      outputRevision: 'poc-packed-1.0.0',
       yieldCount: expected.timing.yieldCount,
     });
     expect(posted.message.type).toBe('tile-result');
@@ -102,8 +115,7 @@ describe('tile-handler', () => {
     expect(posted.message.type).toBe('tile-result');
     if (posted.message.type === 'tile-result') {
       expect(posted.transfer).toEqual([
-        posted.message.status.buffer,
-        posted.message.period.buffer,
+        posted.message.packedStatusPeriod.buffer,
         posted.message.smoothIterationOrMultiplierMagnitude.buffer,
         posted.message.multiplierAngle.buffer,
       ]);
@@ -163,5 +175,36 @@ describe('tile-handler', () => {
         message: 'classifier exploded',
       },
     ]);
+  });
+});
+
+describe('tile-handler zero-copy band output', () => {
+  it('classifies into the provided band views and returns the same buffers', async () => {
+    const host = recordingHost();
+    const handle = createTileHandler(host);
+    const width = 8;
+    const bandOutput = {
+      y0: 3,
+      y1: 7,
+      packedStatusPeriod: new Uint32Array(4 * width),
+      smoothIterationOrMultiplierMagnitude: new Float64Array(4 * width),
+      multiplierAngle: new Float64Array(4 * width),
+    };
+    for (let index = 0; index < bandOutput.packedStatusPeriod.length; index += 1) {
+      bandOutput.packedStatusPeriod[index] = packStatusPeriod(0, 0);
+    }
+
+    await handle(classifyMessage({ bandOutput, outputRevision: 'poc-packed-1.0.0' }));
+
+    const posted = host.posts[0]!;
+    if (posted.message.type !== 'tile-result') throw new Error('expected tile-result');
+    // The worker classifies into the supervisor's views: identity, not copies.
+    expect(posted.message.packedStatusPeriod).toBe(bandOutput.packedStatusPeriod);
+    expect(posted.message.smoothIterationOrMultiplierMagnitude).toBe(
+      bandOutput.smoothIterationOrMultiplierMagnitude,
+    );
+    expect(posted.message.multiplierAngle).toBe(bandOutput.multiplierAngle);
+    // Every pixel was rewritten: no zero word (reserved code) survives.
+    expect(bandOutput.packedStatusPeriod.every((word) => word !== 0)).toBe(true);
   });
 });

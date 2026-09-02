@@ -1,4 +1,4 @@
-import { copyBandIntoFrame, splitRowBands } from '../../../../src/render/row-bands';
+import { splitRowBands } from '../../../../src/render/row-bands';
 import type { DynamicsRenderRequest } from '../../../../src/render/renderer';
 import type { RenderQuality } from '../../../../src/domain';
 import type {
@@ -41,8 +41,7 @@ interface RunState {
   readonly expected: number;
   readonly bandCount: number;
   readonly frame: {
-    readonly status: Uint8Array<ArrayBuffer>;
-    readonly period: Uint32Array<ArrayBuffer>;
+    readonly packedStatusPeriod: Uint32Array<ArrayBuffer>;
     readonly smoothIterationOrMultiplierMagnitude: Float64Array<ArrayBuffer>;
     readonly multiplierAngle: Float64Array<ArrayBuffer>;
     readonly size: { readonly width: number; readonly height: number };
@@ -103,8 +102,7 @@ export class TileWorkerSet {
       expected: bands.length,
       bandCount: bands.length,
       frame: {
-        status: new Uint8Array(pixelCount),
-        period: new Uint32Array(pixelCount),
+        packedStatusPeriod: new Uint32Array(pixelCount),
         smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
         multiplierAngle: new Float64Array(pixelCount),
         size: request.size,
@@ -170,7 +168,16 @@ export class TileWorkerSet {
     }
     if (message.type === 'tile-cancelled') return;
     const mergeStarted = performance.now();
-    copyBandIntoFrame(run.frame, message);
+    // Packed result: status+period share one Uint32 per pixel, so the merge
+    // is one set() per channel (the production zero-copy path removes even
+    // this copy; the driver keeps the merge for its mergeMs measurement).
+    const offset = message.y0 * run.frame.size.width;
+    run.frame.packedStatusPeriod.set(message.packedStatusPeriod, offset);
+    run.frame.smoothIterationOrMultiplierMagnitude.set(
+      message.smoothIterationOrMultiplierMagnitude,
+      offset,
+    );
+    run.frame.multiplierAngle.set(message.multiplierAngle, offset);
     run.mergeMs += performance.now() - mergeStarted;
     run.yieldWaitMs = Math.max(run.yieldWaitMs, message.yieldWaitMs);
     run.yieldCount += message.yieldCount;

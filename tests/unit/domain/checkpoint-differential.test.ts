@@ -378,8 +378,7 @@ describe('classifier-mode plumbing', () => {
       'differential',
     );
     // Band content is the legacy answer; the record counts the comparison.
-    expect(differentialBand.status).toEqual(legacyBand.status);
-    expect(differentialBand.period).toEqual(legacyBand.period);
+    expect(differentialBand.packedStatusPeriod).toEqual(legacyBand.packedStatusPeriod);
     expect(differentialBand.smoothIterationOrMultiplierMagnitude).toEqual(
       legacyBand.smoothIterationOrMultiplierMagnitude,
     );
