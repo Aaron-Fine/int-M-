@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_VIEWPORT, type RenderQuality } from '../../../src/domain';
+import { DEFAULT_VIEWPORT, type ClassifierMode, type RenderQuality } from '../../../src/domain';
 import { classifyRows } from '../../../src/render/classify-rows';
 import { RenderCancelledError } from '../../../src/render';
 import { createTileHandler } from '../../../src/worker/tile-handler';
@@ -43,6 +43,28 @@ const recordingHost = (): {
 };
 
 describe('tile-handler', () => {
+  it('handleTileClassify_forwardsClassifierModeToClassifyRows', async () => {
+    const host = recordingHost();
+    const seenModes: (ClassifierMode | undefined)[] = [];
+    const handle = createTileHandler(host, {
+      classifyRows: (_request, _quality, _stride, _y0, _y1, _signal, classifierMode) => {
+        seenModes.push(classifierMode);
+        return Promise.resolve({
+          status: new Uint8Array(4 * 8),
+          period: new Uint32Array(4 * 8),
+          smoothIterationOrMultiplierMagnitude: new Float64Array(4 * 8),
+          multiplierAngle: new Float64Array(4 * 8),
+          timing: { classifyMs: 1, yieldWaitMs: 0, yieldCount: 0 },
+        });
+      },
+    });
+
+    await handle(classifyMessage({ classifierMode: 'checkpoint' }));
+    await handle(classifyMessage({ generation: 4, jobId: 2 }));
+
+    expect(seenModes).toEqual(['checkpoint', undefined]);
+  });
+
   it('handleTileClassify_postsTransferredBandForAbsoluteRows', async () => {
     const host = recordingHost();
     const handle = createTileHandler(host);

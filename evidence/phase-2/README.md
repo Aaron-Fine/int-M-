@@ -41,6 +41,38 @@ evidence/phase-2/<date>-<commit>/
   capability evidence) and `catalog-generation.json` (generated-catalog
   report) join the directory only if the corresponding workstream ships.
 
+## Stage A runs (`tools/benchmark/run-stage-a.mjs`)
+
+Stage A (paired legacy-scan vs checkpoint classifier evidence, plan §9) adds
+these documented evolutions to the directory contract:
+
+- `environment.json` keeps the `capture-environment.mjs` skeleton and fills
+  the browser fields for the primary engine (Playwright Chromium), records
+  per-engine facts under an added `browsers` map (each entry carries the
+  browser build, user agent, headless state, DPR, calibrated viewport, worker
+  count, and the "automation-bundled, directional only" label), and adds a
+  `protocol` block (build mode, pairing and cold/warm interpretation,
+  out-of-scope interactions, wall metric, hash byte order).
+- `raw-observations.json` stores samples under `samplesByEngine` (one array
+  per engine; every sample is timestamp-free and carries the full opt-in
+  render-trace snapshot). A second engine run into the same directory extends
+  the arrays rather than replacing them.
+- `semantic-comparison.json` records `comparisonsByEngine`; per case ×
+  repetition it stores both hashes and their equality, with the documented
+  byte order (row-major RGBA via `getImageData`) and the honest scope note
+  (palette-inclusive proxy; no per-pixel period histogram exists in the ring).
+- `summary.md` is regenerated from the merged per-engine data on every run;
+  when content changes, the manifest is re-emitted and the change is noted in
+  the commit.
+- Each engine run ends by re-emitting `manifest.sha256` (last, per the
+  contract above); `--check` must pass before results are cited.
+
+Stage A is a screening-protocol run (9 paired repetitions, automation-bundled
+headless engines): it is the directional baseline record for the absolute
+latency budgets, not release-gate evidence. Release-gate evidence still needs
+the declared target hardware, branded stable Chrome and Firefox, headed runs,
+and ≥ 21 paired repetitions with BCa paired intervals.
+
 ## Raw-sample discipline
 
 1. Every repetition of every case is stored individually, including outliers

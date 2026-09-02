@@ -116,6 +116,63 @@ class InspectOnlyRenderer implements Renderer {
 }
 
 describe('RenderWorkerRuntime', () => {
+  it('threads an explicit classifierMode from the render message into the dynamics request', async () => {
+    const requests: DynamicsRenderRequest[] = [];
+    const renderer: Renderer = {
+      inspect: () => ({
+        status: 'unresolved',
+        iterations: 1,
+        evidence: ['iteration-limit'],
+      }),
+      render: async (request, _signal, onFrame) => {
+        requests.push(request);
+        await onFrame(semanticFrame(request.size));
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 1,
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 2, height: 2 },
+      semanticView: 'stability',
+      classifierMode: 'checkpoint',
+    });
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.classifierMode).toBe('checkpoint');
+  });
+
+  it('keeps the default render message free of any classifierMode field', async () => {
+    const requests: DynamicsRenderRequest[] = [];
+    const renderer: Renderer = {
+      inspect: () => ({
+        status: 'unresolved',
+        iterations: 1,
+        evidence: ['iteration-limit'],
+      }),
+      render: async (request, _signal, onFrame) => {
+        requests.push(request);
+        await onFrame(semanticFrame(request.size));
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 1,
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 2, height: 2 },
+      semanticView: 'stability',
+    });
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).not.toHaveProperty('classifierMode');
+  });
+
   it('returns structured inspection evidence', async () => {
     const messages: WorkerToMainMessage[] = [];
     const port: WorkerMessagePort = {

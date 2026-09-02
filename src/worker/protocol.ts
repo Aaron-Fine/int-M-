@@ -1,4 +1,5 @@
 import type {
+  ClassifierMode,
   Complex,
   OrbitResult,
   RasterSize,
@@ -17,6 +18,12 @@ export interface RenderMessage {
   readonly size: RasterSize;
   readonly semanticView: SemanticView;
   readonly quality?: Partial<RenderQuality>;
+  /**
+   * Versioned classifier mode (Stage A opt-in wiring). Additive optional
+   * field: absent on the default path, so default messages are byte-identical
+   * and workers keep the 'legacy-scan' default.
+   */
+  readonly classifierMode?: ClassifierMode;
 }
 
 export interface InspectMessage {

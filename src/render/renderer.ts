@@ -1,4 +1,5 @@
 import type {
+  ClassifierMode,
   Complex,
   OrbitResult,
   RasterSize,
@@ -44,6 +45,11 @@ export interface DynamicsRenderRequest {
   readonly viewport: Viewport;
   readonly size: RasterSize;
   readonly quality?: Partial<RenderQuality>;
+  /**
+   * Versioned classifier mode (Stage A opt-in wiring). Absent on the default
+   * path; the semantic cache key scopes cached frames by mode when present.
+   */
+  readonly classifierMode?: ClassifierMode;
 }
 
 export type SemanticStatusCode = 0 | 1 | 2;
@@ -97,6 +103,7 @@ export interface TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
+    classifierMode?: ClassifierMode,
   ): Promise<SemanticFrame>;
   dispose(): void;
 }

@@ -94,6 +94,62 @@ const replyAll = (workers: readonly FakeTileWorker[], fillStatus: number, fillPe
 };
 
 describe('createTilePool', () => {
+  it('createTilePool_tiled_threadsClassifierModeIntoTileMessages', async () => {
+    const workers: FakeTileWorker[] = [];
+    const pool = createTilePool({
+      workerCount: 2,
+      factory: () => {
+        const worker = new FakeTileWorker();
+        workers.push(worker);
+        return worker;
+      },
+    });
+    const request = requestOf(6, 4);
+
+    const settled = pool
+      .classifyStable(request, SMALL_QUALITY, new AbortController().signal, 'checkpoint')
+      .then(() => undefined);
+    await Promise.resolve();
+    replyAll(workers, 1);
+    await settled;
+
+    const withMode = workers.flatMap((worker) =>
+      worker.posts.filter((post): post is TileClassifyMessage => post.type === 'tile-classify'),
+    );
+    expect(withMode.length).toBeGreaterThan(0);
+    for (const message of withMode) {
+      expect(message.classifierMode).toBe('checkpoint');
+    }
+  });
+
+  it('createTilePool_tiled_omitsClassifierModeByDefault', async () => {
+    const workers: FakeTileWorker[] = [];
+    const pool = createTilePool({
+      workerCount: 2,
+      factory: () => {
+        const worker = new FakeTileWorker();
+        workers.push(worker);
+        return worker;
+      },
+    });
+    const request = requestOf(6, 4);
+
+    const settled = pool
+      .classifyStable(request, SMALL_QUALITY, new AbortController().signal)
+      .then(() => undefined);
+    await Promise.resolve();
+    replyAll(workers, 1);
+    await settled;
+
+    const messages = workers.flatMap((worker) =>
+      worker.posts.filter((post): post is TileClassifyMessage => post.type === 'tile-classify'),
+    );
+    expect(messages.length).toBeGreaterThan(0);
+    for (const message of messages) {
+      expect(message).not.toHaveProperty('classifierMode');
+    }
+  });
+
   it('createTilePool_workerCount1_neverCallsFactory', async () => {
     const factory = vi.fn((): TileWorkerHandle => {
       throw new Error('factory must not be called');

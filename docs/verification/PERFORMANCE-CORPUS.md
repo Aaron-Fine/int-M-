@@ -204,3 +204,33 @@ high-period patch hit, cold/warm shard states") is **conditional on workstream
 F or G shipping**. It is intentionally absent from corpus v1; if the condition
 fires, add the cases as `class: "Catalog"` in a new corpus version rather than
 editing frozen entries.
+
+## Stage A browser harness (`tools/benchmark/run-stage-a.mjs`)
+
+Stage A turns this corpus into the first browser evidence generation: one
+command (`npm run evidence:stage-a`, or
+`node tools/benchmark/run-stage-a.mjs [--engine chromium|firefox]`) builds the
+production bundle once, serves it with `vite preview`, and drives the real
+application UI for **every case** at the **shipping-1024x640 raster** and the
+case's profile, × mode (`legacy-scan` vs `checkpoint`, the app's opt-in
+`?classifierMode=` wiring) × 9 paired repetitions with alternating
+baseline/candidate order.
+
+- Measurement reaches the app through validated query parameters
+  (`?perf=1&classifierMode=…&view=re,im,spanY&quality=…`); the default
+  no-parameter path is byte-identical and pinned by unit tests.
+- Repetition 0 is cold (fresh browser context per arm); repetitions 1+ are
+  warm (one persistent page, re-navigated). Cancellation, cache, replay, and
+  recolor interactions are out of scope for this first pass.
+- Every sample is stored raw (full render-trace snapshot, stable-frame
+  `requestToPresentMs`, stable-canvas SHA-256 over row-major RGBA) in
+  `evidence/phase-2/<date>-<commit>/raw-observations.json`, per the
+  [evidence contract](../../evidence/phase-2/README.md), together with
+  `environment.json`, `semantic-comparison.json`, `summary.md`, and
+  `manifest.sha256`.
+- Output is labeled honestly: automation-bundled headless engines are
+  **directional only**. The first committed run lives in
+  [`evidence/phase-2/2026-09-02-6f49f19/`](../../evidence/phase-2/2026-09-02-6f49f19/summary.md)
+  and serves as the baseline record for the absolute latency budgets (plan §9
+  program-level success) until the declared target-hardware, branded-browser,
+  21+-repetition protocol runs.
