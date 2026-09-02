@@ -3,7 +3,7 @@
   "label": "directional — Node/V8 evidence, not release evidence",
   "description": "PR 4 microbench: power-of-two checkpoint schedule (exhaustion scan on) versus the post-PR-3 legacy lag scan over fixed hard-view raster slices, plus matched-budget per-stratum detection-delay analysis on the seeded corpus.",
   "planReference": "docs/plans/int-m-performance-plan.html sections 4, 5 (workstream C), 11 (PR 4)",
-  "measuredAt": "2026-09-02T09:19:17.266Z",
+  "measuredAt": "2026-09-02T10:02:59.467Z",
   "environment": {
     "node": "v24.19.0",
     "platform": "linux",
@@ -62,13 +62,13 @@
       "variants": {
         "legacy-scan": {
           "samplesMs": [
-            9947.233, 9629.212, 9470.065, 9611.163, 9600.329, 9711.196, 9770.39, 9737.584, 9988,
-            9989.849, 10339.431, 10128.79, 10145.801, 10395.648, 9408.2
+            9785.049, 9944.002, 9919.418, 9972.679, 10094.731, 10193.795, 10016.139, 9532.151,
+            9563.647, 9643.928, 9820.124, 9672.361, 9740.872, 9855.962, 9852.78
           ],
-          "medianMs": 9770.39,
-          "madMs": 217.61,
-          "minMs": 9408.2,
-          "maxMs": 10395.648,
+          "medianMs": 9852.78,
+          "madMs": 119.9,
+          "minMs": 9532.151,
+          "maxMs": 10193.795,
           "lagComparisons": 2842261107,
           "orbitIterations": 113154708,
           "attractingPixels": 186302,
@@ -84,13 +84,13 @@
         },
         "checkpoint": {
           "samplesMs": [
-            647.186, 611.456, 642.302, 636.74, 630.567, 638.452, 622.159, 619.155, 615.646, 622.716,
-            616.031, 640.43, 636.033, 621.017, 620.531
+            689.638, 697.39, 668.642, 662.253, 650.971, 677.89, 664.157, 678.414, 654.066, 681.388,
+            664.389, 658.692, 670.129, 662.404, 662.305
           ],
-          "medianMs": 622.716,
-          "madMs": 7.851,
-          "minMs": 611.456,
-          "maxMs": 647.186,
+          "medianMs": 664.389,
+          "madMs": 5.74,
+          "minMs": 650.971,
+          "maxMs": 697.39,
           "lagComparisons": 84915921,
           "orbitIterations": 105848843,
           "attractingPixels": 200282,
@@ -107,7 +107,7 @@
       },
       "gates": {
         "comparisonReduction": 0.9701238141735583,
-        "wallSpeedup": 15.6899613949216,
+        "wallSpeedup": 14.82983613515576,
         "comparisonGatePass": true,
         "hardViewGatePass": true,
         "regressionCapPass": true
@@ -142,13 +142,13 @@
       "variants": {
         "legacy-scan": {
           "samplesMs": [
-            3033.827, 3051.228, 3072.235, 3023.595, 3096.537, 3079.388, 3211.379, 3103.467,
-            3099.049, 3101.034, 3124.62, 3162.337, 3107.225, 3132.563, 3141.689
+            3388.331, 3266.898, 3318.632, 3244.231, 3302.776, 3279.318, 3334.719, 3297.532,
+            3159.344, 3024.43, 2986.757, 2987.638, 3022.888, 2999.087, 2989.104
           ],
-          "medianMs": 3101.034,
-          "madMs": 28.799,
-          "minMs": 3023.595,
-          "maxMs": 3211.379,
+          "medianMs": 3244.231,
+          "madMs": 90.488,
+          "minMs": 2986.757,
+          "maxMs": 3388.331,
           "lagComparisons": 883819449,
           "orbitIterations": 46818576,
           "attractingPixels": 65026,
@@ -164,13 +164,13 @@
         },
         "checkpoint": {
           "samplesMs": [
-            293.032, 287.798, 317.814, 293.402, 342.035, 329.487, 301.512, 290.017, 289.487,
-            318.514, 293.934, 289.066, 297.58, 326.513, 288.272
+            282.432, 277.469, 276.073, 277.003, 289.152, 276.957, 279.588, 279.606, 281.112,
+            287.557, 275.093, 288.965, 279.786, 282.42, 278.724
           ],
-          "medianMs": 293.934,
-          "madMs": 5.662,
-          "minMs": 287.798,
-          "maxMs": 342.035,
+          "medianMs": 279.606,
+          "madMs": 2.649,
+          "minMs": 275.093,
+          "maxMs": 289.152,
           "lagComparisons": 25958359,
           "orbitIterations": 44138824,
           "attractingPixels": 69487,
@@ -187,7 +187,7 @@
       },
       "gates": {
         "comparisonReduction": 0.9706293417401364,
-        "wallSpeedup": 10.550103084365878,
+        "wallSpeedup": 11.602866175976196,
         "comparisonGatePass": true,
         "hardViewGatePass": true,
         "regressionCapPass": true
@@ -217,13 +217,13 @@
       "variants": {
         "legacy-scan": {
           "samplesMs": [
-            957.273, 951.861, 960.005, 1022.123, 970.461, 975.077, 1050.274, 960.698, 976.709,
-            967.457, 1039.951, 1008.072, 968.682, 1032.99, 1014.133
+            913.254, 939.46, 906.796, 921.086, 922.737, 908.188, 911.006, 907.715, 928.053, 963.432,
+            961.925, 913.813, 916.357, 947.749, 948.079
           ],
-          "medianMs": 975.077,
-          "madMs": 17.805,
-          "minMs": 951.861,
-          "maxMs": 1050.274,
+          "medianMs": 921.086,
+          "madMs": 12.898,
+          "minMs": 906.796,
+          "maxMs": 963.432,
           "lagComparisons": 255845066,
           "orbitIterations": 12938274,
           "attractingPixels": 245788,
@@ -239,13 +239,13 @@
         },
         "checkpoint": {
           "samplesMs": [
-            133.809, 135.683, 140.489, 137.34, 135.553, 163.13, 133.866, 135.816, 134.593, 138.981,
-            142.802, 137.714, 135.304, 138.794, 155.79
+            138.558, 131.443, 130.683, 130.264, 132.829, 131.329, 133.37, 130.939, 131.037, 137.022,
+            131.13, 135.814, 129.794, 129.861, 130.38
           ],
-          "medianMs": 137.34,
-          "madMs": 2.036,
-          "minMs": 133.809,
-          "maxMs": 163.13,
+          "medianMs": 131.13,
+          "madMs": 0.865,
+          "minMs": 129.794,
+          "maxMs": 138.558,
           "lagComparisons": 7837516,
           "orbitIterations": 12480118,
           "attractingPixels": 246832,
@@ -262,7 +262,7 @@
       },
       "gates": {
         "comparisonReduction": 0.9693661631919062,
-        "wallSpeedup": 7.099730595602155,
+        "wallSpeedup": 7.024220239457028,
         "comparisonGatePass": true,
         "hardViewGatePass": true,
         "regressionCapPass": true

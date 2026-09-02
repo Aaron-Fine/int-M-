@@ -58,20 +58,38 @@
  * points walk (and may end unresolved) instead of being accepted outright.
  *
  * Allocation discipline (plan workstream B, carried into C): no object is
- * created per pixel. Doubles that must survive the non-inlined
- * verifyCycleInto call are round-tripped through the preallocated
- * OrbitScratch.checkpointSpill slots, so no walk-loop phi is live at that
- * call site — the V8 phi-boxing constraint documented at classifyInto (a
- * value live across a deoptimizable call inside the orbit loop switches the
- * loop's double representation to tagged and allocates a HeapNumber every
- * iteration; the pr2 microbench measured ~120 MB per million-pixel
- * interior-heavy pass for that shape). The walk and scan loops therefore
- * contain no deoptimizable calls; only V8-internal builtins (Math.min/max/
- * abs/hypot-family semantics cannot lazily deopt the caller). The
- * re-arm bookkeeping clamps reArmAt/reArmGap at maxIterations + 1, which is
- * observably identical to the PoC's unbounded doubling (any gap beyond the
- * remaining budget suppresses the rest of the pixel either way) while
- * keeping every integer in SMI range.
+ * created per pixel, and the per-iteration loops allocate nothing. Doubles
+ * that must survive the non-inlined verifyCycleInto call are round-tripped
+ * through the preallocated OrbitScratch.checkpointSpill slots, so no
+ * walk-loop phi is live at that call site — the V8 phi-boxing constraint
+ * documented at classifyInto (a value live across a deoptimizable call
+ * inside the orbit loop switches the loop's double representation to tagged
+ * and allocates a HeapNumber every iteration; the pr2 microbench measured
+ * ~120 MB per million-pixel interior-heavy pass for that shape, while the
+ * walk and scan loops below measure zero scavenges). The walk and scan
+ * loops therefore contain no deoptimizable calls; only V8-internal builtins
+ * (Math.min/max/abs cannot lazily deopt the caller). The re-arm bookkeeping
+ * clamps reArmAt/reArmGap at maxIterations + 1, which is observably
+ * identical to the PoC's unbounded doubling (any gap beyond the remaining
+ * budget suppresses the rest of the pixel either way) while keeping every
+ * integer in SMI range.
+ *
+ * Measured verifier-call allocation (accepted deviation, documented for PR
+ * 5+): verifyCycleInto itself boxes doubles at its call boundary and —
+ * because its internal walk/divisor loops are too large for Turbofan's
+ * unrolled fast path — boxes roughly two values per walked step in its
+ * current shape (~0.3-2 KB per call depending on the proposed period,
+ * measured with GC scavenge counts at a fixed semi-space). This matches the
+ * PoC's own discipline boundary ("the verifier returns one object per call;
+ * the allocation-free discipline of the kernels does not extend here"),
+ * costs are bounded per pixel by CHECKPOINT_CANDIDATE_BUDGET, proposals are
+ * rare (~0.24 calls/pixel on the hardest measured raster), and the same
+ * per-acceptance boxing is already paid by the legacy scan's inline
+ * verifier (Math.hypot/atan2/log). Fixing it would mean rewriting the
+ * frozen PR 3 policy module's internals for a rare path; measured walkthrough:
+ * proposal-path probes isolate the allocation inside verifyCycleInto's loops,
+ * with the kernel-side walk, scan, spill, and call machinery at zero
+ * scavenges (pr4 bench allocation passes).
  *
  * V8 constraint on the verify call sites: verifyCycleInto is far too large
  * for Turbofan to inline, so it must never appear inside the walk or scan
@@ -396,6 +414,8 @@ export const classifyCheckpointInto = (
 
       const lag = iteration - checkpointIteration;
       metrics.lagComparisons += 1;
+      // Scale-aware proposal threshold, same max(1, |zRe|, |zIm|) convention
+      // as the verifier's scaleOf and the PoC's proposalThresholdSquared.
       const scale = Math.max(1, Math.abs(zRe), Math.abs(zIm));
       const distanceRe = zRe - checkpointRe;
       const distanceIm = zIm - checkpointIm;
