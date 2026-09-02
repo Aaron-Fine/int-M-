@@ -1,5 +1,6 @@
 import type { ClassifierMode, Viewport } from '../domain';
 import { CLASSIFIER_MODES } from '../domain';
+import type { BandOrder } from '../render';
 import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from './view-state';
 
 /**
@@ -11,11 +12,18 @@ import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from '.
  * path stays byte-identical.
  */
 
+const BAND_ORDERS: readonly BandOrder[] = ['center-out', 'legacy'];
+
 export interface BenchmarkParams {
   /** `?perf=1` only; enables the window.__miRenderTrace diagnostic hook. */
   readonly perfEnabled: boolean;
   /** Validated `?classifierMode=` value; absent when missing or invalid. */
   readonly classifierMode?: ClassifierMode | undefined;
+  /**
+   * Validated `?bandOrder=` stable-band dispatch order; absent when missing
+   * or invalid. Diagnostic arm selector for the center-out scheduling gate.
+   */
+  readonly bandOrder?: BandOrder | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -66,6 +74,7 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const result: {
     perfEnabled: boolean;
     classifierMode?: ClassifierMode;
+    bandOrder?: BandOrder;
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
@@ -73,6 +82,10 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const classifierMode = params.get('classifierMode');
   if (classifierMode !== null && (CLASSIFIER_MODES as readonly string[]).includes(classifierMode)) {
     result.classifierMode = classifierMode as ClassifierMode;
+  }
+  const bandOrder = params.get('bandOrder');
+  if (bandOrder !== null && (BAND_ORDERS as readonly string[]).includes(bandOrder)) {
+    result.bandOrder = bandOrder as BandOrder;
   }
   const viewport = parseViewParam(params.get('view'));
   if (viewport !== undefined) result.viewport = viewport;

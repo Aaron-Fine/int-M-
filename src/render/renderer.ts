@@ -50,7 +50,21 @@ export interface DynamicsRenderRequest {
    * path; the semantic cache key scopes cached frames by mode when present.
    */
   readonly classifierMode?: ClassifierMode;
+  /**
+   * Stable-band dispatch order (renderer-path detail, plan §5). Absent means
+   * the default center-out order; 'legacy' is the diagnostic top-to-bottom
+   * arm used by the paired evidence harness. The order affects only the
+   * stable-pass dispatch schedule, never the semantic result.
+   */
+  readonly bandOrder?: BandOrder;
 }
+
+/**
+ * Stable-band dispatch order. 'center-out' presents mid-screen semantic work
+ * first at identical throughput; 'legacy' is the pre-bundle top-to-bottom
+ * order kept as a measurement arm.
+ */
+export type BandOrder = 'center-out' | 'legacy';
 
 export type SemanticStatusCode = 0 | 1 | 2;
 
@@ -58,6 +72,12 @@ export interface SemanticStageTiming {
   readonly classifyMs: number;
   readonly yieldWaitMs: number;
   readonly yieldCount: number;
+  /**
+   * Tiled stable pass only: elapsed milliseconds from stable dispatch start
+   * to each band's completion, indexed by band index (row order). Band-level
+   * observability only (plan §8); absent on single-band paths.
+   */
+  readonly bandsElapsedMs?: readonly number[];
 }
 
 export interface SemanticFrame {

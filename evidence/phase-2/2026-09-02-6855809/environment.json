@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-02T16:15:11.646Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465719296,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.1.10-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "68558092652e43ff60092b240735932847e5cf5e",
+    "algorithm": "68558092652e43ff60092b240735932847e5cf5e",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+  },
+  "render": {
+    "workerCount": 4,
+    "backend": "cpu"
+  },
+  "harness": {
+    "command": "node /tmp/opencode/worktrees/int-M-wt-corpus/tools/benchmark/capture-environment.mjs --out /tmp/opencode/worktrees/int-M-wt-corpus/evidence/phase-2/2026-09-02-6855809/environment.json --note Renderer-path paired run (m1-center-out, chromium); production bundle via vite build + vite preview.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Renderer-path paired run (m1-center-out, chromium); production bundle via vite build + vite preview.",
+    "Renderer-path detail 'm1-center-out' run (chromium): arms centerOut, legacy; dists feature."
+  ],
+  "browsers": {
+    "chromium": {
+      "build": "151.0.7922.34",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "automation": "Playwright 1.62.1 automation-bundled chromium, headless",
+      "label": "automation-bundled headless engine — directional only, not release evidence per plan §9",
+      "workerCount": [
+        4
+      ],
+      "backend": "cpu",
+      "samples": 72
+    }
+  },
+  "protocol": {
+    "buildMode": "vite build (production bundle) served by vite preview; dev server never used",
+    "repetitions": 9,
+    "pairing": "per repetition all arms run adjacently; arm order alternates per repetition",
+    "coldWarm": "repetition 0 is cold (fresh browser context per arm); repetitions 1+ re-navigate one persistent page (warm)",
+    "outOfScope": "cancellation interactions and cache/replay/recolor distributions are out of scope for renderer-path paired runs",
+    "raster": "shipping-1024x640",
+    "classifierMode": "fixed to legacy-scan for every arm: renderer-path arms isolate scheduling/transfer/layout, not classifier-mode variance",
+    "wallMetric": "requestToPresentMs of the computed stable frame (plan §8); t50RowsMs derived from bandsElapsedMs (band-completion observability)",
+    "hashByteOrder": "SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas",
+    "engineLabels": "chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol"
+  }
+}

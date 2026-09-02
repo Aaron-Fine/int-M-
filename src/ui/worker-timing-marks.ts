@@ -35,6 +35,11 @@ export interface FrameTrace {
   readonly maxBandElapsedMs?: number | undefined;
   readonly imbalanceRatio?: number | undefined;
   readonly mergeCpuMs?: number | undefined;
+  /**
+   * Tiled stable pass only: per-band completion elapsed from dispatch start,
+   * indexed by band in row order (band-boundary observability, plan §8).
+   */
+  readonly bandsElapsedMs?: readonly number[] | undefined;
 }
 
 export interface RenderTrace {
@@ -83,6 +88,7 @@ export interface FrameDelivery {
   readonly maxBandElapsedMs?: number | undefined;
   readonly imbalanceRatio?: number | undefined;
   readonly mergeCpuMs?: number | undefined;
+  readonly bandsElapsedMs?: readonly number[] | undefined;
 }
 
 export interface RenderTraceRingOptions {
@@ -129,6 +135,7 @@ const toFrameTrace = (frame: FrameMessage, delivery: FrameDelivery): FrameTrace 
     maxBandElapsedMs: computed ? delivery.maxBandElapsedMs : undefined,
     imbalanceRatio: computed ? delivery.imbalanceRatio : undefined,
     mergeCpuMs: computed ? delivery.mergeCpuMs : undefined,
+    bandsElapsedMs: computed ? delivery.bandsElapsedMs : undefined,
   };
 };
 

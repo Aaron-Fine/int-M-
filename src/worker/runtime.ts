@@ -41,6 +41,7 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   size: message.size,
   ...(message.quality === undefined ? {} : { quality: message.quality }),
   ...(message.classifierMode === undefined ? {} : { classifierMode: message.classifierMode }),
+  ...(message.bandOrder === undefined ? {} : { bandOrder: message.bandOrder }),
 });
 
 export class RenderWorkerRuntime {
@@ -88,6 +89,9 @@ export class RenderWorkerRuntime {
       colorizeMs: performance.now() - colorizeStarted,
       yieldWaitMs: frame.timing?.yieldWaitMs ?? 0,
       yieldCount: frame.timing?.yieldCount ?? 0,
+      ...(frame.timing?.bandsElapsedMs === undefined
+        ? {}
+        : { bandsElapsedMs: frame.timing.bandsElapsedMs }),
     };
     const response: WorkerToMainMessage = {
       type: 'frame',

@@ -7,7 +7,7 @@ import type {
   SemanticView,
   Viewport,
 } from '../domain';
-import type { RenderStage } from '../render';
+import type { BandOrder, RenderStage } from '../render';
 
 export type RequestId = string | number;
 
@@ -24,6 +24,11 @@ export interface RenderMessage {
    * and workers keep the 'legacy-scan' default.
    */
   readonly classifierMode?: ClassifierMode;
+  /**
+   * Diagnostic stable-band dispatch order (renderer-path detail evidence).
+   * Additive optional field: absent on the default path (center-out order).
+   */
+  readonly bandOrder?: BandOrder;
 }
 
 export interface InspectMessage {
@@ -46,6 +51,8 @@ export interface WorkerFrameTiming {
   readonly colorizeMs: number;
   readonly yieldWaitMs: number;
   readonly yieldCount: number;
+  /** Tiled stable pass only: per-band completion elapsed, indexed by band (row order). */
+  readonly bandsElapsedMs?: readonly number[];
 }
 
 export interface FrameMessage {

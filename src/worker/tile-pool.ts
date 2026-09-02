@@ -1,7 +1,8 @@
 import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
-import { copyBandIntoFrame, splitRowBands } from '../render/row-bands';
+import { copyBandIntoFrame, orderRowBandsForDispatch, splitRowBands } from '../render/row-bands';
 import type { DynamicsRenderRequest, SemanticFrame, TilePool } from '../render/renderer';
+import type { RowBand } from '../render/row-bands';
 import type { ClassifierMode, RenderQuality } from '../domain';
 import type {
   SupervisorToTileMessage,
@@ -14,6 +15,14 @@ import type {
 export type { TilePool };
 
 const CHILD_DRAIN_TIMEOUT_MS = 250;
+/**
+ * Stable bands per worker per frame (renderer-path detail, plan §5). More
+ * bands than workers lets the supervisor dispatch the center-most bands
+ * first and hand out the remaining bands as workers free up, so mid-screen
+ * rows are classified before the periphery without idle workers. The band
+ * split stays static and deterministic for a given size and pool size.
+ */
+const BANDS_PER_WORKER = 4;
 
 export function clampTileWorkers(value: number | undefined): number {
   const n = value ?? 0;
@@ -62,10 +71,19 @@ interface ActiveJob {
   readonly generation: number;
   readonly signal: AbortSignal;
   readonly onAbort: () => void;
+  readonly request: DynamicsRenderRequest;
+  readonly quality: RenderQuality;
+  readonly classifierMode?: ClassifierMode;
+  readonly bands: readonly RowBand[];
   readonly expectedJobs: number;
   readonly received: Map<number, TileResultMessage>;
   readonly frame: SemanticFrame;
   readonly startedAt: number;
+  /** Dispatch order over band indices; position `nextDispatch` posts next. */
+  readonly dispatchOrder: readonly number[];
+  readonly assignment: Map<number, number>;
+  nextDispatch: number;
+  readonly bandsElapsedMs: number[];
   settled: boolean;
   resolve: (frame: SemanticFrame) => void;
   reject: (error: unknown) => void;
@@ -150,7 +168,11 @@ class TilePoolImpl implements TilePool {
     classifierMode?: ClassifierMode,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
-    const bands = splitRowBands(request.size.height, workers.length);
+    const bands = splitRowBands(request.size.height, workers.length * BANDS_PER_WORKER);
+    const dispatchOrder =
+      request.bandOrder === 'legacy'
+        ? bands.map((_, index) => index)
+        : orderRowBandsForDispatch(bands, request.size.height, workers.length);
     const generation = ++this.#generation;
     const frame = emptyStableFrame(request);
 
@@ -161,10 +183,18 @@ class TilePoolImpl implements TilePool {
         onAbort: () => {
           this.#cancelActive();
         },
+        request,
+        quality,
+        ...(classifierMode === undefined ? {} : { classifierMode }),
+        bands,
         expectedJobs: bands.length,
         received: new Map(),
         frame,
         startedAt: performance.now(),
+        dispatchOrder,
+        assignment: new Map(),
+        nextDispatch: 0,
+        bandsElapsedMs: new Array<number>(bands.length).fill(Number.NaN),
         settled: false,
         resolve,
         reject,
@@ -176,30 +206,50 @@ class TilePoolImpl implements TilePool {
         return;
       }
 
-      const postedJobIds: number[] = [];
-      for (let jobId = 0; jobId < bands.length; jobId += 1) {
-        if (active.settled) break;
-        const band = bands[jobId];
-        const worker = workers[jobId];
-        if (band === undefined || worker === undefined) break;
-        const message: SupervisorToTileMessage = {
-          type: 'tile-classify',
-          generation,
-          jobId,
-          viewport: request.viewport,
-          size: request.size,
-          y0: band.y0,
-          y1: band.y1,
-          quality,
-          ...(classifierMode === undefined ? {} : { classifierMode }),
-        };
-        worker.postMessage(message);
-        postedJobIds.push(jobId);
+      // First wave: one band per worker, center-most first. Remaining bands
+      // are posted from #handleWorkerMessage as workers free up.
+      this.#beginDrain(generation);
+      for (
+        let workerIndex = 0;
+        workerIndex < workers.length && active.nextDispatch < dispatchOrder.length;
+        workerIndex += 1
+      ) {
+        const bandIndex = dispatchOrder[active.nextDispatch];
+        active.nextDispatch += 1;
+        if (bandIndex === undefined) break;
+        this.#postBand(active, workers, workerIndex, bandIndex);
       }
-      if (postedJobIds.length > 0) this.#beginDrain(generation, postedJobIds);
     });
 
     return promise;
+  }
+
+  #postBand(
+    active: ActiveJob,
+    workers: readonly TileWorkerHandle[],
+    workerIndex: number,
+    bandIndex: number,
+  ): void {
+    const band = active.bands[bandIndex];
+    const worker = workers[workerIndex];
+    if (band === undefined) {
+      throw new Error(`band ${bandIndex} missing for generation ${active.generation}`);
+    }
+    if (worker === undefined) throw new Error(`worker ${workerIndex} missing`);
+    active.assignment.set(bandIndex, workerIndex);
+    const message: SupervisorToTileMessage = {
+      type: 'tile-classify',
+      generation: active.generation,
+      jobId: bandIndex,
+      viewport: active.request.viewport,
+      size: active.request.size,
+      y0: band.y0,
+      y1: band.y1,
+      quality: active.quality,
+      ...(active.classifierMode === undefined ? {} : { classifierMode: active.classifierMode }),
+    };
+    worker.postMessage(message);
+    this.#drain?.remaining.add(bandIndex);
   }
 
   #ensureWorkers(): TileWorkerHandle[] {
@@ -216,10 +266,21 @@ class TilePoolImpl implements TilePool {
   }
 
   #handleWorkerMessage(message: TileToSupervisorMessage): void {
-    this.#settleChild(message.generation, message.jobId);
     const active = this.#active;
-    if (active === undefined || active.settled) return;
-    if (message.generation !== active.generation) return;
+    if (
+      active !== undefined &&
+      !active.settled &&
+      message.generation === active.generation &&
+      message.type === 'tile-result'
+    ) {
+      // Hand the freed worker its next band before the drain observes idle,
+      // so the drain only resolves once every band has been posted and settled.
+      this.#dispatchNext(active, message.jobId);
+    }
+    this.#settleChild(message.generation, message.jobId);
+    const current = this.#active;
+    if (current === undefined || current.settled) return;
+    if (message.generation !== current.generation) return;
 
     if (message.type === 'tile-error') {
       this.#failActive(new Error(message.message));
@@ -229,9 +290,10 @@ class TilePoolImpl implements TilePool {
       return;
     }
 
-    copyBandIntoFrame(active.frame, message);
-    active.received.set(message.jobId, message);
-    if (active.received.size === active.expectedJobs) {
+    copyBandIntoFrame(current.frame, message);
+    current.received.set(message.jobId, message);
+    current.bandsElapsedMs[message.jobId] = performance.now() - current.startedAt;
+    if (current.received.size === current.expectedJobs) {
       this.#finishActive((job) => {
         const results = [...job.received.values()];
         job.resolve({
@@ -240,10 +302,22 @@ class TilePoolImpl implements TilePool {
             classifyMs: performance.now() - job.startedAt,
             yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
             yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
+            bandsElapsedMs: [...job.bandsElapsedMs],
           },
         });
       });
     }
+  }
+
+  #dispatchNext(active: ActiveJob, settledJobId: number): void {
+    const workerIndex = active.assignment.get(settledJobId);
+    active.assignment.delete(settledJobId);
+    if (workerIndex === undefined) return;
+    if (active.nextDispatch >= active.dispatchOrder.length) return;
+    const bandIndex = active.dispatchOrder[active.nextDispatch];
+    active.nextDispatch += 1;
+    if (bandIndex === undefined) return;
+    this.#postBand(active, this.#ensureWorkers(), workerIndex, bandIndex);
   }
 
   #cancelActive(): void {
@@ -274,14 +348,14 @@ class TilePoolImpl implements TilePool {
     settle(active);
   }
 
-  #beginDrain(generation: number, jobIds: readonly number[]): void {
+  #beginDrain(generation: number): void {
     let resolveFn = (): void => undefined;
     const promise = new Promise<void>((resolve) => {
       resolveFn = resolve;
     });
     this.#drain = {
       generation,
-      remaining: new Set(jobIds),
+      remaining: new Set<number>(),
       promise,
       resolve: resolveFn,
     };
