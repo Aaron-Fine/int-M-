@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  classifyInto,
   createOrbitSample,
   ORBIT_EVIDENCE_CODE,
+  resolveOrbitOptions,
+  OrbitScratch,
   TAU_CLOSURE_SCALED,
   VERIFIER_REVISION,
   VERIFIER_THRESHOLDS,
@@ -10,6 +13,7 @@ import {
   verifyCycle,
   verifyCycleInto,
 } from '../../../src/domain';
+import type { OrbitSample } from '../../../src/domain';
 import type { VerifierVerdict } from '../../../src/domain';
 
 /**
@@ -282,5 +286,69 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
     expect(VERIFIER_THRESHOLDS.attractMargin).toBe(1e-12);
     expect(TAU_CLOSURE_SCALED).toBe(1e-8);
     expect(Object.isFrozen(VERIFIER_THRESHOLDS)).toBe(true);
+  });
+
+  it('agrees bit for bit with the inline lag-scan policy body in classifyInto', () => {
+    // The lag scan mirrors verifyCycleInto verbatim (V8 constraint, see
+    // orbit.ts). For every accepting classification the canonical function
+    // must reproduce the accepted record exactly when handed the same cycle
+    // start: replay the orbit to the detection iteration, then verify the
+    // reported (primitive) period from that state. The multiplier walk in
+    // the inline divisor reduction and the canonical one must produce
+    // identical bits or this test fails.
+    const options = resolveOrbitOptions({ maxIterations: 512, maxPeriod: 32 });
+    const scratch = new OrbitScratch(options.maxPeriod);
+    const sample = createOrbitSample();
+    const acceptedPoints: { readonly re: number; readonly im: number }[] = [
+      { re: -0.1205, im: 0.7438 },
+      { re: -0.1546875000000001, im: -0.815625 },
+      { re: -0.10781250000000009, im: -0.815625 },
+      { re: -0.2015625000000001, im: -0.759375 },
+      { re: 0.3140624999999999, im: -0.534375 },
+      { re: -0.158902249, im: -1.0290676825396825 },
+      { re: -1.94130973, im: -0.0000974722949 },
+      { re: 0.305376533, im: 0.552677981 },
+      { re: -0.4828125000000001, im: -0.5906250000000001 },
+      { re: -0.2015625000000001, im: -0.7031250000000001 },
+    ];
+    let accepted = 0;
+    for (const point of acceptedPoints) {
+      classifyInto(point.re, point.im, options, scratch, sample);
+      if (sample.status !== 2) {
+        continue;
+      }
+      accepted += 1;
+      // Replay the orbit to the detection iteration to recover the exact
+      // cycle start the inline body verified.
+      let zRe = 0;
+      let zIm = 0;
+      for (let iteration = 1; iteration <= sample.iterations; iteration += 1) {
+        const nextRe = zRe * zRe - zIm * zIm + point.re;
+        zIm = 2 * zRe * zIm + point.im;
+        zRe = nextRe;
+      }
+      const canonical: OrbitSample = createOrbitSample();
+      const code = verifyCycleInto(
+        point.re,
+        point.im,
+        zRe,
+        zIm,
+        sample.period,
+        sample.iterations,
+        ORBIT_EVIDENCE_CODE.convergedCycle,
+        canonical,
+      );
+      expect(code).toBe(VERIFIER_VERDICT.accepted);
+      expect(canonical.status).toBe(sample.status);
+      expect(canonical.period).toBe(sample.period);
+      expect(canonical.iterations).toBe(sample.iterations);
+      expect(canonical.evidence).toBe(sample.evidence);
+      expect(canonical.multiplierRe).toBe(sample.multiplierRe);
+      expect(canonical.multiplierIm).toBe(sample.multiplierIm);
+      expect(canonical.multiplierMagnitude).toBe(sample.multiplierMagnitude);
+      expect(canonical.multiplierAngle).toBe(sample.multiplierAngle);
+      expect(canonical.stabilityExponent).toBe(sample.stabilityExponent);
+    }
+    expect(accepted).toBeGreaterThan(0);
   });
 });

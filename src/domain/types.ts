@@ -54,6 +54,12 @@ export interface AttractingCycleOrbitResult extends OrbitResultBase {
   readonly multiplierAngle: number;
   /** Intrinsic stability kappa = -log(|lambda|) / period. */
   readonly stabilityExponent: number;
+  /**
+   * Revision of the common numerical verifier (frozen acceptance policy)
+   * that accepted this result. Always set by materializeOrbitResult;
+   * optional in the type so older wire payloads stay valid.
+   */
+  readonly verifierRevision?: string;
 }
 
 export interface UnresolvedOrbitResult extends OrbitResultBase {
@@ -67,6 +73,11 @@ export type SemanticView = 'stability' | 'multiplier' | 'period';
 export interface OrbitOptions {
   readonly maxIterations: number;
   readonly maxPeriod: number;
+  /**
+   * Candidate proposal gate for the lag scan. Acceptance is the frozen
+   * common-verifier policy (src/domain/verifier.ts), not this option: with
+   * the default 1e-10 the effective bounds match the legacy classifier.
+   */
   readonly cycleTolerance: number;
   readonly cycleWarmup: number;
 }

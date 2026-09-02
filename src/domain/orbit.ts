@@ -1,8 +1,11 @@
+import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
 
 export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   maxIterations: 512,
   maxPeriod: 32,
+  // Proposal gate only since the common verifier (PR 3): acceptance is the
+  // frozen policy in src/domain/verifier.ts.
   cycleTolerance: 1e-10,
   cycleWarmup: 24,
 });
@@ -125,15 +128,18 @@ const finishAttractingCycle = (
 };
 
 /**
- * Cycle verification body, written verbatim at its single call site in the
- * classifyInto lag scan. Rejection order (forward closure, finite
- * multiplier, strict attraction) replicates the legacy classifier exactly.
- * It must stay inlined there rather than live in a helper: a non-inlined JS
- * call inside the orbit loop keeps the orbit's Float64 phi values live
- * across a lazy-deopt frame state, which switches their V8 representation
- * to tagged and allocates a HeapNumber every iteration (the pr2 microbench
- * measured the helper form at ~120 MB of engine garbage per million-pixel
- * interior-heavy pass, with no compensating speed benefit).
+ * Cycle verification policy body, mirrored verbatim at its single call site
+ * in the classifyInto lag scan. The frozen acceptance policy — three-way
+ * proper-divisor reduction, scale-aware closure, attraction margin — is
+ * defined by src/domain/verifier.ts (verifyCycleInto, the reference
+ * implementation); the lag scan carries an inline copy of that body because
+ * a non-inlined JS call inside the orbit loop keeps the orbit's Float64 phi
+ * values live across a lazy-deopt frame state, which switches their V8
+ * representation to tagged and allocates a HeapNumber every iteration (the
+ * pr2 microbench measured the helper form at ~120 MB of engine garbage per
+ * million-pixel interior-heavy pass, with no compensating speed benefit).
+ * The differential tests pin the inline copy and the canonical function
+ * together bit for bit; change them only as a pair.
  */
 
 export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitOptions => {
@@ -164,6 +170,55 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  * Observable semantics are identical to classifyOrbit, which materializes
  * the rich result boundary from this core.
  *
+ * Acceptance policy (PR 3): every attracting result — analytic fast paths
+ * included — passes the common numerical verifier (src/domain/verifier.ts,
+ * revision VERIFIER_REVISION). The lag-scan candidate proposal (proximity
+ * below OrbitOptions.cycleTolerance) is unchanged; only acceptance migrated.
+ *
+ * Semantic changes versus the legacy classifier, enumerated per plan
+ * section 3 ("A changed legacy answer may ship only when the oracle supports
+ * the change") and adjudicated against the double-double oracle in
+ * tests/unit/domain/orbit-scalar-parity.test.ts:
+ *
+ * 1. Primitive-period reduction. A lag-scan candidate accepted at lag q is
+ *    reduced to the smallest proper divisor of q whose forward walk also
+ *    closes (three-way policy: a divisor residual inside the
+ *    (accept, exclude) gap leaves primitivity undecidable and refuses the
+ *    candidate, so the scan continues and the pixel stays unresolved unless
+ *    a later candidate closes cleanly). The legacy scan had no divisor
+ *    reduction and reported non-primitive multiples where binary64 rounding
+ *    let a multiple lag cross the proposal threshold before the primitive
+ *    one (2/3/3 results per profile on the frozen corpus, primitive period 4
+ *    reported as 8 or 12; poc/performance/results/summary.json). Period,
+ *    multiplier magnitude, angle, and kappa of reduced candidates are
+ *    recomputed at the primitive period, so those bits differ from legacy by
+ *    construction; detection iteration and evidence code are unchanged.
+ * 2. Attraction margin. The legacy strict |lambda| < 1 becomes the frozen
+ *    |lambda| < 1 - 1e-12. On the analytic fast paths this refuses
+ *    margin-adjacent points (|lambda| in [1 - margin, 1), exact closed-form
+ *    multiplier): they fall through to the lag scan — verify or fall back,
+ *    plan section 4 — and end unresolved instead of attracting. On the
+ *    lag-scan path the margin is policy symmetry: detecting a cycle with
+ *    |lambda| >= 1 - 1e-12 needs ~1e13 iterations, far beyond any budget, so
+ *    no feasible legacy acceptance is removed there.
+ * 3. Closure ambiguity. Proposed-closure residuals in the
+ *    (1e-8 * scale, 1e-6 * scale] gap refuse the candidate (the legacy
+ *    classifier rejected everything above its absolute 1e-8 bound, so the
+ *    observable scan behavior is unchanged inside that band; the gap exists
+ *    so near-threshold candidates never classify confidently).
+ * 4. Scale-aware acceptance bound. The frozen closure bound is
+ *    1e-8 * max(1, |z|) instead of the legacy absolute 1e-8. At unit scale
+ *    the bounds coincide; for cycle states with |z| in (1, 2] (the escape
+ *    radius bounds the orbit) it is up to 2x looser, so a thin residual
+ *    shell can accept where the legacy absolute bound kept scanning. The
+ *    oracle differential covers these points.
+ * 5. Frozen acceptance. Closure acceptance no longer scales with
+ *    OrbitOptions.cycleTolerance, which remains the proposal gate only.
+ *    With the default 1e-10 the numeric bounds equal the legacy ones.
+ *
+ * Every accepted attracting result carries the verifier revision at the rich
+ * boundary (AttractingCycleOrbitResult.verifierRevision).
+ *
  * Two V8 engine taxes remain on top of this design and are accepted for
  * bit-parity reasons: crossing the non-inlined call boundary boxes the two
  * double arguments, and Math.hypot (the legacy magnitude definition, kept
@@ -180,8 +235,18 @@ export const classifyInto = (
   options: OrbitOptions,
   scratch: OrbitScratch,
   out: OrbitSample,
+  // eslint-disable-next-line complexity -- the branch count is the fused scan + verifier policy body; see the comments above and at the lag scan
 ): void => {
   // Analytic fast paths (closed form): main cardioid and period-2 bulb.
+  // Their acceptance migrates to the verifier policy (plan section 4 stage
+  // 1): the exact closed-form multiplier must satisfy the frozen attraction
+  // margin; margin-adjacent points are refused here and fall through to the
+  // lag scan (verify or fall back), which applies the same policy. The
+  // closed forms carry no closure residual, so the scale-aware tolerance has
+  // no analytic counterpart; period 1 has no proper divisor and the period-2
+  // cycle is genuinely period 2 everywhere inside the bulb (the two cycle
+  // points merge only on the excluded boundary), so divisor reduction is
+  // vacuous on both paths.
   const x = cRe;
   const ySquared = cIm * cIm;
   const cardioidX = x - 0.25;
@@ -195,21 +260,40 @@ export const classifyInto = (
     const rootImMagnitude = Math.sqrt(Math.max(0, (discriminantMagnitude - sqrtArgRe) / 2));
     // Legacy multiplier is 1 - sqrt(1 - 4x, -4y) componentwise, so the
     // imaginary part carries the negated principal root sign.
-    finishAttractingCycle(
-      out,
-      1,
-      1 - rootRe,
-      sqrtArgIm < 0 ? rootImMagnitude : -rootImMagnitude,
-      0,
-      ORBIT_EVIDENCE_CODE.analyticMainCardioid,
-    );
-    return;
-  }
-
-  const bulbX = x + 1;
-  if (bulbX * bulbX + ySquared < 1 / 16) {
-    finishAttractingCycle(out, 2, 4 * bulbX, 4 * cIm, 0, ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb);
-    return;
+    const multiplierRe = 1 - rootRe;
+    const multiplierIm = sqrtArgIm < 0 ? rootImMagnitude : -rootImMagnitude;
+    const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
+    if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
+      finishAttractingCycle(
+        out,
+        1,
+        multiplierRe,
+        multiplierIm,
+        0,
+        ORBIT_EVIDENCE_CODE.analyticMainCardioid,
+        multiplierMagnitude,
+      );
+      return;
+    }
+  } else {
+    const bulbX = x + 1;
+    if (bulbX * bulbX + ySquared < 1 / 16) {
+      const multiplierRe = 4 * bulbX;
+      const multiplierIm = 4 * cIm;
+      const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
+      if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
+        finishAttractingCycle(
+          out,
+          2,
+          multiplierRe,
+          multiplierIm,
+          0,
+          ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb,
+          multiplierMagnitude,
+        );
+        return;
+      }
+    }
   }
 
   scratch.ensureCapacity(options.maxPeriod);
@@ -218,11 +302,10 @@ export const classifyInto = (
   const capacity = historyRe.length;
   let zRe = 0;
   let zIm = 0;
+  // Candidate proposal gate (frozen): the lag-scan proximity threshold.
+  // Acceptance below is the common verifier's frozen policy and does not
+  // scale with this option.
   const toleranceSquared = options.cycleTolerance * options.cycleTolerance;
-  // Recurrence is the primary evidence. The forward closure check allows 100x
-  // more linear error for accumulated floating-point operations; both values
-  // are squared-distance thresholds.
-  const closureToleranceSquared = options.cycleTolerance * 100 * (options.cycleTolerance * 100);
 
   // The orbit loop must not contain non-inlined JS calls with the orbit
   // state live across them: a lazy-deopt frame state at such a call switches
@@ -277,10 +360,15 @@ export const classifyInto = (
         continue;
       }
 
-      // Cycle verification, inlined at its single call site (see the orbit
-      // loop comment above for why the helper form is forbidden here).
-      // Rejection order matches the legacy classifier: forward closure,
-      // finite multiplier, strict attraction.
+      // Verifier acceptance, inlined at its single call site (see the orbit
+      // loop comment above for why the helper form is forbidden here). This
+      // block mirrors verifyCycleInto in src/domain/verifier.ts (frozen
+      // policy) body for body — the differential tests pin them together.
+      const scale = Math.max(1, Math.abs(zRe), Math.abs(zIm));
+      const acceptSquared = TAU_CLOSURE_SCALED * TAU_CLOSURE_SCALED * scale * scale;
+      const excludeSquared =
+        VERIFIER_THRESHOLDS.tauExclude * VERIFIER_THRESHOLDS.tauExclude * scale * scale;
+
       let cycleRe = zRe;
       let cycleIm = zIm;
       let derivativeRe = 1;
@@ -295,20 +383,104 @@ export const classifyInto = (
         cycleRe = nextCycleRe;
       }
 
-      const closureRe = cycleRe - zRe;
-      const closureIm = cycleIm - zIm;
-      if (closureRe * closureRe + closureIm * closureIm > closureToleranceSquared) {
+      // Non-finite state, derivative, or residual: rejected, never
+      // attracting (NaN and Infinity are absorbing under this arithmetic, so
+      // final checks match the canonical per-step checks).
+      if (
+        !Number.isFinite(cycleRe) ||
+        !Number.isFinite(cycleIm) ||
+        !Number.isFinite(derivativeRe) ||
+        !Number.isFinite(derivativeIm)
+      ) {
         continue;
       }
-      const multiplierMagnitude = Math.hypot(derivativeRe, derivativeIm);
-      if (!Number.isFinite(multiplierMagnitude) || multiplierMagnitude >= 1) {
+      const closureRe = cycleRe - zRe;
+      const closureIm = cycleIm - zIm;
+      const closureSquared = closureRe * closureRe + closureIm * closureIm;
+      if (!Number.isFinite(closureSquared)) {
+        continue;
+      }
+      // Three-way closure policy: above the exclusion bound there is no
+      // closure; the gap between the bounds is ambiguous and refuses
+      // confident classification (the scan continues either way).
+      if (closureSquared > excludeSquared) {
+        continue;
+      }
+      if (closureSquared > acceptSquared) {
+        continue;
+      }
+
+      // Primitive-period reduction over proper divisors, ascending: the
+      // smallest divisor that also closes is the primitive period. A divisor
+      // residual inside the (accept, exclude) gap leaves primitivity
+      // undecidable and refuses the candidate.
+      let primitive = period;
+      let primitiveDerivativeRe = derivativeRe;
+      let primitiveDerivativeIm = derivativeIm;
+      let accepted = true;
+      for (let divisor = 1; divisor < period; divisor += 1) {
+        if (period % divisor !== 0) {
+          continue;
+        }
+        let walkRe = zRe;
+        let walkIm = zIm;
+        let walkDerivativeRe = 1;
+        let walkDerivativeIm = 0;
+        for (let index = 0; index < divisor; index += 1) {
+          const nextWalkDerivativeRe =
+            walkDerivativeRe * (2 * walkRe) - walkDerivativeIm * (2 * walkIm);
+          walkDerivativeIm = walkDerivativeRe * (2 * walkIm) + walkDerivativeIm * (2 * walkRe);
+          walkDerivativeRe = nextWalkDerivativeRe;
+
+          const nextWalkRe = walkRe * walkRe - walkIm * walkIm + cRe;
+          walkIm = 2 * walkRe * walkIm + cIm;
+          walkRe = nextWalkRe;
+          if (!Number.isFinite(walkRe) || !Number.isFinite(walkIm)) {
+            accepted = false;
+            break;
+          }
+        }
+        if (!accepted) {
+          break;
+        }
+        const divisorResidualRe = walkRe - zRe;
+        const divisorResidualIm = walkIm - zIm;
+        const divisorResidualSquared =
+          divisorResidualRe * divisorResidualRe + divisorResidualIm * divisorResidualIm;
+        if (!Number.isFinite(divisorResidualSquared)) {
+          accepted = false;
+          break;
+        }
+        if (divisorResidualSquared <= acceptSquared) {
+          primitive = divisor;
+          primitiveDerivativeRe = walkDerivativeRe;
+          primitiveDerivativeIm = walkDerivativeIm;
+          break;
+        }
+        if (divisorResidualSquared < excludeSquared) {
+          // Divisor-ambiguous: primitivity undecidable, candidate refused.
+          accepted = false;
+          break;
+        }
+      }
+      if (!accepted) {
+        continue;
+      }
+
+      // Attraction margin on the primitive multiplier: |lambda| must stay
+      // below 1 - margin (plan section 3), not merely below 1.
+      const multiplierMagnitude = Math.hypot(primitiveDerivativeRe, primitiveDerivativeIm);
+      if (
+        !Number.isFinite(multiplierMagnitude) ||
+        multiplierMagnitude >= 1 - VERIFIER_THRESHOLDS.attractMargin
+      ) {
         continue;
       }
       finishAttractingCycle(
         out,
-        period,
-        derivativeRe,
-        derivativeIm,
+        primitive,
+        primitiveDerivativeRe,
+        primitiveDerivativeIm,
         iteration,
         ORBIT_EVIDENCE_CODE.convergedCycle,
         multiplierMagnitude,
@@ -348,6 +520,7 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
       multiplierMagnitude: sample.multiplierMagnitude,
       multiplierAngle: sample.multiplierAngle,
       stabilityExponent: sample.stabilityExponent,
+      verifierRevision: VERIFIER_REVISION,
     };
   }
   return {

@@ -9,22 +9,62 @@ import {
   OrbitClassifier,
   resolveOrbitOptions,
   OrbitScratch,
+  VERIFIER_REVISION,
   type OrbitOptions,
   type OrbitResult,
 } from '../../../src/domain';
 import type { AttractingCycleOrbitResult, Complex, EvidenceFlag } from '../../../src/domain';
 
 /**
- * Differential test for the allocation-free scalar core (plan workstream B).
- * The reference is a verbatim port of the pre-PR2 classifier (src/domain/
- * orbit.ts at feature/phase-2-performance): the production classifyOrbit now
- * wraps classifyInto, so comparing against it alone would be vacuous. The
- * scalar core must match this reference on every point, including evidence
- * strings, multiplier bits, and kappa. Strata helpers replicate the PoC
- * corpus generator's closed forms (poc/performance/src/corpus.ts) so the
- * differential covers the same adversarial shapes without crossing the poc/
- * boundary.
+ * Differential test for the allocation-free scalar core. The reference is a
+ * verbatim port of the pre-PR2 classifier (src/domain/orbit.ts at
+ * feature/phase-2-performance); the reference deliberately does NOT run the
+ * common verifier, so this file measures exactly what PR 3 changed on top of
+ * PR 2. Since PR 3 (common verifier, plan section 3), acceptance is
+ * verifier-gated and the parity contract is:
+ *
+ * - escaped and unresolved results must match legacy exactly;
+ * - attracting results must match legacy exactly whenever the primitive
+ *   period is unchanged (multiplier bits included), plus the verifier
+ *   revision field;
+ * - the only permitted divergence is the documented legacy flaw the
+ *   verifier's three-way proper-divisor policy fixes: the legacy scan
+ *   reported a non-primitive multiple of the primitive period (binary64
+ *   rounding let a multiple lag cross the proposal threshold first), and
+ *   the verifier reduces it and recomputes the multiplier at the primitive
+ *   period. Every such divergence is adjudicated against the double-double
+ *   oracle in the oracle-adjudication section below.
  */
+
+const stripVerifierRevision = (
+  result: OrbitResult,
+): Omit<Extract<OrbitResult, { status: 'attracting-cycle' }>, 'verifierRevision'> | OrbitResult => {
+  if (result.status !== 'attracting-cycle') {
+    return result;
+  }
+  const { verifierRevision, ...rest } = result;
+  expect(verifierRevision).toBe(VERIFIER_REVISION);
+  return rest;
+};
+
+/**
+ * Production-vs-legacy parity under the PR 3 contract: exact everywhere
+ * except the primitive-period reduction of non-primitive legacy multiples.
+ */
+const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void => {
+  if (production.status === 'attracting-cycle' && legacy.status === 'attracting-cycle') {
+    if (production.period === legacy.period) {
+      expect(stripVerifierRevision(production)).toEqual(legacy);
+      return;
+    }
+    // Documented divergence (M3 adjudicates each against the dd oracle):
+    // legacy reported a non-primitive multiple of the primitive period.
+    expect(production.period).toBeLessThan(legacy.period);
+    expect(legacy.period % production.period).toBe(0);
+    return;
+  }
+  expect(stripVerifierRevision(production)).toEqual(legacy);
+};
 
 // ---------------------------------------------------------------------------
 // Legacy reference (verbatim pre-PR2 algorithm; allocating by design).
@@ -357,10 +397,44 @@ describe('scalar core parity with the legacy classifier', () => {
 
   for (const profile of PROFILES) {
     it(`matches the legacy reference on every differential stratum (${profile.label})`, () => {
-      for (const point of STRATA) {
+      const reductions: string[] = [];
+      for (const [index, point] of STRATA.entries()) {
         const options = resolveOrbitOptions(profile.options);
-        expect(classifyScalar(point, profile.options)).toEqual(legacyClassifyOrbit(point, options));
+        const production = classifyScalar(point, profile.options);
+        const legacy = legacyClassifyOrbit(point, options);
+        if (
+          production.status === 'attracting-cycle' &&
+          legacy.status === 'attracting-cycle' &&
+          production.period !== legacy.period
+        ) {
+          reductions.push(`${index}:${legacy.period}->${production.period}`);
+        }
+        expectLegacyParity(production, legacy);
       }
+      // Pin the exact divergence set of the documented legacy flaw: the
+      // legacy scan reported these non-primitive multiples (binary64
+      // rounding let a multiple lag cross the proposal threshold before the
+      // primitive lag), and the verifier reduced them. Any change here is a
+      // semantic change and must be re-adjudicated against the dd oracle.
+      const expectedReductions: Record<string, readonly string[]> = {
+        quick: ['618:6->3', '2474:6->3', '3185:8->4', '3190:8->4', '3195:8->4', '3200:8->4'],
+        default: [
+          '617:6->3',
+          '618:6->3',
+          '680:12->3',
+          '947:8->4',
+          '2163:8->4',
+          '2408:12->3',
+          '2473:6->3',
+          '2474:6->3',
+          '3178:12->4',
+          '3185:8->4',
+          '3190:8->4',
+          '3195:8->4',
+          '3200:8->4',
+        ],
+      };
+      expect(reductions).toEqual(expectedReductions[profile.label] ?? []);
     });
   }
 
@@ -373,7 +447,7 @@ describe('scalar core parity with the legacy classifier', () => {
       const options = resolveOrbitOptions(fixture.classificationBudget);
       const result = classifyScalar(point, fixture.classificationBudget);
 
-      expect(result).toEqual(legacyClassifyOrbit(point, options));
+      expectLegacyParity(result, legacyClassifyOrbit(point, options));
       expect(result.status).toBe(fixture.expected.status);
       if (result.status === 'escaped') {
         expect(result.escapeIteration).toBe(fixture.expected.escapeIteration);
@@ -403,7 +477,7 @@ describe('scalar core parity with the legacy classifier', () => {
     expect(reused(attracting)).toEqual(fresh(attracting));
     expect(reused(escaped)).toEqual(fresh(escaped));
     expect(reused(attracting)).toEqual(fresh(attracting));
-    expect(reused(attracting)).toEqual(legacyClassifyOrbit(attracting, resolved));
+    expectLegacyParity(reused(attracting), legacyClassifyOrbit(attracting, resolved));
   });
 
   it('maps primitive evidence codes to the legacy evidence strings', () => {
@@ -425,7 +499,7 @@ describe('scalar core parity with the legacy classifier', () => {
     const classifier = new OrbitClassifier({ maxIterations: 512, maxPeriod: 32 });
     const options = resolveOrbitOptions({ maxIterations: 512, maxPeriod: 32 });
     for (const point of [...superattractingPoints(), ...rabbitPoints(), ...boundaryPoints()]) {
-      expect(classifier.classify(point)).toEqual(legacyClassifyOrbit(point, options));
+      expectLegacyParity(classifier.classify(point), legacyClassifyOrbit(point, options));
     }
   });
 });
