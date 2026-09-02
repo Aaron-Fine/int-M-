@@ -19,6 +19,23 @@ export interface KernelMetrics {
   rejectedNonFinite: number;
   rejectedNoClosure: number;
   rejectedNotAttracting: number;
+  /**
+   * Variant-specific counters, undefined for kernels that do not use them
+   * (JSON omits undefined fields). Mutable: kernels initialize and
+   * increment them on their own metrics record.
+   * - deGuessRounds: DE-plausibility extension rounds entered (de-guess).
+   * - transplantAttempts / transplantGuardRefusals: transplant pipeline
+   *   attempts and first-order-guard refusals (transplant, trap).
+   * - trapProposals / trapNewtonFailures / trapOrbitWork: trapping-disk
+   *   proposals, failed Newton polishes, and the extra orbit steps the trap
+   *   walk spent on polish/proposal work beyond the main orbit loop (trap).
+   */
+  deGuessRounds?: number;
+  transplantAttempts?: number;
+  transplantGuardRefusals?: number;
+  trapProposals?: number;
+  trapNewtonFailures?: number;
+  trapOrbitWork?: number;
 }
 
 /**
@@ -61,7 +78,15 @@ export interface KernelOptions {
 }
 
 export interface ClassificationKernel {
-  readonly name: 'control' | 'checkpoint' | 'trigger' | 'staggered';
+  readonly name:
+    | 'control'
+    | 'checkpoint'
+    | 'trigger'
+    | 'staggered'
+    | 'de-guess'
+    | 'neighbor'
+    | 'transplant'
+    | 'trap';
   classify(cRe: number, cIm: number, options: KernelOptions): KernelResult;
 }
 

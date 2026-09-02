@@ -109,6 +109,29 @@ classifies.
   lag `p` is tested only when `p` divides the iteration index; average
   comparisons per iteration fall to ~H(maxPeriod). No explicit re-arm: a
   failed lag is retried naturally at the next multiple.
+- **DE period guessing** (`kernels/de-guess.ts`, revision
+  `poc-de-guess-1.0.0`): candidate source layered on the checkpoint
+  schedule, using the plan §6 parameter-derivative recurrence
+  `B_{j+1} = 2 z_j B_j + 1` (`B_n = dz_n/dc`). Frozen design note: the
+  naive "fire when B settles" criterion is period-1-only — on a period-p
+  cycle the B sequence converges to a _periodic_ sequence, so consecutive B
+  differences never vanish for p ≥ 2. The frozen criterion instead uses the
+  p-free magnitude split the interior/exterior distance estimates are built
+  from: `|B_n| > 1e8·max(1,|z_n|)` disarms proposals for the pixel
+  (exterior-bound), `|B_n| ≤ 1e6·max(1,|z_n|)` re-arms them (hysteresis
+  pair, `DE_GUESS_THRESHOLDS`). On a rejected checkpoint proposal one
+  extension round proposes the remaining `tauCandidate`-proximity lags
+  ordered by DE plausibility (ascending B-return consistency
+  `|B_n − B_{n−lag}|`, ties toward the smaller lag), budget-gated and
+  verifier-decided. The **opportunistic** mode caps proposals at
+  `DE_OPPORTUNISTIC_CEILING = 96` (matches the dd oracle's `maxPeriod`, so
+  acceptances stay oracle-adjudicable) and is reported alongside the
+  systematic mode. Measured verdict vs checkpoint (detailed profile,
+  `summary.json`): cost parity (0.995× with exhaustion on, 0.951× off),
+  identical detections, unresolved delta 0, zero gate; the corpus contains
+  no period above the systematic caps, so the opportunistic bucket adds
+  cost (~1.03×) but recovers no extra detections at PoC scale — directional
+  evidence for PR 5's period-policy split.
 
 Shared rejection budget: `CANDIDATE_REJECTION_BUDGET = 64` per pixel
 (`kernels/shared.ts`), matching the dd oracle's `candidateVerifyBudget`.
@@ -220,11 +243,6 @@ implementation.
 These are plan §5/§11 Step 0 candidates not implemented in this harness yet,
 with the code points where they plug in:
 
-- **Interior-distance-estimated period guessing** — estimate the period from
-  an interior-distance proxy instead of (or before) proximity scanning; a
-  candidate source would sit beside the proposal sites
-  (`kernels/shared.ts:verifyCandidate` callers) and reuse the shared
-  `LagScanContext`.
 - **Neighbor-informed lag ordering** — order the lags scanned by
   `kernels/shared.ts:fullLagScan` using already-classified neighbor pixels
   instead of ascending order; the scan is the single choke point.

@@ -29,6 +29,14 @@
     },
     "staggered": {
       "revision": "poc-staggered-1.0.0"
+    },
+    "deGuess": {
+      "revision": "poc-de-guess-1.0.0",
+      "thresholds": {
+        "disarmExteriorB": 100000000,
+        "rearmInteriorB": 1000000
+      },
+      "opportunisticCeiling": 96
     }
   },
   "ddOracle": {
@@ -77,31 +85,43 @@
     "timedPasses": 5,
     "medianClassifyMs": {
       "quick": {
-        "control": 0.723262,
-        "checkpoint.exhaustion-on": 0.671449,
-        "checkpoint.exhaustion-off": 0.871938,
-        "trigger.exhaustion-on": 0.635798,
-        "trigger.exhaustion-off": 0.195252,
-        "staggered.exhaustion-on": 0.934485,
-        "staggered.exhaustion-off": 0.42718
+        "checkpoint.exhaustion-on": 0.622833,
+        "control": 0.75355,
+        "checkpoint.exhaustion-off": 0.151254,
+        "trigger.exhaustion-on": 0.838064,
+        "trigger.exhaustion-off": 0.189505,
+        "staggered.exhaustion-on": 1.15248,
+        "staggered.exhaustion-off": 0.441726,
+        "de-guess.exhaustion-on": 0.149638,
+        "de-guess.exhaustion-off": 0.141421,
+        "de-guess.opportunistic.exhaustion-on": 0.151624,
+        "de-guess.opportunistic.exhaustion-off": 0.127625
       },
       "balanced": {
-        "control": 1.708174,
-        "checkpoint.exhaustion-on": 0.244876,
-        "checkpoint.exhaustion-off": 0.243961,
-        "trigger.exhaustion-on": 0.300363,
-        "trigger.exhaustion-off": 0.22351,
-        "staggered.exhaustion-on": 1.377591,
-        "staggered.exhaustion-off": 1.381681
+        "checkpoint.exhaustion-on": 0.192684,
+        "control": 1.680693,
+        "checkpoint.exhaustion-off": 0.174544,
+        "trigger.exhaustion-on": 0.225548,
+        "trigger.exhaustion-off": 0.198549,
+        "staggered.exhaustion-on": 1.380132,
+        "staggered.exhaustion-off": 1.598552,
+        "de-guess.exhaustion-on": 0.217387,
+        "de-guess.exhaustion-off": 0.286006,
+        "de-guess.opportunistic.exhaustion-on": 0.259795,
+        "de-guess.opportunistic.exhaustion-off": 0.239287
       },
       "detailed": {
-        "control": 6.381386,
-        "checkpoint.exhaustion-on": 0.297436,
-        "checkpoint.exhaustion-off": 0.311956,
-        "trigger.exhaustion-on": 0.453962,
-        "trigger.exhaustion-off": 0.477605,
-        "staggered.exhaustion-on": 4.250893,
-        "staggered.exhaustion-off": 4.819855
+        "checkpoint.exhaustion-on": 0.257167,
+        "control": 5.248609,
+        "checkpoint.exhaustion-off": 0.276511,
+        "trigger.exhaustion-on": 0.380604,
+        "trigger.exhaustion-off": 0.352354,
+        "staggered.exhaustion-on": 4.584845,
+        "staggered.exhaustion-off": 4.170944,
+        "de-guess.exhaustion-on": 0.54245,
+        "de-guess.exhaustion-off": 0.499438,
+        "de-guess.opportunistic.exhaustion-on": 0.344996,
+        "de-guess.opportunistic.exhaustion-off": 0.329911
       }
     }
   }
