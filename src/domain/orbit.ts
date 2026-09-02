@@ -1,6 +1,13 @@
 import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
 import { CLASSIFIER_MODES, EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE } from './types';
+import type { CheckpointMetrics, DifferentialStats } from './checkpoint';
+import {
+  classifyCheckpointInto,
+  createCheckpointMetrics,
+  createDifferentialStats,
+  recordDifferentialInto,
+} from './checkpoint';
 
 // Shared evidence vocabulary moved to types.ts so every classifier kernel
 // (the lag scan here and the PR 4 checkpoint schedule) writes the same
@@ -543,27 +550,91 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
 /**
  * Prepared classifier for raster hot paths. Options and scratch storage are
  * resolved once, then reused for each sequential sample.
+ *
+ * The versioned classifier-mode option (PR 4) selects the kernel per
+ * instance; the mode never changes an instance's behavior after
+ * construction. 'legacy-scan' (the default) allocates nothing beyond the
+ * legacy path; 'checkpoint' and 'differential' preallocate their extra state
+ * (checkpoint metrics, differential sample and record) once, in the
+ * constructor. In differential mode both kernels run per pixel, the LEGACY
+ * answer stays the reported one, and disagreements accumulate into the
+ * preallocated DifferentialStats (read via differentialStats).
  */
 export class OrbitClassifier {
   readonly #options: OrbitOptions;
   readonly #scratch: OrbitScratch;
+  // Null unless the mode needs it, so the default legacy path allocates
+  // nothing extra and its hot path stays the PR 2 measured shape plus one
+  // monomorphic field check.
+  readonly #extras:
+    | {
+        readonly mode: 'checkpoint' | 'differential';
+        readonly metrics: CheckpointMetrics;
+        readonly diffSample: OrbitSample;
+        readonly diffStats: DifferentialStats;
+      }
+    | undefined;
 
   public constructor(options: Partial<OrbitOptions> = {}, scratch?: OrbitScratch) {
     this.#options = resolveOrbitOptions(options);
     this.#scratch = scratch ?? new OrbitScratch(this.#options.maxPeriod);
     this.#scratch.ensureCapacity(this.#options.maxPeriod);
+    // resolveOrbitOptions normalizes the optional mode field, so mode is a
+    // concrete ClassifierMode here.
+    const mode = this.#options.classifierMode ?? 'legacy-scan';
+    this.#extras =
+      mode === 'legacy-scan'
+        ? undefined
+        : {
+            mode,
+            metrics: createCheckpointMetrics(),
+            diffSample: createOrbitSample(),
+            diffStats: createDifferentialStats(),
+          };
   }
 
   /** Rich-result convenience boundary for non-hot callers (inspector paths). */
   public classify(c: Complex): OrbitResult {
     const sample = createOrbitSample();
-    classifyInto(c.re, c.im, this.#options, this.#scratch, sample);
+    this.classifyInto(c.re, c.im, sample);
     return materializeOrbitResult(sample);
   }
 
   /** Allocation-free core: classifies (cRe, cIm) into the caller's record. */
   public classifyInto(cRe: number, cIm: number, out: OrbitSample): void {
+    // Inline dispatch (not a shared helper): this is the raster hot path —
+    // one monomorphic branch on the constructor-fixed mode before the same
+    // kernel call the PR 2 measurements exercised.
+    const extras = this.#extras;
+    if (extras === undefined) {
+      classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+      return;
+    }
+    if (extras.mode === 'checkpoint') {
+      classifyCheckpointInto(cRe, cIm, this.#options, this.#scratch, out, extras.metrics);
+      return;
+    }
+    // Differential: both kernels per pixel; the legacy answer stays the
+    // reported one and every semantic divergence is counted.
     classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+    classifyCheckpointInto(
+      cRe,
+      cIm,
+      this.#options,
+      this.#scratch,
+      extras.diffSample,
+      extras.metrics,
+    );
+    recordDifferentialInto(extras.diffStats, out, extras.diffSample);
+  }
+
+  /**
+   * The preallocated disagreement record (differential mode only; null
+   * otherwise). Reset it between frames with resetDifferentialStats.
+   */
+  public get differentialStats(): DifferentialStats | null {
+    const extras = this.#extras;
+    return extras?.mode === 'differential' ? extras.diffStats : null;
   }
 }
 
@@ -574,6 +645,27 @@ export const classifyOrbit = (
 ): OrbitResult => {
   const resolved = resolveOrbitOptions(options);
   const sample = createOrbitSample();
-  classifyInto(c.re, c.im, resolved, scratch ?? new OrbitScratch(resolved.maxPeriod), sample);
+  const mode = resolved.classifierMode;
+  if (mode === 'checkpoint') {
+    classifyCheckpointInto(
+      c.re,
+      c.im,
+      resolved,
+      scratch ?? new OrbitScratch(resolved.maxPeriod),
+      sample,
+      createCheckpointMetrics(),
+    );
+  } else if (mode === 'differential') {
+    // Both kernels; the legacy answer is reported. Per-call stats are not
+    // retained — accumulate across pixels with OrbitClassifier (or call
+    // recordDifferentialInto directly).
+    const share = scratch ?? new OrbitScratch(resolved.maxPeriod);
+    classifyInto(c.re, c.im, resolved, share, sample);
+    const diffSample = createOrbitSample();
+    classifyCheckpointInto(c.re, c.im, resolved, share, diffSample, createCheckpointMetrics());
+    recordDifferentialInto(createDifferentialStats(), sample, diffSample);
+  } else {
+    classifyInto(c.re, c.im, resolved, scratch ?? new OrbitScratch(resolved.maxPeriod), sample);
+  }
   return materializeOrbitResult(sample);
 };

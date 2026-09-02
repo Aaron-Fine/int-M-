@@ -3,6 +3,8 @@ import {
   createViewportTransform,
   OrbitClassifier,
   OrbitScratch,
+  type ClassifierMode,
+  type DifferentialStats,
   type MutableComplex,
   type OrbitOptions,
   type OrbitSample,
@@ -29,6 +31,12 @@ const nowMs = (): number => performance.now();
 
 export interface ClassifyRowsResult extends BandArrays {
   readonly timing: SemanticStageTiming;
+  /**
+   * Differential-mode disagreement record (classifierMode 'differential'
+   * only): both kernels ran per pixel, the legacy answer filled the band
+   * channels, and the divergences were counted here. Undefined otherwise.
+   */
+  readonly differential?: DifferentialStats;
 }
 
 /**
@@ -73,6 +81,11 @@ export async function classifyRows(
   y0: number,
   y1: number,
   signal: AbortSignal,
+  // Versioned classifier mode (PR 4). Optional and last: every existing
+  // call site (supervisor, tile workers, tests) keeps its exact behavior
+  // with the 'legacy-scan' default, and no worker-protocol field changes —
+  // the mode rides in the classifier options built here.
+  classifierMode?: ClassifierMode,
 ): Promise<ClassifyRowsResult> {
   const { width } = request.size;
   const length = (y1 - y0) * width;
@@ -85,6 +98,7 @@ export async function classifyRows(
   const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
+    ...(classifierMode === undefined ? {} : { classifierMode }),
   };
   const classifier = new OrbitClassifier(orbitOptions, new OrbitScratch(quality.maxPeriod));
   // Per-band working state: the classification loop below allocates nothing
@@ -116,6 +130,9 @@ export async function classifyRows(
   }
 
   throwIfAborted(signal);
+  // exactOptionalPropertyTypes: build the optional field via a narrowed
+  // conditional spread so the key is absent (not undefined) in the default.
+  const differentialStats = classifierMode === 'differential' ? classifier.differentialStats : null;
   return {
     ...band,
     timing: {
@@ -123,5 +140,6 @@ export async function classifyRows(
       yieldWaitMs,
       yieldCount,
     },
+    ...(differentialStats === null ? {} : { differential: differentialStats }),
   };
 }

@@ -16,9 +16,12 @@ export {
   CHECKPOINT_REVISION,
   classifyCheckpointInto,
   createCheckpointMetrics,
+  createDifferentialStats,
+  recordDifferentialInto,
   resetCheckpointMetrics,
+  resetDifferentialStats,
 } from './checkpoint';
-export type { CheckpointMetrics } from './checkpoint';
+export type { CheckpointMetrics, DifferentialStats } from './checkpoint';
 export {
   TAU_CLOSURE_SCALED,
   VERIFIER_REVISION,

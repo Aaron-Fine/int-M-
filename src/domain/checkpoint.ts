@@ -152,6 +152,92 @@ export const resetCheckpointMetrics = (metrics: CheckpointMetrics): void => {
   metrics.reArms = 0;
 };
 
+/**
+ * Preallocated, reusable disagreement record of the differential classifier
+ * mode ('differential': both kernels run per pixel, the legacy answer stays
+ * the reported one, and every semantic divergence is counted here). The
+ * allocation-free discipline applies: ONE record per classifier/pass is
+ * reused across pixels — never a per-pixel object.
+ *
+ * Disagreement fields:
+ * - statusDisagreements: differing status codes (0/1/2);
+ * - periodDisagreements: both attracting with different period bits;
+ * - multiplierMagnitudeDisagreements: both attracting with different |lambda|
+ *   bits (the last-ulp rounding can legitimately differ when the two
+ *   schedules propose the cycle from different start phases; the differential
+ *   counts honestly and the dd-oracle test adjudicates the class).
+ *
+ * Context fields: pixels classified, attracting/unresolved totals per kernel
+ * (the unresolved delta drives the workstream C kill gate: checkpoint may
+ * never push MORE pixels unresolved than the legacy scan).
+ */
+export interface DifferentialStats {
+  pixels: number;
+  statusDisagreements: number;
+  periodDisagreements: number;
+  multiplierMagnitudeDisagreements: number;
+  legacyAttracting: number;
+  checkpointAttracting: number;
+  legacyUnresolved: number;
+  checkpointUnresolved: number;
+}
+
+export const createDifferentialStats = (): DifferentialStats => ({
+  pixels: 0,
+  statusDisagreements: 0,
+  periodDisagreements: 0,
+  multiplierMagnitudeDisagreements: 0,
+  legacyAttracting: 0,
+  checkpointAttracting: 0,
+  legacyUnresolved: 0,
+  checkpointUnresolved: 0,
+});
+
+export const resetDifferentialStats = (stats: DifferentialStats): void => {
+  stats.pixels = 0;
+  stats.statusDisagreements = 0;
+  stats.periodDisagreements = 0;
+  stats.multiplierMagnitudeDisagreements = 0;
+  stats.legacyAttracting = 0;
+  stats.checkpointAttracting = 0;
+  stats.legacyUnresolved = 0;
+  stats.checkpointUnresolved = 0;
+};
+
+/**
+ * Counts one legacy-versus-checkpoint pixel pair into `stats`. `legacy` must
+ * carry the legacy scan's answer, `checkpoint` the schedule's; the reported
+ * (legacy) record is never modified.
+ */
+export const recordDifferentialInto = (
+  stats: DifferentialStats,
+  legacy: Readonly<OrbitSample>,
+  checkpoint: Readonly<OrbitSample>,
+): void => {
+  stats.pixels += 1;
+  if (legacy.status !== checkpoint.status) {
+    stats.statusDisagreements += 1;
+  }
+  if (legacy.status === 2) {
+    stats.legacyAttracting += 1;
+  } else if (legacy.status === 0) {
+    stats.legacyUnresolved += 1;
+  }
+  if (checkpoint.status === 2) {
+    stats.checkpointAttracting += 1;
+  } else if (checkpoint.status === 0) {
+    stats.checkpointUnresolved += 1;
+  }
+  if (legacy.status === 2 && checkpoint.status === 2) {
+    if (legacy.period !== checkpoint.period) {
+      stats.periodDisagreements += 1;
+    }
+    if (legacy.multiplierMagnitude !== checkpoint.multiplierMagnitude) {
+      stats.multiplierMagnitudeDisagreements += 1;
+    }
+  }
+};
+
 // Spill slot indices for OrbitScratch.checkpointSpill: the walk state and
 // the retained checkpoint must survive the verifyCycleInto call without
 // being live across it (V8 phi-boxing constraint, see the module comment).
