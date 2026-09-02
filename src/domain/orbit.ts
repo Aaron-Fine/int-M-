@@ -1,5 +1,18 @@
 import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
+import { CLASSIFIER_MODES, EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE } from './types';
+import type { CheckpointMetrics, DifferentialStats } from './checkpoint';
+import {
+  classifyCheckpointInto,
+  createCheckpointMetrics,
+  createDifferentialStats,
+  recordDifferentialInto,
+} from './checkpoint';
+
+// Shared evidence vocabulary moved to types.ts so every classifier kernel
+// (the lag scan here and the PR 4 checkpoint schedule) writes the same
+// codes; re-exported to keep the src/domain API stable.
+export { EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE };
 
 export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   maxIterations: 512,
@@ -8,6 +21,8 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   // frozen policy in src/domain/verifier.ts.
   cycleTolerance: 1e-10,
   cycleWarmup: 24,
+  classifierMode: 'legacy-scan',
+  exhaustionScan: true,
 });
 
 /**
@@ -17,11 +32,19 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
 export class OrbitScratch {
   public historyRe: Float64Array;
   public historyIm: Float64Array;
+  /**
+   * Four spill slots for the PR 4 checkpoint schedule (z and checkpoint
+   * state round-tripped across the non-inlined verifyCycleInto call so no
+   * walk-loop phi is live at that call site — the V8 phi-boxing constraint
+   * documented at classifyInto). Unused by the lag scan.
+   */
+  public checkpointSpill: Float64Array;
 
   public constructor(maxPeriod: number = DEFAULT_ORBIT_OPTIONS.maxPeriod) {
     const capacity = Math.max(2, Math.ceil(maxPeriod) + 1);
     this.historyRe = new Float64Array(capacity);
     this.historyIm = new Float64Array(capacity);
+    this.checkpointSpill = new Float64Array(4);
   }
 
   public ensureCapacity(maxPeriod: number): void {
@@ -44,23 +67,8 @@ export type OrbitStatusCode = 0 | 1 | 2;
 /**
  * Evidence flags encoded as small integers in the primitive record;
  * materializeOrbitResult maps them back to EvidenceFlag strings at the rich
- * result boundary.
+ * result boundary. Defined in types.ts (shared with the checkpoint kernel).
  */
-export const ORBIT_EVIDENCE_CODE = Object.freeze({
-  escapeRadius: 0,
-  analyticMainCardioid: 1,
-  analyticPeriod2Bulb: 2,
-  convergedCycle: 3,
-  iterationLimit: 4,
-} as const);
-
-const EVIDENCE_BY_CODE: readonly EvidenceFlag[] = Object.freeze([
-  'escape-radius',
-  'analytic-main-cardioid',
-  'analytic-period-2-bulb',
-  'converged-cycle',
-  'iteration-limit',
-]);
 
 /**
  * Mutable primitive record filled by classifyInto. Every field relevant to
@@ -158,7 +166,16 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
       'iteration, period, and warmup options must be integers; tolerance must be positive',
     );
   }
-  return resolved;
+  const classifierMode = resolved.classifierMode ?? 'legacy-scan';
+  if (!CLASSIFIER_MODES.includes(classifierMode)) {
+    throw new RangeError(
+      `classifierMode must be one of ${CLASSIFIER_MODES.join(', ')}; got ${classifierMode}`,
+    );
+  }
+  const exhaustionScan = resolved.exhaustionScan ?? true;
+  // Normalized form: the optional mode/scan fields are always set, so kernel
+  // code reads plain values instead of re-applying defaults.
+  return { ...resolved, classifierMode, exhaustionScan };
 };
 
 /**
@@ -533,27 +550,91 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
 /**
  * Prepared classifier for raster hot paths. Options and scratch storage are
  * resolved once, then reused for each sequential sample.
+ *
+ * The versioned classifier-mode option (PR 4) selects the kernel per
+ * instance; the mode never changes an instance's behavior after
+ * construction. 'legacy-scan' (the default) allocates nothing beyond the
+ * legacy path; 'checkpoint' and 'differential' preallocate their extra state
+ * (checkpoint metrics, differential sample and record) once, in the
+ * constructor. In differential mode both kernels run per pixel, the LEGACY
+ * answer stays the reported one, and disagreements accumulate into the
+ * preallocated DifferentialStats (read via differentialStats).
  */
 export class OrbitClassifier {
   readonly #options: OrbitOptions;
   readonly #scratch: OrbitScratch;
+  // Null unless the mode needs it, so the default legacy path allocates
+  // nothing extra and its hot path stays the PR 2 measured shape plus one
+  // monomorphic field check.
+  readonly #extras:
+    | {
+        readonly mode: 'checkpoint' | 'differential';
+        readonly metrics: CheckpointMetrics;
+        readonly diffSample: OrbitSample;
+        readonly diffStats: DifferentialStats;
+      }
+    | undefined;
 
   public constructor(options: Partial<OrbitOptions> = {}, scratch?: OrbitScratch) {
     this.#options = resolveOrbitOptions(options);
     this.#scratch = scratch ?? new OrbitScratch(this.#options.maxPeriod);
     this.#scratch.ensureCapacity(this.#options.maxPeriod);
+    // resolveOrbitOptions normalizes the optional mode field, so mode is a
+    // concrete ClassifierMode here.
+    const mode = this.#options.classifierMode ?? 'legacy-scan';
+    this.#extras =
+      mode === 'legacy-scan'
+        ? undefined
+        : {
+            mode,
+            metrics: createCheckpointMetrics(),
+            diffSample: createOrbitSample(),
+            diffStats: createDifferentialStats(),
+          };
   }
 
   /** Rich-result convenience boundary for non-hot callers (inspector paths). */
   public classify(c: Complex): OrbitResult {
     const sample = createOrbitSample();
-    classifyInto(c.re, c.im, this.#options, this.#scratch, sample);
+    this.classifyInto(c.re, c.im, sample);
     return materializeOrbitResult(sample);
   }
 
   /** Allocation-free core: classifies (cRe, cIm) into the caller's record. */
   public classifyInto(cRe: number, cIm: number, out: OrbitSample): void {
+    // Inline dispatch (not a shared helper): this is the raster hot path —
+    // one monomorphic branch on the constructor-fixed mode before the same
+    // kernel call the PR 2 measurements exercised.
+    const extras = this.#extras;
+    if (extras === undefined) {
+      classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+      return;
+    }
+    if (extras.mode === 'checkpoint') {
+      classifyCheckpointInto(cRe, cIm, this.#options, this.#scratch, out, extras.metrics);
+      return;
+    }
+    // Differential: both kernels per pixel; the legacy answer stays the
+    // reported one and every semantic divergence is counted.
     classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+    classifyCheckpointInto(
+      cRe,
+      cIm,
+      this.#options,
+      this.#scratch,
+      extras.diffSample,
+      extras.metrics,
+    );
+    recordDifferentialInto(extras.diffStats, out, extras.diffSample);
+  }
+
+  /**
+   * The preallocated disagreement record (differential mode only; null
+   * otherwise). Reset it between frames with resetDifferentialStats.
+   */
+  public get differentialStats(): DifferentialStats | null {
+    const extras = this.#extras;
+    return extras?.mode === 'differential' ? extras.diffStats : null;
   }
 }
 
@@ -564,6 +645,27 @@ export const classifyOrbit = (
 ): OrbitResult => {
   const resolved = resolveOrbitOptions(options);
   const sample = createOrbitSample();
-  classifyInto(c.re, c.im, resolved, scratch ?? new OrbitScratch(resolved.maxPeriod), sample);
+  const mode = resolved.classifierMode;
+  if (mode === 'checkpoint') {
+    classifyCheckpointInto(
+      c.re,
+      c.im,
+      resolved,
+      scratch ?? new OrbitScratch(resolved.maxPeriod),
+      sample,
+      createCheckpointMetrics(),
+    );
+  } else if (mode === 'differential') {
+    // Both kernels; the legacy answer is reported. Per-call stats are not
+    // retained — accumulate across pixels with OrbitClassifier (or call
+    // recordDifferentialInto directly).
+    const share = scratch ?? new OrbitScratch(resolved.maxPeriod);
+    classifyInto(c.re, c.im, resolved, share, sample);
+    const diffSample = createOrbitSample();
+    classifyCheckpointInto(c.re, c.im, resolved, share, diffSample, createCheckpointMetrics());
+    recordDifferentialInto(createDifferentialStats(), sample, diffSample);
+  } else {
+    classifyInto(c.re, c.im, resolved, scratch ?? new OrbitScratch(resolved.maxPeriod), sample);
+  }
   return materializeOrbitResult(sample);
 };

@@ -29,7 +29,8 @@
     "test:unit:watch": "vitest",
     "test:browser": "playwright test --pass-with-no-tests",
     "test:browser:headed": "playwright test --headed",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets",
+    "poc:bench:pr4": "vite build --ssr poc/performance/src/pr4-bench.ts --outDir .evidence-build --emptyOutDir && node --expose-gc .evidence-build/pr4-bench.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
