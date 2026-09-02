@@ -14,7 +14,7 @@ describe('parseViewParam', () => {
   it('accepts the 6,000,000x corpus span and exponent notation', () => {
     expect(parseViewParam('-1.25,0,0.00000041666666666666667')).toEqual({
       center: { re: -1.25, im: 0 },
-      spanY: 0.00000041666666666666667,
+      spanY: 2.5 / 6_000_000,
     });
     expect(parseViewParam('0.1,1e-2,2e-3')?.spanY).toBe(0.002);
   });
@@ -36,9 +36,7 @@ describe('parseViewParam', () => {
     expect(parseViewParam('-0.75,0,0')).toBeUndefined();
     expect(parseViewParam('-0.75,0,-2.5')).toBeUndefined();
     expect(parseViewParam('-0.75,0,5')).toBeUndefined();
-    expect(
-      parseViewParam(`-0.75,0,${MIN_VIEWPORT_SPAN_Y / 2}`),
-    ).toBeUndefined();
+    expect(parseViewParam(`-0.75,0,${MIN_VIEWPORT_SPAN_Y / 2}`)).toBeUndefined();
     expect(parseViewParam(`-0.75,0,${MIN_VIEWPORT_SPAN_Y}`)).toBeDefined();
   });
 });
@@ -60,7 +58,9 @@ describe('parseBenchmarkParams', () => {
   it('accepts exactly the frozen classifier mode vocabulary', () => {
     expect(parseBenchmarkParams('?classifierMode=legacy-scan').classifierMode).toBe('legacy-scan');
     expect(parseBenchmarkParams('?classifierMode=checkpoint').classifierMode).toBe('checkpoint');
-    expect(parseBenchmarkParams('?classifierMode=differential').classifierMode).toBe('differential');
+    expect(parseBenchmarkParams('?classifierMode=differential').classifierMode).toBe(
+      'differential',
+    );
     expect(parseBenchmarkParams('?classifierMode=Checkpoint').classifierMode).toBeUndefined();
     expect(parseBenchmarkParams('?classifierMode=bogus').classifierMode).toBeUndefined();
     expect(parseBenchmarkParams('?classifierMode=').classifierMode).toBeUndefined();
@@ -82,7 +82,7 @@ describe('parseBenchmarkParams', () => {
     expect(params.classifierMode).toBe('checkpoint');
     expect(params.viewport).toEqual({
       center: { re: -0.158902249, im: -1.034028 },
-      spanY: 0.019841269841269841269,
+      spanY: Number('0.019841269841269841269'),
     });
     expect(params.qualityProfile).toBe('detailed');
 

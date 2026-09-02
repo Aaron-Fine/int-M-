@@ -13,9 +13,7 @@
     },
     "automation": "Playwright 1.62.1 automation-bundled chromium, headless",
     "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
-    "workerCount": [
-      4
-    ],
+    "workerCount": [4],
     "backend": "cpu",
     "samples": 234,
     "notes": "primary Stage A record"
@@ -63,9 +61,7 @@
       },
       "automation": "Playwright 1.62.1 automation-bundled chromium, headless",
       "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
-      "workerCount": [
-        4
-      ],
+      "workerCount": [4],
       "backend": "cpu",
       "samples": 234
     },
@@ -81,9 +77,7 @@
       },
       "automation": "Playwright 1.62.1 automation-bundled firefox, headless",
       "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
-      "workerCount": [
-        4
-      ],
+      "workerCount": [4],
       "backend": "cpu",
       "samples": 234,
       "buildRevision": "73a126a"

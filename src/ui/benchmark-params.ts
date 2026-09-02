@@ -77,7 +77,10 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const viewport = parseViewParam(params.get('view'));
   if (viewport !== undefined) result.viewport = viewport;
   const qualityProfile = params.get('quality');
-  if (qualityProfile !== null && QUALITY_PROFILES.some((profile) => profile.id === qualityProfile)) {
+  if (
+    qualityProfile !== null &&
+    QUALITY_PROFILES.some((profile) => profile.id === qualityProfile)
+  ) {
     result.qualityProfile = qualityProfile as QualityProfileId;
   }
   return result;

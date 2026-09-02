@@ -47,15 +47,15 @@ describe('tile-handler', () => {
     const host = recordingHost();
     const seenModes: (ClassifierMode | undefined)[] = [];
     const handle = createTileHandler(host, {
-      classifyRows: async (_request, _quality, _stride, _y0, _y1, _signal, classifierMode) => {
+      classifyRows: (_request, _quality, _stride, _y0, _y1, _signal, classifierMode) => {
         seenModes.push(classifierMode);
-        return {
+        return Promise.resolve({
           status: new Uint8Array(4 * 8),
           period: new Uint32Array(4 * 8),
           smoothIterationOrMultiplierMagnitude: new Float64Array(4 * 8),
           multiplierAngle: new Float64Array(4 * 8),
           timing: { classifyMs: 1, yieldWaitMs: 0, yieldCount: 0 },
-        };
+        });
       },
     });
 
