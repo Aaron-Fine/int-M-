@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-09-02T16:15:11.646Z",
+  "capturedAt": "2026-09-02T17:45:07.493Z",
   "browser": {
     "build": null,
     "engine": null,
@@ -19,8 +19,8 @@
     "kernel": "7.1.10-200.fc44.x86_64"
   },
   "revisions": {
-    "build": "68558092652e43ff60092b240735932847e5cf5e",
-    "algorithm": "68558092652e43ff60092b240735932847e5cf5e",
+    "build": "1552c245b4b16cf584de604f4737254e3495be30",
+    "algorithm": "1552c245b4b16cf584de604f4737254e3495be30",
     "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
     "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
   },
@@ -29,16 +29,15 @@
     "backend": "cpu"
   },
   "harness": {
-    "command": "node /tmp/opencode/worktrees/int-M-wt-corpus/tools/benchmark/capture-environment.mjs --out /tmp/opencode/worktrees/int-M-wt-corpus/evidence/phase-2/2026-09-02-6855809/environment.json --note Renderer-path paired run (m1-center-out, chromium); production bundle via vite build + vite preview.",
+    "command": "node /tmp/opencode/worktrees/int-M-wt-corpus/tools/benchmark/capture-environment.mjs --out /tmp/opencode/worktrees/int-M-wt-corpus/evidence/phase-2/2026-09-02-1552c24/environment.json --note Renderer-path paired run (m4-bundle-vs-baseline, chromium); production bundle via vite build + vite preview.",
     "version": "0.1.0",
     "node": "v24.19.0"
   },
   "notes": [
     "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
-    "Renderer-path paired run (m1-center-out, chromium); production bundle via vite build + vite preview.",
-    "Renderer-path detail 'm1-center-out' run (chromium): arms centerOut, legacy; dists feature.",
-    "m2-yield detail measured on the M2 working-tree build (commit 09efabd, MessageChannel default yield scheduler; arms ?yieldMechanism=message-channel|timeout). Provenance for every detail is documented in summary.md.",
-    "m3-zero-copy-packed detail measured on the M3 working-tree build (commit 837695b, packed poc-packed-1.0.0 layout + pre-sliced transferable band views default; arms ?frameOutput=zero-copy|legacy-merge)."
+    "Renderer-path paired run (m4-bundle-vs-baseline, chromium); production bundle via vite build + vite preview.",
+    "Renderer-path detail 'm4-bundle-vs-baseline' run (chromium): arms default; dists bundled, baseline.",
+    "m4-bundle-vs-baseline compares the bundled build at 1552c24 (port from repo dist) against a prebuilt baseline of 6855809 (built and served from a separate git worktree root; a harness defect that initially served the bundled bundle for both ports was found and fixed, and the invalid run was replaced in full)."
   ],
   "browsers": {
     "chromium": {

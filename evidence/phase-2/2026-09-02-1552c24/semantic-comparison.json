@@ -2597,6 +2597,654 @@
         }
       ],
       "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "baseline",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-easy-exterior-heavy",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "baseline",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "baseline",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m4-bundle-vs-baseline",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "bundled",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "baseline",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
     }
   ]
 }

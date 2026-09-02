@@ -75,10 +75,7 @@ const arms = armsOption.split(',').map((entry) => {
   const param = eq === -1 ? '' : entry.slice(eq + 1);
   return { label, param };
 });
-if (arms.length < 2) {
-  process.stderr.write('--arms needs at least two label=param entries for pairing\n');
-  process.exit(2);
-}
+const compareArms = arms.length >= 2;
 const distOption = readOption('--dist') ?? 'feature=dist';
 const dists = distOption.split(',').map((entry) => {
   const eq = entry.indexOf('=');
@@ -91,6 +88,12 @@ for (const dist of dists) {
     process.stderr.write(`--dist ${dist.label}: no dist at ${dist.dir}\n`);
     process.exit(2);
   }
+}
+if (!compareArms && dists.length < 2) {
+  process.stderr.write(
+    '--arms needs two label=param entries, or one arm with two --dist entries\n',
+  );
+  process.exit(2);
 }
 
 const corpusPath = path.join(repoRoot, 'tools/benchmark/corpus.v1.json');
@@ -232,6 +235,7 @@ const servers = [];
 const baseUrls = {};
 let nextPort = BASE_PORT;
 for (const dist of dists) {
+  let previewRoot = repoRoot;
   if (dist.dir === path.join(repoRoot, 'dist')) {
     log(`building production bundle (vite build) for ${dist.label}…`);
     const buildStarted = Date.now();
@@ -242,12 +246,16 @@ for (const dist of dists) {
     });
     log(`build finished in ${Math.round((Date.now() - buildStarted) / 1000)}s`);
   } else {
-    log(`using prebuilt dist for ${dist.label}: ${dist.dir}`);
+    // A prebuilt dist from another worktree/checkout: serve it from that
+    // checkout's own root. (vite preview resolves outDir inside its root, so
+    // pointing one root at a foreign dist silently serves the wrong bundle.)
+    previewRoot = path.dirname(dist.dir);
+    log(`using prebuilt dist for ${dist.label}: ${dist.dir} (root ${previewRoot})`);
   }
   const server = await preview({
-    root: repoRoot,
-    configFile: path.join(repoRoot, 'vite.config.ts'),
-    preview: { host: '127.0.0.1', port: nextPort, strictPort: true, outDir: dist.dir },
+    root: previewRoot,
+    configFile: path.join(previewRoot, 'vite.config.ts'),
+    preview: { host: '127.0.0.1', port: nextPort, strictPort: true },
   });
   baseUrls[dist.label] = `http://127.0.0.1:${nextPort}`;
   nextPort += 1;
@@ -516,39 +524,73 @@ const rawObservations = {
 };
 writeFileSync(rawPath, `${JSON.stringify(rawObservations, null, 2)}\n`);
 
-// Paired semantic comparison per case × repetition (arm hash equality within
-// the same dist). Dist-cross comparisons are recorded under distPair keys.
+// Paired semantic comparison per case × repetition. Arm-compare runs pair
+// arms within a dist (identical semantics expected); build-compare runs pair
+// dists within an arm — the bundled build must be hash-identical to the
+// baseline build (packed layout decodes to the same RGBA bytes).
 const comparisons = [];
 for (const caseInfo of selectedCases) {
   for (let repetition = 0; repetition < reps; repetition += 1) {
-    for (const dist of dists) {
-      const perArm = arms.map((arm) => {
-        const sample = allSamples.find(
-          (candidate) =>
-            candidate.caseId === caseInfo.id &&
-            candidate.repetition === repetition &&
-            candidate.dist === dist.label &&
-            candidate.arm === arm.label,
-        );
-        return { arm: arm.label, hash: sample?.semanticHash.hash ?? null };
-      });
-      const equal =
-        perArm.length >= 2 &&
-        perArm.every((entry) => entry.hash !== null && entry.hash === perArm[0].hash);
-      comparisons.push({
-        detail,
-        caseId: caseInfo.id,
-        dist: dist.label,
-        repetition,
-        climate: allSamples.find(
-          (candidate) =>
-            candidate.caseId === caseInfo.id &&
-            candidate.repetition === repetition &&
-            candidate.dist === dist.label,
-        )?.climate,
-        arms: perArm,
-        equal,
-      });
+    if (compareArms) {
+      for (const dist of dists) {
+        const perArm = arms.map((arm) => {
+          const sample = allSamples.find(
+            (candidate) =>
+              candidate.caseId === caseInfo.id &&
+              candidate.repetition === repetition &&
+              candidate.dist === dist.label &&
+              candidate.arm === arm.label,
+          );
+          return { variant: arm.label, hash: sample?.semanticHash.hash ?? null };
+        });
+        const equal =
+          perArm.length >= 2 &&
+          perArm.every((entry) => entry.hash !== null && entry.hash === perArm[0].hash);
+        comparisons.push({
+          detail,
+          caseId: caseInfo.id,
+          dist: dist.label,
+          repetition,
+          climate: allSamples.find(
+            (candidate) =>
+              candidate.caseId === caseInfo.id &&
+              candidate.repetition === repetition &&
+              candidate.dist === dist.label,
+          )?.climate,
+          arms: perArm,
+          equal,
+        });
+      }
+    } else {
+      for (const arm of arms) {
+        const perDist = dists.map((dist) => {
+          const sample = allSamples.find(
+            (candidate) =>
+              candidate.caseId === caseInfo.id &&
+              candidate.repetition === repetition &&
+              candidate.dist === dist.label &&
+              candidate.arm === arm.label,
+          );
+          return { variant: dist.label, hash: sample?.semanticHash.hash ?? null };
+        });
+        const equal =
+          perDist.length >= 2 &&
+          perDist.every((entry) => entry.hash !== null && entry.hash === perDist[0].hash);
+        comparisons.push({
+          detail,
+          caseId: caseInfo.id,
+          arm: arm.label,
+          repetition,
+          climate: allSamples.find(
+            (candidate) =>
+              candidate.caseId === caseInfo.id &&
+              candidate.repetition === repetition &&
+              candidate.arm === arm.label,
+          )?.climate,
+          dists: perDist,
+          equal,
+        });
+      }
     }
   }
 }
@@ -573,30 +615,29 @@ const semanticComparison = {
 };
 writeFileSync(comparisonPath, `${JSON.stringify(semanticComparison, null, 2)}\n`);
 
-// Quick console summary: warm medians per case; the FIRST arm is the
-// candidate/default, the SECOND the baseline of the pair. Δ = candidate −
-// baseline on stable requestToPresentMs; the plan §9 cap max(5%, 20 ms) is
-// applied to that delta.
+// Quick console summary: warm medians per case. The candidate is the first
+// arm (or the first dist for whole-build comparisons); the baseline is the
+// second. Δ = candidate − baseline on stable requestToPresentMs; the plan §9
+// cap max(5%, 20 ms) is applied to that delta.
+const candidateLabel = compareArms ? arms[0].label : dists[0].label;
+const baselineLabel = compareArms ? arms[1].label : dists[1].label;
 const summaryRows = [];
 for (const caseInfo of selectedCases) {
   const warm = allSamples.filter(
-    (sample) =>
-      sample.caseId === caseInfo.id &&
-      sample.climate === 'warm' &&
-      sample.dist === dists[dists.length - 1].label,
+    (sample) => sample.caseId === caseInfo.id && sample.climate === 'warm',
   );
-  const valuesFor = (arm) =>
-    warm.filter((sample) => sample.arm === arm).map((sample) => sample.requestToPresentMs);
-  const yieldFor = (arm) =>
-    median(
-      warm
-        .filter((sample) => sample.arm === arm)
-        .map((sample) => sample.yieldWaitMs)
-        .filter((value) => value !== null),
-    );
-  const [firstArm, secondArm] = arms;
-  const firstMedian = median(valuesFor(firstArm.label));
-  const secondMedian = median(valuesFor(secondArm.label));
+  const candidateSamples = warm.filter((sample) =>
+    compareArms
+      ? sample.arm === arms[0].label && sample.dist === dists[0].label
+      : sample.dist === dists[0].label,
+  );
+  const baselineSamples = warm.filter((sample) =>
+    compareArms
+      ? sample.arm === arms[1].label && sample.dist === dists[0].label
+      : sample.dist === dists[1].label,
+  );
+  const firstMedian = median(candidateSamples.map((sample) => sample.requestToPresentMs));
+  const secondMedian = median(baselineSamples.map((sample) => sample.requestToPresentMs));
   const delta =
     firstMedian === undefined || secondMedian === undefined
       ? undefined
@@ -605,36 +646,33 @@ for (const caseInfo of selectedCases) {
     delta === undefined || secondMedian === undefined
       ? undefined
       : delta > Math.max(0.05 * secondMedian, 20);
-  const t50For = (arm) =>
-    median(
-      warm
-        .filter((sample) => sample.arm === arm)
-        .map((sample) => sample.t50RowsMs)
-        .filter((value) => value !== null),
-    );
+  const t50Median = (samples) =>
+    median(samples.map((sample) => sample.t50RowsMs).filter((value) => value !== null));
+  const yieldMedian = (samples) =>
+    median(samples.map((sample) => sample.yieldWaitMs).filter((value) => value !== null));
   summaryRows.push({
     caseId: caseInfo.id,
-    firstArm: firstArm.label,
-    secondArm: secondArm.label,
+    candidateLabel,
+    baselineLabel,
     firstMedianMs: firstMedian,
-    firstMadMs: mad(valuesFor(firstArm.label)),
+    firstMadMs: mad(candidateSamples.map((sample) => sample.requestToPresentMs)),
     secondMedianMs: secondMedian,
-    secondMadMs: mad(valuesFor(secondArm.label)),
+    secondMadMs: mad(baselineSamples.map((sample) => sample.requestToPresentMs)),
     deltaMs: delta,
     regressionFlag: flag,
-    firstT50Ms: t50For(firstArm.label),
-    secondT50Ms: t50For(secondArm.label),
-    firstYieldWaitMs: yieldFor(firstArm.label),
-    secondYieldWaitMs: yieldFor(secondArm.label),
+    firstT50Ms: t50Median(candidateSamples),
+    secondT50Ms: t50Median(baselineSamples),
+    firstYieldWaitMs: yieldMedian(candidateSamples),
+    secondYieldWaitMs: yieldMedian(baselineSamples),
   });
 }
 process.stderr.write(
-  `[renderer-path] paired warm medians (${engine}, dist ${dists[dists.length - 1].label}; Δ = ${arms[0].label} − ${arms[1].label}):\n`,
+  `[renderer-path] paired warm medians (${engine}; Δ = ${candidateLabel} − ${baselineLabel}):\n`,
 );
 for (const row of summaryRows) {
   process.stderr.write(
-    `  ${row.caseId}: ${row.firstArm} ${formatMs(row.firstMedianMs)} (t50 ${formatMs(row.firstT50Ms)}, yieldWait ${formatMs(row.firstYieldWaitMs)}) vs ` +
-      `${row.secondArm} ${formatMs(row.secondMedianMs)} (t50 ${formatMs(row.secondT50Ms)}, yieldWait ${formatMs(row.secondYieldWaitMs)}) Δ ${row.deltaMs === undefined ? '—' : row.deltaMs.toFixed(1)} ms ` +
+    `  ${row.caseId}: ${row.candidateLabel} ${formatMs(row.firstMedianMs)} (t50 ${formatMs(row.firstT50Ms)}, yieldWait ${formatMs(row.firstYieldWaitMs)}) vs ` +
+      `${row.baselineLabel} ${formatMs(row.secondMedianMs)} (t50 ${formatMs(row.secondT50Ms)}, yieldWait ${formatMs(row.secondYieldWaitMs)}) Δ ${row.deltaMs === undefined ? '—' : row.deltaMs.toFixed(1)} ms ` +
       `cap ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? 'FLAGGED' : 'ok'}\n`,
   );
 }
