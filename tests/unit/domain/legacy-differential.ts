@@ -1,4 +1,9 @@
-import type { AttractingCycleOrbitResult, Complex, OrbitOptions, OrbitResult } from '../../../src/domain';
+import type {
+  AttractingCycleOrbitResult,
+  Complex,
+  OrbitOptions,
+  OrbitResult,
+} from '../../../src/domain';
 
 /**
  * Shared differential fixtures for the PR 2/PR 3 tests: the verbatim

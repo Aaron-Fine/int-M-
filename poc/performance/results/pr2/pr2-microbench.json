@@ -61,21 +61,8 @@
         "legacy-allocating": {
           "description": "Pre-PR2 pipeline shape: allocating pixelToComplex, PoC control kernel (legacy port) with a per-pixel result record retained briefly, status-mapping writes. The control kernel omits smooth escape iteration, so the wrapper recomputes it from the escape record the way the pre-PR2 production classifier did.",
           "samplesMs": [
-            1280.389,
-            1250.064,
-            1254.224,
-            1271.054,
-            1265.973,
-            1312.538,
-            1256.918,
-            1324.122,
-            1290.487,
-            1265.478,
-            1301.501,
-            1293.294,
-            1284.099,
-            1288.743,
-            1269.257
+            1280.389, 1250.064, 1254.224, 1271.054, 1265.973, 1312.538, 1256.918, 1324.122,
+            1290.487, 1265.478, 1301.501, 1293.294, 1284.099, 1288.743, 1269.257
           ],
           "medianMs": 1280.389,
           "madMs": 14.416,
@@ -103,21 +90,8 @@
         "scalar-core": {
           "description": "Production scalar pipeline shape: pixelToComplexInto, classifyInto into a preallocated OrbitSample, direct channel writes. No per-pixel object is created.",
           "samplesMs": [
-            1270.271,
-            1246.392,
-            1284.292,
-            1249.173,
-            1245.049,
-            1248.595,
-            1289.369,
-            1307.741,
-            1287.918,
-            1282.091,
-            1284.269,
-            1251.774,
-            1276.921,
-            1267.589,
-            1308.279
+            1270.271, 1246.392, 1284.292, 1249.173, 1245.049, 1248.595, 1289.369, 1307.741,
+            1287.918, 1282.091, 1284.269, 1251.774, 1276.921, 1267.589, 1308.279
           ],
           "medianMs": 1276.921,
           "madMs": 12.448,
@@ -171,21 +145,8 @@
         "legacy-allocating": {
           "description": "Pre-PR2 pipeline shape: allocating pixelToComplex, PoC control kernel (legacy port) with a per-pixel result record retained briefly, status-mapping writes. The control kernel omits smooth escape iteration, so the wrapper recomputes it from the escape record the way the pre-PR2 production classifier did.",
           "samplesMs": [
-            406.255,
-            423.059,
-            404.584,
-            417.134,
-            416.277,
-            404.468,
-            403.681,
-            411.727,
-            418.746,
-            414.646,
-            416.607,
-            400.477,
-            403.756,
-            431.208,
-            404.445
+            406.255, 423.059, 404.584, 417.134, 416.277, 404.468, 403.681, 411.727, 418.746,
+            414.646, 416.607, 400.477, 403.756, 431.208, 404.445
           ],
           "medianMs": 411.727,
           "madMs": 7.143,
@@ -213,21 +174,8 @@
         "scalar-core": {
           "description": "Production scalar pipeline shape: pixelToComplexInto, classifyInto into a preallocated OrbitSample, direct channel writes. No per-pixel object is created.",
           "samplesMs": [
-            394.341,
-            406.54,
-            398.282,
-            394.286,
-            387.146,
-            386.27,
-            388.818,
-            390.371,
-            391.18,
-            392.544,
-            387.724,
-            387.784,
-            386.924,
-            413.168,
-            413.746
+            394.341, 406.54, 398.282, 394.286, 387.146, 386.27, 388.818, 390.371, 391.18, 392.544,
+            387.724, 387.784, 386.924, 413.168, 413.746
           ],
           "medianMs": 391.18,
           "madMs": 3.456,

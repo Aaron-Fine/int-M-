@@ -48,6 +48,26 @@ poc/performance/src/
 - Typecheck: `tsc --noEmit -p tsconfig.poc.json` (included in
   `npm run typecheck`).
 
+## PR 3 note: src verifier and the frozen control baseline
+
+Since PR 3, `src/domain/verifier.ts` is the production common verifier
+(frozen policy revision `src-verifier-1.0.0`: scale-aware closure, three-way
+proper-divisor reduction, attraction margin; the classifyInto lag scan
+mirrors its body inline for the V8 reason documented there, and the
+analytic fast paths pass the same margin policy). Production acceptance is
+now honest and versioned. The PoC verifier above and the src verifier are
+separately frozen policies whose threshold values currently agree.
+
+The **control kernel stays frozen** as the legacy baseline: it does not gain
+divisor reduction or the margin, because its value is being the faithful
+pre-PR-3 differential comparator. Its parity contract with the production
+classifier (`control.test.ts`) is therefore status/iterations/evidence
+always, period except documented non-primitive legacy multiples, and every
+divergence is adjudicated against the dd oracle
+(`tests/unit/domain/orbit-oracle-adjudication.test.ts`). The control's
+wrong-primitive-period results versus the oracle (2-3 per profile, see the
+findings below) are exactly the legacy flaw the src verifier fixes.
+
 ## PR 2 microbench (`pr2-bench.ts`)
 
 Benchmarks the production allocation-free scalar classification pipeline
