@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "measurement": "conjugate-mirror",
-  "capturedAt": "2026-09-02T03:39:43.350Z",
+  "capturedAt": "2026-09-02T03:57:14.828Z",
   "environment": {
     "schemaVersion": 1,
-    "capturedAt": "2026-09-02T03:39:43.349Z",
+    "capturedAt": "2026-09-02T03:57:14.827Z",
     "browser": {
       "build": "151.0.7922.34",
       "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
@@ -17,8 +17,8 @@
     "memoryTotalBytes": 16465719296,
     "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
     "revisions": {
-      "build": "d38c916c0a37e2916bb704d8b1d25b7861c3d32c",
-      "algorithm": "d38c916c0a37e2916bb704d8b1d25b7861c3d32c",
+      "build": "46644dd7885224eb03659891cca0a2d4998407c1",
+      "algorithm": "46644dd7885224eb03659891cca0a2d4998407c1",
       "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
       "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
     },
@@ -42,82 +42,82 @@
     {
       "viewId": "mi-easy-default-full",
       "rep": 0,
-      "fullMs": 492.3999999910593,
-      "halfMs": 248.5,
-      "mirrorFillMs": 5.200000002980232,
-      "combinedMs": 253.70000000298023
+      "fullMs": 573.5,
+      "halfMs": 270.5,
+      "mirrorFillMs": 11.199999988079071,
+      "combinedMs": 281.69999998807907
     },
     {
       "viewId": "mi-easy-default-full",
       "rep": 1,
-      "fullMs": 458.5,
-      "halfMs": 241.20000000298023,
-      "mirrorFillMs": 4.299999997019768,
-      "combinedMs": 245.5
+      "fullMs": 470.69999998807907,
+      "halfMs": 285.59999999403954,
+      "mirrorFillMs": 8.199999988079071,
+      "combinedMs": 293.7999999821186
     },
     {
       "viewId": "mi-easy-default-full",
       "rep": 2,
-      "fullMs": 422.20000000298023,
-      "halfMs": 202.20000000298023,
-      "mirrorFillMs": 3.1000000089406967,
-      "combinedMs": 205.30000001192093
+      "fullMs": 341.3999999910593,
+      "halfMs": 156.8999999910593,
+      "mirrorFillMs": 2.7999999970197678,
+      "combinedMs": 159.69999998807907
     },
     {
       "viewId": "mi-easy-default-full",
       "rep": 3,
-      "fullMs": 395.5,
-      "halfMs": 204.3999999910593,
-      "mirrorFillMs": 4.100000008940697,
-      "combinedMs": 208.5
+      "fullMs": 306.20000000298023,
+      "halfMs": 155.5,
+      "mirrorFillMs": 4.200000002980232,
+      "combinedMs": 159.70000000298023
     },
     {
       "viewId": "mi-easy-default-full",
       "rep": 4,
-      "fullMs": 429.59999999403954,
-      "halfMs": 207.09999999403954,
+      "fullMs": 377.29999999701977,
+      "halfMs": 235.70000000298023,
       "mirrorFillMs": 4,
-      "combinedMs": 211.09999999403954
+      "combinedMs": 239.70000000298023
     },
     {
       "viewId": "mi-hard-supplied-126x-symmetric",
       "rep": 0,
-      "fullMs": 48.5,
-      "halfMs": 23.200000002980232,
-      "mirrorFillMs": 4.4000000059604645,
-      "combinedMs": 27.600000008940697
+      "fullMs": 50.1000000089407,
+      "halfMs": 31.200000002980232,
+      "mirrorFillMs": 6.200000002980232,
+      "combinedMs": 37.400000005960464
     },
     {
       "viewId": "mi-hard-supplied-126x-symmetric",
       "rep": 1,
-      "fullMs": 46.599999994039536,
-      "halfMs": 25.799999997019768,
-      "mirrorFillMs": 3.9000000059604645,
-      "combinedMs": 29.700000002980232
+      "fullMs": 55.099999994039536,
+      "halfMs": 33.5,
+      "mirrorFillMs": 4,
+      "combinedMs": 37.5
     },
     {
       "viewId": "mi-hard-supplied-126x-symmetric",
       "rep": 2,
-      "fullMs": 47.29999999701977,
-      "halfMs": 25,
-      "mirrorFillMs": 4.800000011920929,
-      "combinedMs": 29.80000001192093
+      "fullMs": 50.099999994039536,
+      "halfMs": 23.899999991059303,
+      "mirrorFillMs": 4,
+      "combinedMs": 27.899999991059303
     },
     {
       "viewId": "mi-hard-supplied-126x-symmetric",
       "rep": 3,
-      "fullMs": 43.099999994039536,
-      "halfMs": 22.5,
-      "mirrorFillMs": 4,
-      "combinedMs": 26.5
+      "fullMs": 51.099999994039536,
+      "halfMs": 23.400000005960464,
+      "mirrorFillMs": 4.299999997019768,
+      "combinedMs": 27.700000002980232
     },
     {
       "viewId": "mi-hard-supplied-126x-symmetric",
       "rep": 4,
-      "fullMs": 48.69999998807907,
-      "halfMs": 23,
-      "mirrorFillMs": 4.100000008940697,
-      "combinedMs": 27.100000008940697
+      "fullMs": 48.20000000298023,
+      "halfMs": 26.400000005960464,
+      "mirrorFillMs": 3.8999999910593033,
+      "combinedMs": 30.299999997019768
     }
   ],
   "summary": {
@@ -132,33 +132,33 @@
         "warmupReps": 1,
         "classificationFullMs": {
           "n": 5,
-          "median": 429.59999999403954,
-          "min": 395.5,
-          "max": 492.3999999910593,
-          "mean": 439.6399999976158
+          "median": 377.29999999701977,
+          "min": 306.20000000298023,
+          "max": 573.5,
+          "mean": 413.8199999958277
         },
         "classificationCanonicalHalfMs": {
           "n": 5,
-          "median": 207.09999999403954,
-          "min": 202.20000000298023,
-          "max": 248.5,
-          "mean": 220.67999999821185
+          "median": 235.70000000298023,
+          "min": 155.5,
+          "max": 285.59999999403954,
+          "mean": 220.83999999761582
         },
         "mirrorFillMs": {
           "n": 5,
-          "median": 4.100000008940697,
-          "min": 3.1000000089406967,
-          "max": 5.200000002980232,
-          "mean": 4.1400000035762785
+          "median": 4.200000002980232,
+          "min": 2.7999999970197678,
+          "max": 11.199999988079071,
+          "mean": 6.079999995231629
         },
         "halfPlusMirrorMs": {
           "n": 5,
-          "median": 211.09999999403954,
-          "min": 205.30000001192093,
-          "max": 253.70000000298023,
-          "mean": 224.82000000178815
+          "median": 239.70000000298023,
+          "min": 159.69999998807907,
+          "max": 293.7999999821186,
+          "mean": 226.91999999284744
         },
-        "wallTimeRatioFullOverHalfPlusMirror": 2.0350544765806227,
+        "wallTimeRatioFullOverHalfPlusMirror": 1.5740508969225229,
         "semanticParity": {
           "pixelsCompared": 131072,
           "mismatchCount": 0,
@@ -168,9 +168,9 @@
         },
         "workstreamMGate": {
           "bar": ">=1.6x classifier on real-axis-symmetric easy cases (both browsers) with semantic parity",
-          "measuredRatio": 2.0350544765806227,
-          "verdict": "PASS: at or above the 1.6x bar on this view class",
-          "note": "Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, the hard variant is a stress case above the gate difficulty. Chromium only in this harness (see README limitations)."
+          "measuredRatio": 1.5740508969225229,
+          "verdict": "FINDING: below the 1.6x bar on this view class",
+          "note": "Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, and it is the binding case for the bar (hard views push the ratio toward the 2x ceiling by making mirror-fill overhead negligible). Chromium only in this harness (see README limitations)."
         }
       },
       {
@@ -183,33 +183,33 @@
         "warmupReps": 1,
         "classificationFullMs": {
           "n": 5,
-          "median": 47.29999999701977,
-          "min": 43.099999994039536,
-          "max": 48.69999998807907,
-          "mean": 46.83999999463558
+          "median": 50.1000000089407,
+          "min": 48.20000000298023,
+          "max": 55.099999994039536,
+          "mean": 50.91999999880791
         },
         "classificationCanonicalHalfMs": {
           "n": 5,
-          "median": 23.200000002980232,
-          "min": 22.5,
-          "max": 25.799999997019768,
-          "mean": 23.9
+          "median": 26.400000005960464,
+          "min": 23.400000005960464,
+          "max": 33.5,
+          "mean": 27.68000000119209
         },
         "mirrorFillMs": {
           "n": 5,
-          "median": 4.100000008940697,
-          "min": 3.9000000059604645,
-          "max": 4.800000011920929,
-          "mean": 4.240000006556511
+          "median": 4,
+          "min": 3.8999999910593033,
+          "max": 6.200000002980232,
+          "mean": 4.479999998211861
         },
         "halfPlusMirrorMs": {
           "n": 5,
-          "median": 27.600000008940697,
-          "min": 26.5,
-          "max": 29.80000001192093,
-          "mean": 28.140000006556512
+          "median": 30.299999997019768,
+          "min": 27.700000002980232,
+          "max": 37.5,
+          "mean": 32.15999999940395
         },
-        "wallTimeRatioFullOverHalfPlusMirror": 1.7137681152788944,
+        "wallTimeRatioFullOverHalfPlusMirror": 1.6534653469923566,
         "semanticParity": {
           "pixelsCompared": 131072,
           "mismatchCount": 0,
@@ -219,9 +219,9 @@
         },
         "workstreamMGate": {
           "bar": ">=1.6x classifier on real-axis-symmetric easy cases (both browsers) with semantic parity",
-          "measuredRatio": 1.7137681152788944,
+          "measuredRatio": 1.6534653469923566,
           "verdict": "PASS: at or above the 1.6x bar on this view class",
-          "note": "Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, the hard variant is a stress case above the gate difficulty. Chromium only in this harness (see README limitations)."
+          "note": "Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, and it is the binding case for the bar (hard views push the ratio toward the 2x ceiling by making mirror-fill overhead negligible). Chromium only in this harness (see README limitations)."
         }
       }
     ]

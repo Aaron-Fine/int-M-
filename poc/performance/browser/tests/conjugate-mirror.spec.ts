@@ -14,7 +14,10 @@ import { summarize } from './helpers/stats';
  * - mi-easy-default-full: the corpus default viewport, already real-axis
  *   symmetric (center.im = 0 in the manifest) — the gate's easy-case class.
  * - mi-hard-supplied-126x: the hard corpus view's center re and spanY — a
- *   stress case far above the gate's difficulty.
+ *   stress case for the classifier. Note the easy case is the binding one
+ *   for the 1.6x bar: expensive pixels push the ratio toward the 2x ceiling
+ *   by making mirror-fill overhead negligible, while cheap analytic pixels
+ *   let the fill dominate.
  *
  * The ratio measured here (full classification vs canonical-half
  * classification + mirror fill) is the dispatch-level saving workstream M
@@ -98,7 +101,7 @@ test('conjugate-mirroring savings and semantic parity (workstream M)', async ({ 
           ratio >= 1.6
             ? 'PASS: at or above the 1.6x bar on this view class'
             : 'FINDING: below the 1.6x bar on this view class',
-        note: 'Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, the hard variant is a stress case above the gate difficulty. Chromium only in this harness (see README limitations).',
+        note: 'Measured at Balanced on 512^2; only the easy corpus case is real-axis symmetric in the frozen corpus, and it is the binding case for the bar (hard views push the ratio toward the 2x ceiling by making mirror-fill overhead negligible). Chromium only in this harness (see README limitations).',
       },
     };
   });

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { BandOrderResult, YieldAbResult, ZeroCopyResult } from '../fixtures/microbench-api';
 import { captureEnvironment, writeResults } from './helpers/results';
-import { summarize } from './helpers/stats';
+import { median, summarize } from './helpers/stats';
 
 const isNumber = (value: number): boolean => Number.isFinite(value);
 
@@ -21,12 +21,12 @@ test('yield mechanism A/B: nested setTimeout vs MessageChannel (plan §12)', asy
   // The HTML timer-nesting clamp: hops 0..4 run at timer-policy latency,
   // hops from ~5 on should show the observed clamp (≈4 ms).
   const steadyHops = (perHopMs: readonly number[]): number[] => perHopMs.slice(5).filter(isNumber);
-  const clampMedian = medianOf(steadyHops(setTimeoutChain.perHopMs));
-  const channelMedian = medianOf(steadyHops(channelChain.perHopMs));
+  const clampMedian = median(steadyHops(setTimeoutChain.perHopMs));
+  const channelMedian = median(steadyHops(channelChain.perHopMs));
   expect(channelMedian).toBeLessThan(clampMedian);
 
   const cancelMedian = (mechanism: string): number =>
-    medianOf(
+    median(
       result.cancelSamples
         .filter((sample) => sample.mechanism === mechanism)
         .map((sample) => sample.quiescenceMs),
@@ -57,7 +57,7 @@ test('yield mechanism A/B: nested setTimeout vs MessageChannel (plan §12)', asy
       hops: result.hops,
       cancelReps: result.cancelReps,
       setTimeout: {
-        firstFiveHopsMedianMs: medianOf(setTimeoutChain.perHopMs.slice(0, 5)),
+        firstFiveHopsMedianMs: median(setTimeoutChain.perHopMs.slice(0, 5)),
         steadyStateMedianMs: clampMedian,
         steadyStateMaxMs: Math.max(...steadyHops(setTimeoutChain.perHopMs)),
         cancelToQuiescenceMedianMs: cancelMedian('settimeout'),
@@ -148,7 +148,7 @@ test('band order: top-to-bottom vs center-out time-to-50%-rows (perceived-latenc
     strategy: string,
     field: 'ttfbMs' | 't50RowsMs' | 'totalMs',
   ): number =>
-    medianOf(
+    median(
       result.samples
         .filter((sample) => sample.profile === profile && sample.strategy === strategy)
         .map((sample) => sample[field]),
@@ -201,11 +201,3 @@ test('band order: top-to-bottom vs center-out time-to-50%-rows (perceived-latenc
   });
   await test.info().attach('band-order-results', { path: written });
 });
-
-const medianOf = (values: readonly number[]): number => {
-  const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1
-    ? (sorted[middle] ?? 0)
-    : ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2;
-};

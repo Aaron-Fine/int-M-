@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "measurement": "zero-copy-transfer",
-  "capturedAt": "2026-09-02T03:45:13.150Z",
+  "capturedAt": "2026-09-02T04:02:19.886Z",
   "environment": {
     "schemaVersion": 1,
-    "capturedAt": "2026-09-02T03:45:13.150Z",
+    "capturedAt": "2026-09-02T04:02:19.886Z",
     "browser": {
       "build": "151.0.7922.34",
       "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
@@ -17,8 +17,8 @@
     "memoryTotalBytes": 16465719296,
     "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
     "revisions": {
-      "build": "d38c916c0a37e2916bb704d8b1d25b7861c3d32c",
-      "algorithm": "d38c916c0a37e2916bb704d8b1d25b7861c3d32c",
+      "build": "46644dd7885224eb03659891cca0a2d4998407c1",
+      "algorithm": "46644dd7885224eb03659891cca0a2d4998407c1",
       "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
       "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
     },
@@ -39,8 +39,8 @@
     {
       "rep": 0,
       "mode": "copy",
-      "postMs": 16.099999994039536,
-      "roundtripMs": 33.1000000089407,
+      "postMs": 13.099999994039536,
+      "roundtripMs": 28.100000008940697,
       "bytes": 13762560,
       "intact": true
     },
@@ -55,7 +55,7 @@
     {
       "rep": 1,
       "mode": "transfer",
-      "postMs": 0,
+      "postMs": 0.10000000894069672,
       "roundtripMs": 0,
       "bytes": 13762560,
       "intact": true
@@ -63,29 +63,21 @@
     {
       "rep": 1,
       "mode": "copy",
-      "postMs": 15.200000002980232,
-      "roundtripMs": 34.1000000089407,
+      "postMs": 11.699999988079071,
+      "roundtripMs": 27.80000001192093,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 2,
       "mode": "copy",
-      "postMs": 12.399999991059303,
-      "roundtripMs": 28.5,
+      "postMs": 10.5,
+      "roundtripMs": 26.799999997019768,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 2,
-      "mode": "transfer",
-      "postMs": 0,
-      "roundtripMs": 0.19999998807907104,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 3,
       "mode": "transfer",
       "postMs": 0,
       "roundtripMs": 0.10000000894069672,
@@ -94,30 +86,6 @@
     },
     {
       "rep": 3,
-      "mode": "copy",
-      "postMs": 16.700000002980232,
-      "roundtripMs": 30.299999997019768,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 4,
-      "mode": "copy",
-      "postMs": 18,
-      "roundtripMs": 33,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 4,
-      "mode": "transfer",
-      "postMs": 0.09999999403953552,
-      "roundtripMs": 0.10000000894069672,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 5,
       "mode": "transfer",
       "postMs": 0,
       "roundtripMs": 0.09999999403953552,
@@ -125,50 +93,82 @@
       "intact": true
     },
     {
+      "rep": 3,
+      "mode": "copy",
+      "postMs": 12.5,
+      "roundtripMs": 24.299999997019768,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 4,
+      "mode": "copy",
+      "postMs": 12.400000005960464,
+      "roundtripMs": 28.899999991059303,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 4,
+      "mode": "transfer",
+      "postMs": 0.10000000894069672,
+      "roundtripMs": 0.29999999701976776,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 5,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 1,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
       "rep": 5,
       "mode": "copy",
-      "postMs": 12.099999994039536,
-      "roundtripMs": 27.700000002980232,
+      "postMs": 11.599999994039536,
+      "roundtripMs": 28.200000002980232,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 6,
       "mode": "copy",
-      "postMs": 16.5,
-      "roundtripMs": 31.100000008940697,
+      "postMs": 10.699999988079071,
+      "roundtripMs": 26,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 6,
       "mode": "transfer",
-      "postMs": 0,
-      "roundtripMs": 0.19999998807907104,
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 0.4000000059604645,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 7,
       "mode": "transfer",
-      "postMs": 0,
-      "roundtripMs": 0.20000000298023224,
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 0,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 7,
       "mode": "copy",
-      "postMs": 16.900000005960464,
-      "roundtripMs": 29.799999997019768,
+      "postMs": 13.299999997019768,
+      "roundtripMs": 26.400000005960464,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 8,
       "mode": "copy",
-      "postMs": 12.299999997019768,
-      "roundtripMs": 30.900000005960464,
+      "postMs": 13,
+      "roundtripMs": 23.5,
       "bytes": 13762560,
       "intact": true
     },
@@ -176,7 +176,7 @@
       "rep": 8,
       "mode": "transfer",
       "postMs": 0.10000000894069672,
-      "roundtripMs": 0.19999998807907104,
+      "roundtripMs": 0.09999999403953552,
       "bytes": 13762560,
       "intact": true
     },
@@ -191,24 +191,24 @@
     {
       "rep": 9,
       "mode": "copy",
-      "postMs": 12.300000011920929,
-      "roundtripMs": 30.399999991059303,
+      "postMs": 12.799999997019768,
+      "roundtripMs": 27.700000002980232,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 10,
       "mode": "copy",
-      "postMs": 26.5,
-      "roundtripMs": 30.400000005960464,
+      "postMs": 15.900000005960464,
+      "roundtripMs": 39.20000000298023,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 10,
       "mode": "transfer",
-      "postMs": 14.399999991059303,
-      "roundtripMs": 0.30000001192092896,
+      "postMs": 0.19999998807907104,
+      "roundtripMs": 25.299999997019768,
       "bytes": 13762560,
       "intact": true
     },
@@ -216,31 +216,31 @@
       "rep": 11,
       "mode": "transfer",
       "postMs": 0.09999999403953552,
-      "roundtripMs": 0.5,
+      "roundtripMs": 0.10000000894069672,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 11,
       "mode": "copy",
-      "postMs": 14.099999994039536,
-      "roundtripMs": 31.5,
+      "postMs": 15,
+      "roundtripMs": 28.399999991059303,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 12,
       "mode": "copy",
-      "postMs": 16.900000005960464,
-      "roundtripMs": 35.1000000089407,
+      "postMs": 14.5,
+      "roundtripMs": 28.30000001192093,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 12,
       "mode": "transfer",
-      "postMs": 0.09999999403953552,
-      "roundtripMs": 0.20000000298023224,
+      "postMs": 0,
+      "roundtripMs": 0.19999998807907104,
       "bytes": 13762560,
       "intact": true
     },
@@ -248,36 +248,28 @@
       "rep": 13,
       "mode": "transfer",
       "postMs": 0,
-      "roundtripMs": 0.09999999403953552,
+      "roundtripMs": 0.20000000298023224,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 13,
       "mode": "copy",
-      "postMs": 13.800000011920929,
-      "roundtripMs": 27.5,
+      "postMs": 14.700000002980232,
+      "roundtripMs": 23.599999994039536,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 14,
       "mode": "copy",
-      "postMs": 12.099999994039536,
-      "roundtripMs": 28,
+      "postMs": 14.200000002980232,
+      "roundtripMs": 25.700000002980232,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 14,
-      "mode": "transfer",
-      "postMs": 0,
-      "roundtripMs": 0.20000000298023224,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 15,
       "mode": "transfer",
       "postMs": 0,
       "roundtripMs": 0.09999999403953552,
@@ -286,17 +278,25 @@
     },
     {
       "rep": 15,
+      "mode": "transfer",
+      "postMs": 0,
+      "roundtripMs": 0.20000000298023224,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 15,
       "mode": "copy",
-      "postMs": 17.400000005960464,
-      "roundtripMs": 37.29999999701977,
+      "postMs": 11.299999997019768,
+      "roundtripMs": 26.200000002980232,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 16,
       "mode": "copy",
-      "postMs": 13.800000011920929,
-      "roundtripMs": 35.69999998807907,
+      "postMs": 14.799999997019768,
+      "roundtripMs": 34.1000000089407,
       "bytes": 13762560,
       "intact": true
     },
@@ -304,7 +304,7 @@
       "rep": 16,
       "mode": "transfer",
       "postMs": 0,
-      "roundtripMs": 0.30000001192092896,
+      "roundtripMs": 0.10000000894069672,
       "bytes": 13762560,
       "intact": true
     },
@@ -320,55 +320,55 @@
       "rep": 17,
       "mode": "copy",
       "postMs": 13,
-      "roundtripMs": 32.5,
+      "roundtripMs": 24,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 18,
       "mode": "copy",
-      "postMs": 17.099999994039536,
-      "roundtripMs": 29,
+      "postMs": 13.700000002980232,
+      "roundtripMs": 26.299999997019768,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 18,
       "mode": "transfer",
-      "postMs": 0.09999999403953552,
-      "roundtripMs": 0.10000000894069672,
+      "postMs": 0.20000000298023224,
+      "roundtripMs": 12.599999994039536,
       "bytes": 13762560,
       "intact": true
     },
     {
       "rep": 19,
+      "mode": "transfer",
+      "postMs": 0.09999999403953552,
+      "roundtripMs": 0.29999999701976776,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 19,
+      "mode": "copy",
+      "postMs": 13.5,
+      "roundtripMs": 25.299999997019768,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 20,
+      "mode": "copy",
+      "postMs": 12.600000008940697,
+      "roundtripMs": 29.899999991059303,
+      "bytes": 13762560,
+      "intact": true
+    },
+    {
+      "rep": 20,
       "mode": "transfer",
       "postMs": 0,
       "roundtripMs": 0.20000000298023224,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 19,
-      "mode": "copy",
-      "postMs": 13.199999988079071,
-      "roundtripMs": 26.80000001192093,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 20,
-      "mode": "copy",
-      "postMs": 16.69999998807907,
-      "roundtripMs": 34.20000000298023,
-      "bytes": 13762560,
-      "intact": true
-    },
-    {
-      "rep": 20,
-      "mode": "transfer",
-      "postMs": 0.20000000298023224,
-      "roundtripMs": 0.7999999970197678,
       "bytes": 13762560,
       "intact": true
     }
@@ -378,7 +378,7 @@
     "height": 640,
     "bytesPerRoundtrip": 13762560,
     "repsPerMode": 21,
-    "copy": { "postMs": 15.200000002980232, "roundtripMs": 30.900000005960464 },
+    "copy": { "postMs": 13, "roundtripMs": 26.799999997019768 },
     "transfer": { "postMs": 0, "roundtripMs": 0.19999998807907104 },
     "decision": "If transfer roundtrips beat copy roundtrips by a clear margin at ~12.75 MiB per 1024x640 frame (~21 MiB at 1024x1024), pre-sliced transferable band views eliminate the per-band merge memcpy cost the plan prices."
   },

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { EnvironmentSample } from '../fixtures/microbench-api';
 import { captureEnvironment, writeResults } from './helpers/results';
+import { median } from './helpers/stats';
 
 test.describe('PoC browser harness smoke', () => {
   test('production bundle boots to a stable frame', async ({ page }) => {
@@ -49,11 +50,3 @@ test.describe('PoC browser harness smoke', () => {
     await test.info().attach('smoke-results', { path: written });
   });
 });
-
-const median = (values: readonly number[]): number => {
-  const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 1
-    ? (sorted[middle] ?? 0)
-    : ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2;
-};

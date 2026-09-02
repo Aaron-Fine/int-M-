@@ -55,34 +55,39 @@ allows the corpus JSON import — the Node-side PoC sources in
 From the committed run in `results/` (headless Chromium, 8-core i7-1185G7
 laptop):
 
-- **Pool sizing (K).** 1024² hard view, Balanced: median wall 20.5 s (1
-  worker) → 10.4 s (4 workers, the production cap) → 6.0 s (8 workers). On
-  this machine 6/8 workers measured 0.69×/0.58× of the 4-worker cap — above
-  K's 20% bar — but an earlier run on the same hardware measured
-  0.985×/0.864×, so the >4-worker verdict is machine- and run-sensitive.
-- **Yield mechanism (E).** Steady-state yield: `setTimeout` 4.2 ms vs
+- **Pool sizing (K).** 1024² hard view, Balanced: median wall 16.8 s (1
+  worker) → 8.4 s (4 workers, the production cap) → 7.0 s (8 workers). On
+  this machine 6/8 workers measured 0.89×/0.83× of the 4-worker cap (a
+  11–17% gain, below K's 20% bar), but earlier runs on the same hardware
+  measured 0.985×/0.864× and 0.69×/0.58× — the >4-worker verdict is genuinely
+  run-sensitive on this part-HT laptop and needs the declared ≥8-core target
+  class before it gates anything.
+- **Yield mechanism (E).** Steady-state yield: `setTimeout` 4.1 ms vs
   MessageChannel ~0.1 ms; cancel-to-quiescence 4.1 ms vs 0.1 ms. The nested
   timer clamp is visible per-hop after 5 levels.
 - **Zero-copy (E).** 12.75 MiB frame roundtrip: structured-clone copy
-  30.9 ms (post itself 15.2 ms) vs transferable 0.2 ms (post ~0).
-- **Band order (E).** Skewed costs: t50-rows 60.1 ms top-to-bottom vs
-  43.3 ms center-out; first band 32.4 ms vs 10.9 ms. Uniform control: t50
-  49.1 vs 48.6 ms — order must not and does not matter. Throughput unchanged.
-- **Conjugate mirroring (M).** Ratio 2.04× on the real-axis-symmetric easy
-  corpus view (`mi-easy-default-full`) and 1.71× on a symmetric variant of
-  the hard `mi-hard-supplied-126x` — both above the ≥1.6× bar. Semantic
-  parity exact: 0 mismatches over 131 072 mirrored pixels per view (status,
-  period, |λ|, κ, iterations, evidence; arg-λ negation verified by the
-  assembled comparison).
+  26.8 ms (post itself 13.0 ms) vs transferable 0.2 ms (post ~0).
+- **Band order (E).** Skewed costs: t50-rows 60.4 ms top-to-bottom vs
+  43.1 ms center-out; first band 32.2 ms vs 10.8 ms. Uniform control: t50
+  49.1 vs 48.5 ms — order must not and does not matter. Throughput unchanged.
+- **Conjugate mirroring (M).** Ratio 1.57× on the real-axis-symmetric easy
+  corpus view (`mi-easy-default-full`) and 1.65× on a symmetric variant of
+  the hard `mi-hard-supplied-126x`. Across repeated runs on this machine the
+  easy view measured 1.57–2.04× and the hard variant 1.65–1.77×, so the
+  ≥1.6× verdict on the easy case sits at the bar and needs repeated runs
+  (and the gate's second browser) before it gates a PR; the hard variant
+  clears it consistently. Semantic parity exact: 0 mismatches over 131 072
+  mirrored pixels per view in every run (status, period, |λ|, κ, iterations,
+  evidence; arg-λ negation verified by the assembled comparison).
 - **Coarse-cost quality (N input).** The skew gate fires on all three
-  measured views at production band count 4 (slowest/mean 1.41 / 1.98 /
-  3.55). Coarse estimate vs actual per-band compute: r = 0.90
+  measured views at production band count 4 (slowest/mean 1.21 / 1.89 /
+  3.30). Coarse estimate vs actual per-band compute: r = 0.92
   (`mi-hard-supplied-126x`) and 0.99 (`mi-fallback-ambiguous-boundary`), and
-  equal-cost banding lowers skew (1.98→1.10, 3.55→2.33). But on the
-  interior-heavy easy default view the signal mispredicts (r = 0.42) and
-  equal-cost banding is _worse_ (1.41→1.65): the escape-iteration +
+  equal-cost banding lowers skew (1.89→1.08, 3.30→2.09). But on the
+  interior-heavy easy default view the signal mispredicts (r = 0.29) and
+  equal-cost banding is _worse_ (1.21→1.59): the escape-iteration +
   unresolved-fraction model overcharges analytic-interior bands — N's kill
-  criterion on that view class. Pooled r = 0.68 over 48 bands.
+  criterion on that view class. Pooled r = 0.67 over 48 bands.
 
 ## Limitations
 
@@ -92,6 +97,9 @@ laptop):
 - Single machine, and run-to-run variance is real: medians of 5–21 reps with
   alternating arm order and warmup reps bound it, but conclusions near a bar
   (pool sizing above 4 workers) need repeated runs before they gate a PR.
+  Allocation churn (fresh rasters per rep, per-row band buffers) adds GC
+  noise to individual samples; medians and 64-row band sums absorb most of
+  it, and the raw samples are committed so outliers are auditable.
 - Workstream M and the coarse-cost measurement classify on the main thread
   with no worker scheduling, so their ratios isolate classification +
   mirror-fill cost; production dispatch effects (worker startup, queueing,
