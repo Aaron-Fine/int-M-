@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "measurement": "pool-sizing",
-  "capturedAt": "2026-09-01T05:08:35.760Z",
+  "capturedAt": "2026-09-02T03:45:09.198Z",
   "environment": {
     "schemaVersion": 1,
-    "capturedAt": "2026-09-01T05:08:35.758Z",
+    "capturedAt": "2026-09-02T03:45:09.197Z",
     "browser": {
       "build": "151.0.7922.34",
       "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
@@ -17,8 +17,8 @@
     "memoryTotalBytes": 16465719296,
     "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
     "revisions": {
-      "build": "825193ed5cb120a9d69c5e6f0e31c23b9c43d4e4",
-      "algorithm": "825193ed5cb120a9d69c5e6f0e31c23b9c43d4e4",
+      "build": "d38c916c0a37e2916bb704d8b1d25b7861c3d32c",
+      "algorithm": "d38c916c0a37e2916bb704d8b1d25b7861c3d32c",
       "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
       "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
     },
@@ -41,17 +41,17 @@
   "samples": [
     {
       "workerCount": 1,
-      "wallMs": 16533.89999999106,
-      "mergeMs": 11.099999994039536,
-      "yieldWaitMs": 508.8999999910593,
+      "wallMs": 19709.40000000596,
+      "mergeMs": 13.199999988079071,
+      "yieldWaitMs": 506.10000006854534,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 1024,
-          "receivedAtMs": 16533.89999999106,
-          "yieldWaitMs": 508.8999999910593,
+          "receivedAtMs": 19709.40000000596,
+          "yieldWaitMs": 506.10000006854534,
           "yieldCount": 128
         }
       ],
@@ -60,17 +60,17 @@
     },
     {
       "workerCount": 1,
-      "wallMs": 17131.09999999404,
-      "mergeMs": 10.599999994039536,
-      "yieldWaitMs": 506.0999999344349,
+      "wallMs": 20520.20000000298,
+      "mergeMs": 11.700000002980232,
+      "yieldWaitMs": 509.00000001490116,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 1024,
-          "receivedAtMs": 17131.09999999404,
-          "yieldWaitMs": 506.0999999344349,
+          "receivedAtMs": 20520.20000000298,
+          "yieldWaitMs": 509.00000001490116,
           "yieldCount": 128
         }
       ],
@@ -79,17 +79,17 @@
     },
     {
       "workerCount": 1,
-      "wallMs": 17275.60000000894,
-      "mergeMs": 11.099999994039536,
-      "yieldWaitMs": 508.6999998688698,
+      "wallMs": 20762.29999999702,
+      "mergeMs": 12.799999997019768,
+      "yieldWaitMs": 509.89999990165234,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 1024,
-          "receivedAtMs": 17275.5,
-          "yieldWaitMs": 508.6999998688698,
+          "receivedAtMs": 20762.29999999702,
+          "yieldWaitMs": 509.89999990165234,
           "yieldCount": 128
         }
       ],
@@ -98,17 +98,17 @@
     },
     {
       "workerCount": 1,
-      "wallMs": 16562.09999999404,
-      "mergeMs": 9.300000011920929,
-      "yieldWaitMs": 507.4999998807907,
+      "wallMs": 21006.79999999702,
+      "mergeMs": 20.599999994039536,
+      "yieldWaitMs": 513.7000001072884,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 1024,
-          "receivedAtMs": 16562,
-          "yieldWaitMs": 507.4999998807907,
+          "receivedAtMs": 21006.70000000298,
+          "yieldWaitMs": 513.7000001072884,
           "yieldCount": 128
         }
       ],
@@ -117,17 +117,17 @@
     },
     {
       "workerCount": 1,
-      "wallMs": 17984.40000000596,
-      "mergeMs": 9.700000002980232,
-      "yieldWaitMs": 509.29999989271164,
+      "wallMs": 20488.09999999404,
+      "mergeMs": 10.700000002980232,
+      "yieldWaitMs": 516.6999999284744,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 1024,
-          "receivedAtMs": 17984.29999999702,
-          "yieldWaitMs": 509.29999989271164,
+          "receivedAtMs": 20488.09999999404,
+          "yieldWaitMs": 516.6999999284744,
           "yieldCount": 128
         }
       ],
@@ -136,17 +136,17 @@
     },
     {
       "workerCount": 1,
-      "wallMs": 14689.90000000596,
-      "mergeMs": 9.5,
-      "yieldWaitMs": 508.00000001490116,
+      "wallMs": 20054.79999999702,
+      "mergeMs": 9.299999997019768,
+      "yieldWaitMs": 512.7000000327826,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 1024,
-          "receivedAtMs": 14689.90000000596,
-          "yieldWaitMs": 508.00000001490116,
+          "receivedAtMs": 20054.79999999702,
+          "yieldWaitMs": 512.7000000327826,
           "yieldCount": 128
         }
       ],
@@ -155,25 +155,25 @@
     },
     {
       "workerCount": 2,
-      "wallMs": 9016.300000011921,
-      "mergeMs": 15,
-      "yieldWaitMs": 248.3000000566244,
+      "wallMs": 9723,
+      "mergeMs": 10.300000011920929,
+      "yieldWaitMs": 241.09999997913837,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 512,
-          "receivedAtMs": 8324.5,
-          "yieldWaitMs": 241.79999995231628,
+          "receivedAtMs": 9219.5,
+          "yieldWaitMs": 241.09999997913837,
           "yieldCount": 64
         },
         {
           "jobId": 1,
           "y0": 512,
           "y1": 1024,
-          "receivedAtMs": 9016.300000011921,
-          "yieldWaitMs": 248.3000000566244,
+          "receivedAtMs": 9723,
+          "yieldWaitMs": 240.39999997615814,
           "yieldCount": 64
         }
       ],
@@ -182,25 +182,25 @@
     },
     {
       "workerCount": 2,
-      "wallMs": 9571.59999999404,
-      "mergeMs": 16.80000001192093,
-      "yieldWaitMs": 246.40000012516975,
+      "wallMs": 8436.79999999702,
+      "mergeMs": 11.400000005960464,
+      "yieldWaitMs": 240.60000005364418,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 0,
           "y0": 0,
           "y1": 512,
-          "receivedAtMs": 8880.5,
-          "yieldWaitMs": 241.59999997913837,
+          "receivedAtMs": 7995.5999999940395,
+          "yieldWaitMs": 240.60000005364418,
           "yieldCount": 64
         },
         {
           "jobId": 1,
           "y0": 512,
           "y1": 1024,
-          "receivedAtMs": 9571.59999999404,
-          "yieldWaitMs": 246.40000012516975,
+          "receivedAtMs": 8436.79999999702,
+          "yieldWaitMs": 240.3000000268221,
           "yieldCount": 64
         }
       ],
@@ -209,149 +209,149 @@
     },
     {
       "workerCount": 2,
-      "wallMs": 10330.70000000298,
-      "mergeMs": 13.800000011920929,
-      "yieldWaitMs": 244.49999997019768,
-      "yieldCount": 128,
-      "bands": [
-        {
-          "jobId": 0,
-          "y0": 0,
-          "y1": 512,
-          "receivedAtMs": 9821.5,
-          "yieldWaitMs": 243.99999995529652,
-          "yieldCount": 64
-        },
-        {
-          "jobId": 1,
-          "y0": 512,
-          "y1": 1024,
-          "receivedAtMs": 10330.70000000298,
-          "yieldWaitMs": 244.49999997019768,
-          "yieldCount": 64
-        }
-      ],
-      "phase": "measured",
-      "rep": 1
-    },
-    {
-      "workerCount": 2,
-      "wallMs": 8877.29999999702,
-      "mergeMs": 9.5,
-      "yieldWaitMs": 245.00000002980232,
-      "yieldCount": 128,
-      "bands": [
-        {
-          "jobId": 0,
-          "y0": 0,
-          "y1": 512,
-          "receivedAtMs": 8398.09999999404,
-          "yieldWaitMs": 240.8999999910593,
-          "yieldCount": 64
-        },
-        {
-          "jobId": 1,
-          "y0": 512,
-          "y1": 1024,
-          "receivedAtMs": 8877.29999999702,
-          "yieldWaitMs": 245.00000002980232,
-          "yieldCount": 64
-        }
-      ],
-      "phase": "measured",
-      "rep": 2
-    },
-    {
-      "workerCount": 2,
-      "wallMs": 7870.100000008941,
-      "mergeMs": 10.299999997019768,
-      "yieldWaitMs": 240.69999998807907,
-      "yieldCount": 128,
-      "bands": [
-        {
-          "jobId": 0,
-          "y0": 0,
-          "y1": 512,
-          "receivedAtMs": 7482.800000011921,
-          "yieldWaitMs": 240.69999998807907,
-          "yieldCount": 64
-        },
-        {
-          "jobId": 1,
-          "y0": 512,
-          "y1": 1024,
-          "receivedAtMs": 7870,
-          "yieldWaitMs": 240.50000002980232,
-          "yieldCount": 64
-        }
-      ],
-      "phase": "measured",
-      "rep": 3
-    },
-    {
-      "workerCount": 2,
-      "wallMs": 7883.399999991059,
-      "mergeMs": 9.599999994039536,
-      "yieldWaitMs": 240.10000002384186,
-      "yieldCount": 128,
-      "bands": [
-        {
-          "jobId": 0,
-          "y0": 0,
-          "y1": 512,
-          "receivedAtMs": 7259.79999999702,
-          "yieldWaitMs": 239.70000004768372,
-          "yieldCount": 64
-        },
-        {
-          "jobId": 1,
-          "y0": 512,
-          "y1": 1024,
-          "receivedAtMs": 7883.399999991059,
-          "yieldWaitMs": 240.10000002384186,
-          "yieldCount": 64
-        }
-      ],
-      "phase": "measured",
-      "rep": 4
-    },
-    {
-      "workerCount": 4,
-      "wallMs": 7543,
+      "wallMs": 9200.89999999106,
       "mergeMs": 11.099999994039536,
-      "yieldWaitMs": 109.6000000089407,
+      "yieldWaitMs": 241.99999998509884,
+      "yieldCount": 128,
+      "bands": [
+        {
+          "jobId": 0,
+          "y0": 0,
+          "y1": 512,
+          "receivedAtMs": 8575.20000000298,
+          "yieldWaitMs": 241.99999998509884,
+          "yieldCount": 64
+        },
+        {
+          "jobId": 1,
+          "y0": 512,
+          "y1": 1024,
+          "receivedAtMs": 9200.89999999106,
+          "yieldWaitMs": 241.89999985694885,
+          "yieldCount": 64
+        }
+      ],
+      "phase": "measured",
+      "rep": 1
+    },
+    {
+      "workerCount": 2,
+      "wallMs": 10430.300000011921,
+      "mergeMs": 12.100000008940697,
+      "yieldWaitMs": 243.79999986290932,
+      "yieldCount": 128,
+      "bands": [
+        {
+          "jobId": 0,
+          "y0": 0,
+          "y1": 512,
+          "receivedAtMs": 9933.40000000596,
+          "yieldWaitMs": 240.2999999076128,
+          "yieldCount": 64
+        },
+        {
+          "jobId": 1,
+          "y0": 512,
+          "y1": 1024,
+          "receivedAtMs": 10430.300000011921,
+          "yieldWaitMs": 243.79999986290932,
+          "yieldCount": 64
+        }
+      ],
+      "phase": "measured",
+      "rep": 2
+    },
+    {
+      "workerCount": 2,
+      "wallMs": 10752.89999999106,
+      "mergeMs": 13.199999988079071,
+      "yieldWaitMs": 242.39999994635582,
+      "yieldCount": 128,
+      "bands": [
+        {
+          "jobId": 0,
+          "y0": 0,
+          "y1": 512,
+          "receivedAtMs": 10065.39999999106,
+          "yieldWaitMs": 242.39999994635582,
+          "yieldCount": 64
+        },
+        {
+          "jobId": 1,
+          "y0": 512,
+          "y1": 1024,
+          "receivedAtMs": 10752.89999999106,
+          "yieldWaitMs": 241.49999994039536,
+          "yieldCount": 64
+        }
+      ],
+      "phase": "measured",
+      "rep": 3
+    },
+    {
+      "workerCount": 2,
+      "wallMs": 11205.60000000894,
+      "mergeMs": 14.399999991059303,
+      "yieldWaitMs": 242.00000001490116,
+      "yieldCount": 128,
+      "bands": [
+        {
+          "jobId": 0,
+          "y0": 0,
+          "y1": 512,
+          "receivedAtMs": 10590.90000000596,
+          "yieldWaitMs": 242.00000001490116,
+          "yieldCount": 64
+        },
+        {
+          "jobId": 1,
+          "y0": 512,
+          "y1": 1024,
+          "receivedAtMs": 11205.5,
+          "yieldWaitMs": 241.50000001490116,
+          "yieldCount": 64
+        }
+      ],
+      "phase": "measured",
+      "rep": 4
+    },
+    {
+      "workerCount": 4,
+      "wallMs": 10537.5,
+      "mergeMs": 13.000000014901161,
+      "yieldWaitMs": 114.70000000298023,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 3,
           "y0": 768,
           "y1": 1024,
-          "receivedAtMs": 843.2000000029802,
-          "yieldWaitMs": 107.50000001490116,
+          "receivedAtMs": 1133.300000011921,
+          "yieldWaitMs": 110.79999995231628,
           "yieldCount": 32
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 256,
-          "receivedAtMs": 3352.4000000059605,
-          "yieldWaitMs": 108.1000000089407,
+          "receivedAtMs": 5385.800000011921,
+          "yieldWaitMs": 114.70000000298023,
           "yieldCount": 32
         },
         {
           "jobId": 1,
           "y0": 256,
           "y1": 512,
-          "receivedAtMs": 5189.79999999702,
-          "yieldWaitMs": 108.10000002384186,
+          "receivedAtMs": 7582.9000000059605,
+          "yieldWaitMs": 112.19999997317791,
           "yieldCount": 32
         },
         {
           "jobId": 2,
           "y0": 512,
           "y1": 768,
-          "receivedAtMs": 7543,
-          "yieldWaitMs": 109.6000000089407,
+          "receivedAtMs": 10537.5,
+          "yieldWaitMs": 112.39999994635582,
           "yieldCount": 32
         }
       ],
@@ -360,41 +360,41 @@
     },
     {
       "workerCount": 4,
-      "wallMs": 7463.70000000298,
-      "mergeMs": 10.299999982118607,
-      "yieldWaitMs": 108.00000001490116,
+      "wallMs": 10919.5,
+      "mergeMs": 13.799999982118607,
+      "yieldWaitMs": 116.99999997019768,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 3,
           "y0": 768,
           "y1": 1024,
-          "receivedAtMs": 862.9000000059605,
-          "yieldWaitMs": 108.00000001490116,
+          "receivedAtMs": 1152.5,
+          "yieldWaitMs": 116.99999997019768,
           "yieldCount": 32
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 256,
-          "receivedAtMs": 3499.7000000029802,
-          "yieldWaitMs": 107.19999992847443,
+          "receivedAtMs": 4904.899999991059,
+          "yieldWaitMs": 110.70000003278255,
           "yieldCount": 32
         },
         {
           "jobId": 1,
           "y0": 256,
           "y1": 512,
-          "receivedAtMs": 5043.5999999940395,
-          "yieldWaitMs": 108.00000001490116,
+          "receivedAtMs": 7357.29999999702,
+          "yieldWaitMs": 115.39999996125698,
           "yieldCount": 32
         },
         {
           "jobId": 2,
           "y0": 512,
           "y1": 768,
-          "receivedAtMs": 7463.70000000298,
-          "yieldWaitMs": 107.90000005066395,
+          "receivedAtMs": 10919.5,
+          "yieldWaitMs": 110.20000004768372,
           "yieldCount": 32
         }
       ],
@@ -403,41 +403,41 @@
     },
     {
       "workerCount": 4,
-      "wallMs": 8097.5,
-      "mergeMs": 10.600000008940697,
-      "yieldWaitMs": 113.19999994337559,
+      "wallMs": 11501.29999999702,
+      "mergeMs": 22.799999997019768,
+      "yieldWaitMs": 120.1000000089407,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 3,
           "y0": 768,
           "y1": 1024,
-          "receivedAtMs": 858.5999999940395,
-          "yieldWaitMs": 113.19999994337559,
+          "receivedAtMs": 1493,
+          "yieldWaitMs": 120.1000000089407,
           "yieldCount": 32
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 256,
-          "receivedAtMs": 3897.3999999910593,
-          "yieldWaitMs": 110.7999999821186,
+          "receivedAtMs": 5317.5999999940395,
+          "yieldWaitMs": 110.79999999701977,
           "yieldCount": 32
         },
         {
           "jobId": 1,
           "y0": 256,
           "y1": 512,
-          "receivedAtMs": 5945.70000000298,
-          "yieldWaitMs": 108.0000000745058,
+          "receivedAtMs": 7639.399999991059,
+          "yieldWaitMs": 113.30000001192093,
           "yieldCount": 32
         },
         {
           "jobId": 2,
           "y0": 512,
           "y1": 768,
-          "receivedAtMs": 8097.5,
-          "yieldWaitMs": 108.7999999076128,
+          "receivedAtMs": 11501.29999999702,
+          "yieldWaitMs": 112.2999999821186,
           "yieldCount": 32
         }
       ],
@@ -446,41 +446,41 @@
     },
     {
       "workerCount": 4,
-      "wallMs": 7787,
-      "mergeMs": 9.099999994039536,
-      "yieldWaitMs": 108.50000002980232,
+      "wallMs": 10154.5,
+      "mergeMs": 11.799999997019768,
+      "yieldWaitMs": 117.60000006854534,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 3,
           "y0": 768,
           "y1": 1024,
-          "receivedAtMs": 799.7999999970198,
-          "yieldWaitMs": 107.09999999403954,
+          "receivedAtMs": 1193.300000011921,
+          "yieldWaitMs": 117.60000006854534,
           "yieldCount": 32
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 256,
-          "receivedAtMs": 3691,
-          "yieldWaitMs": 108.50000002980232,
+          "receivedAtMs": 5256,
+          "yieldWaitMs": 114.30000005662441,
           "yieldCount": 32
         },
         {
           "jobId": 1,
           "y0": 256,
           "y1": 512,
-          "receivedAtMs": 5337.5,
-          "yieldWaitMs": 107.80000001192093,
+          "receivedAtMs": 7415.100000008941,
+          "yieldWaitMs": 113.90000003576279,
           "yieldCount": 32
         },
         {
           "jobId": 2,
           "y0": 512,
           "y1": 768,
-          "receivedAtMs": 7787,
-          "yieldWaitMs": 108.29999995231628,
+          "receivedAtMs": 10154.5,
+          "yieldWaitMs": 112.6000000834465,
           "yieldCount": 32
         }
       ],
@@ -489,41 +489,41 @@
     },
     {
       "workerCount": 4,
-      "wallMs": 7800.79999999702,
-      "mergeMs": 10.599999979138374,
-      "yieldWaitMs": 110,
+      "wallMs": 9246.20000000298,
+      "mergeMs": 16,
+      "yieldWaitMs": 114.09999999403954,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 3,
           "y0": 768,
           "y1": 1024,
-          "receivedAtMs": 920.5999999940395,
-          "yieldWaitMs": 108.29999999701977,
+          "receivedAtMs": 713.4000000059605,
+          "yieldWaitMs": 110.49999997019768,
           "yieldCount": 32
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 256,
-          "receivedAtMs": 3714.3999999910593,
-          "yieldWaitMs": 109.3999999910593,
+          "receivedAtMs": 4318.600000008941,
+          "yieldWaitMs": 111.00000004470348,
           "yieldCount": 32
         },
         {
           "jobId": 1,
           "y0": 256,
           "y1": 512,
-          "receivedAtMs": 5277.5999999940395,
-          "yieldWaitMs": 108.30000004172325,
+          "receivedAtMs": 5901.100000008941,
+          "yieldWaitMs": 114.09999999403954,
           "yieldCount": 32
         },
         {
           "jobId": 2,
           "y0": 512,
           "y1": 768,
-          "receivedAtMs": 7800.79999999702,
-          "yieldWaitMs": 110,
+          "receivedAtMs": 9246.20000000298,
+          "yieldWaitMs": 110.99999989569187,
           "yieldCount": 32
         }
       ],
@@ -532,41 +532,41 @@
     },
     {
       "workerCount": 4,
-      "wallMs": 8922.40000000596,
-      "mergeMs": 11.900000005960464,
-      "yieldWaitMs": 109.80000005662441,
+      "wallMs": 10402,
+      "mergeMs": 21.700000002980232,
+      "yieldWaitMs": 119.79999996721745,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 3,
           "y0": 768,
           "y1": 1024,
-          "receivedAtMs": 842.9000000059605,
-          "yieldWaitMs": 109.29999992251396,
+          "receivedAtMs": 1227.5,
+          "yieldWaitMs": 115.80000002682209,
           "yieldCount": 32
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 256,
-          "receivedAtMs": 3581.0999999940395,
-          "yieldWaitMs": 109.19999995827675,
+          "receivedAtMs": 5115.5,
+          "yieldWaitMs": 119.79999996721745,
           "yieldCount": 32
         },
         {
           "jobId": 1,
           "y0": 256,
           "y1": 512,
-          "receivedAtMs": 5997.79999999702,
-          "yieldWaitMs": 109.29999999701977,
+          "receivedAtMs": 6811.29999999702,
+          "yieldWaitMs": 110.30000004172325,
           "yieldCount": 32
         },
         {
           "jobId": 2,
           "y0": 512,
           "y1": 768,
-          "receivedAtMs": 8922.40000000596,
-          "yieldWaitMs": 109.80000005662441,
+          "receivedAtMs": 10401.90000000596,
+          "yieldWaitMs": 112.09999994933605,
           "yieldCount": 32
         }
       ],
@@ -575,57 +575,57 @@
     },
     {
       "workerCount": 6,
-      "wallMs": 7439.20000000298,
-      "mergeMs": 11.299999997019768,
-      "yieldWaitMs": 75.70000000298023,
+      "wallMs": 7501,
+      "mergeMs": 13.499999985098839,
+      "yieldWaitMs": 76.40000002086163,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 5,
           "y0": 854,
           "y1": 1024,
-          "receivedAtMs": 405.70000000298023,
-          "yieldWaitMs": 74.39999996125698,
+          "receivedAtMs": 532.3999999910593,
+          "yieldWaitMs": 76.40000002086163,
           "yieldCount": 22
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 171,
-          "receivedAtMs": 1381.9000000059605,
-          "yieldWaitMs": 75.70000000298023,
+          "receivedAtMs": 1593.5999999940395,
+          "yieldWaitMs": 73.70000000298023,
+          "yieldCount": 21
+        },
+        {
+          "jobId": 4,
+          "y0": 684,
+          "y1": 854,
+          "receivedAtMs": 5051.399999991059,
+          "yieldWaitMs": 67.69999994337559,
           "yieldCount": 21
         },
         {
           "jobId": 2,
           "y0": 342,
           "y1": 513,
-          "receivedAtMs": 5112.600000008941,
-          "yieldWaitMs": 69.40000002086163,
+          "receivedAtMs": 5375,
+          "yieldWaitMs": 68.39999997615814,
           "yieldCount": 22
-        },
-        {
-          "jobId": 4,
-          "y0": 684,
-          "y1": 854,
-          "receivedAtMs": 5253,
-          "yieldWaitMs": 66.30000005662441,
-          "yieldCount": 21
         },
         {
           "jobId": 1,
           "y0": 171,
           "y1": 342,
-          "receivedAtMs": 5964.100000008941,
-          "yieldWaitMs": 67.39999994635582,
+          "receivedAtMs": 6251.899999991059,
+          "yieldWaitMs": 68.49999998509884,
           "yieldCount": 21
         },
         {
           "jobId": 3,
           "y0": 513,
           "y1": 684,
-          "receivedAtMs": 7439.20000000298,
-          "yieldWaitMs": 63,
+          "receivedAtMs": 7501,
+          "yieldWaitMs": 64.2000000178814,
           "yieldCount": 21
         }
       ],
@@ -634,57 +634,57 @@
     },
     {
       "workerCount": 6,
-      "wallMs": 7683.100000008941,
-      "mergeMs": 12,
-      "yieldWaitMs": 71.90000005066395,
+      "wallMs": 7108.0999999940395,
+      "mergeMs": 12.5,
+      "yieldWaitMs": 70.19999998807907,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 5,
           "y0": 854,
           "y1": 1024,
-          "receivedAtMs": 326.5,
-          "yieldWaitMs": 69.20000000298023,
+          "receivedAtMs": 223.8999999910593,
+          "yieldWaitMs": 70.19999998807907,
           "yieldCount": 22
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 171,
-          "receivedAtMs": 1456.5,
-          "yieldWaitMs": 64.60000005364418,
+          "receivedAtMs": 1139,
+          "yieldWaitMs": 64.40000000596046,
           "yieldCount": 21
         },
         {
           "jobId": 4,
           "y0": 684,
           "y1": 854,
-          "receivedAtMs": 4555.70000000298,
-          "yieldWaitMs": 65.60000002384186,
+          "receivedAtMs": 4048.3999999910593,
+          "yieldWaitMs": 65.69999995827675,
           "yieldCount": 21
         },
         {
           "jobId": 2,
           "y0": 342,
           "y1": 513,
-          "receivedAtMs": 5043.9000000059605,
-          "yieldWaitMs": 71.90000005066395,
+          "receivedAtMs": 5594.5,
+          "yieldWaitMs": 69.40000006556511,
           "yieldCount": 22
         },
         {
           "jobId": 1,
           "y0": 171,
           "y1": 342,
-          "receivedAtMs": 6267.29999999702,
-          "yieldWaitMs": 64.20000003278255,
+          "receivedAtMs": 6086.20000000298,
+          "yieldWaitMs": 65.09999994933605,
           "yieldCount": 21
         },
         {
           "jobId": 3,
           "y0": 513,
           "y1": 684,
-          "receivedAtMs": 7683.100000008941,
-          "yieldWaitMs": 62.5,
+          "receivedAtMs": 7108.0999999940395,
+          "yieldWaitMs": 63.400000005960464,
           "yieldCount": 21
         }
       ],
@@ -693,57 +693,57 @@
     },
     {
       "workerCount": 6,
-      "wallMs": 8063.5,
-      "mergeMs": 15.600000023841858,
-      "yieldWaitMs": 72.49999997019768,
+      "wallMs": 6660.79999999702,
+      "mergeMs": 12.499999985098839,
+      "yieldWaitMs": 70.69999998807907,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 5,
           "y0": 854,
           "y1": 1024,
-          "receivedAtMs": 281.29999999701977,
-          "yieldWaitMs": 69.80000001192093,
+          "receivedAtMs": 274.79999999701977,
+          "yieldWaitMs": 70.69999998807907,
           "yieldCount": 22
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 171,
-          "receivedAtMs": 1332.5,
-          "yieldWaitMs": 66.50000002980232,
+          "receivedAtMs": 1278,
+          "yieldWaitMs": 65.6000000089407,
           "yieldCount": 21
         },
         {
           "jobId": 4,
           "y0": 684,
           "y1": 854,
-          "receivedAtMs": 4507.5999999940395,
-          "yieldWaitMs": 68.40000000596046,
+          "receivedAtMs": 3861.5,
+          "yieldWaitMs": 62.90000005066395,
           "yieldCount": 21
         },
         {
           "jobId": 2,
           "y0": 342,
           "y1": 513,
-          "receivedAtMs": 4961,
-          "yieldWaitMs": 72.49999997019768,
+          "receivedAtMs": 4298.5,
+          "yieldWaitMs": 66.49999998509884,
           "yieldCount": 22
         },
         {
           "jobId": 1,
           "y0": 171,
           "y1": 342,
-          "receivedAtMs": 5831.5999999940395,
-          "yieldWaitMs": 64.59999999403954,
+          "receivedAtMs": 5073.9000000059605,
+          "yieldWaitMs": 64.29999993741512,
           "yieldCount": 21
         },
         {
           "jobId": 3,
           "y0": 513,
           "y1": 684,
-          "receivedAtMs": 8063.5,
-          "yieldWaitMs": 64.29999999701977,
+          "receivedAtMs": 6660.79999999702,
+          "yieldWaitMs": 63.599999994039536,
           "yieldCount": 21
         }
       ],
@@ -752,57 +752,57 @@
     },
     {
       "workerCount": 6,
-      "wallMs": 8051.699999988079,
-      "mergeMs": 13.899999991059303,
-      "yieldWaitMs": 71.2000000178814,
+      "wallMs": 7181.20000000298,
+      "mergeMs": 12.299999967217445,
+      "yieldWaitMs": 72.09999999403954,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 5,
           "y0": 854,
           "y1": 1024,
-          "receivedAtMs": 281.59999999403954,
-          "yieldWaitMs": 68.49999997019768,
+          "receivedAtMs": 273,
+          "yieldWaitMs": 72.09999999403954,
           "yieldCount": 22
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 171,
-          "receivedAtMs": 1342.0999999940395,
-          "yieldWaitMs": 66.70000003278255,
+          "receivedAtMs": 1201.6000000089407,
+          "yieldWaitMs": 62.99999998509884,
           "yieldCount": 21
         },
         {
           "jobId": 4,
           "y0": 684,
           "y1": 854,
-          "receivedAtMs": 5219.399999991059,
-          "yieldWaitMs": 68.00000004470348,
+          "receivedAtMs": 4030.2000000029802,
+          "yieldWaitMs": 66.39999997615814,
           "yieldCount": 21
         },
         {
           "jobId": 2,
           "y0": 342,
           "y1": 513,
-          "receivedAtMs": 5305.5999999940395,
-          "yieldWaitMs": 71.2000000178814,
+          "receivedAtMs": 4831.100000008941,
+          "yieldWaitMs": 67.30000001192093,
           "yieldCount": 22
         },
         {
           "jobId": 1,
           "y0": 171,
           "y1": 342,
-          "receivedAtMs": 6154.5999999940395,
-          "yieldWaitMs": 68.80000005662441,
+          "receivedAtMs": 5600.20000000298,
+          "yieldWaitMs": 63.099999994039536,
           "yieldCount": 21
         },
         {
           "jobId": 3,
           "y0": 513,
           "y1": 684,
-          "receivedAtMs": 8051.699999988079,
-          "yieldWaitMs": 63.39999997615814,
+          "receivedAtMs": 7181.20000000298,
+          "yieldWaitMs": 63.900000005960464,
           "yieldCount": 21
         }
       ],
@@ -811,57 +811,57 @@
     },
     {
       "workerCount": 6,
-      "wallMs": 6784.70000000298,
-      "mergeMs": 12.600000008940697,
-      "yieldWaitMs": 77.10000003874302,
+      "wallMs": 7167.600000008941,
+      "mergeMs": 16.200000017881393,
+      "yieldWaitMs": 69.80000005662441,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 5,
           "y0": 854,
           "y1": 1024,
-          "receivedAtMs": 292.40000000596046,
-          "yieldWaitMs": 77.10000003874302,
+          "receivedAtMs": 260.90000000596046,
+          "yieldWaitMs": 69.80000005662441,
           "yieldCount": 22
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 171,
-          "receivedAtMs": 1463.5,
-          "yieldWaitMs": 70.99999998509884,
+          "receivedAtMs": 1455.4000000059605,
+          "yieldWaitMs": 63.70000000298023,
+          "yieldCount": 21
+        },
+        {
+          "jobId": 4,
+          "y0": 684,
+          "y1": 854,
+          "receivedAtMs": 4523.100000008941,
+          "yieldWaitMs": 64.10000003874302,
           "yieldCount": 21
         },
         {
           "jobId": 2,
           "y0": 342,
           "y1": 513,
-          "receivedAtMs": 4464.100000008941,
-          "yieldWaitMs": 67.00000002980232,
+          "receivedAtMs": 4770.600000008941,
+          "yieldWaitMs": 67.80000001192093,
           "yieldCount": 22
-        },
-        {
-          "jobId": 4,
-          "y0": 684,
-          "y1": 854,
-          "receivedAtMs": 5115.300000011921,
-          "yieldWaitMs": 62.50000001490116,
-          "yieldCount": 21
         },
         {
           "jobId": 1,
           "y0": 171,
           "y1": 342,
-          "receivedAtMs": 6075.600000008941,
-          "yieldWaitMs": 63.20000000298023,
+          "receivedAtMs": 6166.20000000298,
+          "yieldWaitMs": 63.1000000089407,
           "yieldCount": 21
         },
         {
           "jobId": 3,
           "y0": 513,
           "y1": 684,
-          "receivedAtMs": 6784.70000000298,
-          "yieldWaitMs": 63.39999997615814,
+          "receivedAtMs": 7167.600000008941,
+          "yieldWaitMs": 63.3999999910593,
           "yieldCount": 21
         }
       ],
@@ -870,57 +870,57 @@
     },
     {
       "workerCount": 6,
-      "wallMs": 7298.4000000059605,
-      "mergeMs": 11.400000020861626,
-      "yieldWaitMs": 67.1000000089407,
+      "wallMs": 7593.899999991059,
+      "mergeMs": 12.900000005960464,
+      "yieldWaitMs": 76.70000000298023,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 5,
           "y0": 854,
           "y1": 1024,
-          "receivedAtMs": 213.20000000298023,
-          "yieldWaitMs": 65.80000004172325,
+          "receivedAtMs": 343.3999999910593,
+          "yieldWaitMs": 76.70000000298023,
           "yieldCount": 22
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 171,
-          "receivedAtMs": 963.4000000059605,
-          "yieldWaitMs": 61.599999979138374,
+          "receivedAtMs": 1170,
+          "yieldWaitMs": 64.1000000089407,
           "yieldCount": 21
         },
         {
           "jobId": 4,
           "y0": 684,
           "y1": 854,
-          "receivedAtMs": 4185.29999999702,
-          "yieldWaitMs": 62.69999995827675,
-          "yieldCount": 21
-        },
-        {
-          "jobId": 1,
-          "y0": 171,
-          "y1": 342,
-          "receivedAtMs": 4950.600000008941,
-          "yieldWaitMs": 62.60000003874302,
+          "receivedAtMs": 5021.5999999940395,
+          "yieldWaitMs": 65.20000000298023,
           "yieldCount": 21
         },
         {
           "jobId": 2,
           "y0": 342,
           "y1": 513,
-          "receivedAtMs": 5247.4000000059605,
-          "yieldWaitMs": 67.1000000089407,
+          "receivedAtMs": 5392.399999991059,
+          "yieldWaitMs": 66.80000001192093,
           "yieldCount": 22
+        },
+        {
+          "jobId": 1,
+          "y0": 171,
+          "y1": 342,
+          "receivedAtMs": 6413,
+          "yieldWaitMs": 66.40000002086163,
+          "yieldCount": 21
         },
         {
           "jobId": 3,
           "y0": 513,
           "y1": 684,
-          "receivedAtMs": 7298.4000000059605,
-          "yieldWaitMs": 62.700000032782555,
+          "receivedAtMs": 7593.899999991059,
+          "yieldWaitMs": 64.39999994635582,
           "yieldCount": 21
         }
       ],
@@ -929,73 +929,73 @@
     },
     {
       "workerCount": 8,
-      "wallMs": 6695.100000008941,
-      "mergeMs": 14.80000002682209,
-      "yieldWaitMs": 55.6000000089407,
+      "wallMs": 6012.5,
+      "mergeMs": 14.5,
+      "yieldWaitMs": 53.10000002384186,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 7,
           "y0": 896,
           "y1": 1024,
-          "receivedAtMs": 279.5,
-          "yieldWaitMs": 55.6000000089407,
+          "receivedAtMs": 298.20000000298023,
+          "yieldWaitMs": 50.900000005960464,
           "yieldCount": 16
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 128,
-          "receivedAtMs": 565.1000000089407,
-          "yieldWaitMs": 51.30000002682209,
+          "receivedAtMs": 554.7000000029802,
+          "yieldWaitMs": 53.10000002384186,
           "yieldCount": 16
         },
         {
           "jobId": 6,
           "y0": 768,
           "y1": 896,
-          "receivedAtMs": 1329.1000000089407,
-          "yieldWaitMs": 51.99999998509884,
+          "receivedAtMs": 1339.3999999910593,
+          "yieldWaitMs": 46.599999979138374,
           "yieldCount": 16
         },
         {
           "jobId": 3,
           "y0": 384,
           "y1": 512,
-          "receivedAtMs": 4234.300000011921,
-          "yieldWaitMs": 42.29999998211861,
+          "receivedAtMs": 4201.29999999702,
+          "yieldWaitMs": 45.50000002980232,
           "yieldCount": 16
         },
         {
           "jobId": 2,
           "y0": 256,
           "y1": 384,
-          "receivedAtMs": 4789.9000000059605,
-          "yieldWaitMs": 42.50000002980232,
+          "receivedAtMs": 4413.5,
+          "yieldWaitMs": 44.1000000089407,
           "yieldCount": 16
         },
         {
           "jobId": 1,
           "y0": 128,
           "y1": 256,
-          "receivedAtMs": 4938.20000000298,
-          "yieldWaitMs": 43.19999998807907,
-          "yieldCount": 16
-        },
-        {
-          "jobId": 4,
-          "y0": 512,
-          "y1": 640,
-          "receivedAtMs": 6131.800000011921,
-          "yieldWaitMs": 42.400000020861626,
+          "receivedAtMs": 4928.0999999940395,
+          "yieldWaitMs": 42.50000001490116,
           "yieldCount": 16
         },
         {
           "jobId": 5,
           "y0": 640,
           "y1": 768,
-          "receivedAtMs": 6695.100000008941,
-          "yieldWaitMs": 42.69999998807907,
+          "receivedAtMs": 6003.899999991059,
+          "yieldWaitMs": 42.39999997615814,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 4,
+          "y0": 512,
+          "y1": 640,
+          "receivedAtMs": 6012.5,
+          "yieldWaitMs": 43.80000004172325,
           "yieldCount": 16
         }
       ],
@@ -1004,73 +1004,73 @@
     },
     {
       "workerCount": 8,
-      "wallMs": 6586.20000000298,
-      "mergeMs": 18.500000029802322,
-      "yieldWaitMs": 58.39999997615814,
+      "wallMs": 6022.70000000298,
+      "mergeMs": 13.300000041723251,
+      "yieldWaitMs": 60.70000000298023,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 7,
           "y0": 896,
           "y1": 1024,
-          "receivedAtMs": 262,
-          "yieldWaitMs": 56.499999955296516,
+          "receivedAtMs": 283.20000000298023,
+          "yieldWaitMs": 60.70000000298023,
           "yieldCount": 16
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 128,
-          "receivedAtMs": 717.3999999910593,
-          "yieldWaitMs": 58.39999997615814,
+          "receivedAtMs": 657.7000000029802,
+          "yieldWaitMs": 57.79999998211861,
           "yieldCount": 16
         },
         {
           "jobId": 6,
           "y0": 768,
           "y1": 896,
-          "receivedAtMs": 1198.2000000029802,
+          "receivedAtMs": 1386.5,
+          "yieldWaitMs": 41.799999967217445,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 3,
+          "y0": 384,
+          "y1": 512,
+          "receivedAtMs": 3647.2999999970198,
+          "yieldWaitMs": 46.299999967217445,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 1,
+          "y0": 128,
+          "y1": 256,
+          "receivedAtMs": 4221,
+          "yieldWaitMs": 43.599999979138374,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 2,
+          "y0": 256,
+          "y1": 384,
+          "receivedAtMs": 4558.399999991059,
           "yieldWaitMs": 45.30000002682209,
           "yieldCount": 16
         },
         {
-          "jobId": 2,
-          "y0": 256,
-          "y1": 384,
-          "receivedAtMs": 4659,
-          "yieldWaitMs": 43.69999997317791,
-          "yieldCount": 16
-        },
-        {
-          "jobId": 3,
-          "y0": 384,
-          "y1": 512,
-          "receivedAtMs": 4819.5999999940395,
-          "yieldWaitMs": 46.20000001788139,
-          "yieldCount": 16
-        },
-        {
-          "jobId": 1,
-          "y0": 128,
-          "y1": 256,
-          "receivedAtMs": 5034.29999999702,
-          "yieldWaitMs": 45.099999994039536,
-          "yieldCount": 16
-        },
-        {
           "jobId": 4,
           "y0": 512,
           "y1": 640,
-          "receivedAtMs": 5797.899999991059,
-          "yieldWaitMs": 45.49999998509884,
+          "receivedAtMs": 5325.5,
+          "yieldWaitMs": 43.700000032782555,
           "yieldCount": 16
         },
         {
           "jobId": 5,
           "y0": 640,
           "y1": 768,
-          "receivedAtMs": 6586.20000000298,
-          "yieldWaitMs": 44.00000002980232,
+          "receivedAtMs": 6022.70000000298,
+          "yieldWaitMs": 42.89999993145466,
           "yieldCount": 16
         }
       ],
@@ -1079,73 +1079,73 @@
     },
     {
       "workerCount": 8,
-      "wallMs": 6366.5999999940395,
-      "mergeMs": 26.400000020861626,
-      "yieldWaitMs": 49.1000000089407,
+      "wallMs": 5907.29999999702,
+      "mergeMs": 12.100000023841858,
+      "yieldWaitMs": 45.000000044703484,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 7,
           "y0": 896,
           "y1": 1024,
-          "receivedAtMs": 172,
-          "yieldWaitMs": 42.8999999910593,
+          "receivedAtMs": 113,
+          "yieldWaitMs": 43.10000003874302,
           "yieldCount": 16
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 128,
-          "receivedAtMs": 636.7999999970198,
-          "yieldWaitMs": 49.1000000089407,
+          "receivedAtMs": 380.5,
+          "yieldWaitMs": 43.3999999910593,
           "yieldCount": 16
         },
         {
           "jobId": 6,
           "y0": 768,
           "y1": 896,
-          "receivedAtMs": 1414.8999999910593,
-          "yieldWaitMs": 44.79999999701977,
-          "yieldCount": 16
-        },
-        {
-          "jobId": 2,
-          "y0": 256,
-          "y1": 384,
-          "receivedAtMs": 4833.5,
-          "yieldWaitMs": 42.30000001192093,
+          "receivedAtMs": 1137,
+          "yieldWaitMs": 45.000000044703484,
           "yieldCount": 16
         },
         {
           "jobId": 3,
           "y0": 384,
           "y1": 512,
-          "receivedAtMs": 4895,
-          "yieldWaitMs": 42.89999997615814,
+          "receivedAtMs": 3456.7999999970198,
+          "yieldWaitMs": 41.89999997615814,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 2,
+          "y0": 256,
+          "y1": 384,
+          "receivedAtMs": 4099.79999999702,
+          "yieldWaitMs": 44.5,
           "yieldCount": 16
         },
         {
           "jobId": 1,
           "y0": 128,
           "y1": 256,
-          "receivedAtMs": 5315.29999999702,
-          "yieldWaitMs": 42.09999996423721,
+          "receivedAtMs": 4213.29999999702,
+          "yieldWaitMs": 42.19999998807907,
           "yieldCount": 16
         },
         {
           "jobId": 4,
           "y0": 512,
           "y1": 640,
-          "receivedAtMs": 5675.5999999940395,
-          "yieldWaitMs": 41.80000004172325,
+          "receivedAtMs": 5529.79999999702,
+          "yieldWaitMs": 43.39999997615814,
           "yieldCount": 16
         },
         {
           "jobId": 5,
           "y0": 640,
           "y1": 768,
-          "receivedAtMs": 6366.5999999940395,
-          "yieldWaitMs": 42.39999997615814,
+          "receivedAtMs": 5907.29999999702,
+          "yieldWaitMs": 42.89999997615814,
           "yieldCount": 16
         }
       ],
@@ -1154,73 +1154,73 @@
     },
     {
       "workerCount": 8,
-      "wallMs": 6809.9000000059605,
-      "mergeMs": 13.099999994039536,
-      "yieldWaitMs": 69.20000000298023,
+      "wallMs": 5969.20000000298,
+      "mergeMs": 12.099999994039536,
+      "yieldWaitMs": 45.900000020861626,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 7,
           "y0": 896,
           "y1": 1024,
-          "receivedAtMs": 230.29999999701977,
-          "yieldWaitMs": 69.20000000298023,
+          "receivedAtMs": 114.70000000298023,
+          "yieldWaitMs": 42.8999999910593,
           "yieldCount": 16
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 128,
-          "receivedAtMs": 532.5999999940395,
-          "yieldWaitMs": 48.29999999701977,
+          "receivedAtMs": 404.8999999910593,
+          "yieldWaitMs": 44.40000003576279,
           "yieldCount": 16
         },
         {
           "jobId": 6,
           "y0": 768,
           "y1": 896,
-          "receivedAtMs": 1121.5,
-          "yieldWaitMs": 44.799999967217445,
+          "receivedAtMs": 1064.8999999910593,
+          "yieldWaitMs": 42.49999998509884,
           "yieldCount": 16
         },
         {
           "jobId": 2,
           "y0": 256,
           "y1": 384,
-          "receivedAtMs": 4661.5,
-          "yieldWaitMs": 44.30000005662441,
+          "receivedAtMs": 3581.8999999910593,
+          "yieldWaitMs": 44.099999979138374,
           "yieldCount": 16
         },
         {
           "jobId": 3,
           "y0": 384,
           "y1": 512,
-          "receivedAtMs": 4718.79999999702,
-          "yieldWaitMs": 42.8999999910593,
+          "receivedAtMs": 4302.5999999940395,
+          "yieldWaitMs": 41.700000047683716,
           "yieldCount": 16
         },
         {
           "jobId": 1,
           "y0": 128,
           "y1": 256,
-          "receivedAtMs": 5567.70000000298,
-          "yieldWaitMs": 44.599999979138374,
-          "yieldCount": 16
-        },
-        {
-          "jobId": 4,
-          "y0": 512,
-          "y1": 640,
-          "receivedAtMs": 6582.79999999702,
-          "yieldWaitMs": 44.19999998807907,
+          "receivedAtMs": 4489.20000000298,
+          "yieldWaitMs": 45.900000020861626,
           "yieldCount": 16
         },
         {
           "jobId": 5,
           "y0": 640,
           "y1": 768,
-          "receivedAtMs": 6809.9000000059605,
-          "yieldWaitMs": 42.50000002980232,
+          "receivedAtMs": 5791.5999999940395,
+          "yieldWaitMs": 43.10000003874302,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 4,
+          "y0": 512,
+          "y1": 640,
+          "receivedAtMs": 5969.20000000298,
+          "yieldWaitMs": 45.79999999701977,
           "yieldCount": 16
         }
       ],
@@ -1229,73 +1229,73 @@
     },
     {
       "workerCount": 8,
-      "wallMs": 6743,
-      "mergeMs": 13.099999994039536,
-      "yieldWaitMs": 54.99999998509884,
+      "wallMs": 6647.29999999702,
+      "mergeMs": 15.500000014901161,
+      "yieldWaitMs": 48.60000003874302,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 7,
           "y0": 896,
           "y1": 1024,
-          "receivedAtMs": 190.79999999701977,
-          "yieldWaitMs": 45.8999999910593,
+          "receivedAtMs": 141.19999998807907,
+          "yieldWaitMs": 46.00000001490116,
           "yieldCount": 16
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 128,
-          "receivedAtMs": 575.2999999970198,
-          "yieldWaitMs": 52.8999999910593,
+          "receivedAtMs": 427,
+          "yieldWaitMs": 46.60000002384186,
           "yieldCount": 16
         },
         {
           "jobId": 6,
           "y0": 768,
           "y1": 896,
-          "receivedAtMs": 1237.699999988079,
-          "yieldWaitMs": 54.99999998509884,
+          "receivedAtMs": 1177.3999999910593,
+          "yieldWaitMs": 48.60000003874302,
           "yieldCount": 16
         },
         {
           "jobId": 3,
           "y0": 384,
           "y1": 512,
-          "receivedAtMs": 4167.5,
-          "yieldWaitMs": 43,
+          "receivedAtMs": 4736.399999991059,
+          "yieldWaitMs": 42.99999997019768,
           "yieldCount": 16
         },
         {
           "jobId": 2,
           "y0": 256,
           "y1": 384,
-          "receivedAtMs": 4346.699999988079,
-          "yieldWaitMs": 44.59999996423721,
+          "receivedAtMs": 4948,
+          "yieldWaitMs": 43.09999996423721,
           "yieldCount": 16
         },
         {
           "jobId": 1,
           "y0": 128,
           "y1": 256,
-          "receivedAtMs": 5158.199999988079,
-          "yieldWaitMs": 43.80000002682209,
+          "receivedAtMs": 5419.29999999702,
+          "yieldWaitMs": 46.50000001490116,
           "yieldCount": 16
         },
         {
           "jobId": 4,
           "y0": 512,
           "y1": 640,
-          "receivedAtMs": 6575.29999999702,
-          "yieldWaitMs": 43.50000001490116,
+          "receivedAtMs": 6459.5,
+          "yieldWaitMs": 45.29999999701977,
           "yieldCount": 16
         },
         {
           "jobId": 5,
           "y0": 640,
           "y1": 768,
-          "receivedAtMs": 6743,
-          "yieldWaitMs": 42.000000044703484,
+          "receivedAtMs": 6647.199999988079,
+          "yieldWaitMs": 45.10000002384186,
           "yieldCount": 16
         }
       ],
@@ -1304,73 +1304,73 @@
     },
     {
       "workerCount": 8,
-      "wallMs": 6833.0999999940395,
-      "mergeMs": 14.700000017881393,
-      "yieldWaitMs": 58.39999997615814,
+      "wallMs": 6731,
+      "mergeMs": 17.80000002682209,
+      "yieldWaitMs": 50.8999999910593,
       "yieldCount": 128,
       "bands": [
         {
           "jobId": 7,
           "y0": 896,
           "y1": 1024,
-          "receivedAtMs": 180.29999999701977,
-          "yieldWaitMs": 58.39999997615814,
+          "receivedAtMs": 165.09999999403954,
+          "yieldWaitMs": 48.099999994039536,
           "yieldCount": 16
         },
         {
           "jobId": 0,
           "y0": 0,
           "y1": 128,
-          "receivedAtMs": 809.0999999940395,
-          "yieldWaitMs": 50.89999996125698,
+          "receivedAtMs": 456.09999999403954,
+          "yieldWaitMs": 50.8999999910593,
           "yieldCount": 16
         },
         {
           "jobId": 6,
           "y0": 768,
           "y1": 896,
-          "receivedAtMs": 1276.5999999940395,
-          "yieldWaitMs": 44.30000002682209,
+          "receivedAtMs": 1222.7000000029802,
+          "yieldWaitMs": 47.10000005364418,
           "yieldCount": 16
         },
         {
           "jobId": 2,
           "y0": 256,
           "y1": 384,
-          "receivedAtMs": 4565.79999999702,
-          "yieldWaitMs": 46.00000002980232,
+          "receivedAtMs": 4194.29999999702,
+          "yieldWaitMs": 44.00000001490116,
           "yieldCount": 16
         },
         {
           "jobId": 3,
           "y0": 384,
           "y1": 512,
-          "receivedAtMs": 4630.399999991059,
-          "yieldWaitMs": 42.89999996125698,
+          "receivedAtMs": 4233.5,
+          "yieldWaitMs": 47.49999997019768,
           "yieldCount": 16
         },
         {
           "jobId": 1,
           "y0": 128,
           "y1": 256,
-          "receivedAtMs": 5360.0999999940395,
-          "yieldWaitMs": 44.09999994933605,
-          "yieldCount": 16
-        },
-        {
-          "jobId": 4,
-          "y0": 512,
-          "y1": 640,
-          "receivedAtMs": 6661.5999999940395,
-          "yieldWaitMs": 42.29999998211861,
+          "receivedAtMs": 5345.20000000298,
+          "yieldWaitMs": 46.099999994039536,
           "yieldCount": 16
         },
         {
           "jobId": 5,
           "y0": 640,
           "y1": 768,
-          "receivedAtMs": 6833.0999999940395,
-          "yieldWaitMs": 41.79999998211861,
+          "receivedAtMs": 6597.20000000298,
+          "yieldWaitMs": 44.900000005960464,
+          "yieldCount": 16
+        },
+        {
+          "jobId": 4,
+          "y0": 512,
+          "y1": 640,
+          "receivedAtMs": 6731,
+          "yieldWaitMs": 45.099999979138374,
           "yieldCount": 16
         }
       ],
@@ -1386,77 +1386,77 @@
     "viewport": { "centerRe": -0.158902249, "centerIm": -1.034028, "spanY": 0.01984126984126984 },
     "hardwareConcurrency": 8,
     "spawnMsByWorkerCount": {
-      "1": 0.30000001192092896,
-      "2": 0.4000000059604645,
-      "4": 11.700000002980232,
-      "6": 0.5999999940395355,
-      "8": 1.2999999970197678
+      "1": 0.29999999701976776,
+      "2": 1,
+      "4": 2.5999999940395355,
+      "6": 0.7999999970197678,
+      "8": 0.7999999970197678
     },
     "wallMsPerWorkerCount": [
       {
         "workerCount": 1,
         "wallMs": {
           "n": 5,
-          "median": 17131.09999999404,
-          "min": 14689.90000000596,
-          "max": 17984.40000000596,
-          "mean": 16728.62000000179
+          "median": 20520.20000000298,
+          "min": 20054.79999999702,
+          "max": 21006.79999999702,
+          "mean": 20566.439999997616
         }
       },
       {
         "workerCount": 2,
         "wallMs": {
           "n": 5,
-          "median": 8877.29999999702,
-          "min": 7870.100000008941,
-          "max": 10330.70000000298,
-          "mean": 8906.619999998808
+          "median": 10430.300000011921,
+          "min": 8436.79999999702,
+          "max": 11205.60000000894,
+          "mean": 10005.3
         }
       },
       {
         "workerCount": 4,
         "wallMs": {
           "n": 5,
-          "median": 7800.79999999702,
-          "min": 7463.70000000298,
-          "max": 8922.40000000596,
-          "mean": 8014.280000001192
+          "median": 10402,
+          "min": 9246.20000000298,
+          "max": 11501.29999999702,
+          "mean": 10444.7
         }
       },
       {
         "workerCount": 6,
         "wallMs": {
           "n": 5,
-          "median": 7683.100000008941,
-          "min": 6784.70000000298,
-          "max": 8063.5,
-          "mean": 7576.280000001192
+          "median": 7167.600000008941,
+          "min": 6660.79999999702,
+          "max": 7593.899999991059,
+          "mean": 7142.319999998808
         }
       },
       {
         "workerCount": 8,
         "wallMs": {
           "n": 5,
-          "median": 6743,
-          "min": 6366.5999999940395,
-          "max": 6833.0999999940395,
-          "mean": 6667.759999999404
+          "median": 6022.70000000298,
+          "min": 5907.29999999702,
+          "max": 6731,
+          "mean": 6255.5
         }
       }
     ],
     "medianRatioVersusProductionCap": [
-      { "workerCount": 1, "ratio": 2.1960696338837793 },
-      { "workerCount": 2, "ratio": 1.1379986668034574 },
+      { "workerCount": 1, "ratio": 1.9727167852338954 },
+      { "workerCount": 2, "ratio": 1.0027206306490983 },
       { "workerCount": 4, "ratio": 1 },
-      { "workerCount": 6, "ratio": 0.9849118039190693 },
-      { "workerCount": 8, "ratio": 0.864398523228717 }
+      { "workerCount": 6, "ratio": 0.6890597961938993 },
+      { "workerCount": 8, "ratio": 0.5789944241494885 }
     ],
     "medianRatioVersusSingleWorker": [
       { "workerCount": 1, "ratio": 1 },
-      { "workerCount": 2, "ratio": 0.5181978973913005 },
-      { "workerCount": 4, "ratio": 0.45535896702486905 },
-      { "workerCount": 6, "ratio": 0.44848842164318775 },
-      { "workerCount": 8, "ratio": 0.39361161863525085 }
+      { "workerCount": 2, "ratio": 0.508294266138264 },
+      { "workerCount": 4, "ratio": 0.5069151372792902 },
+      { "workerCount": 6, "ratio": 0.34929484118127013 },
+      { "workerCount": 8, "ratio": 0.29350103800168154 }
     ],
     "workstreamKGate": {
       "bar": "hard-view wall-clock >=20% better on a >=8-core target class (both browsers)",
