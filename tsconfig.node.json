@@ -26,6 +26,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "tests/unit/**/*.ts",
-    "tools/measure_cpu.ts"
+    "tools/measure_cpu.ts",
+    "tools/benchmark/cancel-quiescence.ts"
   ]
 }

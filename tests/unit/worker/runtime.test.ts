@@ -10,6 +10,7 @@ import {
   type SemanticFrame,
   type SemanticFrameConsumer,
 } from '../../../src/render';
+import { packStatusPeriod } from '../../../src/render/packed-semantic';
 import {
   RenderWorkerRuntime,
   type WorkerMessagePort,
@@ -26,10 +27,15 @@ const semanticFrame = (
     stage,
     size,
     sampleStride: stage === 'coarse' ? 4 : 1,
-    status: new Uint8Array(pixelCount).fill(2),
-    period: new Uint32Array(pixelCount).fill(4),
-    smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.5),
-    multiplierAngle: new Float64Array(pixelCount).fill(Math.PI),
+    bands: [
+      {
+        y0: 0,
+        y1: size.height,
+        packedStatusPeriod: new Uint32Array(pixelCount).fill(packStatusPeriod(2, 4)),
+        smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.5),
+        multiplierAngle: new Float64Array(pixelCount).fill(Math.PI),
+      },
+    ],
     progress: stage === 'coarse' ? 0.2 : 1,
   };
 };

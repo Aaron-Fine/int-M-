@@ -8,6 +8,7 @@ import {
   type SemanticFrame,
 } from '../../../src/render';
 import type { TilePool } from '../../../src/render';
+import { packStatusPeriod } from '../../../src/render/packed-semantic';
 
 const STABLE_QUALITY: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 
@@ -17,10 +18,15 @@ const emptyStableFrame = (request: DynamicsRenderRequest): SemanticFrame => {
     stage: 'stable',
     size: request.size,
     sampleStride: 1,
-    status: new Uint8Array(pixelCount),
-    period: new Uint32Array(pixelCount),
-    smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
-    multiplierAngle: new Float64Array(pixelCount),
+    bands: [
+      {
+        y0: 0,
+        y1: request.size.height,
+        packedStatusPeriod: new Uint32Array(pixelCount),
+        smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
+        multiplierAngle: new Float64Array(pixelCount),
+      },
+    ],
     progress: 1,
   };
 };
@@ -39,10 +45,14 @@ describe('CpuRenderer', () => {
       new AbortController().signal,
       (frame) => {
         frames.push(frame);
-        expect(frame.status).toHaveLength(12 * 8);
-        expect(frame.period).toHaveLength(12 * 8);
-        expect(frame.smoothIterationOrMultiplierMagnitude).toHaveLength(12 * 8);
-        expect(frame.multiplierAngle).toHaveLength(12 * 8);
+        expect(frame.bands).toHaveLength(1);
+        const band = frame.bands[0]!;
+        expect(band.y0).toBe(0);
+        expect(band.y1).toBe(8);
+        expect(band.packedStatusPeriod).toHaveLength(12 * 8);
+        expect(band.packedStatusPeriod.every((word) => word !== 0)).toBe(true);
+        expect(band.smoothIterationOrMultiplierMagnitude).toHaveLength(12 * 8);
+        expect(band.multiplierAngle).toHaveLength(12 * 8);
       },
     );
 
@@ -100,18 +110,23 @@ describe('CpuRenderer', () => {
   it('encodes multiplier angle as oriented lightness stripes', () => {
     const renderer = new CpuRenderer();
     const pixelCount = 8;
-    const status = new Uint8Array(pixelCount);
-    const period = new Uint32Array(pixelCount);
-    status.fill(2);
-    period.fill(1);
+    const packedStatusPeriod = new Uint32Array(pixelCount);
+    for (let index = 0; index < pixelCount; index += 1) {
+      packedStatusPeriod[index] = packStatusPeriod(2, 1);
+    }
     const frame: SemanticFrame = {
       stage: 'stable',
       size: { width: 8, height: 1 },
       sampleStride: 1,
-      status,
-      period,
-      smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.2),
-      multiplierAngle: new Float64Array(pixelCount),
+      bands: [
+        {
+          y0: 0,
+          y1: 1,
+          packedStatusPeriod,
+          smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.2),
+          multiplierAngle: new Float64Array(pixelCount),
+        },
+      ],
       progress: 1,
     };
     const raster = renderer.colorize(frame, 'multiplier');

@@ -1,21 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { copyBandIntoFrame, splitRowBands } from '../../../src/render/row-bands';
-import type { SemanticFrame } from '../../../src/render';
-
-const emptyFrame = (width: number, height: number): SemanticFrame => {
-  const pixelCount = width * height;
-  return {
-    stage: 'stable',
-    size: { width, height },
-    sampleStride: 1,
-    status: new Uint8Array(pixelCount),
-    period: new Uint32Array(pixelCount),
-    smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
-    multiplierAngle: new Float64Array(pixelCount),
-    progress: 1,
-  };
-};
+import {
+  orderRowBandsForDispatch,
+  orderRowBandsCenterOut,
+  splitRowBands,
+} from '../../../src/render/row-bands';
+import type { SemanticBand } from '../../../src/render';
 
 describe('splitRowBands', () => {
   it('splitRowBands(10, 3) remainder-front covers [0, height)', () => {
@@ -51,44 +41,46 @@ describe('splitRowBands', () => {
   });
 });
 
-describe('copyBandIntoFrame', () => {
-  it('copyBandIntoFrame_oddHeightLastRow', () => {
-    const width = 3;
-    const height = 5;
-    const frame = emptyFrame(width, height);
-    const y0 = 4;
-    const y1 = 5;
-    const length = (y1 - y0) * width;
-
-    const status = new Uint8Array(length);
-    const period = new Uint32Array(length);
-    const smoothIterationOrMultiplierMagnitude = new Float64Array(length);
-    const multiplierAngle = new Float64Array(length);
-    for (let i = 0; i < length; i += 1) {
-      status[i] = 2;
-      period[i] = 7 + i;
-      smoothIterationOrMultiplierMagnitude[i] = 1.5 + i;
-      multiplierAngle[i] = 0.25 * i;
+describe('band coverage', () => {
+  /**
+   * Zero-copy invariant: the per-band views must partition the frame rows
+   * exactly — sorted, no gaps, no overlap — or a pixel would be missing (or
+   * double-owned) in the assembled stable frame.
+   */
+  const assertBandsCoverFrame = (bands: readonly SemanticBand[], height: number): void => {
+    let expectedY0 = 0;
+    for (const band of bands) {
+      expect(band.y0).toBe(expectedY0);
+      expect(band.y1).toBeGreaterThan(band.y0);
+      expect(band.y1).toBeLessThanOrEqual(height);
+      expectedY0 = band.y1;
     }
+    expect(expectedY0).toBe(height);
+  };
 
-    copyBandIntoFrame(frame, {
-      y0,
-      y1,
-      status,
-      period,
-      smoothIterationOrMultiplierMagnitude,
-      multiplierAngle,
-    });
+  it('assembled band views cover the frame exactly for odd heights and remainders', () => {
+    for (const height of [1, 2, 5, 9, 11, 641]) {
+      for (const bandCount of [1, 3, 8, 16]) {
+        const bands = splitRowBands(height, bandCount).map((band) => ({
+          y0: band.y0,
+          y1: band.y1,
+          packedStatusPeriod: new Uint32Array((band.y1 - band.y0) * 8),
+          smoothIterationOrMultiplierMagnitude: new Float64Array((band.y1 - band.y0) * 8),
+          multiplierAngle: new Float64Array((band.y1 - band.y0) * 8),
+        }));
+        assertBandsCoverFrame(bands, height);
+      }
+    }
+  });
 
-    const offset = y0 * width;
-    expect(frame.status.subarray(offset, offset + length)).toEqual(status);
-    expect(frame.period.subarray(offset, offset + length)).toEqual(period);
-    expect(frame.smoothIterationOrMultiplierMagnitude.subarray(offset, offset + length)).toEqual(
-      smoothIterationOrMultiplierMagnitude,
-    );
-    expect(frame.multiplierAngle.subarray(offset, offset + length)).toEqual(multiplierAngle);
-
-    // Earlier rows remain untouched zeros
-    expect(frame.status.subarray(0, offset)).toEqual(new Uint8Array(offset));
+  it('dispatch-order permutations preserve exact coverage', () => {
+    const height = 641;
+    const bands = splitRowBands(height, 16);
+    for (const order of [
+      orderRowBandsCenterOut(bands, height),
+      orderRowBandsForDispatch(bands, height, 4),
+    ]) {
+      expect([...order].sort((a, b) => a - b)).toEqual(bands.map((_, index) => index));
+    }
   });
 });

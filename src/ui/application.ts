@@ -555,6 +555,10 @@ export function mountApplication(host: HTMLElement): () => void {
       ...(benchmark.classifierMode === undefined
         ? {}
         : { classifierMode: benchmark.classifierMode }),
+      ...(benchmark.bandOrder === undefined ? {} : { bandOrder: benchmark.bandOrder }),
+      ...(benchmark.yieldMechanism === undefined
+        ? {}
+        : { yieldMechanism: benchmark.yieldMechanism }),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,
@@ -591,6 +595,10 @@ export function mountApplication(host: HTMLElement): () => void {
       renderTraces.recordFrame(frame, {
         requestToPresentMs: performance.now() - state.requestStartedAtMs,
         colorizeMs: frame.workerTiming?.colorizeMs,
+        bandsElapsedMs: frame.workerTiming?.bandsElapsedMs,
+        mergeCpuMs: frame.workerTiming?.mergeCpuMs,
+        yieldWaitMs: frame.workerTiming?.yieldWaitMs,
+        yieldCount: frame.workerTiming?.yieldCount,
       });
     });
 

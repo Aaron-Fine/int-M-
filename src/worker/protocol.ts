@@ -7,7 +7,8 @@ import type {
   SemanticView,
   Viewport,
 } from '../domain';
-import type { RenderStage } from '../render';
+import type { BandOrder, FrameOutput, RenderStage } from '../render';
+import type { YieldMechanism } from '../render/yield-scheduler';
 
 export type RequestId = string | number;
 
@@ -24,6 +25,21 @@ export interface RenderMessage {
    * and workers keep the 'legacy-scan' default.
    */
   readonly classifierMode?: ClassifierMode;
+  /**
+   * Diagnostic stable-band dispatch order (renderer-path detail evidence).
+   * Additive optional field: absent on the default path (center-out order).
+   */
+  readonly bandOrder?: BandOrder;
+  /**
+   * Diagnostic stable-frame output path (renderer-path detail evidence).
+   * Additive optional field: absent on the default path (zero-copy).
+   */
+  readonly frameOutput?: FrameOutput;
+  /**
+   * Diagnostic row-yield mechanism (renderer-path detail evidence).
+   * Additive optional field: absent on the default path (MessageChannel).
+   */
+  readonly yieldMechanism?: YieldMechanism;
 }
 
 export interface InspectMessage {
@@ -46,6 +62,10 @@ export interface WorkerFrameTiming {
   readonly colorizeMs: number;
   readonly yieldWaitMs: number;
   readonly yieldCount: number;
+  /** Tiled stable pass only: per-band completion elapsed, indexed by band (row order). */
+  readonly bandsElapsedMs?: readonly number[];
+  /** Tiled stable pass only: supervisor-side merge/assembly cost. */
+  readonly mergeCpuMs?: number;
 }
 
 export interface FrameMessage {

@@ -89,6 +89,38 @@ laptop):
   unresolved-fraction model overcharges analytic-interior bands — N's kill
   criterion on that view class. Pooled r = 0.67 over 48 bands.
 
+## Status: what the renderer-path bundle has now implemented in production
+
+The renderer-path efficiency details this directory measured (plan §5/§12)
+landed on `wt/renderer-path` (bundle commit `1552c24`), each gated by paired
+runs recorded in [`evidence/phase-2/2026-09-02-1552c24/`](../../../evidence/phase-2/2026-09-02-1552c24/summary.md):
+
+- **Yield mechanism.** Implemented: `src/render/yield-scheduler.ts` replaces
+  the nested `setTimeout(0)` row yields with a MessageChannel port scheduler
+  (bounded, coalescing, disposal-safe). The measured per-hop clamp win
+  (4.1 ms → ~0.1 ms) shows up in production as `yieldWaitMs` 63.3 → 3.2 ms on
+  the yield-dense Detailed profile; cancel-to-child-quiescence keeps the same
+  bounded shape through the real tile handler. The `timeout` mechanism is kept
+  as the `?yieldMechanism=timeout` measurement arm.
+- **Zero-copy output.** Implemented with the packed layout: the supervisor
+  pre-slices the stable frame into per-band transferable views, workers
+  classify into them directly, and the merge is a no-op (`mergeCpuMs` 0.1 →
+  0.000 ms). This measurement's echo-worker protocol is what the production
+  `?frameOutput=legacy-merge` arm keeps for paired comparison.
+- **Packed status+period output.** Implemented as `poc-packed-1.0.0` verbatim
+  (`src/render/packed-semantic.ts`, 1 MiB saved per 1024² frame); the paired
+  harness confirms byte-identical RGBA against the unpacked baseline build.
+- **Band order.** Implemented as center-out first-wave scheduling over queued
+  static bands (`BANDS_PER_WORKER = 4`), not the pure all-wave order measured
+  here: the paired production run showed pure center-out deferring expensive
+  periphery bands beyond the cap on `mi-hard-rabbit-boundary`, so the shipped
+  order is center-out first wave + row-ordered remainder. The measured t50
+  win carried over (47–63% in production, detail `m1-center-out`).
+
+The band-order and zero-copy measurements above remain valid as _mechanism_
+evidence; production-integrated numbers now live in the dated evidence
+directory and supersede them for gating.
+
 ## Limitations
 
 - Headless Chromium only, via Playwright. The K and M gates are written per
