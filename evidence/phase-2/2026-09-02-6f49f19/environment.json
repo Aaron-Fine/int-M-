@@ -12,7 +12,7 @@
       "height": 764
     },
     "automation": "Playwright 1.62.1 automation-bundled chromium, headless",
-    "label": "automation-bundled headless engine — directional only, not release evidence per plan §9",
+    "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
     "workerCount": [
       4
     ],
@@ -47,7 +47,8 @@
   "notes": [
     "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
     "Stage A paired classifier-mode run (chromium); production bundle via vite build + vite preview.",
-    "Browser facts filled by tools/benchmark/run-stage-a.mjs (chromium run)."
+    "Browser facts filled by tools/benchmark/run-stage-a.mjs (chromium run).",
+    "Firefox pass executed from build 73a126a (measurable app sources identical to 6f49f19; only harness/evidence files changed between the revisions); artifacts merged into this directory and the manifest re-emitted."
   ],
   "browsers": {
     "chromium": {
@@ -61,12 +62,31 @@
         "height": 764
       },
       "automation": "Playwright 1.62.1 automation-bundled chromium, headless",
-      "label": "automation-bundled headless engine — directional only, not release evidence per plan §9",
+      "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
       "workerCount": [
         4
       ],
       "backend": "cpu",
       "samples": 234
+    },
+    "firefox": {
+      "build": "153.0",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "automation": "Playwright 1.62.1 automation-bundled firefox, headless",
+      "label": "automation-bundled headless engine \u2014 directional only, not release evidence per plan \u00a79",
+      "workerCount": [
+        4
+      ],
+      "backend": "cpu",
+      "samples": 234,
+      "buildRevision": "73a126a"
     }
   },
   "protocol": {
@@ -76,7 +96,7 @@
     "coldWarm": "repetition 0 runs each arm in a fresh browser context (cold; the browser process is shared and per-context HTTP cache is empty); repetitions 1+ re-navigate one persistent page (warm)",
     "outOfScope": "cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope for this first Stage A pass",
     "raster": "shipping-1024x640",
-    "wallMetric": "requestToPresentMs of the computed stable frame (plan §8 fresh delivery timing)",
+    "wallMetric": "requestToPresentMs of the computed stable frame (plan \u00a78 fresh delivery timing)",
     "hashByteOrder": "SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas",
     "engineLabels": "chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol",
     "powerMode": "unknown in the headless automation environment; recorded as null"
