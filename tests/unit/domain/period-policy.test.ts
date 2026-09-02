@@ -265,6 +265,9 @@ describe('invariant 8: systematic and opportunistic claims differ', () => {
     expect(VERIFIER_THRESHOLDS).toEqual({
       tauAccept: 1e-10,
       closureRelaxation: 100,
+      // PR 4's candidate proposal gate — a proposal threshold, not an
+      // acceptance threshold: acceptance remains tauAccept/margin below.
+      tauCandidate: 1e-8,
       tauExclude: 1e-6,
       attractMargin: 1e-12,
     });
