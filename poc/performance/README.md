@@ -260,16 +260,35 @@ implementation.
   period as a documented weak-hint control. Single-neighbor (left) evidence
   only - no top-neighbor pooling in the PoC.
 
+- **Adjacent-pixel transplantation** (`kernels/transplant.ts`, revision
+  `poc-transplant-1.0.0`): keeps the last verified-accepting cycle
+  (period, cycle point, multiplier, seed parameter) as a persistent seed;
+  predicts the neighbor cycle point via the plan §6 parameter derivative
+  (`dz-star/dc = B_cycle/(1−λ)` with `B_cycle` from one B-recurrence walk
+  of the seed cycle), guarded by the plan's multiplier-map attempt region
+  `|B_cycle|·|Δc|/|1−λ| ≤ 1e-2` (`TRANSPLANT_THRESHOLDS`, frozen), seeds
+  ≤3 binary64 Newton corrections against the new parameter, and lets the
+  common verifier decide; refusals and rejections fall back to the
+  checkpoint kernel. Measured on the grids (detailed profile): coherent
+  grids chain 255/255 transplant hits at **0.004× checkpoint
+  comparisons** (rabbit, co-rabbit, period-5, weak-p3, weak-p6a); mixed
+  anchor grids 0.58–0.66×; the coarse anchor-2 grid (pixel spacing 1.2e-2)
+  refuses **every** attempt at the guard (221/221) and degrades to exact
+  fallback cost (1.000×) — graceful by construction. The transplant also
+  _improves_ detection on weak-p6a at balanced (64 vs 109 unresolved):
+  Newton-polished seeds reach verifier acceptance before the orbit
+  converges. Guard-refusal rates by seed-|λ| bucket (detailed):
+  <0.5 146/1071, 0.5–0.9 125/486, 0.9–0.99 32/321 — refusals track the
+  |Δc| factor (coarse/transition grids), and the 0.99+ bucket is
+  unmeasured because no grid seed reaches |λ| ≥ 0.99 (weak-p6b stays
+  unresolved at every PoC budget). Flat matrix rows (seed walks the point
+  list): 0.976×/0.933× checkpoint, zero unresolved delta, zero gate.
+
 ## Roadmap: specified but not yet implemented variants
 
 These are plan §5/§11 Step 0 candidates not implemented in this harness yet,
 with the code points where they plug in:
 
-- **Adjacent-pixel transplantation with multiplier-map attempt guard** —
-  seed a pixel's verifier attempt from a neighbor's verified cycle, gated by
-  the multiplier-map bound `|B| * |dc|`; plugs in above
-  `kernels/shared.ts:verifyCandidate` at the raster/dispatch layer the
-  runner does not yet model (it classifies isolated points).
 - **Trap-radius early accept** (plan workstream L, research-only) — accept
   when the orbit enters a disk where `f_c^p` is contracting, before
   tau-closure; would hook into the verifier acceptance path

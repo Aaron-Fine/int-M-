@@ -33,6 +33,8 @@ export interface KernelMetrics {
   deGuessRounds?: number;
   transplantAttempts?: number;
   transplantGuardRefusals?: number;
+  /** The persistent seed's |lambda| at attempt time (transplant/trap). */
+  transplantSeedLambda?: number;
   trapProposals?: number;
   trapNewtonFailures?: number;
   trapOrbitWork?: number;

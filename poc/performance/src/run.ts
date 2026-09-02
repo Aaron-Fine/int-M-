@@ -32,6 +32,11 @@ import {
 import { NeighborKernel, NEIGHBOR_REVISION } from './kernels/neighbor.ts';
 import { StaggeredKernel, STAGGERED_REVISION } from './kernels/staggered.ts';
 import { TriggerKernel, TRIGGER_REVISION, TRIGGER_THRESHOLDS } from './kernels/trigger.ts';
+import {
+  TRANSPLANT_REVISION,
+  TRANSPLANT_THRESHOLDS,
+  TransplantKernel,
+} from './kernels/transplant.ts';
 import { GRIDS_REVISION, GRID_SIZE, GRID_SPECS, buildGrids, type GridPoint } from './grids.ts';
 import { CANDIDATE_REJECTION_BUDGET } from './kernels/shared.ts';
 import { VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier.ts';
@@ -97,6 +102,13 @@ const variants = (): Variant[] => [
   ...[true, false].map((exhaustionScan) => ({
     key: `neighbor.exhaustion-${exhaustionScan ? 'on' : 'off'}`,
     kernel: new NeighborKernel(64),
+    exhaustionScan,
+  })),
+  // Adjacent-pixel transplantation: the persistent seed walks the raster
+  // (call order); the exhaustion flag applies to the fallback schedule.
+  ...[true, false].map((exhaustionScan) => ({
+    key: `transplant.exhaustion-${exhaustionScan ? 'on' : 'off'}`,
+    kernel: new TransplantKernel(64),
     exhaustionScan,
   })),
 ];
@@ -362,8 +374,13 @@ const classifyCorpus = (
       return recordOf(point, variant, result);
     });
   }
+  if (kernel instanceof TransplantKernel) {
+    // The persistent seed walks the raster (call order); every pass starts
+    // unseeded so recorded and timed passes stay comparable.
+    kernel.resetSeed();
+  }
   return corpus.map((point) =>
-    recordOf(point, variant, variant.kernel.classify(point.cRe, point.cIm, options)),
+    recordOf(point, variant, kernel.classify(point.cRe, point.cIm, options)),
   );
 };
 
@@ -372,6 +389,9 @@ const timedPassMs = (
   corpus: ReturnType<typeof buildCorpus>,
   profile: (typeof PROFILES)[number],
 ): number => {
+  if (variant.kernel instanceof TransplantKernel) {
+    variant.kernel.resetSeed();
+  }
   const started = process.hrtime.bigint();
   for (const point of corpus) {
     variant.kernel.classify(point.cRe, point.cIm, profileOptions(profile, variant.exhaustionScan));
@@ -558,6 +578,10 @@ interface GridStats {
   wrongPrimitivePeriod: number;
   unadjudicatedAttracting: number;
   missedDetections: number;
+  /** Transplant-pipeline counters (zeros for other kernels). */
+  transplantHits: number;
+  transplantAttempts: number;
+  transplantGuardRefusals: number;
 }
 
 const emptyGridStats = (): GridStats => ({
@@ -571,6 +595,9 @@ const emptyGridStats = (): GridStats => ({
   wrongPrimitivePeriod: 0,
   unadjudicatedAttracting: 0,
   missedDetections: 0,
+  transplantHits: 0,
+  transplantAttempts: 0,
+  transplantGuardRefusals: 0,
 });
 
 const gridRecordOf = (point: GridPoint, kernelName: string, result: KernelResult): GridRecord => ({
@@ -590,6 +617,11 @@ const foldGridStats = (stats: GridStats, record: GridRecord, truth: DDClassifica
   if (record.evidence === 'neighbor-hint') {
     stats.hintDetections += 1;
   }
+  if (record.evidence === 'transplant-hit') {
+    stats.transplantHits += 1;
+  }
+  stats.transplantAttempts += record.metrics.transplantAttempts ?? 0;
+  stats.transplantGuardRefusals += record.metrics.transplantGuardRefusals ?? 0;
   if (record.status === 'unresolved') {
     stats.unresolved += 1;
   }
@@ -620,24 +652,66 @@ const finalizeGridStats = (
   hintShareOfDetections: stats.attracting === 0 ? null : stats.hintDetections / stats.attracting,
 });
 
+/** |lambda| buckets for the transplant guard-refusal report (frozen edges). */
+const LAMBDA_BUCKETS = [
+  { key: 'below-0.5', max: 0.5 },
+  { key: '0.5-0.9', max: 0.9 },
+  { key: '0.9-0.99', max: 0.99 },
+  { key: '0.99-plus', max: Number.POSITIVE_INFINITY },
+] as const;
+
+const emptyLambdaBucket = (): {
+  attempts: number;
+  guardRefusals: number;
+  hits: number;
+} => ({ attempts: 0, guardRefusals: 0, hits: 0 });
+
+type LambdaBuckets = Record<string, { attempts: number; guardRefusals: number; hits: number }>;
+
+const bucketFor = (lambda: number): string => {
+  for (const bucket of LAMBDA_BUCKETS) {
+    if (lambda < bucket.max) {
+      return bucket.key;
+    }
+  }
+  return '0.99-plus';
+};
+
+const accumulateBuckets = (records: readonly GridRecord[], buckets: LambdaBuckets): void => {
+  for (const record of records) {
+    const lambda = record.metrics.transplantSeedLambda;
+    if (lambda === undefined || (record.metrics.transplantAttempts ?? 0) === 0) {
+      continue;
+    }
+    const bucket = buckets[bucketFor(lambda)] ?? emptyLambdaBucket();
+    bucket.attempts += 1;
+    bucket.guardRefusals += record.metrics.transplantGuardRefusals ?? 0;
+    if (record.evidence === 'transplant-hit') {
+      bucket.hits += 1;
+    }
+  }
+};
+
 /**
- * Classify one grid in raster order with the checkpoint baseline and the
- * neighbor kernel (hint = previous pixel's detected period), fold both
- * against the oracle, and return the per-grid comparison plus the gate
- * counts. The per-point iteration deltas (neighbor - checkpoint, both
+ * Classify one grid in raster order with the checkpoint baseline, the
+ * neighbor kernel (hint = previous pixel's detected period), and the
+ * transplant kernel (persistent seed walking the raster); fold all against
+ * the oracle. Per-point iteration deltas (neighbor - checkpoint, both
  * attracting) keep the detection-delay distribution honest.
  */
-const classifyGridPair = (
+const classifyGridSet = (
   points: readonly GridPoint[],
   oracle: Map<string, DDClassification>,
   profile: (typeof PROFILES)[number],
-): Record<string, unknown> => {
+): { report: Record<string, unknown>; transplantRecords: GridRecord[] } => {
   const options = profileOptions(profile, true);
   const checkpoint = new CheckpointKernel(64);
   const neighbor = new NeighborKernel(64);
+  const transplant = new TransplantKernel(64);
 
   const checkpointRecords: GridRecord[] = [];
   const neighborRecords: GridRecord[] = [];
+  const transplantRecords: GridRecord[] = [];
   let previousPeriod = 0;
   for (const point of points) {
     checkpointRecords.push(
@@ -646,6 +720,9 @@ const classifyGridPair = (
     const result = neighbor.classifyWithHint(point.cRe, point.cIm, options, previousPeriod);
     previousPeriod = result.status === 'attracting' ? result.period : 0;
     neighborRecords.push(gridRecordOf(point, 'neighbor', result));
+    transplantRecords.push(
+      gridRecordOf(point, 'transplant', transplant.classify(point.cRe, point.cIm, options)),
+    );
   }
 
   const foldAll = (records: readonly GridRecord[]): GridStats => {
@@ -662,6 +739,7 @@ const classifyGridPair = (
 
   const checkpointStats = foldAll(checkpointRecords);
   const neighborStats = foldAll(neighborRecords);
+  const transplantStats = foldAll(transplantRecords);
   const iterationDeltas = neighborRecords.flatMap((record, index) => {
     const baseline = checkpointRecords[index];
     if (record.status !== 'attracting' || baseline?.status !== 'attracting') {
@@ -670,23 +748,29 @@ const classifyGridPair = (
     return [{ id: record.id, iterationDelta: record.iterations - baseline.iterations }];
   });
 
-  return {
+  const report: Record<string, unknown> = {
     points: points.length,
     checkpoint: finalizeGridStats(checkpointStats),
     neighbor: finalizeGridStats(neighborStats),
-    comparisonsVsCheckpoint:
+    transplant: finalizeGridStats(transplantStats),
+    neighborComparisonsVsCheckpoint:
       checkpointStats.totalLagComparisons === 0
         ? null
         : neighborStats.totalLagComparisons / checkpointStats.totalLagComparisons,
+    transplantComparisonsVsCheckpoint:
+      checkpointStats.totalLagComparisons === 0
+        ? null
+        : transplantStats.totalLagComparisons / checkpointStats.totalLagComparisons,
     iterationDeltas,
   };
+  return { report, transplantRecords };
 };
 
 const runGridSection = (
   gridPoints: readonly GridPoint[],
   oracle: Map<string, DDClassification>,
   profile: (typeof PROFILES)[number],
-): { grids: Record<string, unknown>; gateFailures: number } => {
+): { grids: Record<string, unknown>; gateFailures: number; lambdaBuckets: LambdaBuckets } => {
   const byGrid = new Map<string, GridPoint[]>();
   for (const point of gridPoints) {
     const list = byGrid.get(point.grid) ?? [];
@@ -695,11 +779,16 @@ const runGridSection = (
   }
 
   const grids: Record<string, unknown> = {};
+  const lambdaBuckets: LambdaBuckets = {};
+  for (const key of LAMBDA_BUCKETS) {
+    lambdaBuckets[key.key] = emptyLambdaBucket();
+  }
   let gateFailures = 0;
   for (const [name, points] of byGrid) {
-    const report = classifyGridPair(points, oracle, profile);
+    const { report, transplantRecords } = classifyGridSet(points, oracle, profile);
     grids[name] = report;
-    for (const key of ['checkpoint', 'neighbor'] as const) {
+    accumulateBuckets(transplantRecords, lambdaBuckets);
+    for (const key of ['checkpoint', 'neighbor', 'transplant'] as const) {
       const stats = report[key] as GridStats;
       if (stats.falseAttracting > 0 || stats.wrongPrimitivePeriod > 0) {
         console.error(
@@ -709,7 +798,7 @@ const runGridSection = (
       }
     }
   }
-  return { grids, gateFailures };
+  return { grids, gateFailures, lambdaBuckets };
 };
 
 const run = (): number => {
@@ -751,6 +840,11 @@ const run = (): number => {
         opportunisticCeiling: DE_OPPORTUNISTIC_CEILING,
       },
       neighbor: { revision: NEIGHBOR_REVISION, fallbackTrigger: 'frozen trigger thresholds' },
+      transplant: {
+        revision: TRANSPLANT_REVISION,
+        thresholds: TRANSPLANT_THRESHOLDS,
+        guardFormula: '|B_cycle| * |dc| / |1 - lambda| (plan section 6 conditioning guard)',
+      },
     },
     ddOracle: { options: DEFAULT_DD_ORACLE_OPTIONS },
     gate: {
@@ -889,7 +983,10 @@ const run = (): number => {
   const gridProfiles: Record<string, unknown> = {};
   for (const profile of [PROFILES[1], PROFILES[2]]) {
     const section = runGridSection(gridPoints, oracle, profile);
-    gridProfiles[profile.name] = section.grids;
+    gridProfiles[profile.name] = {
+      grids: section.grids,
+      transplantLambdaBuckets: section.lambdaBuckets,
+    };
     gridGateFailures += section.gateFailures;
   }
   summary['grids'] = {
