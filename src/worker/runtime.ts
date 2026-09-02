@@ -36,10 +36,12 @@ const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage 
   message: error instanceof Error ? error.message : 'unknown rendering error',
 });
 
-const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest =>
-  message.quality === undefined
-    ? { viewport: message.viewport, size: message.size }
-    : { viewport: message.viewport, size: message.size, quality: message.quality };
+const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
+  viewport: message.viewport,
+  size: message.size,
+  ...(message.quality === undefined ? {} : { quality: message.quality }),
+  ...(message.classifierMode === undefined ? {} : { classifierMode: message.classifierMode }),
+});
 
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;

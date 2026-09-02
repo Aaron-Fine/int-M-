@@ -1,4 +1,4 @@
-import type { RasterSize, RenderQuality, Viewport } from '../domain';
+import type { ClassifierMode, RasterSize, RenderQuality, Viewport } from '../domain';
 
 export interface TileClassifyMessage {
   readonly type: 'tile-classify';
@@ -9,6 +9,8 @@ export interface TileClassifyMessage {
   readonly y0: number;
   readonly y1: number;
   readonly quality: RenderQuality;
+  /** Additive optional classifier mode; absent on the default path. */
+  readonly classifierMode?: ClassifierMode;
 }
 
 export interface TileResultMessage {

@@ -2,7 +2,7 @@ import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { copyBandIntoFrame, splitRowBands } from '../render/row-bands';
 import type { DynamicsRenderRequest, SemanticFrame, TilePool } from '../render/renderer';
-import type { RenderQuality } from '../domain';
+import type { ClassifierMode, RenderQuality } from '../domain';
 import type {
   SupervisorToTileMessage,
   TileMessageEvent,
@@ -102,6 +102,7 @@ class TilePoolImpl implements TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
+    classifierMode?: ClassifierMode,
   ): Promise<SemanticFrame> {
     throwIfAborted(signal);
     if (this.#active !== undefined) {
@@ -113,8 +114,8 @@ class TilePoolImpl implements TilePool {
     throwIfAborted(signal);
 
     return this.#workerCount === 1
-      ? this.#classifyInProcess(request, quality, signal)
-      : this.#classifyTiled(request, quality, signal);
+      ? this.#classifyInProcess(request, quality, signal, classifierMode)
+      : this.#classifyTiled(request, quality, signal, classifierMode);
   }
 
   public dispose(): void {
@@ -127,8 +128,17 @@ class TilePoolImpl implements TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
+    classifierMode?: ClassifierMode,
   ): Promise<SemanticFrame> {
-    const band = await classifyRows(request, quality, 1, 0, request.size.height, signal);
+    const band = await classifyRows(
+      request,
+      quality,
+      1,
+      0,
+      request.size.height,
+      signal,
+      classifierMode,
+    );
     throwIfAborted(signal);
     return frameFromBand(request, band);
   }
@@ -137,6 +147,7 @@ class TilePoolImpl implements TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
+    classifierMode?: ClassifierMode,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
     const bands = splitRowBands(request.size.height, workers.length);
@@ -180,6 +191,7 @@ class TilePoolImpl implements TilePool {
           y0: band.y0,
           y1: band.y1,
           quality,
+          ...(classifierMode === undefined ? {} : { classifierMode }),
         };
         worker.postMessage(message);
         postedJobIds.push(jobId);

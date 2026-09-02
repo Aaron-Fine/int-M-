@@ -16,6 +16,7 @@ import { COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components'
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { createSemanticLegend } from './semantic-legend';
+import { parseBenchmarkParams } from './benchmark-params';
 import {
   DEFAULT_VIEWPORT,
   DEFAULT_QUALITY_PROFILE_ID,
@@ -36,7 +37,12 @@ import {
   ZOOM_FACTOR,
 } from './view-state';
 import { RendererWorkerClient } from './renderer-worker-client';
-import { createRenderTraceRing, expectedWorkerCount, viewKeyHash } from './worker-timing-marks';
+import {
+  createRenderTraceRing,
+  expectedWorkerCount,
+  viewKeyHash,
+  type RenderTrace,
+} from './worker-timing-marks';
 
 interface ApplicationState {
   viewport: Viewport;
@@ -71,12 +77,38 @@ declare global {
     __MI_PHASE1_TEST__?: {
       failRenderer(): void;
     };
+    /**
+     * Opt-in (?perf=1) render-trace diagnostic boundary, performance plan §8.
+     * Absent unless requested; exposes the bounded ring's snapshot plus the
+     * most recently completed trace for the Stage A evidence harness.
+     */
+    __miRenderTrace?: {
+      readonly snapshot: () => readonly RenderTrace[];
+      lastTrace: RenderTrace | undefined;
+    };
   }
 }
 
 export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
-  const renderTraces = createRenderTraceRing();
+  // Opt-in benchmark parameters (plan §8/§9): validated query parameters for
+  // the Stage A evidence harness. Absent parameters leave every default —
+  // viewport, quality profile, classifier mode, trace hook — untouched.
+  const benchmark = parseBenchmarkParams(window.location.search);
+  let perfHook: NonNullable<Window['__miRenderTrace']> | undefined;
+  const renderTraces = createRenderTraceRing({
+    ...(benchmark.perfEnabled
+      ? {
+          onTraceCompleted: (trace: RenderTrace) => {
+            if (perfHook !== undefined) perfHook.lastTrace = trace;
+          },
+        }
+      : {}),
+  });
+  if (benchmark.perfEnabled) {
+    perfHook = { snapshot: () => renderTraces.snapshot(), lastTrace: undefined };
+    window.__miRenderTrace = perfHook;
+  }
   const longTaskObserver = PerformanceObserver.supportedEntryTypes.includes('longtask')
     ? new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
@@ -89,7 +121,7 @@ export function mountApplication(host: HTMLElement): () => void {
     : undefined;
   longTaskObserver?.observe({ type: 'longtask', buffered: true });
   const state: ApplicationState = {
-    viewport: { ...DEFAULT_VIEWPORT },
+    viewport: benchmark.viewport ? { ...benchmark.viewport } : { ...DEFAULT_VIEWPORT },
     semanticView: 'stability',
     catalogVisible: true,
     requestId: 0,
@@ -98,7 +130,7 @@ export function mountApplication(host: HTMLElement): () => void {
     frameStage: 'none',
     dragging: false,
     interactionMode: 'pan',
-    qualityProfile: DEFAULT_QUALITY_PROFILE_ID,
+    qualityProfile: benchmark.qualityProfile ?? DEFAULT_QUALITY_PROFILE_ID,
     requestStartedAtMs: 0,
     cancelRequestedAtMs: 0,
     cancelRequestedRequestId: 0,
@@ -514,6 +546,9 @@ export function mountApplication(host: HTMLElement): () => void {
       size,
       semanticView: state.semanticView,
       quality: quality.quality,
+      ...(benchmark.classifierMode === undefined
+        ? {}
+        : { classifierMode: benchmark.classifierMode }),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,
@@ -1060,6 +1095,8 @@ export function mountApplication(host: HTMLElement): () => void {
     document.removeEventListener('keydown', onDocumentKeydown);
     workerClient.dispose();
     if (import.meta.env.DEV) delete window.__MI_PHASE1_TEST__;
+    delete window.__miRenderTrace;
+    perfHook = undefined;
     host.replaceChildren();
   };
 }

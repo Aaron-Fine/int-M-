@@ -17,6 +17,9 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     request.size.width,
     request.size.height,
     qualityKey(quality),
+    // Classifier mode is part of the frame's semantics. Conditional so the
+    // default (mode-less) key stays byte-identical to its previous form.
+    ...(request.classifierMode === undefined ? [] : [`cm:${request.classifierMode}`]),
   ].join('|');
 };
 

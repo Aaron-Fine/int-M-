@@ -39,7 +39,15 @@ const classifyFull = async (
   stage: RenderStage,
   signal: AbortSignal,
 ): Promise<SemanticFrame> => {
-  const band = await classifyRows(request, quality, stride, 0, request.size.height, signal);
+  const band = await classifyRows(
+    request,
+    quality,
+    stride,
+    0,
+    request.size.height,
+    signal,
+    request.classifierMode,
+  );
   throwIfAborted(signal);
   return {
     stage,
@@ -111,7 +119,12 @@ export class CpuRenderer implements Renderer {
     const pool = this.tilePool;
     const stable =
       pool !== undefined && pool.size > 1
-        ? await pool.classifyStable(request, quality, signal)
+        ? await pool.classifyStable(
+            request,
+            quality,
+            signal,
+            ...(request.classifierMode === undefined ? [] : [request.classifierMode]),
+          )
         : await classifyFull(request, quality, 1, 'stable', signal);
     throwIfAborted(signal);
     await onFrame(stable);
