@@ -13,8 +13,14 @@
  *
  * Before timing, each case runs a full-raster parity gate: the status,
  * period, multiplier magnitude/angle, and escape-iteration channels of the
- * two variants must agree on every pixel (exact bit equality), or the run
- * fails loudly with a non-zero exit code and writes no results. Legacy and
+ * two variants must agree on every pixel (exact bit equality), with one
+ * documented PR 3 exception: pixels where the scalar core's common-verifier
+ * acceptance reduced a legacy non-primitive period multiple to its primitive
+ * period (the legacy scan reported k*p where binary64 rounding let a
+ * multiple lag cross the proposal threshold before the primitive p); those
+ * pixels are counted as period reductions instead of mismatches. Any other
+ * divergence aborts the run with a non-zero exit code and writes no
+ * results. Legacy and
  * scalar agree by construction on the attracting and unresolved channels;
  * escaped pixels are compared on dedicated escape-iteration channels and on
  * the primary channel (the legacy wrapper recomputes the smooth iteration
@@ -169,8 +175,15 @@ interface VariantReport {
 
 /**
  * Full-raster agreement between the legacy comparator and the scalar core.
- * All comparisons are exact (the PoC parity test in control.test.ts pins the
- * same bit-for-bit contract at corpus scale); any mismatch fails the run.
+ * Status, escape iteration, and smooth iteration must agree on every pixel.
+ * On attracting pixels, period and multiplier bits must agree except for the
+ * documented PR 3 divergence: the scalar core's common-verifier acceptance
+ * reduces a non-primitive legacy multiple (the legacy scan reported period
+ * k*p where binary64 rounding let a multiple lag cross the proposal
+ * threshold before the primitive p; the verifier reduces to p and recomputes
+ * the multiplier there). Such pixels require legacyPeriod to be a proper
+ * multiple of the scalar period and are counted, not compared bit-wise.
+ * Any other mismatch fails the run.
  */
 interface ParityReport {
   readonly pixels: number;
@@ -178,6 +191,7 @@ interface ParityReport {
   readonly escapeIterationMismatches: number;
   readonly smoothIterationMismatches: number;
   readonly attractingMismatches: number;
+  readonly periodReductions: number;
   readonly ok: boolean;
   readonly note: string;
 }
@@ -199,6 +213,15 @@ const gcKindOf = (entry: PerformanceEntry): string =>
   String(
     (entry as PerformanceEntry & { detail?: { kind?: number | string } }).detail?.kind ?? 'unknown',
   );
+
+/**
+ * The one permitted attracting-channel divergence (PR 3): the scalar core's
+ * common-verifier acceptance reduced the legacy non-primitive multiple to
+ * the primitive period. Status must still agree; only these pixels may
+ * differ in period and multiplier channels.
+ */
+const legacyPeriodIsProperMultiple = (legacyPeriod: number, scalarPeriod: number): boolean =>
+  scalarPeriod > 0 && legacyPeriod > scalarPeriod && legacyPeriod % scalarPeriod === 0;
 
 const main = async (): Promise<void> => {
   const gc = globalThis.gc;
@@ -365,6 +388,7 @@ const main = async (): Promise<void> => {
       let escapeIterationMismatches = 0;
       let smoothIterationMismatches = 0;
       let attractingMismatches = 0;
+      let periodReductions = 0;
       let first: string | undefined;
       const noteFirst = (message: string): void => {
         first ??= message;
@@ -390,16 +414,27 @@ const main = async (): Promise<void> => {
             );
           }
         }
-        if (
-          legacy === 2 &&
-          (legacyBands.period[offset] !== scalarBands.period[offset] ||
+        if (legacy === 2) {
+          const legacyPeriod = legacyBands.period[offset] ?? 0;
+          const scalarPeriod = scalarBands.period[offset] ?? 0;
+          if (legacyPeriodIsProperMultiple(legacyPeriod, scalarPeriod)) {
+            // Documented PR 3 divergence: the verifier reduced the legacy
+            // non-primitive multiple to its primitive period and recomputed
+            // the multiplier there, so the multiplier channels legitimately
+            // differ on these pixels.
+            periodReductions += 1;
+            continue;
+          }
+          if (
+            legacyPeriod !== scalarPeriod ||
             legacyBands.primary[offset] !== scalarBands.primary[offset] ||
-            legacyBands.secondary[offset] !== scalarBands.secondary[offset])
-        ) {
-          attractingMismatches += 1;
-          noteFirst(
-            `pixel ${offset}: legacy (period ${legacyBands.period[offset]}, |lambda| ${legacyBands.primary[offset]}, arg ${legacyBands.secondary[offset]}) vs scalar (period ${scalarBands.period[offset]}, |lambda| ${scalarBands.primary[offset]}, arg ${scalarBands.secondary[offset]})`,
-          );
+            legacyBands.secondary[offset] !== scalarBands.secondary[offset]
+          ) {
+            attractingMismatches += 1;
+            noteFirst(
+              `pixel ${offset}: legacy (period ${legacyPeriod}, |lambda| ${legacyBands.primary[offset]}, arg ${legacyBands.secondary[offset]}) vs scalar (period ${scalarPeriod}, |lambda| ${scalarBands.primary[offset]}, arg ${scalarBands.secondary[offset]})`,
+            );
+          }
         }
       }
       const total =
@@ -413,8 +448,11 @@ const main = async (): Promise<void> => {
         escapeIterationMismatches,
         smoothIterationMismatches,
         attractingMismatches,
+        periodReductions,
         ok: total === 0,
-        note: first ?? 'all status, escape/smooth iteration, period, and multiplier bits identical',
+        note:
+          first ??
+          `all status, escape/smooth iteration, period, and multiplier bits identical (${periodReductions} documented period reductions)`,
       };
     };
 
@@ -539,7 +577,7 @@ const main = async (): Promise<void> => {
       comparisonBasis:
         'PoC control kernel (faithful port of the pre-PR2 classifier) is the legacy comparator; the scalar core is the production classifyInto. Band channels are preallocated before measurement in both variants.',
       parityGate:
-        'Before timing, each case runs both variants once over the full raster and compares status, escape iteration, period, and multiplier magnitude/angle on every pixel with exact equality; any mismatch aborts the run with a non-zero exit code and no results are written.',
+        'Before timing, each case runs both variants once over the full raster and compares status, escape iteration, and smooth iteration on every pixel with exact equality; attracting pixels are compared on period and multiplier magnitude/angle except for the documented PR 3 period reductions (legacy non-primitive multiples that the common verifier reduces, counted in the report); any other mismatch aborts the run with a non-zero exit code and no results are written.',
       allocationMetric:
         'GC performance entries (scavenges and mark-compact) during one dedicated pass with a settle drain. A scavenge count of N for a young generation of capacity S bounds per-pass churn at ~N x S bytes (reported per pixel); short-lived per-pixel garbage is invisible to gc()-based heap deltas and to the V8 sampling heap profiler, which records only surviving allocations. Per-pixel object counts are additionally reported by construction.',
     },
