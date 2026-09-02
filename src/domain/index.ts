@@ -12,6 +12,15 @@ export {
 } from './orbit';
 export type { OrbitSample, OrbitStatusCode } from './orbit';
 export {
+  TAU_CLOSURE_SCALED,
+  VERIFIER_REVISION,
+  VERIFIER_THRESHOLDS,
+  VERIFIER_VERDICT,
+  verifyCycle,
+  verifyCycleInto,
+} from './verifier';
+export type { VerifierVerdict, VerifierVerdictCode, VerifierCycleTarget } from './verifier';
+export {
   colorForAttracting,
   colorForEscaped,
   colorForOrbit,
