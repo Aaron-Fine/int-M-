@@ -75,6 +75,25 @@ divergence is adjudicated against the dd oracle
 wrong-primitive-period results versus the oracle (2-3 per profile, see the
 findings below) are exactly the legacy flaw the src verifier fixes.
 
+## PR 5 note: where the opportunistic ceiling decision lives
+
+The systematic/opportunistic period split this document's PR 4 design
+inputs point to has landed as vocabulary in `src/domain/period-policy.ts`
+(revision `period-policy-1.0.0`, plan §4 workstream D): per-profile
+`systematicMaxPeriod`/`opportunisticMaxPeriod`/`maxIterations` policies,
+the §4 `evidenceSource` vocabulary stamped on rich attracting results
+(the lag scan maps honestly to `fallback`, the closed forms to `analytic`,
+and checkpoint/catalog/chart/algebraic are reserved for PR 4+ sources),
+and the policy-driven product language in `src/ui/`. The PoC harness
+remains the evidence base for the ceiling decision itself: the
+opportunistic bucket (DE-guess mode, ceiling 96, see the findings below)
+recovered zero detections above the systematic caps at ~1.03x cost on this
+corpus, so the initial derivation keeps the opportunistic ceiling equal to
+the systematic one, and the policy is test-pinned so raising it cannot
+alter classification outcomes, `maxIterations`, or the acceptance
+thresholds (invariant 8). PR 4's checkpoint candidate source is expected
+to be the first consumer that raises it under a new policy revision.
+
 ## PR 2 microbench (`pr2-bench.ts`)
 
 Benchmarks the production allocation-free scalar classification pipeline
