@@ -58,6 +58,13 @@ import {
   type AcceptedCandidate,
 } from './shared.ts';
 import { CheckpointKernel } from './checkpoint.ts';
+import {
+  buildSeed,
+  cyclePointAt,
+  predictCyclePoint,
+  walkWithDerivative,
+  type TransplantSeed,
+} from './seed-common.ts';
 import type { ClassificationKernel, KernelMetrics, KernelOptions, KernelResult } from './shared.ts';
 
 export const TRANSPLANT_REVISION = 'poc-transplant-1.0.0';
@@ -81,17 +88,6 @@ export const TRANSPLANT_THRESHOLDS = Object.freeze({
   newtonSteps: 3,
   newtonDenominatorMin: 1e-12,
 });
-
-export interface TransplantSeed {
-  cRe: number;
-  cIm: number;
-  period: number;
-  zRe: number;
-  zIm: number;
-  lambdaRe: number;
-  lambdaIm: number;
-  lambdaMagnitude: number;
-}
 
 type AttemptOutcome =
   | {
@@ -147,7 +143,7 @@ export class TransplantKernel implements ClassificationKernel {
         metrics.transplantGuardRefusals = (metrics.transplantGuardRefusals ?? 0) + 1;
       } else if (outcome.kind === 'hit') {
         const { candidate } = outcome;
-        this.#updateSeed(cRe, cIm, candidate.period, outcome.zRe, outcome.zIm, candidate);
+        this.#seed = buildSeed(cRe, cIm, candidate, outcome.zRe, outcome.zIm);
         return acceptedResult('transplant-hit', 0, candidate, metrics);
       }
     }
@@ -169,47 +165,12 @@ export class TransplantKernel implements ClassificationKernel {
       // Deterministic orbit replay recovers the accepted cycle point at the
       // acceptance iteration (only on fallback acceptances: rare on
       // coherent grids).
-      const cycle = this.#cyclePointAt(cRe, cIm, result.iterations);
+      const cycle = cyclePointAt(cRe, cIm, result.iterations);
       if (cycle !== undefined) {
-        this.#updateSeed(cRe, cIm, result.period, cycle[0], cycle[1], result);
+        this.#seed = buildSeed(cRe, cIm, result, cycle[0], cycle[1]);
       }
     }
     return result;
-  }
-
-  #updateSeed(
-    cRe: number,
-    cIm: number,
-    period: number,
-    zRe: number,
-    zIm: number,
-    candidate: { readonly multiplierMagnitude: number; readonly multiplierAngle: number },
-  ): void {
-    this.#seed = {
-      cRe,
-      cIm,
-      period,
-      zRe,
-      zIm,
-      lambdaRe: candidate.multiplierMagnitude * Math.cos(candidate.multiplierAngle),
-      lambdaIm: candidate.multiplierMagnitude * Math.sin(candidate.multiplierAngle),
-      lambdaMagnitude: candidate.multiplierMagnitude,
-    };
-  }
-
-  /** Replay the orbit from 0 and return the state at `iteration`. */
-  #cyclePointAt(cRe: number, cIm: number, iteration: number): [number, number] | undefined {
-    let zRe = 0;
-    let zIm = 0;
-    for (let index = 0; index < iteration; index += 1) {
-      const nextRe = zRe * zRe - zIm * zIm + cRe;
-      zIm = 2 * zRe * zIm + cIm;
-      zRe = nextRe;
-      if (!Number.isFinite(zRe) || !Number.isFinite(zIm)) {
-        return undefined;
-      }
-    }
-    return [zRe, zIm];
   }
 
   /**
@@ -217,81 +178,35 @@ export class TransplantKernel implements ClassificationKernel {
    * beyond the verifier call the shared proposal path already makes.
    */
   #attempt(cRe: number, cIm: number, seed: TransplantSeed, metrics: KernelMetrics): AttemptOutcome {
-    const period = seed.period;
-    // B_cycle: one forward walk of the seed's cycle with the B recurrence.
-    let zRe = seed.zRe;
-    let zIm = seed.zIm;
-    let bRe = 0;
-    let bIm = 0;
-    for (let index = 0; index < period; index += 1) {
-      const nextBRe = 2 * (zRe * bRe - zIm * bIm) + 1;
-      const nextBIm = 2 * (zRe * bIm + zIm * bRe);
-      const nextRe = zRe * zRe - zIm * zIm + seed.cRe;
-      zIm = 2 * zRe * zIm + seed.cIm;
-      zRe = nextRe;
-      bRe = nextBRe;
-      bIm = nextBIm;
-    }
-    // dz*/dc = B_cycle / (1 - lambda), complex division.
-    const omRe = 1 - seed.lambdaRe;
-    const omIm = -seed.lambdaIm;
-    const omDen = omRe * omRe + omIm * omIm;
-    if (!(omDen > 0) || !Number.isFinite(omDen)) {
+    const prediction = predictCyclePoint(seed, cRe, cIm, TRANSPLANT_THRESHOLDS.guardDisplacement);
+    if (prediction === undefined) {
       return { kind: 'guard-refused' };
     }
-    const dzDcRe = (bRe * omRe + bIm * omIm) / omDen;
-    const dzDcIm = (bIm * omRe - bRe * omIm) / omDen;
-    const dcRe = cRe - seed.cRe;
-    const dcIm = cIm - seed.cIm;
-    // Plan section 6 guard: |B| * |dc| / |1 - lambda| inside the frozen cap.
-    const displacement = Math.hypot(dzDcRe, dzDcIm) * Math.hypot(dcRe, dcIm);
-    if (!(displacement <= TRANSPLANT_THRESHOLDS.guardDisplacement)) {
-      return { kind: 'guard-refused' };
-    }
-    // First-order prediction of the neighboring cycle point (same phase).
-    let pzRe = seed.zRe + dzDcRe * dcRe - dzDcIm * dcIm;
-    let pzIm = seed.zIm + dzDcRe * dcIm + dzDcIm * dcRe;
+    let pzRe = prediction.zPredRe;
+    let pzIm = prediction.zPredIm;
 
     // Newton corrections in binary64 against the NEW parameter.
     for (let step = 0; step < TRANSPLANT_THRESHOLDS.newtonSteps; step += 1) {
-      let wRe = pzRe;
-      let wIm = pzIm;
-      let dRe = 1;
-      let dIm = 0;
-      for (let index = 0; index < period; index += 1) {
-        const nextDRe = dRe * (2 * wRe) - dIm * (2 * wIm);
-        dIm = dRe * (2 * wIm) + dIm * (2 * wRe);
-        dRe = nextDRe;
-        const nextRe = wRe * wRe - wIm * wIm + cRe;
-        wIm = 2 * wRe * wIm + cIm;
-        wRe = nextRe;
-      }
-      if (
-        !Number.isFinite(wRe) ||
-        !Number.isFinite(wIm) ||
-        !Number.isFinite(dRe) ||
-        !Number.isFinite(dIm)
-      ) {
+      const walked = walkWithDerivative(cRe, cIm, pzRe, pzIm, seed.period);
+      if (!walked.finite) {
         return { kind: 'rejected' };
       }
-      const fRe = wRe - pzRe;
-      const fIm = wIm - pzIm;
-      const denomRe = dRe - 1;
-      const denomIm = dIm;
+      const fRe = walked.endRe - pzRe;
+      const fIm = walked.endIm - pzIm;
+      const denomRe = walked.lambdaRe - 1;
+      const denomIm = walked.lambdaIm;
       const denomSq = denomRe * denomRe + denomIm * denomIm;
       if (Math.sqrt(denomSq) < TRANSPLANT_THRESHOLDS.newtonDenominatorMin || denomSq === 0) {
         return { kind: 'rejected' };
       }
-      const stepRe = (fRe * denomRe + fIm * denomIm) / denomSq;
-      const stepIm = (fIm * denomRe - fRe * denomIm) / denomSq;
-      pzRe -= stepRe;
-      pzIm -= stepIm;
+      pzRe -= (fRe * denomRe + fIm * denomIm) / denomSq;
+      pzIm -= (fIm * denomRe - fRe * denomIm) / denomSq;
       if (!Number.isFinite(pzRe) || !Number.isFinite(pzIm)) {
         return { kind: 'rejected' };
       }
     }
 
-    const candidate = verifyCandidate(cRe, cIm, pzRe, pzIm, period, metrics, this.#budget);
+    const candidate = verifyCandidate(cRe, cIm, pzRe, pzIm, seed.period, metrics, this.#budget);
     if (candidate === undefined) {
       return { kind: 'rejected' };
     }

@@ -37,6 +37,7 @@ import {
   TRANSPLANT_THRESHOLDS,
   TransplantKernel,
 } from './kernels/transplant.ts';
+import { TRAP_REVISION, TRAP_THRESHOLDS, TrapKernel } from './kernels/trap.ts';
 import { GRIDS_REVISION, GRID_SIZE, GRID_SPECS, buildGrids, type GridPoint } from './grids.ts';
 import { CANDIDATE_REJECTION_BUDGET } from './kernels/shared.ts';
 import { VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier.ts';
@@ -109,6 +110,13 @@ const variants = (): Variant[] => [
   ...[true, false].map((exhaustionScan) => ({
     key: `transplant.exhaustion-${exhaustionScan ? 'on' : 'off'}`,
     kernel: new TransplantKernel(64),
+    exhaustionScan,
+  })),
+  // Trap-radius early accept (workstream L, research, oracle-gated): the
+  // exhaustion flag applies to the fallback schedule.
+  ...[true, false].map((exhaustionScan) => ({
+    key: `trap.exhaustion-${exhaustionScan ? 'on' : 'off'}`,
+    kernel: new TrapKernel(64),
     exhaustionScan,
   })),
 ];
@@ -379,6 +387,9 @@ const classifyCorpus = (
     // unseeded so recorded and timed passes stay comparable.
     kernel.resetSeed();
   }
+  if (kernel instanceof TrapKernel) {
+    kernel.resetSeed();
+  }
   return corpus.map((point) =>
     recordOf(point, variant, kernel.classify(point.cRe, point.cIm, options)),
   );
@@ -389,7 +400,7 @@ const timedPassMs = (
   corpus: ReturnType<typeof buildCorpus>,
   profile: (typeof PROFILES)[number],
 ): number => {
-  if (variant.kernel instanceof TransplantKernel) {
+  if (variant.kernel instanceof TransplantKernel || variant.kernel instanceof TrapKernel) {
     variant.kernel.resetSeed();
   }
   const started = process.hrtime.bigint();
@@ -582,6 +593,11 @@ interface GridStats {
   transplantHits: number;
   transplantAttempts: number;
   transplantGuardRefusals: number;
+  /** Trap counters (zeros for other kernels). */
+  trapHits: number;
+  trapProposals: number;
+  trapNewtonFailures: number;
+  trapOrbitWork: number;
 }
 
 const emptyGridStats = (): GridStats => ({
@@ -598,6 +614,10 @@ const emptyGridStats = (): GridStats => ({
   transplantHits: 0,
   transplantAttempts: 0,
   transplantGuardRefusals: 0,
+  trapHits: 0,
+  trapProposals: 0,
+  trapNewtonFailures: 0,
+  trapOrbitWork: 0,
 });
 
 const gridRecordOf = (point: GridPoint, kernelName: string, result: KernelResult): GridRecord => ({
@@ -622,6 +642,12 @@ const foldGridStats = (stats: GridStats, record: GridRecord, truth: DDClassifica
   }
   stats.transplantAttempts += record.metrics.transplantAttempts ?? 0;
   stats.transplantGuardRefusals += record.metrics.transplantGuardRefusals ?? 0;
+  if (record.evidence === 'trap-hit') {
+    stats.trapHits += 1;
+  }
+  stats.trapProposals += record.metrics.trapProposals ?? 0;
+  stats.trapNewtonFailures += record.metrics.trapNewtonFailures ?? 0;
+  stats.trapOrbitWork += record.metrics.trapOrbitWork ?? 0;
   if (record.status === 'unresolved') {
     stats.unresolved += 1;
   }
@@ -703,15 +729,21 @@ const classifyGridSet = (
   points: readonly GridPoint[],
   oracle: Map<string, DDClassification>,
   profile: (typeof PROFILES)[number],
-): { report: Record<string, unknown>; transplantRecords: GridRecord[] } => {
+): {
+  report: Record<string, unknown>;
+  transplantRecords: GridRecord[];
+  trapRecords: GridRecord[];
+} => {
   const options = profileOptions(profile, true);
   const checkpoint = new CheckpointKernel(64);
   const neighbor = new NeighborKernel(64);
   const transplant = new TransplantKernel(64);
+  const trap = new TrapKernel(64);
 
   const checkpointRecords: GridRecord[] = [];
   const neighborRecords: GridRecord[] = [];
   const transplantRecords: GridRecord[] = [];
+  const trapRecords: GridRecord[] = [];
   let previousPeriod = 0;
   for (const point of points) {
     checkpointRecords.push(
@@ -723,6 +755,7 @@ const classifyGridSet = (
     transplantRecords.push(
       gridRecordOf(point, 'transplant', transplant.classify(point.cRe, point.cIm, options)),
     );
+    trapRecords.push(gridRecordOf(point, 'trap', trap.classify(point.cRe, point.cIm, options)));
   }
 
   const foldAll = (records: readonly GridRecord[]): GridStats => {
@@ -740,19 +773,22 @@ const classifyGridSet = (
   const checkpointStats = foldAll(checkpointRecords);
   const neighborStats = foldAll(neighborRecords);
   const transplantStats = foldAll(transplantRecords);
-  const iterationDeltas = neighborRecords.flatMap((record, index) => {
-    const baseline = checkpointRecords[index];
-    if (record.status !== 'attracting' || baseline?.status !== 'attracting') {
-      return [];
-    }
-    return [{ id: record.id, iterationDelta: record.iterations - baseline.iterations }];
-  });
+  const trapStats = foldAll(trapRecords);
+  const iterationDeltas = (records: readonly GridRecord[]): unknown[] =>
+    records.flatMap((record, index) => {
+      const baseline = checkpointRecords[index];
+      if (record.status !== 'attracting' || baseline?.status !== 'attracting') {
+        return [];
+      }
+      return [{ id: record.id, iterationDelta: record.iterations - baseline.iterations }];
+    });
 
   const report: Record<string, unknown> = {
     points: points.length,
     checkpoint: finalizeGridStats(checkpointStats),
     neighbor: finalizeGridStats(neighborStats),
     transplant: finalizeGridStats(transplantStats),
+    trap: finalizeGridStats(trapStats),
     neighborComparisonsVsCheckpoint:
       checkpointStats.totalLagComparisons === 0
         ? null
@@ -761,9 +797,14 @@ const classifyGridSet = (
       checkpointStats.totalLagComparisons === 0
         ? null
         : transplantStats.totalLagComparisons / checkpointStats.totalLagComparisons,
-    iterationDeltas,
+    trapIterationsVsCheckpoint:
+      checkpointStats.totalIterations === 0
+        ? null
+        : trapStats.totalIterations / checkpointStats.totalIterations,
+    neighborIterationDeltas: iterationDeltas(neighborRecords),
+    trapIterationDeltas: iterationDeltas(trapRecords),
   };
-  return { report, transplantRecords };
+  return { report, transplantRecords, trapRecords };
 };
 
 const runGridSection = (
@@ -785,10 +826,11 @@ const runGridSection = (
   }
   let gateFailures = 0;
   for (const [name, points] of byGrid) {
-    const { report, transplantRecords } = classifyGridSet(points, oracle, profile);
+    const { report, transplantRecords, trapRecords } = classifyGridSet(points, oracle, profile);
     grids[name] = report;
     accumulateBuckets(transplantRecords, lambdaBuckets);
-    for (const key of ['checkpoint', 'neighbor', 'transplant'] as const) {
+    accumulateBuckets(trapRecords, lambdaBuckets);
+    for (const key of ['checkpoint', 'neighbor', 'transplant', 'trap'] as const) {
       const stats = report[key] as GridStats;
       if (stats.falseAttracting > 0 || stats.wrongPrimitivePeriod > 0) {
         console.error(
@@ -844,6 +886,12 @@ const run = (): number => {
         revision: TRANSPLANT_REVISION,
         thresholds: TRANSPLANT_THRESHOLDS,
         guardFormula: '|B_cycle| * |dc| / |1 - lambda| (plan section 6 conditioning guard)',
+      },
+      trap: {
+        revision: TRAP_REVISION,
+        thresholds: TRAP_THRESHOLDS,
+        oracleGate:
+          'any false attracting or wrong primitive period fails the run (workstream L kill gate)',
       },
     },
     ddOracle: { options: DEFAULT_DD_ORACLE_OPTIONS },

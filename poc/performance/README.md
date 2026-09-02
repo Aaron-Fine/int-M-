@@ -284,15 +284,33 @@ implementation.
   unresolved at every PoC budget). Flat matrix rows (seed walks the point
   list): 0.976×/0.933× checkpoint, zero unresolved delta, zero gate.
 
+- **Trap-radius early accept** (`kernels/trap.ts`, revision `poc-trap-1.0.0`,
+  **research, oracle-gated**): with a verified neighbor seed in the
+  weak-attraction regime (seed |λ| ≥ 0.8, `TRAP_THRESHOLDS`, frozen) and
+  the plan §6 guard passed, the kernel estimates a trapping disk around the
+  predicted neighboring cycle point (radius `4·|1−λ|·max(1,|z_pred|)`,
+  inside the linear regime of `f_c^p`), and when the orbit enters the disk
+  it computes the **per-pixel** multiplier `λ_n = (f^p)'(z_n)`, requires
+  `|λ_n| < 1 − attractMargin`, Newton-polishes (≤ 4 steps, residual below
+  the verifier's divisor scale), and proposes to the **unchanged common
+  verifier** — the early accept only skips waiting for tighter orbit
+  convergence, never weakens acceptance. Measured (detailed profile):
+  weak-p6a grid **0.047× checkpoint iterations with 255/255 trap hits and
+  zero Newton failures**; weak-p6a at balanced 0.292× with 64 vs 109
+  unresolved (the trap improves detection); anchor grids 0.80–0.87×;
+  strongly attracting grids pay zero overhead (1.000×, gate refuses before
+  any work); weak-p6b cannot seed (all pixels unresolved at every PoC
+  budget) and stays 1.000×. **Oracle verdict: zero false attracting and
+  zero wrong primitive periods on the whole corpus and all grids — the
+  workstream L kill gate passes on this corpus.** Honest scope: the trap
+  argument is numerical (linear-regime disk + verifier), not a certified
+  enclosure; plan §12/L keeps it research-only.
+
 ## Roadmap: specified but not yet implemented variants
 
 These are plan §5/§11 Step 0 candidates not implemented in this harness yet,
 with the code points where they plug in:
 
-- **Trap-radius early accept** (plan workstream L, research-only) — accept
-  when the orbit enters a disk where `f_c^p` is contracting, before
-  tau-closure; would hook into the verifier acceptance path
-  (`verifier.ts:verifyCycle`) and stays oracle-gated.
 - **Packed status+period output** — pack status and primitive period into a
   single Uint32 at the result boundary (`kernels/shared.ts:KernelResult`
   consumers, `run.ts:recordOf`); measurable only with the production
