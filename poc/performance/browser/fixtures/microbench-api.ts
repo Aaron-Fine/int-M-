@@ -159,6 +159,67 @@ export interface BandOrderParams {
   readonly reps: number;
 }
 
+/* ---------- coarse-pass cost-estimate quality (workstream N input, M5) ---------- */
+
+export interface CoarseCostParams {
+  readonly caseId: string;
+  readonly profileId: QualityProfileId;
+  /** Square raster edge for both the coarse and the stable pass. */
+  readonly edge: number;
+  /** Untimed stable rows classified before the measured pass (JIT/IC warm). */
+  readonly warmupRows: number;
+}
+
+/** Per-coarse-row aggregates read back from the real coarse semantic frame. */
+export interface CoarseRowSample {
+  /** Raster row of the coarse block origin (blocks are stride tall). */
+  readonly y: number;
+  readonly pixels: number;
+  readonly escaped: number;
+  readonly attracting: number;
+  readonly unresolved: number;
+  readonly unresolvedFraction: number;
+  /** Mean smooth escape iteration over escaped coarse pixels; 0 if none. */
+  readonly meanEscapeIteration: number;
+  /**
+   * Cost model available to workstream N: escaped pixels cost their escape
+   * iteration, everything else costs the coarse iteration budget (units:
+   * iterations per pixel, mean over the row's coarse pixels).
+   */
+  readonly estimatedCostUnits: number;
+}
+
+export interface StableRowSample {
+  readonly y: number;
+  /** classifyRows timing.classifyMs: compute only, yield waits excluded. */
+  readonly classifyMs: number;
+  readonly yieldWaitMs: number;
+  readonly yieldCount: number;
+}
+
+export interface CoarseCostResult {
+  readonly caseId: string;
+  readonly profileId: QualityProfileId;
+  readonly edge: number;
+  readonly warmupRows: number;
+  readonly coarseStride: number;
+  readonly coarseQuality: {
+    readonly maxIterations: number;
+    readonly maxPeriod: number;
+  };
+  readonly stableQuality: {
+    readonly maxIterations: number;
+    readonly maxPeriod: number;
+  };
+  readonly viewport: {
+    readonly centerRe: number;
+    readonly centerIm: number;
+    readonly spanY: number;
+  };
+  readonly coarseRows: readonly CoarseRowSample[];
+  readonly stableRows: readonly StableRowSample[];
+}
+
 /* ---------- conjugate mirroring (workstream M, M4) ---------- */
 
 export interface MirrorParityMismatch {

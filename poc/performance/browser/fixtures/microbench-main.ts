@@ -1,6 +1,7 @@
 import type {
   BandOrderParams,
   ConjugateMirrorParams,
+  CoarseCostParams,
   EnvironmentSample,
   MicrobenchApi,
   PoolSizingParams,
@@ -8,6 +9,7 @@ import type {
   ZeroCopyParams,
 } from './microbench-api';
 import { runBandOrder } from './band-order';
+import { runCoarseCost } from './coarse-cost';
 import { runConjugateMirror } from './conjugate-mirror';
 import { runPoolSizing } from './pool-sizing';
 import { runYieldAb } from './yield-ab';
@@ -87,6 +89,10 @@ const runners: Record<string, Runner> = {
   'conjugate-mirror': (params) => {
     requireKeys(params, ['viewId', 'centerRe', 'spanY', 'edge', 'profileId', 'warmupReps', 'reps']);
     return runConjugateMirror(params as ConjugateMirrorParams);
+  },
+  'coarse-cost': (params) => {
+    requireKeys(params, ['caseId', 'profileId', 'edge', 'warmupRows']);
+    return runCoarseCost(params as CoarseCostParams);
   },
 };
 
