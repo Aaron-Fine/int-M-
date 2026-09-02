@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "label": "directional — Node/V8 evidence, not release evidence",
+  "description": "PR 4 microbench: power-of-two checkpoint schedule (exhaustion scan on) versus the post-PR-3 legacy lag scan over fixed hard-view raster slices, plus matched-budget per-stratum detection-delay analysis on the seeded corpus.",
+  "planReference": "docs/plans/int-m-performance-plan.html sections 4, 5 (workstream C), 11 (PR 4)",
+  "measuredAt": "2026-09-02T09:19:17.266Z",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "platformRelease": "7.1.10-200.fc44.x86_64",
+    "logicalCpuCount": 8,
+    "cpuModel": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "totalMemoryBytes": 16465719296,
+    "note": "Node single process; run via npm run poc:bench:pr4 (vite SSR build + node --expose-gc)."
+  },
+  "harness": {
+    "corpusSeed": 5065040,
+    "warmupPasses": 2,
+    "timedPasses": 15,
+    "profile": {
+      "maxIterations": 512,
+      "maxPeriod": 32,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    },
+    "exhaustionScan": true,
+    "revisions": {
+      "checkpointSchedule": "src-checkpoint-1.0.0",
+      "verifier": "src-verifier-1.0.0"
+    },
+    "comparisonBasis": "legacy-scan = production classifyInto (post-PR-3 verifier-gated lag scan); checkpoint = classifyCheckpointInto. Same resolved options; exhaustion scan default-on.",
+    "legacyComparisonCounting": "Analytic per pixel: the scan compares min(maxPeriod, iteration - 1) lags at every non-escaped iteration from cycleWarmup through the detection/budget end; validated against the PoC control kernel counted metric.",
+    "gates": "Directional assertions of the workstream C gate: lag comparisons reduced >50% per case; hard views >=2x wall; no case >5% slower. Release-comparable percentages come from Stage A browser runs."
+  },
+  "cases": [
+    {
+      "anchor": {
+        "re": -0.158902249,
+        "im": -1.034028,
+        "zoom": 126
+      },
+      "id": "hard-slice-anchor-0",
+      "hard": true,
+      "viewport": {
+        "center": {
+          "re": -0.158902249,
+          "im": -1.034028
+        },
+        "spanY": 0.01984126984126984
+      },
+      "pixelCount": 1048576,
+      "differential": {
+        "pixels": 1048576,
+        "statusDisagreements": 13980,
+        "periodDisagreements": 0,
+        "multiplierMagnitudeDisagreements": 186296,
+        "legacyAttracting": 186302,
+        "checkpointAttracting": 200282,
+        "legacyUnresolved": 94494,
+        "checkpointUnresolved": 80514
+      },
+      "variants": {
+        "legacy-scan": {
+          "samplesMs": [
+            9947.233,
+            9629.212,
+            9470.065,
+            9611.163,
+            9600.329,
+            9711.196,
+            9770.39,
+            9737.584,
+            9988,
+            9989.849,
+            10339.431,
+            10128.79,
+            10145.801,
+            10395.648,
+            9408.2
+          ],
+          "medianMs": 9770.39,
+          "madMs": 217.61,
+          "minMs": 9408.2,
+          "maxMs": 10395.648,
+          "lagComparisons": 2842261107,
+          "orbitIterations": 113154708,
+          "attractingPixels": 186302,
+          "escapedPixels": 767780,
+          "unresolvedPixels": 94494,
+          "verifierCalls": 0,
+          "allocation": {
+            "gcEvents": 44,
+            "scavengeEvents": 42,
+            "churnBoundBytes": 88080384,
+            "churnBoundBytesPerPixel": 84
+          }
+        },
+        "checkpoint": {
+          "samplesMs": [
+            647.186,
+            611.456,
+            642.302,
+            636.74,
+            630.567,
+            638.452,
+            622.159,
+            619.155,
+            615.646,
+            622.716,
+            616.031,
+            640.43,
+            636.033,
+            621.017,
+            620.531
+          ],
+          "medianMs": 622.716,
+          "madMs": 7.851,
+          "minMs": 611.456,
+          "maxMs": 647.186,
+          "lagComparisons": 84915921,
+          "orbitIterations": 105848843,
+          "attractingPixels": 200282,
+          "escapedPixels": 767780,
+          "unresolvedPixels": 80514,
+          "verifierCalls": 236630,
+          "allocation": {
+            "gcEvents": 70,
+            "scavengeEvents": 68,
+            "churnBoundBytes": 285212672,
+            "churnBoundBytesPerPixel": 272
+          }
+        }
+      },
+      "gates": {
+        "comparisonReduction": 0.9701238141735583,
+        "wallSpeedup": 15.6899613949216,
+        "comparisonGatePass": true,
+        "hardViewGatePass": true,
+        "regressionCapPass": true
+      }
+    },
+    {
+      "anchor": {
+        "re": -1.94130973,
+        "im": -0.0000974722949,
+        "zoom": 609
+      },
+      "id": "hard-slice-anchor-2",
+      "hard": true,
+      "viewport": {
+        "center": {
+          "re": -1.94130973,
+          "im": -0.0000974722949
+        },
+        "spanY": 0.004105090311986864
+      },
+      "pixelCount": 1048576,
+      "differential": {
+        "pixels": 1048576,
+        "statusDisagreements": 4465,
+        "periodDisagreements": 0,
+        "multiplierMagnitudeDisagreements": 65024,
+        "legacyAttracting": 65026,
+        "checkpointAttracting": 69487,
+        "legacyUnresolved": 27901,
+        "checkpointUnresolved": 23440
+      },
+      "variants": {
+        "legacy-scan": {
+          "samplesMs": [
+            3033.827,
+            3051.228,
+            3072.235,
+            3023.595,
+            3096.537,
+            3079.388,
+            3211.379,
+            3103.467,
+            3099.049,
+            3101.034,
+            3124.62,
+            3162.337,
+            3107.225,
+            3132.563,
+            3141.689
+          ],
+          "medianMs": 3101.034,
+          "madMs": 28.799,
+          "minMs": 3023.595,
+          "maxMs": 3211.379,
+          "lagComparisons": 883819449,
+          "orbitIterations": 46818576,
+          "attractingPixels": 65026,
+          "escapedPixels": 955649,
+          "unresolvedPixels": 27901,
+          "verifierCalls": 0,
+          "allocation": {
+            "gcEvents": 20,
+            "scavengeEvents": 18,
+            "churnBoundBytes": 75497472,
+            "churnBoundBytesPerPixel": 72
+          }
+        },
+        "checkpoint": {
+          "samplesMs": [
+            293.032,
+            287.798,
+            317.814,
+            293.402,
+            342.035,
+            329.487,
+            301.512,
+            290.017,
+            289.487,
+            318.514,
+            293.934,
+            289.066,
+            297.58,
+            326.513,
+            288.272
+          ],
+          "medianMs": 293.934,
+          "madMs": 5.662,
+          "minMs": 287.798,
+          "maxMs": 342.035,
+          "lagComparisons": 25958359,
+          "orbitIterations": 44138824,
+          "attractingPixels": 69487,
+          "escapedPixels": 955649,
+          "unresolvedPixels": 23440,
+          "verifierCalls": 87851,
+          "allocation": {
+            "gcEvents": 42,
+            "scavengeEvents": 40,
+            "churnBoundBytes": 167772160,
+            "churnBoundBytesPerPixel": 160
+          }
+        }
+      },
+      "gates": {
+        "comparisonReduction": 0.9706293417401364,
+        "wallSpeedup": 10.550103084365878,
+        "comparisonGatePass": true,
+        "hardViewGatePass": true,
+        "regressionCapPass": true
+      }
+    },
+    {
+      "id": "full-set-slice",
+      "hard": false,
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "pixelCount": 1048576,
+      "differential": {
+        "pixels": 1048576,
+        "statusDisagreements": 1044,
+        "periodDisagreements": 0,
+        "multiplierMagnitudeDisagreements": 15058,
+        "legacyAttracting": 245788,
+        "checkpointAttracting": 246832,
+        "legacyUnresolved": 8264,
+        "checkpointUnresolved": 7220
+      },
+      "variants": {
+        "legacy-scan": {
+          "samplesMs": [
+            957.273,
+            951.861,
+            960.005,
+            1022.123,
+            970.461,
+            975.077,
+            1050.274,
+            960.698,
+            976.709,
+            967.457,
+            1039.951,
+            1008.072,
+            968.682,
+            1032.99,
+            1014.133
+          ],
+          "medianMs": 975.077,
+          "madMs": 17.805,
+          "minMs": 951.861,
+          "maxMs": 1050.274,
+          "lagComparisons": 255845066,
+          "orbitIterations": 12938274,
+          "attractingPixels": 245788,
+          "escapedPixels": 794524,
+          "unresolvedPixels": 8264,
+          "verifierCalls": 0,
+          "allocation": {
+            "gcEvents": 29,
+            "scavengeEvents": 27,
+            "churnBoundBytes": 113246208,
+            "churnBoundBytesPerPixel": 108
+          }
+        },
+        "checkpoint": {
+          "samplesMs": [
+            133.809,
+            135.683,
+            140.489,
+            137.34,
+            135.553,
+            163.13,
+            133.866,
+            135.816,
+            134.593,
+            138.981,
+            142.802,
+            137.714,
+            135.304,
+            138.794,
+            155.79
+          ],
+          "medianMs": 137.34,
+          "madMs": 2.036,
+          "minMs": 133.809,
+          "maxMs": 163.13,
+          "lagComparisons": 7837516,
+          "orbitIterations": 12480118,
+          "attractingPixels": 246832,
+          "escapedPixels": 794524,
+          "unresolvedPixels": 7220,
+          "verifierCalls": 17402,
+          "allocation": {
+            "gcEvents": 31,
+            "scavengeEvents": 29,
+            "churnBoundBytes": 121634816,
+            "churnBoundBytesPerPixel": 116
+          }
+        }
+      },
+      "gates": {
+        "comparisonReduction": 0.9693661631919062,
+        "wallSpeedup": 7.099730595602155,
+        "comparisonGatePass": true,
+        "hardViewGatePass": true,
+        "regressionCapPass": true
+      }
+    }
+  ],
+  "matchedBudgetDetection": {
+    "description": "Per stratum of the seeded corpus, detection-iteration delay (checkpoint - legacy) over matched detections under identical budgets; unmatched detections counted per direction.",
+    "strata": [
+      {
+        "stratum": "exterior",
+        "points": 48,
+        "matchedDetections": 0,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      },
+      {
+        "stratum": "cardioid",
+        "points": 40,
+        "matchedDetections": 40,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      },
+      {
+        "stratum": "period-2-bulb",
+        "points": 24,
+        "matchedDetections": 24,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      },
+      {
+        "stratum": "rabbit-neighborhood",
+        "points": 24,
+        "matchedDetections": 24,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 5,
+        "delayP50": 5,
+        "delayP90": 5,
+        "delayMax": 5
+      },
+      {
+        "stratum": "period-5",
+        "points": 3,
+        "matchedDetections": 3,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 11,
+        "delayP50": 11,
+        "delayP90": 11,
+        "delayMax": 11
+      },
+      {
+        "stratum": "hard-view-anchor",
+        "points": 30,
+        "matchedDetections": 11,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": -75,
+        "delayP50": -43,
+        "delayP90": -27,
+        "delayMax": -27
+      },
+      {
+        "stratum": "weak-attraction",
+        "points": 20,
+        "matchedDetections": 20,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      },
+      {
+        "stratum": "boundary",
+        "points": 16,
+        "matchedDetections": 0,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      },
+      {
+        "stratum": "superattracting",
+        "points": 11,
+        "matchedDetections": 11,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      },
+      {
+        "stratum": "unresolved-budget",
+        "points": 12,
+        "matchedDetections": 0,
+        "checkpointOnly": 0,
+        "legacyOnly": 0,
+        "periodChanges": 0,
+        "delayMin": 0,
+        "delayP50": 0,
+        "delayP90": 0,
+        "delayMax": 0
+      }
+    ]
+  },
+  "gateSummary": {
+    "allDirectionalGatesPass": true,
+    "failedCases": []
+  }
+}
