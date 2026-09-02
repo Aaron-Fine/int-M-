@@ -107,8 +107,11 @@ const finishAttractingCycle = (
   multiplierIm: number,
   iterations: number,
   evidence: number,
+  // When the caller already computed Math.hypot(multiplierRe, multiplierIm)
+  // it must pass the same value: Math.hypot is a C++ builtin that allocates
+  // a HeapNumber in V8, so the core computes it once per cycle detection.
+  multiplierMagnitude: number = Math.hypot(multiplierRe, multiplierIm),
 ): void => {
-  const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
   out.status = 2;
   out.iterations = iterations;
   out.evidence = evidence;
@@ -122,56 +125,16 @@ const finishAttractingCycle = (
 };
 
 /**
- * Forward-iterates the proposed cycle and its multiplier derivative. On
- * acceptance writes the attracting-cycle result into `out` and returns true;
- * rejections leave `out` untouched. The rejection order (forward closure,
- * finite multiplier, strict attraction) replicates the legacy classifier
- * exactly.
+ * Cycle verification body, written verbatim at its single call site in the
+ * classifyInto lag scan. Rejection order (forward closure, finite
+ * multiplier, strict attraction) replicates the legacy classifier exactly.
+ * It must stay inlined there rather than live in a helper: a non-inlined JS
+ * call inside the orbit loop keeps the orbit's Float64 phi values live
+ * across a lazy-deopt frame state, which switches their V8 representation
+ * to tagged and allocates a HeapNumber every iteration (the pr2 microbench
+ * measured the helper form at ~120 MB of engine garbage per million-pixel
+ * interior-heavy pass, with no compensating speed benefit).
  */
-const verifyCycleInto = (
-  cRe: number,
-  cIm: number,
-  cycleStartRe: number,
-  cycleStartIm: number,
-  period: number,
-  closureToleranceSquared: number,
-  out: OrbitSample,
-  iterations: number,
-): boolean => {
-  let zRe = cycleStartRe;
-  let zIm = cycleStartIm;
-  let derivativeRe = 1;
-  let derivativeIm = 0;
-
-  for (let index = 0; index < period; index += 1) {
-    const nextDerivativeRe = derivativeRe * (2 * zRe) - derivativeIm * (2 * zIm);
-    derivativeIm = derivativeRe * (2 * zIm) + derivativeIm * (2 * zRe);
-    derivativeRe = nextDerivativeRe;
-
-    const nextRe = zRe * zRe - zIm * zIm + cRe;
-    zIm = 2 * zRe * zIm + cIm;
-    zRe = nextRe;
-  }
-
-  const closureRe = zRe - cycleStartRe;
-  const closureIm = zIm - cycleStartIm;
-  if (closureRe * closureRe + closureIm * closureIm > closureToleranceSquared) {
-    return false;
-  }
-  const multiplierMagnitude = Math.hypot(derivativeRe, derivativeIm);
-  if (!Number.isFinite(multiplierMagnitude) || multiplierMagnitude >= 1) {
-    return false;
-  }
-  finishAttractingCycle(
-    out,
-    period,
-    derivativeRe,
-    derivativeIm,
-    iterations,
-    ORBIT_EVIDENCE_CODE.convergedCycle,
-  );
-  return true;
-};
 
 export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitOptions => {
   const resolved: OrbitOptions = { ...DEFAULT_ORBIT_OPTIONS, ...options };
@@ -194,12 +157,22 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
 
 /**
  * Allocation-free classification core (plan workstream B). Classifies the
- * point c = cRe + i*cIm into the preallocated `out` record without touching
- * the heap: no Complex, result, or evidence objects are created. Options
- * must be pre-resolved with resolveOrbitOptions. Scratch must not be shared
+ * point c = cRe + i*cIm into the preallocated `out` record without creating
+ * objects of its own: no Complex, result, or evidence objects. Options must
+ * be pre-resolved with resolveOrbitOptions. Scratch must not be shared
  * between concurrently running classifications; out must not be either.
  * Observable semantics are identical to classifyOrbit, which materializes
  * the rich result boundary from this core.
+ *
+ * Two V8 engine taxes remain on top of this design and are accepted for
+ * bit-parity reasons: crossing the non-inlined call boundary boxes the two
+ * double arguments, and Math.hypot (the legacy magnitude definition, kept
+ * for identical multiplier bits) is a C++ builtin that allocates. Both are
+ * quantified in the pr2 microbench (poc/performance/results/pr2/). A third
+ * tax the microbench exposed — tagged-representation orbit phis caused by a
+ * non-inlined verify helper inside the orbit loop, plus the legacy
+ * defensive `history[i] ?? Number.NaN` pattern — is designed out instead;
+ * see the comments at the orbit loop and the lag scan.
  */
 export const classifyInto = (
   cRe: number,
@@ -251,6 +224,15 @@ export const classifyInto = (
   // are squared-distance thresholds.
   const closureToleranceSquared = options.cycleTolerance * 100 * (options.cycleTolerance * 100);
 
+  // The orbit loop must not contain non-inlined JS calls with the orbit
+  // state live across them: a lazy-deopt frame state at such a call switches
+  // zRe/zIm's V8 representation to tagged, allocating a HeapNumber every
+  // iteration (~120 MB per million-pixel interior-heavy pass, measured by
+  // the pr2 microbench). The cycle verification below is therefore written
+  // out at its single call site instead of in a helper, and V8-internal
+  // builtins (Math.hypot) are acceptable only because they cannot lazily
+  // deopt the caller.
+
   for (let iteration = 1; iteration <= options.maxIterations; iteration += 1) {
     const nextRe = zRe * zRe - zIm * zIm + cRe;
     zIm = 2 * zRe * zIm + cIm;
@@ -277,15 +259,61 @@ export const classifyInto = (
 
     const largestPeriod = Math.min(options.maxPeriod, iteration - 1);
     for (let period = 1; period <= largestPeriod; period += 1) {
+      // previousIndex is always in [0, capacity - 1]: currentIndex is reduced
+      // modulo capacity and 1 <= period <= largestPeriod < capacity, so the
+      // history loads below are provably total. They must stay bare: the
+      // defensive `history[i] ?? Number.NaN` pattern forces a tagged
+      // materialization of the loaded double for its undefined check. The
+      // non-null assertions restate the in-bounds proof for the
+      // noUncheckedIndexedAccess checker and compile to nothing; the rule is
+      // disabled for exactly these two loads because every assertion style
+      // lint allows carries runtime cost in a hot loop.
       const previousIndex = (currentIndex - period + capacity) % capacity;
-      const distanceRe = zRe - (historyRe[previousIndex] ?? Number.NaN);
-      const distanceIm = zIm - (historyIm[previousIndex] ?? Number.NaN);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+      const distanceRe = zRe - historyRe[previousIndex]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+      const distanceIm = zIm - historyIm[previousIndex]!;
       if (distanceRe * distanceRe + distanceIm * distanceIm > toleranceSquared) {
         continue;
       }
-      if (verifyCycleInto(cRe, cIm, zRe, zIm, period, closureToleranceSquared, out, iteration)) {
-        return;
+
+      // Cycle verification, inlined at its single call site (see the orbit
+      // loop comment above for why the helper form is forbidden here).
+      // Rejection order matches the legacy classifier: forward closure,
+      // finite multiplier, strict attraction.
+      let cycleRe = zRe;
+      let cycleIm = zIm;
+      let derivativeRe = 1;
+      let derivativeIm = 0;
+      for (let index = 0; index < period; index += 1) {
+        const nextDerivativeRe = derivativeRe * (2 * cycleRe) - derivativeIm * (2 * cycleIm);
+        derivativeIm = derivativeRe * (2 * cycleIm) + derivativeIm * (2 * cycleRe);
+        derivativeRe = nextDerivativeRe;
+
+        const nextCycleRe = cycleRe * cycleRe - cycleIm * cycleIm + cRe;
+        cycleIm = 2 * cycleRe * cycleIm + cIm;
+        cycleRe = nextCycleRe;
       }
+
+      const closureRe = cycleRe - zRe;
+      const closureIm = cycleIm - zIm;
+      if (closureRe * closureRe + closureIm * closureIm > closureToleranceSquared) {
+        continue;
+      }
+      const multiplierMagnitude = Math.hypot(derivativeRe, derivativeIm);
+      if (!Number.isFinite(multiplierMagnitude) || multiplierMagnitude >= 1) {
+        continue;
+      }
+      finishAttractingCycle(
+        out,
+        period,
+        derivativeRe,
+        derivativeIm,
+        iteration,
+        ORBIT_EVIDENCE_CODE.convergedCycle,
+        multiplierMagnitude,
+      );
+      return;
     }
   }
 

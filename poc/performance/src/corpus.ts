@@ -38,7 +38,7 @@ export interface CorpusPoint {
 export const CORPUS_SEED = 0x4d4950;
 
 /** The three hard-view anchors retained from the plan section 2 diagnosis. */
-const HARD_VIEW_ANCHORS: readonly {
+export const HARD_VIEW_ANCHORS: readonly {
   readonly re: number;
   readonly im: number;
   readonly zoom: number;

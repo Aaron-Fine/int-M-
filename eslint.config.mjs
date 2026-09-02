@@ -11,6 +11,7 @@ export default tseslint.config(
       'node_modules/',
       'playwright-report/',
       'test-results/',
+      '.evidence-build/',
     ],
   },
   eslint.configs.recommended,
