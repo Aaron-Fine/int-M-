@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  classifyOrbit,
   createOrbitSample,
   DEFAULT_ORBIT_OPTIONS,
   evidenceSourceForFlag,
@@ -10,9 +11,12 @@ import {
   PERIOD_POLICIES,
   PERIOD_POLICY_REVISION,
   resolveOrbitOptions,
+  VERIFIER_REVISION,
+  VERIFIER_THRESHOLDS,
   type EvidenceSource,
   type PeriodPolicy,
 } from '../../../src/domain';
+import { STRATA } from './legacy-differential';
 
 describe('period policy values (plan section 4 initial table)', () => {
   it('pins the per-profile systematic ceilings and iteration budgets', () => {
@@ -177,6 +181,125 @@ describe('evidence source vocabulary (plan section 4)', () => {
       'iteration-limit',
     ] as const) {
       expect(vocabulary).toContain(evidenceSourceForFlag(flag));
+    }
+  });
+});
+
+describe('invariant 8: systematic and opportunistic claims differ', () => {
+  // A policy revision that only changes the opportunistic ceiling: same
+  // systematic search, same iteration budget, same verifier. If any
+  // classification outcome moved, the policy vocabulary would be leaking
+  // into the quality barrier (workstream D kill condition).
+  const balancedBudget = {
+    maxIterations: 512,
+    maxPeriod: 32,
+    cycleWarmup: DEFAULT_ORBIT_OPTIONS.cycleWarmup,
+  };
+  const systematicPolicy = PERIOD_POLICIES.balanced;
+  const opportunisticPolicy: PeriodPolicy = {
+    revision: 'period-policy-test-invariant-8',
+    systematicMaxPeriod: 32,
+    opportunisticMaxPeriod: 4096,
+    maxIterations: 512,
+  };
+
+  const classifyWithPolicy = (
+    point: { readonly re: number; readonly im: number },
+    policy: PeriodPolicy,
+  ): ReturnType<typeof classifyOrbit> =>
+    classifyOrbit(point, { ...balancedBudget, periodPolicy: policy });
+
+  it('produces identical classification outcomes across the stratified grid when only opportunisticMaxPeriod changes', () => {
+    let attracting = 0;
+    let escaped = 0;
+    let unresolved = 0;
+    for (const point of STRATA) {
+      const systematic = classifyWithPolicy(point, systematicPolicy);
+      const opportunistic = classifyWithPolicy(point, opportunisticPolicy);
+      expect(opportunistic).toEqual(systematic);
+      if (systematic.status === 'attracting-cycle') {
+        attracting += 1;
+        // The evidence-source stamp stays descriptive under both revisions:
+        // origin metadata only, never a different acceptance path.
+        expect(opportunistic.status).toBe('attracting-cycle');
+        if (opportunistic.status === 'attracting-cycle') {
+          expect(opportunistic.evidenceSource).toBe(systematic.evidenceSource);
+          expect(opportunistic.verifierRevision).toBe(VERIFIER_REVISION);
+        }
+      } else if (systematic.status === 'escaped') {
+        escaped += 1;
+      } else {
+        unresolved += 1;
+      }
+    }
+    // Coverage bookkeeping so the grid cannot silently degenerate: every
+    // stratum family contributes its outcome class.
+    expect(attracting).toBeGreaterThan(0);
+    expect(escaped).toBeGreaterThan(0);
+    expect(unresolved).toBeGreaterThan(0);
+  });
+
+  it('classifies identically with no policy, the matching policy, and a raised opportunistic ceiling', () => {
+    const probePoints = [
+      { re: 0, im: 0 },
+      { re: -1, im: 0 },
+      { re: -0.1205, im: 0.7438 },
+      { re: 1, im: 1 },
+      { re: 0.25, im: 0 },
+    ];
+    for (const point of probePoints) {
+      const implicit = classifyOrbit(point, balancedBudget);
+      expect(classifyWithPolicy(point, systematicPolicy)).toEqual(implicit);
+      expect(classifyWithPolicy(point, opportunisticPolicy)).toEqual(implicit);
+    }
+  });
+
+  it('keeps maxIterations and the acceptance thresholds untouched by policy constants', () => {
+    const resolved = resolveOrbitOptions({ ...balancedBudget, periodPolicy: opportunisticPolicy });
+    expect(resolved.maxIterations).toBe(512);
+    expect(resolved.maxPeriod).toBe(32);
+    expect(resolved.cycleTolerance).toBe(DEFAULT_ORBIT_OPTIONS.cycleTolerance);
+    expect(resolved.cycleWarmup).toBe(DEFAULT_ORBIT_OPTIONS.cycleWarmup);
+    // The frozen acceptance policy is a separate, unchanged versioned
+    // constant: policy revisions cannot move it.
+    expect(VERIFIER_THRESHOLDS).toEqual({
+      tauAccept: 1e-10,
+      closureRelaxation: 100,
+      tauExclude: 1e-6,
+      attractMargin: 1e-12,
+    });
+  });
+
+  it('leaves unresolved semantics unchanged across policy revisions', () => {
+    // The parabolic boundary point stays honestly unresolved at a tiny
+    // budget under the systematic policy and under an opportunistic
+    // revision raised far above the ceiling: an opportunistic ceiling is
+    // not additional search, so it cannot resolve what the budget could not.
+    const budgets = [
+      { maxIterations: 48, maxPeriod: 8 },
+      { maxIterations: 256, maxPeriod: 16 },
+    ] as const;
+    for (const budget of budgets) {
+      const systematicRevision: PeriodPolicy = {
+        revision: 'period-policy-test-low',
+        systematicMaxPeriod: budget.maxPeriod,
+        opportunisticMaxPeriod: budget.maxPeriod,
+        maxIterations: budget.maxIterations,
+      };
+      const raisedRevision: PeriodPolicy = {
+        revision: 'period-policy-test-low-raised',
+        systematicMaxPeriod: budget.maxPeriod,
+        opportunisticMaxPeriod: 4096,
+        maxIterations: budget.maxIterations,
+      };
+      for (const policy of [systematicRevision, raisedRevision]) {
+        const result = classifyOrbit({ re: 0.25, im: 0 }, { ...budget, periodPolicy: policy });
+        expect(result).toEqual({
+          status: 'unresolved',
+          iterations: budget.maxIterations,
+          evidence: ['iteration-limit'],
+        });
+      }
     }
   });
 });
