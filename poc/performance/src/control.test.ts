@@ -86,8 +86,9 @@ describe('control kernel parity with OrbitClassifier', () => {
   const kernel = new ControlKernel(64);
 
   for (const profile of PROFILES) {
-    it(`agrees on status, period, iterations, evidence, and multiplier (${profile.label})`, () => {
+    it(`agrees on status, iterations, and evidence, and on period except documented non-primitive legacy multiples (${profile.label})`, () => {
       const classifier = new OrbitClassifier(profile.options);
+      let reduced = 0;
 
       for (const point of samplePoints()) {
         const production = classifier.classify({ re: point.cRe, im: point.cIm });
@@ -96,8 +97,46 @@ describe('control kernel parity with OrbitClassifier', () => {
           exhaustionScan: true,
         });
 
-        expect(comparableFields(control)).toEqual(comparableFields(production));
+        // PR 3 (common verifier): production acceptance is verifier-gated
+        // while this control kernel stays a frozen, faithful LEGACY port —
+        // that is its purpose as the differential baseline. The one
+        // sanctioned divergence is the documented legacy flaw the
+        // verifier's three-way proper-divisor policy fixes: the legacy
+        // scan can report a non-primitive multiple of the primitive period
+        // (binary64 rounding lets a multiple lag cross the proposal
+        // threshold before the primitive lag; 2/3/3 results per profile
+        // versus the dd oracle, poc/performance/results/summary.json).
+        // On such pixels the verifier reports the primitive period and
+        // recomputes the multiplier at that period, so the multiplier
+        // fields legitimately differ; everywhere else parity is exact.
+        // Every divergence is adjudicated against the dd oracle in
+        // tests/unit/domain/orbit-oracle-adjudication.test.ts.
+        const productionFields = comparableFields(production);
+        const controlFields = comparableFields(control);
+        expect(controlFields['status']).toBe(productionFields['status']);
+        expect(controlFields['iterations']).toBe(productionFields['iterations']);
+        expect(controlFields['evidence']).toBe(productionFields['evidence']);
+
+        if (control.status === 'attracting' && production.status === 'attracting-cycle') {
+          expect(production.verifierRevision).toBe('src-verifier-1.0.0');
+          if (control.period === production.period) {
+            // comparableFields carries exactly the legacy-comparable fields
+            // (it never includes the verifier revision), so exact equality
+            // is the legacy-parity contract.
+            expect(controlFields).toEqual(productionFields);
+          } else {
+            expect(production.period).toBeLessThan(control.period);
+            expect(control.period % production.period).toBe(0);
+            reduced += 1;
+          }
+        } else {
+          expect(controlFields).toEqual(productionFields);
+        }
       }
+      // The stratified corpus sample contains period-4 structure the legacy
+      // scan reports as 8/12: the documented reduction class must be present
+      // and is exactly what the oracle adjudication covers.
+      expect(reduced).toBeGreaterThan(0);
     });
   }
 
