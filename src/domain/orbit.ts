@@ -1,5 +1,11 @@
 import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
+import { CLASSIFIER_MODES, EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE } from './types';
+
+// Shared evidence vocabulary moved to types.ts so every classifier kernel
+// (the lag scan here and the PR 4 checkpoint schedule) writes the same
+// codes; re-exported to keep the src/domain API stable.
+export { EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE };
 
 export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   maxIterations: 512,
@@ -8,6 +14,8 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   // frozen policy in src/domain/verifier.ts.
   cycleTolerance: 1e-10,
   cycleWarmup: 24,
+  classifierMode: 'legacy-scan',
+  exhaustionScan: true,
 });
 
 /**
@@ -17,11 +25,19 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
 export class OrbitScratch {
   public historyRe: Float64Array;
   public historyIm: Float64Array;
+  /**
+   * Four spill slots for the PR 4 checkpoint schedule (z and checkpoint
+   * state round-tripped across the non-inlined verifyCycleInto call so no
+   * walk-loop phi is live at that call site — the V8 phi-boxing constraint
+   * documented at classifyInto). Unused by the lag scan.
+   */
+  public checkpointSpill: Float64Array;
 
   public constructor(maxPeriod: number = DEFAULT_ORBIT_OPTIONS.maxPeriod) {
     const capacity = Math.max(2, Math.ceil(maxPeriod) + 1);
     this.historyRe = new Float64Array(capacity);
     this.historyIm = new Float64Array(capacity);
+    this.checkpointSpill = new Float64Array(4);
   }
 
   public ensureCapacity(maxPeriod: number): void {
@@ -44,23 +60,8 @@ export type OrbitStatusCode = 0 | 1 | 2;
 /**
  * Evidence flags encoded as small integers in the primitive record;
  * materializeOrbitResult maps them back to EvidenceFlag strings at the rich
- * result boundary.
+ * result boundary. Defined in types.ts (shared with the checkpoint kernel).
  */
-export const ORBIT_EVIDENCE_CODE = Object.freeze({
-  escapeRadius: 0,
-  analyticMainCardioid: 1,
-  analyticPeriod2Bulb: 2,
-  convergedCycle: 3,
-  iterationLimit: 4,
-} as const);
-
-const EVIDENCE_BY_CODE: readonly EvidenceFlag[] = Object.freeze([
-  'escape-radius',
-  'analytic-main-cardioid',
-  'analytic-period-2-bulb',
-  'converged-cycle',
-  'iteration-limit',
-]);
 
 /**
  * Mutable primitive record filled by classifyInto. Every field relevant to
@@ -158,7 +159,16 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
       'iteration, period, and warmup options must be integers; tolerance must be positive',
     );
   }
-  return resolved;
+  const classifierMode = resolved.classifierMode ?? 'legacy-scan';
+  if (!CLASSIFIER_MODES.includes(classifierMode)) {
+    throw new RangeError(
+      `classifierMode must be one of ${CLASSIFIER_MODES.join(', ')}; got ${classifierMode}`,
+    );
+  }
+  const exhaustionScan = resolved.exhaustionScan ?? true;
+  // Normalized form: the optional mode/scan fields are always set, so kernel
+  // code reads plain values instead of re-applying defaults.
+  return { ...resolved, classifierMode, exhaustionScan };
 };
 
 /**

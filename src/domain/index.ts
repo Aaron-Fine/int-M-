@@ -12,6 +12,14 @@ export {
 } from './orbit';
 export type { OrbitSample, OrbitStatusCode } from './orbit';
 export {
+  CHECKPOINT_CANDIDATE_BUDGET,
+  CHECKPOINT_REVISION,
+  classifyCheckpointInto,
+  createCheckpointMetrics,
+  resetCheckpointMetrics,
+} from './checkpoint';
+export type { CheckpointMetrics } from './checkpoint';
+export {
   TAU_CLOSURE_SCALED,
   VERIFIER_REVISION,
   VERIFIER_THRESHOLDS,
@@ -30,6 +38,7 @@ export {
 export type { Rgba } from './semantic';
 export type {
   AttractingCycleOrbitResult,
+  ClassifierMode,
   Complex,
   EscapedOrbitResult,
   EvidenceFlag,
@@ -43,6 +52,7 @@ export type {
   UnresolvedOrbitResult,
   Viewport,
 } from './types';
+export { CLASSIFIER_MODES } from './types';
 export {
   clampViewport,
   complexToPixel,

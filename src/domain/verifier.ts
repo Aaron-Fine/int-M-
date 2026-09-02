@@ -44,14 +44,18 @@
  *   legacy strict |lambda| < 1 so near-parabolic cycles stay unresolved
  *   rather than marginally accepted. PoC policy choice.
  *
- * The permissive proposal threshold tauCandidate (1e-8) of the PoC policy is
- * deliberately absent: proposal generation in src/ is still the lag scan's
- * OrbitOptions.cycleTolerance gate until PR 4 introduces candidate sources,
- * at which point tauCandidate > tauAccept becomes policy there too.
+ * - tauCandidate: the permissive scale-aware PROPOSAL threshold of the PR 4
+ *   checkpoint schedule (plan section 4; PoC policy value 1e-8, kept). A
+ *   proximity hit at tauCandidate only proposes (lag, cycle point) to
+ *   verifyCycleInto — it never accepts, so the acceptance policy above is
+ *   untouched and VERIFIER_REVISION is unchanged. Requirement:
+ *   tauCandidate > tauAccept, so a proposed candidate can still fail the
+ *   stricter acceptance bound.
  */
 export const VERIFIER_THRESHOLDS = Object.freeze({
   tauAccept: 1e-10,
   closureRelaxation: 100,
+  tauCandidate: 1e-8,
   tauExclude: 1e-6,
   attractMargin: 1e-12,
 });
