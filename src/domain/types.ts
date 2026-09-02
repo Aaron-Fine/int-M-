@@ -1,3 +1,5 @@
+import type { EvidenceSource, PeriodPolicy } from './period-policy';
+
 export interface Complex {
   readonly re: number;
   readonly im: number;
@@ -60,6 +62,15 @@ export interface AttractingCycleOrbitResult extends OrbitResultBase {
    * optional in the type so older wire payloads stay valid.
    */
   readonly verifierRevision?: string;
+  /**
+   * How the attracting candidate was PROPOSED (plan section 4
+   * evidenceSource vocabulary; see src/domain/period-policy.ts for the
+   * documented mapping). Pure origin metadata: acceptance is the common
+   * verifier's alone and the quality barrier never depends on this field.
+   * Always set by materializeOrbitResult; optional in the type so older
+   * wire payloads stay valid.
+   */
+  readonly evidenceSource?: EvidenceSource;
 }
 
 export interface UnresolvedOrbitResult extends OrbitResultBase {
@@ -80,6 +91,16 @@ export interface OrbitOptions {
    */
   readonly cycleTolerance: number;
   readonly cycleWarmup: number;
+  /**
+   * Versioned period policy (PR 5, plan section 4) describing the search
+   * this classification runs: the systematic ceiling and orbit budget it
+   * declares must equal `maxPeriod`/`maxIterations` (enforced by
+   * resolveOrbitOptions), and `opportunisticMaxPeriod` is reserved for PR 4+
+   * candidate sources — nothing in the current classifier reads it, so
+   * raising it cannot change any classification outcome. When omitted,
+   * resolution attaches the derived default policy.
+   */
+  readonly periodPolicy?: PeriodPolicy;
 }
 
 export interface RenderQuality {

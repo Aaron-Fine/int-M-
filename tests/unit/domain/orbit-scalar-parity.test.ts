@@ -43,14 +43,23 @@ import {
  *   oracle in the oracle-adjudication section below.
  */
 
-const stripVerifierRevision = (
+const stripResultMetadata = (
   result: OrbitResult,
-): Omit<Extract<OrbitResult, { status: 'attracting-cycle' }>, 'verifierRevision'> | OrbitResult => {
+):
+  | Omit<
+      Extract<OrbitResult, { status: 'attracting-cycle' }>,
+      'verifierRevision' | 'evidenceSource'
+    >
+  | OrbitResult => {
   if (result.status !== 'attracting-cycle') {
     return result;
   }
-  const { verifierRevision, ...rest } = result;
+  const { verifierRevision, evidenceSource, ...rest } = result;
   expect(verifierRevision).toBe(VERIFIER_REVISION);
+  // PR 5 evidence-source stamp: origin metadata only, present on every rich
+  // attracting result; the legacy reference predates it and is compared
+  // without it (the differential below pins the classification fields).
+  expect(evidenceSource).toBeDefined();
   return rest;
 };
 
@@ -61,7 +70,7 @@ const stripVerifierRevision = (
 const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void => {
   if (production.status === 'attracting-cycle' && legacy.status === 'attracting-cycle') {
     if (production.period === legacy.period) {
-      expect(stripVerifierRevision(production)).toEqual(legacy);
+      expect(stripResultMetadata(production)).toEqual(legacy);
       return;
     }
     // Documented divergence (M3 adjudicates each against the dd oracle):
@@ -70,7 +79,7 @@ const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void 
     expect(legacy.period % production.period).toBe(0);
     return;
   }
-  expect(stripVerifierRevision(production)).toEqual(legacy);
+  expect(stripResultMetadata(production)).toEqual(legacy);
 };
 
 const PROFILES: readonly { readonly label: string; readonly options: Partial<OrbitOptions> }[] = [
