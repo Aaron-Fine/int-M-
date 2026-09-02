@@ -57,9 +57,10 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
 5065040, 228 points):
 
 - The checkpoint schedule is the only A/B schedule member with no detection
-  blind spot at PoC profiles (unresolved-rate delta 0 vs control, exhaustion
-  on and off) while cutting lag comparisons ~61× vs control at the detailed
-  profile (29,565 vs 1,800,798 comparisons; unresolved rate 8.77% both).
+  blind spot at PoC profiles (unresolved-rate delta 0 or better vs control at
+  every profile, exhaustion on and off) while cutting lag comparisons ~61× vs
+  control at the detailed profile (29,565 vs 1,800,798 comparisons; unresolved
+  rate 8.77% both).
 - The trigger's §4 step gate structurally cannot fire on settled p ≥ 2 cycles:
   with the exhaustion scan off it detects nothing there (unresolved +21.05
   percentage points vs control), which is why PR 4 built on the checkpoint
@@ -81,8 +82,7 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
 - Evidence contract: [evidence/phase-2/README.md](../../evidence/phase-2/README.md)
   defines the normative run directory layout.
 
-Workstream A gate (plan §5, quoted): `Reproducible runs in stable Chrome and
-Firefox; cache/replay/cancel sources distinguishable`. The tooling for this
+Workstream A gate (plan §5, quoted): `Reproducible runs in stable Chrome and Firefox; cache/replay/cancel sources distinguishable`. The tooling for this
 gate is landed; the gate itself is met by Stage A runs, which do not exist yet.
 
 ### PR 2 — Allocation-free scalar kernel (workstream B; landed, speed gate pending Stage A)
@@ -105,8 +105,7 @@ labeled directional):
   comparator in Node/V8 (1280.389 → 1276.921 ms hard anchor; 411.727 →
   391.180 ms full-set).
 
-Workstream B gate (plan §5, quoted): `≥10% classifier or ≥8% end-to-end
-improvement in both browsers; semantic parity`. The allocation and variance
+Workstream B gate (plan §5, quoted): `≥10% classifier or ≥8% end-to-end improvement in both browsers; semantic parity`. The allocation and variance
 parts of the B deliverable are directionally supported; the **speed gate is
 open and waits on Stage A browser evidence**.
 
@@ -148,13 +147,9 @@ labeled directional; balanced profile, 1024² raster slices, 15 timed passes):
   legitimately round differently; the dd-oracle test adjudicates the class).
 - Matched-budget detection on the seeded corpus shows no checkpoint-only or
   legacy-only detections and negative median delay on the hard-anchor stratum
-  (the schedule detects earlier), with `gateSummary.allDirectionalGatesPass:
-true`.
+  (the schedule detects earlier), with `gateSummary.allDirectionalGatesPass: true`.
 
-Workstream C gate (plan §5, quoted): `Lag comparisons reduced >50%; weighted
-median ≥25%; hard views ≥2×; no case >5% slower`. Kill condition: `Any false
-attracting result or wrong primitive period; unresolved rate +>0.1 percentage
-point`. These percentages are directional Node/V8 numbers; **the
+Workstream C gate (plan §5, quoted): `Lag comparisons reduced >50%; weighted median ≥25%; hard views ≥2×; no case >5% slower`. Kill condition: `Any false attracting result or wrong primitive period; unresolved rate +>0.1 percentage point`. These percentages are directional Node/V8 numbers; **the
 release-comparable gate decision waits on Stage A**, and until then the
 legacy scan stays the reported default.
 
@@ -172,8 +167,7 @@ detections above the systematic caps at ~1.03× cost on this corpus — and the
 policy is test-pinned so raising it cannot alter classification outcomes,
 `maxIterations`, or acceptance thresholds (plan invariant 8).
 
-Workstream D gate (plan §5, quoted): `Higher-period verified hits display
-without raising the quality barrier; no guarantee ambiguity`.
+Workstream D gate (plan §5, quoted): `Higher-period verified hits display without raising the quality barrier; no guarantee ambiguity`.
 
 ## Stage A — target-hardware baseline and gate runs (in progress)
 
@@ -216,32 +210,12 @@ verbatim from plan §5. "PoC evidence" is directional by definition.
 | I   | Wasm SIMD backend                                    | Not started. Conditions and the scalar-Wasm stepping-stone gate are recorded in [ADR 0005](decisions/0005-conditional-wasm-simd-backend.md); direction accepted, work not begun.                                                                                                                                                                                                                                                                                                                                                                               |
 | K   | Worker pool sizing                                   | Not started as a PR. Browser PoC directional ([pool-sizing.json](../../poc/performance/browser/results/pool-sizing.json)): on the 8-core test machine the 126× hard case improves from the 4-worker cap to 0.840× median wall at 8 workers (0.892× at 6); spawn costs recorded. Gate needs ≥20% on a ≥8-core class in both browsers.                                                                                                                                                                                                                           |
 
-Ship gates, quoted from plan §5: M — `≥1.6× classifier on real-axis-symmetric
-easy cases in both browsers with semantic parity under the tolerance policy;
-no corpus case beyond the normative regression cap`. O — `Paired
-profile-upgrade stable time ≤1.25× the unresolved-pixel share of a full
-recompute on corpus cases; carried pixels preserved exactly; any revision
-mismatch forces a full recompute`. N — `Attempted before E whenever E's skew
-gate (baseline slowest/mean elapsed >1.2) fires. Ships if hard paired
-median/p90 ≥10% better with easy <3% slower — E's bar at lower complexity. If
-N meets the bar, E is killed with retained evidence`. E — `Only if baseline
-slowest/mean elapsed >1.2; hard paired median/p90 ≥10% better with adequate
-samples; easy <3% slower`. G — `≥90% eligible attempts converge in ≤3
-corrections; failures <3% overhead; targeted ≥20%, weighted ≥10%; transplant
-hit rate and wasted-attempt overhead reported per view`. F — `Evidence gate
-first: C and the Newton PoC must quantify seed value that checkpoint
-detection alone cannot provide. If attempted: counts, residuals, divisor
-exclusions and conjugate closure verified independently`. H — `Targeted ≥15%
-or weighted ≥5%; fallback ≤5%; zero incorrect results`. I — `Classifier ≥1.5×
-and end-to-end ≥1.25× in both browsers; no hard case >10% slower`. K —
-`Hard-view wall-clock ≥20% better on a ≥8-core target class in both browsers;
-easy views <3% slower; memory within the versioned budget`.
+Ship gates, quoted from plan §5: M — `≥1.6× classifier on real-axis-symmetric easy cases in both browsers with semantic parity under the tolerance policy; no corpus case beyond the normative regression cap`. O — `Paired profile-upgrade stable time ≤1.25× the unresolved-pixel share of a full recompute on corpus cases; carried pixels preserved exactly; any revision mismatch forces a full recompute`. N — `Attempted before E whenever E's skew gate (baseline slowest/mean elapsed >1.2) fires. Ships if hard paired median/p90 ≥10% better with easy <3% slower — E's bar at lower complexity. If N meets the bar, E is killed with retained evidence`. E — `Only if baseline slowest/mean elapsed >1.2; hard paired median/p90 ≥10% better with adequate samples; easy <3% slower`. G — `≥90% eligible attempts converge in ≤3 corrections; failures <3% overhead; targeted ≥20%, weighted ≥10%; transplant hit rate and wasted-attempt overhead reported per view`. F — `Evidence gate first: C and the Newton PoC must quantify seed value that checkpoint detection alone cannot provide. If attempted: counts, residuals, divisor exclusions and conjugate closure verified independently`. H — `Targeted ≥15% or weighted ≥5%; fallback ≤5%; zero incorrect results`. I — `Classifier ≥1.5× and end-to-end ≥1.25× in both browsers; no hard case >10% slower`. K —
+`Hard-view wall-clock ≥20% better on a ≥8-core target class in both browsers; easy views <3% slower; memory within the versioned budget`.
 
 ## Research tracks (never release-gated into this phase)
 
-- **J — Rigorous subdivision.** Not started. Gate (quoted): `Only certified
-enclosures may skip stable per-pixel work`; kill condition: `Never ship
-corner/edge agreement as stable proof`.
+- **J — Rigorous subdivision.** Not started. Gate (quoted): `Only certified enclosures may skip stable per-pixel work`; kill condition: `Never ship corner/edge agreement as stable proof`.
 - **L — Trap-radius early accept.** Research-only standing unchanged (plan
   §12/L). The PoC kernel passed the oracle kill gate on the PoC corpus and
   grids — zero false attracting, zero wrong primitive periods — with large
@@ -249,9 +223,7 @@ corner/edge agreement as stable proof`.
   grid at the detailed profile; `summary.json` grids) and zero overhead where
   it does not. The acceptance argument is numerical (linear-regime disk plus
   the unchanged verifier), not a certified enclosure, so the track remains
-  open-ended research. Gate (quoted): `Oracle-validated: zero false attracting
-results across the corpus; measurable iteration savings on weak-attraction
-strata`.
+  open-ended research. Gate (quoted): `Oracle-validated: zero false attracting results across the corpus; measurable iteration savings on weak-attraction strata`.
 
 ## Honesty rules for this document
 
