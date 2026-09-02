@@ -19,12 +19,13 @@ poc/performance/src/
                          proper-divisor policy, attraction margin
   corpus.ts              deterministic seeded corpus (9+1 strata, ~225 points)
   kernels/shared.ts      metrics contract, proposal budget, full lag scan
-  kernels/control.ts     control kernel (faithful port of src/domain/orbit.ts)
-  kernels/checkpoint.ts  power-of-two approximate checkpoint schedule
-  kernels/trigger.ts     convergence-triggered single scan
-  kernels/staggered.ts   staggered harmonic lag testing
-  run.ts                 differential runner (CLI)
-  results/               runner output (committed)
+   kernels/control.ts     control kernel (faithful port of src/domain/orbit.ts)
+   kernels/checkpoint.ts  power-of-two approximate checkpoint schedule
+   kernels/trigger.ts     convergence-triggered single scan
+   kernels/staggered.ts   staggered harmonic lag testing
+   pr2-bench.ts           pr2 microbench: scalar kernel vs allocating pipeline
+   run.ts                 differential runner (CLI)
+   results/               runner output (committed); results/pr2/ microbench
 ```
 
 ## Running
@@ -46,6 +47,37 @@ poc/performance/src/
 
 - Typecheck: `tsc --noEmit -p tsconfig.poc.json` (included in
   `npm run typecheck`).
+
+## PR 2 microbench (`pr2-bench.ts`)
+
+Benchmarks the production allocation-free scalar classification pipeline
+(`classifyInto` into a preallocated `OrbitSample`, plan §5 workstream B)
+against the pre-PR2 pipeline shape: the control kernel driven through an
+allocating `pixelToComplex` boundary and per-pixel result records. Two fixed
+1024×1024 raster slices cut from the corpus hard-view anchors (the deep
+real-axis anchor 2 and a full-set view) are classified 15 timed passes per
+variant; medians and MADs of wall time, raw samples, and a dedicated
+GC-observed allocation pass (scavenge counts converted to a conservative
+per-pixel churn bound with the observed young-generation capacity, plus
+per-pixel object counts by construction) are written to
+`results/pr2/pr2-microbench.json`.
+
+Before timing, each case runs a full-raster **parity gate**: status, raw
+escape iteration, smooth escape iteration (the control kernel omits it, so
+the bench wrapper recomputes it the way the pre-PR2 production classifier
+did), period, and multiplier magnitude/angle must be bit-identical on every
+pixel between the variants. Any divergence aborts the run with a non-zero
+exit code and no results.
+
+Run with `npm run poc:bench:pr2` (requires `--expose-gc`, which the script
+supplies). Current committed verdict: the scalar pipeline churns no garbage
+(0–1 scavenges per pass versus 4–8 for the allocating shape) and its
+classify-time spread tightens on interior-heavy slices, while wall-clock
+medians sit at parity to somewhat behind the allocating comparator in
+Node/V8 — the workstream B speed gate stays open for Stage A browser
+evidence. Writing the bench exposed a real M1 kernel defect (a non-inlined
+verify helper inside the orbit loop forced tagged Float64 phis, allocating
+per iteration), fixed in `src/domain/orbit.ts` and documented there.
 
 ## Schedules and frozen policies
 

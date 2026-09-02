@@ -7,6 +7,7 @@ import {
   MIN_VIEWPORT_SPAN_Y,
   clampViewport,
   complexToPixel,
+  createViewportTransform,
   panViewport,
   pixelToComplex,
   zoomViewportAt,
@@ -157,5 +158,23 @@ describe('viewport mapping', () => {
         },
       ),
     ).toThrow(/positive width and height/);
+  });
+
+  it('pixelToComplexInto matches pixelToComplex exactly', () => {
+    const size = { width: 173, height: 411 };
+    const transform = createViewportTransform(
+      { center: { re: -0.4321, im: 0.9876 }, spanY: 0.0123 },
+      size,
+    );
+    for (const [pixelX, pixelY] of [
+      [0, 0],
+      [86, 205],
+      [172, 410],
+      [42, 300],
+    ] as const) {
+      const holder = { re: Number.NaN, im: Number.NaN };
+      transform.pixelToComplexInto(pixelX, pixelY, holder);
+      expect(holder).toEqual(transform.pixelToComplex(pixelX, pixelY));
+    }
   });
 });

@@ -1,9 +1,11 @@
 import {
+  createOrbitSample,
   createViewportTransform,
   OrbitClassifier,
   OrbitScratch,
+  type MutableComplex,
   type OrbitOptions,
-  type OrbitResult,
+  type OrbitSample,
   type RenderQuality,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
@@ -29,7 +31,13 @@ export interface ClassifyRowsResult extends BandArrays {
   readonly timing: SemanticStageTiming;
 }
 
-const writeOrbitResult = (
+/**
+ * Copies one primitive classification record into the band channels. The
+ * channel encoding is unchanged: smooth escape iteration or multiplier
+ * magnitude in the primary Float64 channel, multiplier angle secondary, and
+ * zero period/angle for non-attracting statuses.
+ */
+const writeSampleToBand = (
   band: BandArrays,
   width: number,
   y0: number,
@@ -37,22 +45,13 @@ const writeOrbitResult = (
   x: number,
   y: number,
   stride: number,
-  result: OrbitResult,
+  sample: Readonly<OrbitSample>,
 ): void => {
-  let status = 0;
-  let period = 0;
-  let primary = 0;
-  let secondary = 0;
-
-  if (result.status === 'escaped') {
-    status = 1;
-    primary = result.smoothIteration;
-  } else if (result.status === 'attracting-cycle') {
-    status = 2;
-    period = result.period;
-    primary = result.multiplierMagnitude;
-    secondary = result.multiplierAngle;
-  }
+  const status = sample.status;
+  const period = status === 2 ? sample.period : 0;
+  const primary =
+    status === 1 ? sample.smoothIteration : status === 2 ? sample.multiplierMagnitude : 0;
+  const secondary = status === 2 ? sample.multiplierAngle : 0;
 
   const limitY = Math.min(y1, y + stride);
   const limitX = Math.min(width, x + stride);
@@ -88,6 +87,10 @@ export async function classifyRows(
     maxPeriod: quality.maxPeriod,
   };
   const classifier = new OrbitClassifier(orbitOptions, new OrbitScratch(quality.maxPeriod));
+  // Per-band working state: the classification loop below allocates nothing
+  // per pixel (plan workstream B) — scalars in, band channels out.
+  const sample = createOrbitSample();
+  const point: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   const wallStarted = nowMs();
@@ -99,8 +102,9 @@ export async function classifyRows(
     for (let x = 0; x < width; x += stride) {
       const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
       const sampleY = Math.min(request.size.height - 1, y + (stride - 1) / 2);
-      const point = viewportTransform.pixelToComplex(sampleX, sampleY);
-      writeOrbitResult(band, width, y0, y1, x, y, stride, classifier.classify(point));
+      viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
+      classifier.classifyInto(point.re, point.im, sample);
+      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
     }
 
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
