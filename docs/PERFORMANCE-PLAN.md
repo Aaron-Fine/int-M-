@@ -196,7 +196,12 @@ Stage A decisions that nothing else may preempt:
 
 Each conditional needs a recorded accept/reject disposition (with retained
 evidence) before Phase 2 closes; none blocks closure. Gates are quoted
-verbatim from plan §5. "PoC evidence" is directional by definition.
+verbatim from plan §5. "PoC evidence" is directional by definition. The
+per-workstream disposition records — disposition, cited evidence, and the
+exact next evidence need — live in
+[WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md), with
+the per-gate evidence analysis (workstreams B, C, D, K, E, N, M, L) in
+[STAGE-A-GATE-ANALYSIS.md](verification/STAGE-A-GATE-ANALYSIS.md).
 
 | WS  | Deliverable (short)                                  | Current status and evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | --- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
