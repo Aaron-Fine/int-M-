@@ -1,4 +1,4 @@
-import type { Complex } from '../domain';
+import type { Complex, EvidenceSource } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
@@ -28,6 +28,7 @@ import {
   MIN_SCALE,
   QUALITY_PROFILES,
   SEMANTIC_VIEWS,
+  describePeriodPolicy,
   type QualityProfile,
   type QualityProfileId,
   type SemanticView,
@@ -786,9 +787,10 @@ export function mountApplication(host: HTMLElement): () => void {
     state.qualityProfile = qualitySelect.value as QualityProfileId;
     const profile = currentQualityProfile();
     qualityDescription.textContent = profile.description;
-    showFeedback(
-      `${profile.label} quality selected · ${profile.quality.maxIterations} iterations · periods through ${profile.quality.maxPeriod}.`,
-    );
+    // Plan §4 recommended framing, driven by the profile's period policy
+    // (never a hardcoded period/iteration count): the guaranteed systematic
+    // budget plus the honest opportunistic caveat.
+    showFeedback(`${profile.label} quality selected · ${describePeriodPolicy(profile.policy)}`);
     scheduleRender(true);
     if (state.selectedPoint) {
       inspectPoint(
@@ -1177,7 +1179,7 @@ function createInspector(): {
     ],
     [
       'Quality',
-      'The numerical search budget. Higher quality checks more iterations and periods, but unresolved still means no claim within that budget.',
+      'The numerical search budget. Quality systematically checks through the profile’s period ceiling within its iteration budget; higher periods may appear when independently found and verified, but unresolved still means no claim within that budget.',
     ],
   ] as const) {
     definitions.append(element('dt', { text: term }), element('dd', { text: description }));
@@ -1263,10 +1265,7 @@ function createInspector(): {
       }
     }
     addFact('Iterations', String(orbit.iterations));
-    addFact(
-      'Quality',
-      `${quality.label} · up to ${quality.quality.maxIterations} iterations / period ${quality.quality.maxPeriod}`,
-    );
+    addFact('Quality', `${quality.label} · ${describePeriodPolicy(quality.policy)}`);
     if (orbit.status === 'escaped') {
       addFact('Escape iteration', String(orbit.escapeIteration));
       addFact('Final magnitude', Math.sqrt(orbit.magnitudeSquared).toPrecision(7));
@@ -1279,6 +1278,13 @@ function createInspector(): {
         'Stability exponent κ',
         Number.isFinite(orbit.stabilityExponent) ? orbit.stabilityExponent.toPrecision(7) : '∞',
       );
+      // Origin metadata (plan invariant 8): independently found higher
+      // periods may be displayed only after verification and with their
+      // origin. evidenceSource never changes acceptance or the quality
+      // barrier — it names how the candidate was proposed.
+      if (orbit.evidenceSource !== undefined) {
+        addFact('Evidence source', formatEvidenceSource(orbit.evidenceSource));
+      }
     }
     addFact(
       'Evidence',
@@ -1312,4 +1318,23 @@ function formatEvidence(evidence: string): string {
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+/**
+ * Human labels for the evidenceSource vocabulary (src/domain/period-policy.ts).
+ * The 'fallback' label names the systematic orbit scan honestly — it is what
+ * ran — without suggesting a degraded or less trustworthy result: acceptance
+ * was identical (the common verifier) regardless of origin.
+ */
+const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.freeze({
+  analytic: 'Analytic closed form',
+  checkpoint: 'Checkpoint schedule',
+  catalog: 'Catalog seed',
+  chart: 'Local chart prediction',
+  algebraic: 'Algebraic relation',
+  fallback: 'Systematic orbit scan',
+});
+
+function formatEvidenceSource(source: EvidenceSource): string {
+  return EVIDENCE_SOURCE_LABELS[source];
 }

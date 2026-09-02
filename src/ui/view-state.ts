@@ -17,6 +17,7 @@ export const SEMANTIC_VIEWS = [
 ] as const;
 
 import type { RenderQuality, SemanticView, Viewport } from '../domain';
+import { PERIOD_POLICIES, type PeriodPolicy } from '../domain/period-policy';
 import { DEFAULT_VIEWPORT, MAX_VIEWPORT_SPAN_Y, MIN_VIEWPORT_SPAN_Y } from '../domain/viewport';
 
 export type { SemanticView, Viewport };
@@ -34,6 +35,15 @@ export interface QualityProfile {
   readonly label: string;
   readonly description: string;
   readonly quality: RenderQuality;
+  /**
+   * Versioned period policy (PR 5, plan section 4) backing this profile:
+   * the systematic ceiling and iteration budget this profile guarantees,
+   * and the opportunistic ceiling for future candidate sources. The
+   * systematic fields must equal `quality.maxPeriod`/`quality.maxIterations`
+   * (pinned by the view-state unit tests) so the product language and the
+   * classification budget can never drift apart.
+   */
+  readonly policy: PeriodPolicy;
   readonly maxRenderEdge: number;
 }
 
@@ -47,6 +57,7 @@ export const QUALITY_PROFILES: readonly QualityProfile[] = Object.freeze([
     label: 'Quick',
     description: 'Faster exploration; more points may remain unresolved.',
     quality: Object.freeze({ maxIterations: 256, maxPeriod: 16, coarseStride: 12 }),
+    policy: PERIOD_POLICIES.quick,
     maxRenderEdge: 768,
   },
   {
@@ -54,6 +65,7 @@ export const QUALITY_PROFILES: readonly QualityProfile[] = Object.freeze([
     label: 'Balanced',
     description: 'Recommended balance of detail and render time.',
     quality: Object.freeze({ maxIterations: 512, maxPeriod: 32, coarseStride: 8 }),
+    policy: PERIOD_POLICIES.balanced,
     maxRenderEdge: 1024,
   },
   {
@@ -61,6 +73,7 @@ export const QUALITY_PROFILES: readonly QualityProfile[] = Object.freeze([
     label: 'Detailed',
     description: 'Checks longer and higher-period cycles; renders more slowly.',
     quality: Object.freeze({ maxIterations: 1024, maxPeriod: 64, coarseStride: 8 }),
+    policy: PERIOD_POLICIES.detailed,
     maxRenderEdge: 1024,
   },
 ]);
@@ -107,4 +120,21 @@ export function formatMagnification(spanY: number): string {
     return `${magnification.toFixed(magnification < 10 ? 2 : 0)}×`;
   }
   return `${magnification.toExponential(2).replace('+', '')}×`;
+}
+
+/**
+ * Recommended product language for a profile's period policy (plan §4):
+ * names the guaranteed systematic budget — the profile's systematicMaxPeriod
+ * within maxIterations — and states that higher periods may appear when
+ * independently found and verified. Deliberately omits
+ * opportunisticMaxPeriod: the UI must never imply exhaustive classification
+ * up to the opportunistic ceiling, because that ceiling is derived policy,
+ * not guaranteed coverage.
+ */
+export function describePeriodPolicy(policy: PeriodPolicy): string {
+  return (
+    `Systematically checks through period ${policy.systematicMaxPeriod} ` +
+    `within ${policy.maxIterations} iterations. ` +
+    'Higher periods may appear when independently found and verified.'
+  );
 }

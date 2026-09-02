@@ -1,3 +1,8 @@
+import {
+  defaultPeriodPolicyFor,
+  evidenceSourceForFlag,
+  resolvePeriodPolicy,
+} from './period-policy';
 import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
 import { CLASSIFIER_MODES, EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE } from './types';
@@ -151,7 +156,8 @@ const finishAttractingCycle = (
  */
 
 export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitOptions => {
-  const resolved: OrbitOptions = { ...DEFAULT_ORBIT_OPTIONS, ...options };
+  const { periodPolicy, ...operative } = options;
+  const resolved: OrbitOptions = { ...DEFAULT_ORBIT_OPTIONS, ...operative };
   if (
     !Number.isInteger(resolved.maxIterations) ||
     resolved.maxIterations < 1 ||
@@ -175,7 +181,21 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
   const exhaustionScan = resolved.exhaustionScan ?? true;
   // Normalized form: the optional mode/scan fields are always set, so kernel
   // code reads plain values instead of re-applying defaults.
-  return { ...resolved, classifierMode, exhaustionScan };
+  // PR 5 (plan section 4): attach versioned period-policy metadata. The
+  // policy describes the search, it does not drive it — classification reads
+  // only the operative fields above, and an explicit policy must agree with
+  // them (resolvePeriodPolicy throws otherwise). With no explicit policy the
+  // derived default equals today's constants, so legacy behavior is
+  // unchanged (pinned in tests/unit/domain/period-policy.test.ts).
+  return {
+    ...resolved,
+    classifierMode,
+    exhaustionScan,
+    periodPolicy:
+      periodPolicy === undefined
+        ? defaultPeriodPolicyFor(resolved.maxIterations, resolved.maxPeriod)
+        : resolvePeriodPolicy(periodPolicy, resolved),
+  };
 };
 
 /**
@@ -538,6 +558,13 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
       multiplierAngle: sample.multiplierAngle,
       stabilityExponent: sample.stabilityExponent,
       verifierRevision: VERIFIER_REVISION,
+      // Origin metadata (PR 5, plan section 4): the single evidence flag an
+      // attracting result carries identifies its proposal path — the
+      // closed forms are 'analytic', everything else is the lag scan
+      // ('fallback'). Acceptance above is source-blind; this stamp must
+      // stay descriptive (workstream D kill condition: no candidate-source
+      // leakage into confidence semantics).
+      evidenceSource: evidenceSourceForFlag(evidence[0] ?? 'iteration-limit'),
     };
   }
   return {

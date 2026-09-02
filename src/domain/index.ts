@@ -23,6 +23,16 @@ export {
 } from './checkpoint';
 export type { CheckpointMetrics, DifferentialStats } from './checkpoint';
 export {
+  defaultPeriodPolicyFor,
+  deriveOpportunisticMaxPeriod,
+  evidenceSourceForFlag,
+  EVIDENCE_SOURCE_VALUES,
+  PERIOD_POLICIES,
+  PERIOD_POLICY_REVISION,
+  resolvePeriodPolicy,
+} from './period-policy';
+export type { EvidenceSource, PeriodPolicy } from './period-policy';
+export {
   TAU_CLOSURE_SCALED,
   VERIFIER_REVISION,
   VERIFIER_THRESHOLDS,

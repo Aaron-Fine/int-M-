@@ -448,7 +448,13 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const quality = page.getByLabel('Quality');
     await expect(quality).toHaveValue('balanced');
     await quality.selectOption('detailed');
-    await expect(page.getByText(/Detailed quality selected · 1024 iterations/)).toBeVisible();
+    // Plan §4 recommended framing, driven by the Detailed profile's period
+    // policy: the guaranteed systematic budget plus the opportunistic caveat.
+    await expect(
+      page.getByText(
+        /Detailed quality selected · Systematically checks through period 64 within 1024 iterations/,
+      ),
+    ).toBeVisible();
     await expect(page.getByText(/Checks longer and higher-period cycles/)).toBeVisible();
   });
 
