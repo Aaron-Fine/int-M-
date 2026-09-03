@@ -24,6 +24,7 @@
   "include": [
     "tools/benchmark/validate-corpus.ts",
     "tools/benchmark/bca.ts",
+    "tools/benchmark/view-chain.d.mts",
     "tools/phase0-browser-benchmark.ts"
   ]
 }
