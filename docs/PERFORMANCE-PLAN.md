@@ -22,7 +22,7 @@ evidence links. It is a status document, not a marketing document:
 | Sequence item (plan §11)                                       | Workstream        | Status                                                                                                                                                                                   | Evidence                                                                                                                  |
 | -------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Step 0 — PoC harness                                           | —                 | **Landed**                                                                                                                                                                               | [poc/performance/](../poc/performance/README.md)                                                                          |
-| PR 1 — Corpus, timing, bounded observability                   | A                 | **Landed** (Stage A runs pending)                                                                                                                                                        | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                |
+| PR 1 — Corpus, timing, bounded observability                   | A                 | **Partially landed**: corpus, recorder, and trace schema are present; production provenance/timing propagation and cancellation quiescence are incomplete, so the A gate remains open    | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                |
 | PR 2 — Allocation-free scalar kernel                           | B                 | **Landed**; speed gate open (not measurable from the current Stage A paired arms; see [gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                            | pr2 microbench (directional)                                                                                              |
 | PR 3 — Common verifier and semantic oracle                     | C (part)          | **Landed**                                                                                                                                                                               | src/domain/verifier.ts, verifier/adjudication tests                                                                       |
 | PR 4 — Checkpoint candidates                                   | C                 | **Landed** behind the `legacy-scan` default; directional-pass-pending on the first Stage A run ([gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                  | src/domain/checkpoint.ts, pr4 bench (directional), [first Stage A run](../evidence/phase-2/2026-09-02-6f49f19/summary.md) |
@@ -30,6 +30,52 @@ evidence links. It is a status document, not a marketing document:
 | Stage A — target-hardware baseline and gate runs               | A/B/C/D           | **First run complete** (screening protocol; automation-bundled Chromium + Firefox — directional); release-protocol runs pending ([gate analysis](verification/STAGE-A-GATE-ANALYSIS.md)) | [evidence/phase-2/2026-09-02-6f49f19/](../evidence/phase-2/2026-09-02-6f49f19/summary.md)                                 |
 | Conditional PRs M, O, N, E, G, F, H, I, K (+ renderer details) | M/O/N/E/G/F/H/I/K | Not started as PRs; dispositions recorded ([WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md))                                                                        | poc/performance/results/, poc/performance/browser/results/                                                                |
 | Research tracks — rigorous subdivision (J), trap-radius (L)    | J/L               | Open-ended; L has PoC oracle-gate evidence (below)                                                                                                                                       | poc/performance/src/kernels/trap.ts and results                                                                           |
+
+## Recovery audit update (2026-09-02)
+
+The recovered branch is internally healthy but is not release-cleared. The
+full repository check passes (formatting, strict lint, all TypeScript
+projects, generated-data checks, 357 unit tests, and the production build).
+The browser suite passes 31 tests in Chromium and Firefox with one
+Firefox-only recovery test skipped and no failures. These checks support
+continued development behind the existing `legacy-scan` default; they do not
+replace the release benchmark protocol.
+
+The audit confirms the following status:
+
+- **Checkpoint is the leading candidate.** Directional Node evidence shows
+  97% fewer lag comparisons and 7.02–14.83× wall-clock speedups. The first
+  full-application screening run shows 3.66–16.88× on Chromium release-gate
+  cases and 6.00–27.31× on Firefox, with no median-level regression-cap
+  breach. PR 4 nevertheless reports more allocation churn than its legacy
+  comparator, so PR 2's “allocation-free scalar” description must not be
+  generalized to the checkpoint path. The default must not flip until
+  release-protocol and semantic gates close.
+- **PR 2 improves allocation behavior, not enough speed to close B.** The
+  measured scalar speedup is 0.3% on the hard anchor and 5.0% on the full-set
+  slice; a dedicated pre/post browser B-gate run is still required.
+- **Browser semantics are deterministic but not fully adjudicated.** Eight of
+  13 Stage A cases have repeatable RGBA hash differences in both engines.
+  Existing oracle and differential evidence makes additional verified
+  checkpoint detections the likely cause, but the browser artifacts do not
+  carry per-pixel status, period, or unresolved counts and therefore cannot
+  prove the unresolved-rate cap or independently adjudicate every changed
+  pixel.
+- **The observability model exists but its integration is incomplete.** The
+  trace ring can represent source, origin compute, worker wall, band
+  imbalance, and child quiescence, but the production worker protocol and
+  application do not propagate those values. Frames consequently default to
+  `computed`, and cancellation records omit child quiescence. Component tests
+  exercise manually supplied metadata, not this end-to-end path.
+- **The evidence harnesses need consolidation before release runs.** The
+  Stage A, B-gate, renderer-path, and overhead runners duplicate orchestration
+  and statistics in large scripts. A superseded renderer baseline run and
+  repaired overhead-runner defects demonstrate why shared, fixture-tested
+  evidence primitives are required before the final runs.
+- **Raw evidence remains useful and currently inexpensive.** Tracked JSON is
+  about 12 MiB but more than 432,000 lines. Keep existing artifacts intact;
+  apply the prospective compression/off-repository thresholds in the
+  [Phase 2 evidence contract](../evidence/phase-2/README.md) to new runs.
 
 Requirements trace for all of the above is
 [MI-PERF-001…008](verification/REQUIREMENTS.md#phase-2-performance-requirements).
@@ -68,26 +114,86 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
 - Transplantation and trap pass the oracle gate with large savings where they
   fire; both keep their conditional/research standing (below).
 
-### PR 1 — Corpus, timing, and bounded observability (workstream A; landed)
+### PR 1 — Corpus, timing, and bounded observability (workstream A; partially landed)
 
 - Frozen corpus v1: [tools/benchmark/corpus.v1.json](../tools/benchmark/corpus.v1.json)
   with validator (`validate-corpus.ts`, CI-run), environment capture
   (`capture-environment.mjs`), and SHA-256 manifest tooling (`manifest.mjs`).
   Case IDs, viewports, classes, and stratum coverage are specified in
   [PERFORMANCE-CORPUS.md](verification/PERFORMANCE-CORPUS.md).
-- Bounded always-on render trace ring:
+- Bounded always-on render trace schema and ring:
   [src/ui/worker-timing-marks.ts](../src/ui/worker-timing-marks.ts)
-  (capacity 32 request summaries; corrected timing semantics — compute fields
-  absent, never zero or copied, on cached/replayed/recolored frames).
+  (capacity 32 request summaries; the model can express the intended rule that
+  non-performed compute fields are absent, never zero or copied, on
+  cached/replayed/recolored frames).
 - Evidence contract: [evidence/phase-2/README.md](../evidence/phase-2/README.md)
   defines the normative run directory layout.
 
-Workstream A gate (plan §5, quoted): `Reproducible runs in stable Chrome and Firefox; cache/replay/cancel sources distinguishable`. The tooling for this
-gate is landed; the first Stage A run exists
+Workstream A gate (plan §5, quoted): `Reproducible runs in stable Chrome and Firefox; cache/replay/cancel sources distinguishable`. The corpus and evidence
+tooling are landed, but the production observability path is not complete:
+`FrameDelivery` defines the intended metadata while `FrameMessage` and
+`presentFrame` do not carry or supply it. The first Stage A run exists
 ([2026-09-02-6f49f19](../evidence/phase-2/2026-09-02-6f49f19/summary.md),
 screening protocol, automation-bundled engines — directional), and the
 release-protocol runs on stable branded browsers (including the
 cache/replay/cancel suite, out of scope for the first pass) remain.
+
+#### Observability integration completion plan
+
+Treat provenance as part of the worker protocol, not as a UI inference. The
+implementation sequence is:
+
+1. **Give semantic work an identity at its origin.** Allocate a monotonically
+   increasing `computeId` when `RenderWorkerRuntime` starts a new semantic
+   render. Store it with the active render and with each semantic-cache entry;
+   rebinding an in-flight render or serving a completed cached frame retains
+   the originating ID. `requestId` continues to identify UI intent and must
+   never be reused as `computeId`.
+2. **Make delivery provenance explicit and exhaustive.** Add a required
+   `source` and optional `originComputeId` to frame protocol metadata. Set the
+   source at the branch that actually produced the delivery: `computed` for a
+   fresh renderer callback, `inflight-replay` for the retained frame of an
+   active matching computation, `semantic-cache` for a completed semantic
+   cache hit, and `recolor` only for a view-only recolor path. Do not let the
+   recorder silently infer `computed`; an absent or impossible source is a
+   protocol/test failure.
+3. **Report performed work rather than infer it from source.** Capture
+   `workerWallMs` from semantic-compute start through frame assembly for fresh
+   computed frames. Derive `maxBandElapsedMs` and `imbalanceRatio`
+   (`max / mean`, with the zero/empty case absent) from the same band timing
+   snapshot. Carry `colorizeMs` whenever colorization actually ran, including
+   a cache delivery if the current architecture recolors it. Non-performed
+   compute fields are absent, never copied from the originating computation
+   and never encoded as zero.
+4. **Model cancellation as two events.** Record the main-thread cancellation
+   request time once. Emit/observe an acknowledgment when cancellation is
+   accepted and a separate quiesced event only after the renderer promise and
+   all nested workers have stopped or the pool has been reset. Record
+   `cancelAckMs` and `childQuiescenceMs` from the same main-thread clock;
+   duplicate, late, and superseded events must be idempotent and attributed to
+   the original request.
+5. **Connect the UI without timing-domain leakage.** `presentFrame` passes the
+   protocol's provenance and worker metrics unchanged while measuring only
+   `requestToPresentMs` on the main thread. Centralize the protocol-to-trace
+   mapping in one adapter so application code and benchmark hooks cannot
+   assign different semantics.
+6. **Test paths, invariants, and cost.** Add runtime tests for fresh compute,
+   completed cache, active replay, and view-only recolor; application-level
+   tests proving the emitted trace source and origin ID; nested-worker tests
+   proving quiescence follows acknowledgment; and invariant tests proving
+   non-computed fields are absent. Then run the always-on/diagnostic overhead
+   harness with the actual flags, ≥21 paired repetitions and BCa intervals.
+
+Acceptance for PR 1 is therefore stricter than “the ring type exists”:
+
+- every production frame has a correct, non-defaulted source;
+- reused semantic work has a stable `originComputeId` and fresh work has one
+  `computeId` shared by its frames;
+- worker wall/band fields appear only for performed compute, while colorize
+  timing reflects actual execution;
+- cancellation produces both acknowledgment and child-quiescence timing; and
+- an end-to-end cache/replay/recolor/cancel suite passes in both release
+  browsers without breaching the §8 overhead or retention budgets.
 
 ### PR 2 — Allocation-free scalar kernel (workstream B; landed, speed gate open)
 
@@ -116,6 +222,13 @@ open**: no committed artifact reaches either threshold in Node (best case
 behind), and the current Stage A paired arms both run the post-PR-2 kernel,
 so the gate needs dedicated browser evidence ([gate
 analysis](verification/STAGE-A-GATE-ANALYSIS.md)).
+
+`tools/benchmark/run-b-gate.mjs` requires an explicit two-build `--dist`
+argument. For a gate run, create a disposable detached worktree at the pinned
+pre-PR-2 commit `a6e1838`, build its `dist`, pass
+`baseline=<worktree>/dist,current=dist`, and remove the worktree after the
+evidence manifest is verified. The runner intentionally has no default
+session or `/tmp` worktree dependency.
 
 ### PR 3 — Common verifier and semantic oracle (landed)
 

@@ -6,13 +6,19 @@ directories:
 ```
 evidence/phase-2/<date>-<commit>/
 ├── environment.json          # from tools/benchmark/capture-environment.mjs
-├── raw-observations.json     # every stored sample; never aggregates only
+├── raw-observations.json     # every stored sample; plain JSON for small runs
+├── raw-observations.jsonl.gz # alternative record stream for large runs
 ├── semantic-comparison.json  # holdout/oracle comparison for the same runs
 ├── summary.md                # human-readable result and limitation record
+├── artifact-index.json       # required for compressed or external payloads
 ├── wasm-build.json           # optional; only when the accelerated kernel ships
 ├── catalog-generation.json   # optional; only when workstream F ships
 └── manifest.sha256           # from tools/benchmark/manifest.mjs, emitted last
 ```
+
+Exactly one `raw-observations` form is present in a run. Existing plain-JSON
+runs remain valid; producers may switch to the compressed form only after the
+reader and validator support described below lands.
 
 - `<date>` is the run date (YYYY-MM-DD) and `<commit>` the short build
   revision under test. The directory name makes every artifact traceable to a
@@ -21,7 +27,8 @@ evidence/phase-2/<date>-<commit>/
   and algorithm/catalog/verifier revisions, worker count, backend, and harness
   command/version per the plan §9 protocol. Browser-only fields start as null
   in the Node capture and must be filled before the run is quoted.
-- `raw-observations.json` stores **every sample** of every case (per-repetition
+- `raw-observations.json` (or its deterministic gzip form) stores **every
+  sample** of every case (per-repetition
   timings, cancellation interactions, per-sample status/period fields).
   Aggregates (median, MAD, p95, paired intervals) are derived views recorded
   alongside or in `summary.md`, never as the only record. A run that stores
@@ -40,6 +47,58 @@ evidence/phase-2/<date>-<commit>/
 - Optional artifacts: `wasm-build.json` (accelerated-kernel build and
   capability evidence) and `catalog-generation.json` (generated-catalog
   report) join the directory only if the corresponding workstream ships.
+
+## Repository retention policy
+
+Evidence has three storage tiers. This policy is prospective: existing
+committed run directories remain valid and must not be rewritten merely to
+change encoding.
+
+1. **Review surface — tracked, readable text.** Always commit `summary.md`,
+   `environment.json`, `semantic-comparison.json`, `manifest.sha256`, and
+   small derived tables. These are the human review and source-discovery
+   surface. Do not commit screenshots of data that can be represented by these
+   files.
+2. **Ordinary raw payload — tracked JSON.** Commit every raw sample in readable
+   JSON while an individual artifact is below 5 MiB. Mark bulk generated data
+   with `.gitattributes` (`linguist-generated=true -diff`) so it does not
+   dominate routine code review; summaries and manifests remain diffable.
+   Git's object store already compresses and delta-packs this text, so adding
+   an archive or LFS pointer at the current scale would reduce accessibility
+   without a material storage win.
+3. **Large raw payload — tracked, compressed record stream.** At 5 MiB or
+   larger, encode observations as canonical JSON Lines and store deterministic
+   gzip (`mtime = 0`, no original filename) as
+   `raw-observations.jsonl.gz`. A compressed payload requires
+   `artifact-index.json` containing its schema revision, media type, encoding,
+   record count, compressed and uncompressed byte counts, and SHA-256 of the
+   uncompressed canonical bytes. The manifest continues to hash the checked-in
+   compressed bytes. Harness readers and validators must accept both forms
+   before a producer switches formats.
+4. **External immutable payload — exceptional.** If one compressed payload
+   exceeds 25 MiB or committed Phase 2 evidence is projected to exceed
+   100 MiB, review whether to store the payload in a durable
+   content-addressed release/object store. If moved, commit the summary,
+   environment, semantic comparison,
+   `artifact-index.json`, retrieval location, retention policy, and both
+   compressed/uncompressed hashes. Ephemeral CI artifacts are not admissible.
+   Git LFS is acceptable only if cloning, archival retention, and unauthenticated
+   reviewer access are guaranteed for the project; it is not the default.
+
+Why: the current branch's tracked JSON is only about 12 MiB, so rewriting
+today's evidence or adopting Git LFS would add more operational complexity
+than value. The present problem is more than 432,000 pretty-printed lines in
+change statistics and review tools, which generated-file attributes address
+without making the evidence harder to inspect. Deterministic JSONL gzip is the
+next tier when individual artifacts become materially large; the external
+tier prevents repeated experiment matrices from growing the repository
+without bound.
+
+Run directories are immutable records. A correction creates a new run or an
+explicitly documented replacement; it never silently edits raw observations.
+Generators should write to a temporary file, validate record counts/schema,
+atomically publish the final payload, then emit `artifact-index.json`, summary,
+and `manifest.sha256` last.
 
 ## Stage A runs (`tools/benchmark/run-stage-a.mjs`)
 

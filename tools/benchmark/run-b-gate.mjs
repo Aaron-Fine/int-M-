@@ -43,9 +43,14 @@
  *
  * Usage:
  *   node tools/benchmark/run-b-gate.mjs [--engine chromium|firefox]
- *     [--dist "baseline=/tmp/opencode/worktrees/baseline-pre-pr2/dist,current=dist"]
+ *     --dist "baseline=<pre-pr2-worktree>/dist,current=dist"
  *     [--reps 11] [--cases <id,id,...>] [--out-dir <evidence/phase-2/...>]
  *     [--headed] [--max-steps 64]
+ *
+ * The baseline checkout is deliberately explicit: create a disposable
+ * detached worktree at commit a6e1838, build it, pass its dist path here, and
+ * remove the worktree after the run. A volatile session path must never be an
+ * implicit dependency of the evidence runner.
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -88,16 +93,20 @@ if (!Number.isInteger(reps) || reps < 2) {
 const headed = args.includes('--headed');
 const maxSteps = Number(readOption('--max-steps') ?? 64);
 
-const dists = (
-  readOption('--dist') ?? 'baseline=/tmp/opencode/worktrees/baseline-pre-pr2/dist,current=dist'
-)
-  .split(',')
-  .map((entry) => {
-    const eq = entry.indexOf('=');
-    const label = eq === -1 ? entry : entry.slice(0, eq);
-    const dir = eq === -1 ? entry : entry.slice(eq + 1);
-    return { label, dir: path.resolve(repoRoot, dir) };
-  });
+const distOption = readOption('--dist');
+if (distOption === undefined) {
+  process.stderr.write(
+    '--dist is required: baseline=<pre-pr2-worktree>/dist,current=dist\n' +
+      'Create and build a detached baseline worktree at commit a6e1838 before running this gate.\n',
+  );
+  process.exit(2);
+}
+const dists = distOption.split(',').map((entry) => {
+  const eq = entry.indexOf('=');
+  const label = eq === -1 ? entry : entry.slice(0, eq);
+  const dir = eq === -1 ? entry : entry.slice(eq + 1);
+  return { label, dir: path.resolve(repoRoot, dir) };
+});
 if (dists.length !== 2) {
   process.stderr.write('--dist needs exactly two label=dir entries (baseline,current)\n');
   process.exit(2);
