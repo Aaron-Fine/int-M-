@@ -27,6 +27,7 @@
     "playwright.config.ts",
     "tests/unit/**/*.ts",
     "tools/measure_cpu.ts",
-    "tools/benchmark/cancel-quiescence.ts"
+    "tools/benchmark/cancel-quiescence.ts",
+    "tools/benchmark/recorder-cost.ts"
   ]
 }
