@@ -2,8 +2,9 @@
 /**
  * MI-PERF-007 overhead benchmark (performance plan §8/§9).
  *
- * Paired end-to-end overhead evidence for the always-on render-trace ring and
- * the opt-in `?perf=1` diagnostics, in the declared Firefox target
+ * Paired end-to-end overhead evidence for the opt-in `?perf=1&perfCounters=1`
+ * diagnostics, plus direct cost and retention evidence for the always-on ring,
+ * in the declared Firefox target
  * environment, on the production bundle (`vite build` + `vite preview`):
  *
  * - 4 corpus cases (2 easy + 2 hard) × {`?perf=1` present vs absent} × 11
@@ -12,11 +13,9 @@
  * - wall metric available in BOTH arms without the hook: in-page User Timing
  *   marks `mi:app-mount` → last `mi:stable-presented` (both marks are
  *   emitted unconditionally by the application);
- * - (a) always-on non-inferiority: paired median % difference within 2% with
- *   a paired bootstrap percentile interval (log-ratio space, recorded seed,
- *   no new deps) excluding worse-than-2%;
- * - (b) opt-in diagnostics ≤5%: the same paired samples, 5% threshold;
- * - (c) measured retention: filled-ring snapshot JSON size ≤64 KiB on the
+ * - opt-in diagnostics ≤5%: paired median % difference with a BCa interval
+ *   in log-ratio space (recorded seed) excluding worse-than-5%;
+ * - measured retention: filled-ring snapshot JSON size ≤64 KiB on the
  *   biggest case, plus the worst-single-trace × capacity extrapolation;
  * - recorder per-frame cost from tools/benchmark/recorder-cost.ts
  *   (`npm run bench:recorder`, stored as recorder-cost-node.json);
@@ -29,7 +28,8 @@
  *
  * Usage:
  *   node tools/benchmark/run-overhead.mjs [--engine firefox|chromium]
- *       [--reps 11] [--cases <id,id>] [--out-dir <evidence/phase-2/<date>-<commit>>]
+ *       [--headless] [--reps 11] [--cases <id,id>]
+ *       [--out-dir <evidence/phase-2/<date>-<commit>>]
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -38,6 +38,8 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import { build, preview } from 'vite';
+
+import { bcaInterval } from './bca.ts';
 
 const require = createRequire(import.meta.url);
 const { chromium, firefox } = require('@playwright/test');
@@ -57,7 +59,6 @@ const RETENTION_EASY_CASE_ID = 'mi-easy-exterior-heavy';
 const RETENTION_BUDGET_BYTES = 64 * 1024;
 const BOOTSTRAP_REPS = 10_000;
 const BOOTSTRAP_SEED = 20_260_902;
-const ALWAYS_ON_BUDGET = 0.02;
 const OPT_IN_BUDGET = 0.05;
 
 const log = (message) => {
@@ -86,6 +87,7 @@ if (!Number.isInteger(reps) || reps < 2) {
 // Self-wrap under xvfb-run so the harness is one reproducible command.
 if (
   engine === 'firefox' &&
+  !args.includes('--headless') &&
   process.env['MI_XVFB_WRAPPED'] !== '1' &&
   !process.env['DISPLAY'] &&
   spawnSync('which', ['xvfb-run'], { encoding: 'utf8' }).status === 0
@@ -100,25 +102,34 @@ if (
 }
 const xvfbWrapped = process.env['MI_XVFB_WRAPPED'] === '1';
 const displayAvailable = Boolean(process.env['DISPLAY']);
-const headed = displayAvailable;
+const forcedHeadless = args.includes('--headless');
+const headed = displayAvailable && !forcedHeadless;
 const executionMode = headed
   ? xvfbWrapped
     ? 'headed under Xvfb (xvfb-run -a)'
     : 'headed under an existing display server'
-  : 'headless (no xvfb-run/display — fallback recorded honestly)';
+  : forcedHeadless
+    ? 'headless (explicit --headless)'
+    : 'headless (no xvfb-run/display — fallback recorded honestly)';
 
 const corpusPath = path.join(repoRoot, 'tools/benchmark/corpus.v1.json');
 const corpusRaw = readFileSync(corpusPath, 'utf8');
 const corpus = JSON.parse(corpusRaw);
 const corpusSha256 = createHash('sha256').update(corpusRaw).digest('hex');
-const selectedCases = OVERHEAD_CASE_IDS.map((id) => {
+const caseFilter = readOption('--cases');
+const selectedCaseIds = caseFilter?.split(',') ?? OVERHEAD_CASE_IDS;
+const selectedCases = selectedCaseIds.map((id) => {
   const caseInfo = corpus.cases.find((candidate) => candidate.id === id);
   if (caseInfo === undefined) {
-    process.stderr.write(`corpus is missing case ${id}\n`);
+    process.stderr.write(`--cases contains unknown corpus case: ${id}\n`);
     process.exit(2);
   }
   return caseInfo;
 });
+if (selectedCases.length === 0) {
+  process.stderr.write('--cases must contain at least one corpus case id\n');
+  process.exit(2);
+}
 const retentionCase = corpus.cases.find((candidate) => candidate.id === RETENTION_CASE_ID);
 const retentionEasyCase = corpus.cases.find((candidate) => candidate.id === RETENTION_EASY_CASE_ID);
 if (retentionCase === undefined || retentionEasyCase === undefined) {
@@ -153,37 +164,25 @@ const mad = (values) => {
   return median(values.map((value) => Math.abs(value - center)));
 };
 
-/** Deterministic mulberry32 PRNG so the bootstrap is reproducible. */
-const mulberry32 = (seed) => {
-  let state = seed | 0;
-  return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-};
-
 /**
- * Paired bootstrap percentile interval in log-ratio space (plan §9: log-ratios
- * for speed ratios). Returns bounds as ratios; callers express them as %.
+ * Paired BCa interval in log-ratio space (plan §9: log-ratios for speed
+ * ratios). The BCa helper defaults to the median statistic used by this gate.
  */
-const bootstrapLogRatioInterval = (logRatios, bootstrapReps = BOOTSTRAP_REPS) => {
-  const rng = mulberry32(BOOTSTRAP_SEED);
-  const n = logRatios.length;
-  if (n === 0) return undefined;
-  const means = new Array(bootstrapReps);
-  for (let sample = 0; sample < bootstrapReps; sample += 1) {
-    let sum = 0;
-    for (let index = 0; index < n; index += 1) {
-      sum += logRatios[Math.floor(rng() * n)];
-    }
-    means[sample] = sum / n;
-  }
-  means.sort((a, b) => a - b);
-  const lo = means[Math.floor(0.025 * bootstrapReps)];
-  const hi = means[Math.min(bootstrapReps - 1, Math.ceil(0.975 * bootstrapReps) - 1)];
-  return { lo, hi, point: median(means) };
+const bootstrapLogRatioInterval = (logRatios) => {
+  if (logRatios.length < 2) return undefined;
+  const result = bcaInterval({
+    values: logRatios,
+    resamples: BOOTSTRAP_REPS,
+    seed: BOOTSTRAP_SEED,
+  });
+  return {
+    lo: result.interval[0],
+    hi: result.interval[1],
+    point: result.estimate,
+    z0: result.z0,
+    acceleration: result.acceleration,
+    degenerate: result.degenerate,
+  };
 };
 
 const formatPct = (ratio) => (ratio === undefined ? '—' : `${(ratio * 100).toFixed(2)}%`);
@@ -362,7 +361,7 @@ log(
 // Paired measurement.
 // ---------------------------------------------------------------------------
 const urlFor = (caseInfo, perf) =>
-  `${baseUrl}/${perf ? '?perf=1&' : '?'}view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
+  `${baseUrl}/${perf ? '?perf=1&perfCounters=1&' : '?'}view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
   `&quality=${caseInfo.profile.toLowerCase()}`;
 
 const measureOnce = async (page, spec) => {
@@ -471,13 +470,21 @@ log(`collected ${allSamples.length} samples`);
 
 // ---------------------------------------------------------------------------
 // (c) Measured retention: fill the ring on the biggest case and measure the
-// snapshot JSON size. Two fills: hard case (1 computed + cache-hit fill) and
-// easy case (many computed + cache fill), plus the single-trace extrapolation.
+// snapshot JSON size. Two fills: a hard-case completed-request fill and an
+// easy-case computed-heavy fill, plus the single-trace extrapolation.
 // ---------------------------------------------------------------------------
 const fillRingByRerequest = async (page, count) => {
   for (let index = 0; index < count; index += 1) {
-    await page.getByLabel('Interior view').selectOption('stability');
-    await page.waitForTimeout(30);
+    const completedBefore = await page.evaluate(() => globalThis.__miRenderTrace.snapshot().length);
+    // Alternate real UI values so every iteration dispatches a change. Once
+    // both semantic views exist for this viewport, subsequent requests hit
+    // the semantic cache while still producing completed request traces.
+    await page.getByLabel('Interior view').selectOption(index % 2 === 0 ? 'period' : 'stability');
+    await page.waitForFunction(
+      (previous) => globalThis.__miRenderTrace.snapshot().length > previous,
+      completedBefore,
+      { timeout: NAVIGATION_TIMEOUT_MS, polling: 50 },
+    );
   }
 };
 const retentionFill = async (caseInfo, pansFirst) => {
@@ -498,7 +505,7 @@ const retentionFill = async (caseInfo, pansFirst) => {
               .getEntriesByType('mark')
               .filter((mark) => mark.name === 'mi:stable-presented').length,
         );
-        await page.keyboard.press(index % 2 === 0 ? 'ArrowRight' : 'ArrowLeft');
+        await page.keyboard.press('ArrowRight');
         await page.waitForFunction(
           (previous) =>
             performance
@@ -509,13 +516,15 @@ const retentionFill = async (caseInfo, pansFirst) => {
         );
       }
     }
-    await fillRingByRerequest(page, 32 - pansFirst);
+    // The initial navigation contributes one computed trace. Fill only the
+    // remaining slots so every rerequest can be observed before capacity 32.
+    await fillRingByRerequest(page, 31 - pansFirst);
     await page.waitForFunction(
       () => globalThis.__miRenderTrace.snapshot().length >= 32,
       undefined,
       { timeout: 60_000, polling: 100 },
     );
-    return page.evaluate(() => {
+    const measurement = await page.evaluate(() => {
       const hook = globalThis.__miRenderTrace;
       const snapshot = hook.snapshot();
       const encoder = new TextEncoder();
@@ -534,24 +543,25 @@ const retentionFill = async (caseInfo, pansFirst) => {
         allTracesTimesCapacityBytes: Math.max(...sizes) * snapshot.length,
       };
     });
+    return measurement;
   } finally {
     await context.close();
   }
 };
 
-log('measuring ring retention on the biggest case (computed + cache fill)…');
-const retentionHard = { ...(await retentionFill(retentionCase, 1)), caseId: RETENTION_CASE_ID };
+log('measuring ring retention on the biggest case (completed-request fill)…');
+const retentionHard = { ...(await retentionFill(retentionCase, 0)), caseId: RETENTION_CASE_ID };
 log(
-  `retention (${RETENTION_CASE_ID}, 1 computed + cache fill): ` +
+  `retention (${RETENTION_CASE_ID}, completed-request fill): ` +
     `${retentionHard.totalSnapshotJsonBytes} bytes`,
 );
 log('measuring ring retention on the easy case (computed-heavy fill)…');
 const retentionEasy = {
-  ...(await retentionFill(retentionEasyCase, 24)),
+  ...(await retentionFill(retentionEasyCase, 22)),
   caseId: RETENTION_EASY_CASE_ID,
 };
 log(
-  `retention (${RETENTION_EASY_CASE_ID}, 24 computed + cache fill): ` +
+  `retention (${RETENTION_EASY_CASE_ID}, computed-heavy fill): ` +
     `${retentionEasy.totalSnapshotJsonBytes} bytes`,
 );
 const retention = {
@@ -652,7 +662,7 @@ const analysis = {};
     pooled.ratios.push(...ratios);
     pooled.pairs.push(...pairs.map((pair) => ({ caseId: caseInfo.id, ...pair })));
     const interval = bootstrapLogRatioInterval(ratios);
-    const budgetView = evaluateBudget(interval, ALWAYS_ON_BUDGET);
+    const budgetView = evaluateBudget(interval, OPT_IN_BUDGET);
     analysis[caseInfo.id] = {
       pairs,
       medianAbsentMs: median(pairs.map((pair) => pair.absentMs)),
@@ -664,8 +674,7 @@ const analysis = {};
         interval === undefined
           ? undefined
           : { loPct: budgetView.intervalLoPct, hiPct: budgetView.intervalHiPct },
-      alwaysOn: budgetView,
-      optIn: evaluateBudget(interval, OPT_IN_BUDGET),
+      optIn: budgetView,
     };
   }
   const pooledInterval = bootstrapLogRatioInterval(pooled.ratios);
@@ -678,8 +687,7 @@ const analysis = {};
     interval:
       pooledInterval === undefined
         ? undefined
-        : { loPct: pooledInterval.lo - 1, hiPct: pooledInterval.hi - 1 },
-    alwaysOn: evaluateBudget(pooledInterval, ALWAYS_ON_BUDGET),
+        : { loPct: Math.exp(pooledInterval.lo) - 1, hiPct: Math.exp(pooledInterval.hi) - 1 },
     optIn: evaluateBudget(pooledInterval, OPT_IN_BUDGET),
   };
 }
@@ -688,7 +696,7 @@ for (const key of [...selectedCases.map((caseInfo) => caseInfo.id), 'pooled']) {
   log(
     `${key}: median Δ ${(entry.medianDeltaPct * 100).toFixed(2)}% ` +
       `[${(entry.interval.loPct * 100).toFixed(2)}%, ${(entry.interval.hiPct * 100).toFixed(2)}%] ` +
-      `always-on: ${entry.alwaysOn.verdict}`,
+      `opt-in: ${entry.optIn.verdict}`,
   );
 }
 
@@ -779,16 +787,16 @@ environment.render = {
 };
 environment.protocol = {
   buildMode: 'vite build (production bundle) served by vite preview; dev server never used',
-  design:
-    'paired ?perf=1 present vs absent, 11 paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm',
+  design: `paired ?perf=1&perfCounters=1 present vs absent, ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
   wallMetric:
     'in-page User Timing marks: last mi:stable-presented startTime minus mi:app-mount startTime (both marks are emitted unconditionally, so the metric exists in both arms without the diagnostic hook)',
   alwaysOnBudget:
-    'paired median % difference within 2% with the bootstrap interval excluding worse-than-2% (plan §8)',
-  optInBudget: 'same paired samples against the 5% opt-in diagnostics budget (plan §8)',
+    'the recorder microbenchmark tests the ≤0.2 ms/frame budget and retention is measured directly; a separate instrumented-build vs recorder-free-build comparison is still required for the 2% end-to-end budget because the always-on ring is present in both arms here',
+  optInBudget: 'paired median % difference with a BCa interval excluding worse-than-5% (plan §8)',
   retentionBudget: 'filled-ring snapshot JSON ≤64 KiB on the biggest case (plan §8)',
   bootstrap: {
-    method: 'paired percentile bootstrap on log(present/absent) per pair, B=10000 resamples',
+    method:
+      'paired bias-corrected accelerated (BCa) bootstrap of the median log(present/absent), B=10000 resamples',
     seed: BOOTSTRAP_SEED,
     bootstrapReps: BOOTSTRAP_REPS,
     space: 'log-ratio; bounds reported as ratios (exp( bound )−1)',
@@ -814,7 +822,7 @@ const samplesByEngine = {
 const rawObservations = {
   schemaVersion: 1,
   description:
-    'Every overhead-benchmark sample, raw and timestamp-free. Aggregates in summary.md are derived views only. perf1 samples additionally carry the full opt-in render-trace snapshot.',
+    'Every overhead-benchmark sample, raw and timestamp-free. Aggregates in summary.md are derived views only. perf1 samples additionally carry the full opt-in render-trace snapshot and per-band counters.',
   corpus: {
     file: 'tools/benchmark/corpus.v1.json',
     schemaVersion: corpus.schemaVersion,
@@ -822,7 +830,7 @@ const rawObservations = {
   },
   raster: SHIPPING_RASTER,
   repetitions: reps,
-  arms: ['perf1 (?perf=1 present)', 'perf0 (?perf=1 absent)'],
+  arms: ['perf1 (?perf=1&perfCounters=1 present)', 'perf0 (diagnostics absent)'],
   retention,
   recorderCostNode: recorderCost,
   samplesByEngine,
@@ -845,7 +853,7 @@ const semanticComparison = {
     byteOrder:
       'row-major RGBA, 4 bytes per pixel, read via getImageData(0, 0, width, height) from canvas.explorer__canvas after the computed stable frame is presented',
     scope:
-      'overhead-run comparison: the perf=1 arm (opt-in diagnostics) against the perf0 arm must render byte-identical rasters; the hook adds no rendering work',
+      'overhead-run comparison: the perf=1&perfCounters=1 arm (opt-in diagnostics) against the perf0 arm must render byte-identical rasters',
     expectation: 'identical hashes on every case × repetition; mismatches are findings',
   },
   comparisonsByEngine: {
@@ -862,11 +870,11 @@ const summaryLines = [];
 summaryLines.push(`# MI-PERF-007 overhead benchmark — ${runDate} @ ${shortCommit}`);
 summaryLines.push('');
 summaryLines.push(
-  'Paired `?perf=1` present vs absent evidence from the production bundle ' +
+  'Paired `?perf=1&perfCounters=1` present vs diagnostics-absent evidence from the production bundle ' +
     '(`vite build` + `vite preview`), driven through the real application UI by ' +
     '`tools/benchmark/run-overhead.mjs`. ' +
     `Wall metric: in-page marks (last \`mi:stable-presented\` − \`mi:app-mount\`), available in both arms. ` +
-    `${selectedCases.length} cases (2 easy + 2 hard) × 2 arms × ${reps} paired repetitions, ` +
+    `${selectedCases.length} selected case(s) × 2 arms × ${reps} paired repetitions, ` +
     'arm order alternating per repetition; rep 0 cold (fresh context per arm), reps 1+ warm. ' +
     'Every sample is stored raw in raw-observations.json; aggregates below are derived views.',
 );
@@ -876,12 +884,12 @@ summaryLines.push(
     'directional only, not release evidence per plan §9 (branded stable Firefox, headed on declared target hardware, 21+ reps).',
 );
 summaryLines.push('');
-summaryLines.push('## Paired end-to-end overhead (perf=1 present vs absent)');
+summaryLines.push('## Paired end-to-end opt-in diagnostics overhead');
 summaryLines.push('');
 summaryLines.push(
-  '| Case | absent median (MAD) | perf=1 median (MAD) | median Δ | 95% paired bootstrap interval | always-on ≤2% | opt-in ≤5% |',
+  '| Case | absent median (MAD) | diagnostics median (MAD) | median Δ | 95% paired BCa interval | opt-in ≤5% |',
 );
-summaryLines.push('| --- | --- | --- | --- | --- | --- | --- |');
+summaryLines.push('| --- | --- | --- | --- | --- | --- |');
 for (const caseInfo of selectedCases) {
   const entry = analysis[caseInfo.id];
   summaryLines.push(
@@ -889,20 +897,19 @@ for (const caseInfo of selectedCases) {
       `${entry.medianPresentMs.toFixed(0)} ms (${entry.madPresentMs.toFixed(0)}) | ` +
       `${formatPct(entry.medianDeltaPct)} | ` +
       `${formatPct(entry.interval.loPct)} … ${formatPct(entry.interval.hiPct)} | ` +
-      `${entry.alwaysOn.verdict.startsWith('PASS') ? 'established' : '**not established**'} | ` +
       `${entry.optIn.verdict.startsWith('PASS') ? 'within' : '**not established**'} |`,
   );
 }
 const pooled = analysis.pooled;
 summaryLines.push(
-  `| **pooled (${pooled.pairCount} pairs)** | ${pooled.medianAbsentMs.toFixed(0)} | ${pooled.medianPresentMs.toFixed(0)} | ${formatPct(pooled.medianDeltaPct)} | ${formatPct(pooled.interval.loPct)} … ${formatPct(pooled.interval.hiPct)} | ${pooled.alwaysOn.verdict.startsWith('PASS') ? 'established' : '**not established**'} | ${pooled.optIn.verdict.startsWith('PASS') ? 'within' : '**not established**'} |`,
+  `| **pooled (${pooled.pairCount} pairs)** | ${pooled.medianAbsentMs.toFixed(0)} | ${pooled.medianPresentMs.toFixed(0)} | ${formatPct(pooled.medianDeltaPct)} | ${formatPct(pooled.interval.loPct)} … ${formatPct(pooled.interval.hiPct)} | ${pooled.optIn.verdict.startsWith('PASS') ? 'within' : '**not established**'} |`,
 );
 summaryLines.push('');
 summaryLines.push(
-  `Bootstrap: paired percentile bootstrap on log(present/absent), B=${BOOTSTRAP_REPS}, ` +
-    `seed ${BOOTSTRAP_SEED} (mulberry32, recorded per the evidence contract). Intervals are in log-ratio space; ` +
-    'the always-on claim needs the interval upper bound below +2%, the opt-in budget below +5%. ' +
-    'Per-case intervals at 11 pairs are wide; the pooled row is the primary verdict and per-case rows are recorded alongside.',
+  `Bootstrap: paired BCa bootstrap of median log(present/absent), B=${BOOTSTRAP_REPS}, ` +
+    `seed ${BOOTSTRAP_SEED} (recorded per the evidence contract). Intervals are in log-ratio space; ` +
+    'the opt-in claim needs the interval upper bound below +5%. ' +
+    `Per-case intervals at ${reps} pairs are wide; the pooled row is the primary verdict and per-case rows are recorded alongside.`,
 );
 summaryLines.push('');
 summaryLines.push('## Recorder cost and retention');
@@ -912,7 +919,7 @@ summaryLines.push(
     `recordFrame mean ${recorderCost.measured.recordFrameMeanUs.toFixed(2)} µs, ` +
     `ring-call mean ${recorderCost.measured.ringCallMeanUs.toFixed(2)} µs — ` +
     `${recorderCost.measured.recordFrameMeanUs <= recorderCost.budget.perFrameBudgetUs ? 'within' : '**exceeds**'} the ≤0.2 ms/frame budget. ` +
-    'The end-to-end paired interval above bounds the same budget behaviorally in the browser.',
+    'The paired browser interval above measures the separate opt-in diagnostics budget.',
 );
 summaryLines.push(
   `- Measured retention: budget ${RETENTION_BUDGET_BYTES} bytes. ` +
@@ -927,7 +934,7 @@ summaryLines.push(
     `${retention.withinBudget ? 'Within the 64 KiB budget.' : '**EXCEEDS** the 64 KiB budget.'}`,
 );
 summaryLines.push('');
-summaryLines.push('## Semantic comparison (perf1 vs perf0 stable-canvas hash)');
+summaryLines.push('## Semantic comparison (diagnostics vs absent stable-canvas hash)');
 summaryLines.push('');
 for (const entry of comparisons) {
   summaryLines.push(
@@ -943,10 +950,10 @@ summaryLines.push('');
 for (const note of [
   `Execution: ${executionMode}. Automation-bundled engines are directional; the release protocol (plan §9) needs branded stable Firefox, declared target hardware, 21+ paired repetitions with BCa intervals.`,
   'The wall metric is mark-based (mi:app-mount → last mi:stable-presented) rather than the ring’s requestToPresentMs, so it exists identically in the perf0 arm; requestToPresentMs of the perf arm is stored raw for cross-reference.',
-  'The perf=1 arm carries the full opt-in diagnostics (hook + trace retention); the always-on ring is present in BOTH arms, so the paired delta isolates the opt-in diagnostics overhead on top of the always-on recorder.',
+  'The perf=1&perfCounters=1 arm carries the full opt-in diagnostics (hook, trace retention, and per-band counters); the always-on ring is present in BOTH arms, so the paired delta isolates opt-in overhead on top of the always-on recorder.',
   'Rep 0 (cold) is included in the paired intervals (worker/module compile noise is paired and largely cancels); warm-only views are derivable from raw-observations.json.',
-  'Retention fills use the ring capacity (32): the hard-case fill is 1 computed + 31 cache traces; the easy-case fill is 24 computed + 8 cache traces; the single-trace × 32 extrapolation bounds the all-computed worst case.',
-  'recorder-cost-node.json is a Node/V8 microbenchmark — directional only; browser magnitudes are bounded end-to-end by the paired intervals above.',
+  'Retention fills use the ring capacity (32): the hard case alternates semantic-view requests and waits for every trace to complete; the easy case first performs 22 distinct pan renders, then completes the ring through semantic-view requests. The single-trace × 32 extrapolation bounds the all-worst-shape case.',
+  'recorder-cost-node.json is a Node/V8 microbenchmark — directional only. The separate 2% end-to-end always-on budget still needs an instrumented-build vs recorder-free-build comparison; this harness cannot establish it because both arms include the ring.',
 ]) {
   summaryLines.push(`- ${note}`);
 }
