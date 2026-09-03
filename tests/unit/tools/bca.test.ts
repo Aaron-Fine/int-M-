@@ -3,14 +3,15 @@ import { describe, expect, it } from 'vitest';
 import {
   bcaInterval,
   mulberry32,
+  normalQuantile,
   pairedDifferences,
   pairedLogRatios,
-} from '../../../tools/benchmark/bca.mjs';
+} from '../../../tools/benchmark/bca';
 
 /** Seeded standard-normal sample (Box-Muller over mulberry32). */
-const normalSample = (seed, n) => {
+const normalSample = (seed: number, n: number): number[] => {
   const random = mulberry32(seed);
-  const sample = [];
+  const sample: number[] = [];
   while (sample.length < n) {
     const u1 = random();
     const u2 = random();
@@ -22,7 +23,17 @@ const normalSample = (seed, n) => {
   return sample;
 };
 
-const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+const mean = (values: readonly number[]): number =>
+  values.reduce((sum, value) => sum + value, 0) / values.length;
+
+describe('normalQuantile accuracy', () => {
+  it('matches known normal quantiles to ~1e-7', () => {
+    expect(normalQuantile(0.975)).toBeCloseTo(1.9599639845400545, 6);
+    expect(normalQuantile(0.025)).toBeCloseTo(-1.9599639845400545, 6);
+    expect(normalQuantile(0.5)).toBeCloseTo(0, 7);
+    expect(normalQuantile(0.8413447460685429)).toBeCloseTo(1, 6);
+  });
+});
 
 describe('bcaInterval degenerate and structural sanity', () => {
   it('constant data yields a degenerate interval at the constant', () => {
