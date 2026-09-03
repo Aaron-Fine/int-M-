@@ -13,6 +13,7 @@ import {
   createDifferentialStats,
   recordDifferentialInto,
 } from './checkpoint';
+import { classifyIntoInstrumented, type LegacyScanCounters } from './orbit-instrumented';
 
 // Shared evidence vocabulary moved to types.ts so every classifier kernel
 // (the lag scan here and the PR 4 checkpoint schedule) writes the same
@@ -601,11 +602,24 @@ export class OrbitClassifier {
         readonly diffStats: DifferentialStats;
       }
     | undefined;
+  // Opt-in instrumented kernel sink (plan section 8). Null on the default
+  // path: the lean kernel keeps its exact measured shape. Present only when
+  // the caller (classifyRows under ?perf=1&perfCounters=1) hands in a
+  // preallocated LegacyScanCounters record, in which case the legacy answer
+  // comes from classifyIntoInstrumented (bit-identical, counted).
+  readonly #legacyCounters: LegacyScanCounters | undefined;
 
-  public constructor(options: Partial<OrbitOptions> = {}, scratch?: OrbitScratch) {
+  public constructor(
+    options: Partial<OrbitOptions> = {},
+    scratch?: OrbitScratch,
+    // Preallocated instrumented-kernel sink for the legacy scan (lean and
+    // instrumented functions are selected here, outside the raster loop).
+    legacyCounters?: LegacyScanCounters,
+  ) {
     this.#options = resolveOrbitOptions(options);
     this.#scratch = scratch ?? new OrbitScratch(this.#options.maxPeriod);
     this.#scratch.ensureCapacity(this.#options.maxPeriod);
+    this.#legacyCounters = legacyCounters;
     // resolveOrbitOptions normalizes the optional mode field, so mode is a
     // concrete ClassifierMode here.
     const mode = this.#options.classifierMode ?? 'legacy-scan';
@@ -634,7 +648,12 @@ export class OrbitClassifier {
     // kernel call the PR 2 measurements exercised.
     const extras = this.#extras;
     if (extras === undefined) {
-      classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+      const counters = this.#legacyCounters;
+      if (counters === undefined) {
+        classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+      } else {
+        classifyIntoInstrumented(cRe, cIm, this.#options, this.#scratch, out, counters);
+      }
       return;
     }
     if (extras.mode === 'checkpoint') {
@@ -643,7 +662,12 @@ export class OrbitClassifier {
     }
     // Differential: both kernels per pixel; the legacy answer stays the
     // reported one and every semantic divergence is counted.
-    classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+    const counters = this.#legacyCounters;
+    if (counters === undefined) {
+      classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+    } else {
+      classifyIntoInstrumented(cRe, cIm, this.#options, this.#scratch, out, counters);
+    }
     classifyCheckpointInto(
       cRe,
       cIm,
@@ -662,6 +686,17 @@ export class OrbitClassifier {
   public get differentialStats(): DifferentialStats | null {
     const extras = this.#extras;
     return extras?.mode === 'differential' ? extras.diffStats : null;
+  }
+
+  /**
+   * The preallocated checkpoint-schedule counter record (checkpoint and
+   * differential modes; null in legacy-scan mode, which has no separate
+   * metrics object — its instrumented variant writes a caller-owned
+   * LegacyScanCounters instead).
+   */
+  public get checkpointMetrics(): CheckpointMetrics | null {
+    const extras = this.#extras;
+    return extras === undefined ? null : extras.metrics;
   }
 }
 

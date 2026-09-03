@@ -1,6 +1,7 @@
 import type {
   ClassifierMode,
   Complex,
+  DifferentialStats,
   OrbitResult,
   RasterSize,
   RenderQuality,
@@ -8,6 +9,7 @@ import type {
   Viewport,
 } from '../domain';
 import type { BandOrder, FrameOutput, RenderStage } from '../render';
+import type { PerfCounters } from '../render/perf-counters';
 import type { YieldMechanism } from '../render/yield-scheduler';
 
 export type RequestId = string | number;
@@ -40,6 +42,12 @@ export interface RenderMessage {
    * Additive optional field: absent on the default path (MessageChannel).
    */
   readonly yieldMechanism?: YieldMechanism;
+  /**
+   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` wiring).
+   * Additive optional field: absent on the default path, so default messages
+   * stay byte-identical and no counters structure is allocated anywhere.
+   */
+  readonly perfCounters?: boolean;
 }
 
 export interface InspectMessage {
@@ -77,6 +85,17 @@ export interface FrameMessage {
   readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   readonly progress: number;
   readonly workerTiming?: WorkerFrameTiming;
+  /**
+   * Opt-in diagnostics counters (plan §8): per-band counters summed once per
+   * frame. Additive optional field; absent unless the request opted in via
+   * `?perf=1&perfCounters=1`.
+   */
+  readonly counters?: PerfCounters;
+  /**
+   * Differential-mode disagreement record (classifierMode 'differential'):
+   * per-band stats summed once. Additive optional field; absent otherwise.
+   */
+  readonly differential?: DifferentialStats;
 }
 
 export interface InspectionResult {

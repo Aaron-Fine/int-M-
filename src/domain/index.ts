@@ -23,6 +23,13 @@ export {
 } from './checkpoint';
 export type { CheckpointMetrics, DifferentialStats } from './checkpoint';
 export {
+  classifyIntoInstrumented,
+  createLegacyScanCounters,
+  resetLegacyScanCounters,
+} from './orbit-instrumented';
+export type { LegacyScanCounters } from './orbit-instrumented';
+export { PERIOD_BUCKET_COUNT, PERIOD_BUCKET_LABELS, periodBucketIndex } from './period-buckets';
+export {
   defaultPeriodPolicyFor,
   deriveOpportunisticMaxPeriod,
   evidenceSourceForFlag,

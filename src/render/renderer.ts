@@ -1,12 +1,14 @@
 import type {
   ClassifierMode,
   Complex,
+  DifferentialStats,
   OrbitResult,
   RasterSize,
   RenderQuality,
   SemanticView,
   Viewport,
 } from '../domain';
+import type { PerfCounters } from './perf-counters';
 import type { YieldMechanism } from './yield-scheduler';
 
 export type RenderStage = 'coarse' | 'stable';
@@ -73,6 +75,12 @@ export interface DynamicsRenderRequest {
    * allocate their own output and the supervisor copies band results.
    */
   readonly frameOutput?: FrameOutput;
+  /**
+   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` wiring).
+   * Absent on the default path: no counters object is allocated anywhere and
+   * no counter field appears on any message.
+   */
+  readonly perfCounters?: boolean;
 }
 
 /**
@@ -136,6 +144,16 @@ export interface SemanticFrame {
   readonly bands: readonly SemanticBand[];
   readonly progress: number;
   readonly timing?: SemanticStageTiming;
+  /**
+   * Opt-in diagnostics counters (plan §8): the frame's per-band counters
+   * summed once. Absent unless the request opted in via perfCounters.
+   */
+  readonly counters?: PerfCounters;
+  /**
+   * Differential-mode disagreement record (classifierMode 'differential'):
+   * per-band stats summed once. Absent in every other mode.
+   */
+  readonly differential?: DifferentialStats;
 }
 
 export type SemanticFrameConsumer = (frame: SemanticFrame) => void | Promise<void>;
@@ -167,6 +185,7 @@ export interface TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
+    perfCounters?: boolean,
   ): Promise<SemanticFrame>;
   dispose(): void;
 }

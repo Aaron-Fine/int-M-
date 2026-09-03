@@ -11,7 +11,13 @@ import {
   type RenderQuality,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
-import { packStatusPeriod } from './packed-semantic';
+import { packStatusPeriod, unpackStatus } from './packed-semantic';
+import {
+  createPerfCounters,
+  perfCountersFromCheckpointMetrics,
+  type MutablePerfCounters,
+  type PerfCounters,
+} from './perf-counters';
 import type { DynamicsRenderRequest, SemanticBand, SemanticStageTiming } from './renderer';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
 import {
@@ -47,6 +53,12 @@ export interface ClassifyRowsResult extends SemanticBand {
    * channels, and the divergences were counted here. Undefined otherwise.
    */
   readonly differential?: DifferentialStats;
+  /**
+   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` only):
+   * one preallocated record per band. Undefined — and never allocated —
+   * unless the caller opted in.
+   */
+  readonly counters?: PerfCounters;
 }
 
 /**
@@ -102,6 +114,10 @@ export async function classifyRows(
   // Pre-sliced output buffers (zero-copy detail): when present the band is
   // classified directly into them and nothing is allocated per call.
   output?: BandOutputBuffers,
+  // Opt-in diagnostics counters (plan §8). Absent — never even allocated —
+  // unless the caller opted in; with it, the classifier selects the
+  // instrumented kernel variant OUTSIDE the raster loop below.
+  perfCounters?: boolean,
 ): Promise<ClassifyRowsResult> {
   const { width } = request.size;
   const length = (y1 - y0) * width;
@@ -117,12 +133,22 @@ export async function classifyRows(
   ) {
     throw new RangeError('band output buffers must match the band size');
   }
+  // One preallocated counters record per band, created only on opt-in; the
+  // legacy/differential kernels write their fields into it directly (it is a
+  // structural superset of the kernel sink), while checkpoint mode reads the
+  // kernel's own metrics below.
+  const counters: MutablePerfCounters | undefined =
+    perfCounters === true ? createPerfCounters() : undefined;
   const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
     ...(classifierMode === undefined ? {} : { classifierMode }),
   };
-  const classifier = new OrbitClassifier(orbitOptions, new OrbitScratch(quality.maxPeriod));
+  const classifier = new OrbitClassifier(
+    orbitOptions,
+    new OrbitScratch(quality.maxPeriod),
+    ...(counters === undefined ? [] : [counters]),
+  );
   // Per-band working state: the classification loop below allocates nothing
   // per pixel (plan workstream B) — scalars in, band channels out.
   const sample = createOrbitSample();
@@ -164,6 +190,10 @@ export async function classifyRows(
   // exactOptionalPropertyTypes: build the optional fields via narrowed
   // conditional spreads so keys are absent (not undefined) in the default.
   const differentialStats = classifierMode === 'differential' ? classifier.differentialStats : null;
+  const countersResult =
+    counters === undefined
+      ? undefined
+      : assembleCounters(counters, classifier, classifierMode, band, width, stride, y0, y1);
   return {
     y0,
     y1,
@@ -176,5 +206,55 @@ export async function classifyRows(
       yieldCount,
     },
     ...(differentialStats === null ? {} : { differential: differentialStats }),
+    ...(countersResult === undefined ? {} : { counters: countersResult }),
   };
 }
+
+/**
+ * Opt-in counters assembly (plan §8), run once per band after classification.
+ * Status totals come from one pass over the band's written cells; the
+ * reported kernel's counters were either written into the sink directly
+ * (legacy/differential instrumented scan) or live in the checkpoint kernel's
+ * own preallocated record.
+ */
+const assembleCounters = (
+  counters: MutablePerfCounters,
+  classifier: OrbitClassifier,
+  classifierMode: ClassifierMode | undefined,
+  band: BandOutputBuffers,
+  width: number,
+  stride: number,
+  y0: number,
+  y1: number,
+): PerfCounters => {
+  // Status totals over the classified cells: block origins of the sampled
+  // grid (stride-folded cells on the coarse pass, every pixel at stride 1).
+  // Unwritten words are never read (a zero word is not a valid status).
+  const packed = band.packedStatusPeriod;
+  for (let y = y0; y < y1; y += stride) {
+    const rowOffset = (y - y0) * width;
+    for (let x = 0; x < width; x += stride) {
+      const word = packed[rowOffset + x];
+      if (word === undefined) continue;
+      const status = unpackStatus(word);
+      if (status === 1) counters.escaped += 1;
+      else if (status === 2) counters.attracting += 1;
+      else counters.unresolved += 1;
+    }
+  }
+  const checkpointMetrics = classifier.checkpointMetrics;
+  if (classifierMode === 'checkpoint' && checkpointMetrics !== null) {
+    // Checkpoint mode: the schedule's counters live in its own record (the
+    // legacy sink above is untouched); map them into the flat vocabulary.
+    const mapped = perfCountersFromCheckpointMetrics(checkpointMetrics);
+    mapped.escaped = counters.escaped;
+    mapped.attracting = counters.attracting;
+    mapped.unresolved = counters.unresolved;
+    return mapped;
+  }
+  // Legacy-scan / differential: the instrumented scan wrote the reported
+  // kernel's counters straight into the sink. Checkpoint-side metrics
+  // accumulated by the differential's second kernel are intentionally
+  // NOT merged (they would mix the two kernels' comparison totals).
+  return counters;
+};

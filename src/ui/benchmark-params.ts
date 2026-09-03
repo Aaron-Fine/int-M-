@@ -18,6 +18,12 @@ const BAND_ORDERS: readonly BandOrder[] = ['center-out', 'legacy'];
 export interface BenchmarkParams {
   /** `?perf=1` only; enables the window.__miRenderTrace diagnostic hook. */
   readonly perfEnabled: boolean;
+  /**
+   * `?perf=1&perfCounters=1` only; enables the plan §8 opt-in diagnostics
+   * counters (workers accumulate per-band counters and attach them to frame
+   * messages). Absent otherwise, so the default parse keeps its exact shape.
+   */
+  readonly perfCounters?: true | undefined;
   /** Validated `?classifierMode=` value; absent when missing or invalid. */
   readonly classifierMode?: ClassifierMode | undefined;
   /**
@@ -84,6 +90,7 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const params = new URLSearchParams(search);
   const result: {
     perfEnabled: boolean;
+    perfCounters?: true;
     classifierMode?: ClassifierMode;
     bandOrder?: BandOrder;
     yieldMechanism?: YieldMechanism;
@@ -91,6 +98,11 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
+  // Counters are a strict sub-mode of the perf diagnostics: they never turn
+  // on without ?perf=1 and add nothing to the default path.
+  if (result.perfEnabled && params.get('perfCounters') === '1') {
+    result.perfCounters = true;
+  }
 
   const classifierMode = params.get('classifierMode');
   if (classifierMode !== null && (CLASSIFIER_MODES as readonly string[]).includes(classifierMode)) {
