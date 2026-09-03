@@ -2,6 +2,11 @@ import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { orderRowBandsForDispatch, splitRowBands } from '../render/row-bands';
 import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
+import {
+  accumulatePerfCounters,
+  createPerfCounters,
+  type MutablePerfCounters,
+} from '../render/perf-counters';
 import type { RowBand } from '../render/row-bands';
 import type { SemanticStageTiming } from '../render/renderer';
 import type {
@@ -11,7 +16,8 @@ import type {
   SemanticFrame,
   TilePool,
 } from '../render/renderer';
-import type { ClassifierMode, RenderQuality } from '../domain';
+import type { ClassifierMode, DifferentialStats, RenderQuality } from '../domain';
+import { createDifferentialStats } from '../domain';
 import type {
   SupervisorToTileMessage,
   TileMessageEvent,
@@ -46,6 +52,21 @@ const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) throw new RenderCancelledError();
 };
 
+/** Adds the band's differential stats into the frame-level record. */
+const accumulateDifferentialStats = (
+  into: DifferentialStats,
+  from: Readonly<DifferentialStats>,
+): void => {
+  into.pixels += from.pixels;
+  into.statusDisagreements += from.statusDisagreements;
+  into.periodDisagreements += from.periodDisagreements;
+  into.multiplierMagnitudeDisagreements += from.multiplierMagnitudeDisagreements;
+  into.legacyAttracting += from.legacyAttracting;
+  into.checkpointAttracting += from.checkpointAttracting;
+  into.legacyUnresolved += from.legacyUnresolved;
+  into.checkpointUnresolved += from.checkpointUnresolved;
+};
+
 /**
  * Supervisor-owned storage for one band of the stable frame. On the
  * zero-copy path the buffers are handed to the tile worker as transferable
@@ -70,6 +91,8 @@ const frameFromBands = (
   storage: readonly BandStorage[],
   progress: number,
   timing: SemanticStageTiming,
+  counters?: MutablePerfCounters,
+  differential?: DifferentialStats,
 ): SemanticFrame => ({
   stage: 'stable',
   size: request.size,
@@ -87,6 +110,8 @@ const frameFromBands = (
   }),
   progress,
   timing,
+  ...(counters === undefined ? {} : { counters }),
+  ...(differential === undefined ? {} : { differential }),
 });
 
 interface ActiveJob {
@@ -96,6 +121,7 @@ interface ActiveJob {
   readonly request: DynamicsRenderRequest;
   readonly quality: RenderQuality;
   readonly classifierMode?: ClassifierMode;
+  readonly perfCounters: boolean;
   readonly bands: readonly RowBand[];
   readonly expectedJobs: number;
   readonly received: Map<number, TileResultMessage>;
@@ -109,6 +135,10 @@ interface ActiveJob {
   nextDispatch: number;
   readonly bandsElapsedMs: number[];
   mergeCpuMs: number;
+  /** Opt-in plan §8 counters, summed per band as results arrive. */
+  readonly counters: MutablePerfCounters | undefined;
+  /** Differential-mode stats, summed per band as results arrive. */
+  readonly differential: DifferentialStats | undefined;
   settled: boolean;
   resolve: (frame: SemanticFrame) => void;
   reject: (error: unknown) => void;
@@ -146,6 +176,7 @@ class TilePoolImpl implements TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
+    perfCounters?: boolean,
   ): Promise<SemanticFrame> {
     throwIfAborted(signal);
     if (this.#active !== undefined) {
@@ -157,8 +188,8 @@ class TilePoolImpl implements TilePool {
     throwIfAborted(signal);
 
     return this.#workerCount === 1
-      ? this.#classifyInProcess(request, quality, signal, classifierMode)
-      : this.#classifyTiled(request, quality, signal, classifierMode);
+      ? this.#classifyInProcess(request, quality, signal, classifierMode, perfCounters === true)
+      : this.#classifyTiled(request, quality, signal, classifierMode, perfCounters === true);
   }
 
   public dispose(): void {
@@ -172,6 +203,7 @@ class TilePoolImpl implements TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
+    perfCounters = false,
   ): Promise<SemanticFrame> {
     const band = await classifyRows(
       request,
@@ -182,6 +214,8 @@ class TilePoolImpl implements TilePool {
       signal,
       classifierMode,
       request.yieldMechanism,
+      undefined,
+      ...(perfCounters ? [true as const] : []),
     );
     throwIfAborted(signal);
     return {
@@ -199,6 +233,8 @@ class TilePoolImpl implements TilePool {
       ],
       progress: 1,
       timing: band.timing,
+      ...(band.differential === undefined ? {} : { differential: band.differential }),
+      ...(band.counters === undefined ? {} : { counters: band.counters }),
     };
   }
 
@@ -207,6 +243,7 @@ class TilePoolImpl implements TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
+    perfCounters = false,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
     const bands = splitRowBands(request.size.height, workers.length * BANDS_PER_WORKER);
@@ -233,6 +270,7 @@ class TilePoolImpl implements TilePool {
         request,
         quality,
         ...(classifierMode === undefined ? {} : { classifierMode }),
+        perfCounters,
         bands,
         expectedJobs: bands.length,
         received: new Map(),
@@ -244,6 +282,8 @@ class TilePoolImpl implements TilePool {
         nextDispatch: 0,
         bandsElapsedMs: new Array<number>(bands.length).fill(Number.NaN),
         mergeCpuMs: 0,
+        counters: perfCounters ? createPerfCounters() : undefined,
+        differential: classifierMode === 'differential' ? createDifferentialStats() : undefined,
         settled: false,
         resolve,
         reject,
@@ -311,6 +351,7 @@ class TilePoolImpl implements TilePool {
       ...(active.request.yieldMechanism === undefined
         ? {}
         : { yieldMechanism: active.request.yieldMechanism }),
+      ...(active.perfCounters ? { perfCounters: true } : {}),
       ...(bandOutput === undefined ? {} : { bandOutput }),
       ...(bandOutput === undefined ? {} : { outputRevision: PACKED_OUTPUT_REVISION }),
     };
@@ -393,17 +434,33 @@ class TilePoolImpl implements TilePool {
     current.mergeCpuMs += performance.now() - mergeStarted;
     current.received.set(message.jobId, message);
     current.bandsElapsedMs[message.jobId] = performance.now() - current.startedAt;
+    // Opt-in plan §8 counters and differential stats arrive per band; the
+    // frame-level record is the per-band sum, accumulated once here.
+    if (current.counters !== undefined && message.counters !== undefined) {
+      accumulatePerfCounters(current.counters, message.counters);
+    }
+    if (current.differential !== undefined && message.differential !== undefined) {
+      accumulateDifferentialStats(current.differential, message.differential);
+    }
     if (current.received.size === current.expectedJobs) {
       this.#finishActive((job) => {
         const results = [...job.received.values()];
         job.resolve(
-          frameFromBands(job.request, job.bands, job.bandStorage, 1, {
-            classifyMs: performance.now() - job.startedAt,
-            yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
-            yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
-            bandsElapsedMs: [...job.bandsElapsedMs],
-            mergeCpuMs: job.mergeCpuMs,
-          }),
+          frameFromBands(
+            job.request,
+            job.bands,
+            job.bandStorage,
+            1,
+            {
+              classifyMs: performance.now() - job.startedAt,
+              yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
+              yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
+              bandsElapsedMs: [...job.bandsElapsedMs],
+              mergeCpuMs: job.mergeCpuMs,
+            },
+            job.counters,
+            job.differential,
+          ),
         );
       });
     }

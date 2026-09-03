@@ -66,6 +66,7 @@ export function createTileHandler(
                 message.bandOutput.smoothIterationOrMultiplierMagnitude,
               multiplierAngle: message.bandOutput.multiplierAngle,
             },
+        ...(message.perfCounters === true ? [true as const] : []),
       );
       if (signal.aborted) return;
       const result: TileResultMessage = {
@@ -80,6 +81,8 @@ export function createTileHandler(
         outputRevision: PACKED_OUTPUT_REVISION,
         yieldWaitMs: band.timing.yieldWaitMs,
         yieldCount: band.timing.yieldCount,
+        ...(band.differential === undefined ? {} : { differential: band.differential }),
+        ...(band.counters === undefined ? {} : { counters: band.counters }),
       };
       // Transfers ownership back to the supervisor; the views are detached
       // in this worker afterwards and are never read here again.

@@ -99,6 +99,7 @@
 
 import type { OrbitOptions } from './types';
 import { ORBIT_EVIDENCE_CODE } from './types';
+import { periodBucketIndex } from './period-buckets';
 // Type-only: OrbitScratch and OrbitSample are defined in orbit.ts, which
 // dispatches into this module in PR 4's differential mode. Type imports are
 // erased at runtime, so no runtime dependency (and no cycle) exists; the
@@ -146,6 +147,18 @@ export interface CheckpointMetrics {
   checkpointRolls: number;
   /** Rejection re-arms entered (doubling gap restarts). */
   reArms: number;
+  /** Analytic fast-path acceptances (closed forms; plan §8 path hits). */
+  analyticHits: number;
+  /** Accepted walk-schedule detections by primitive-period bucket (plan §8 systematic). */
+  systematic1to4: number;
+  systematic5to8: number;
+  systematic9to12: number;
+  systematic13Plus: number;
+  /** Accepted exhaustion-scan detections by primitive-period bucket (plan §8 opportunistic). */
+  opportunistic1to4: number;
+  opportunistic5to8: number;
+  opportunistic9to12: number;
+  opportunistic13Plus: number;
 }
 
 export const createCheckpointMetrics = (): CheckpointMetrics => ({
@@ -157,6 +170,15 @@ export const createCheckpointMetrics = (): CheckpointMetrics => ({
   rejectedNotAttracting: 0,
   checkpointRolls: 0,
   reArms: 0,
+  analyticHits: 0,
+  systematic1to4: 0,
+  systematic5to8: 0,
+  systematic9to12: 0,
+  systematic13Plus: 0,
+  opportunistic1to4: 0,
+  opportunistic5to8: 0,
+  opportunistic9to12: 0,
+  opportunistic13Plus: 0,
 });
 
 export const resetCheckpointMetrics = (metrics: CheckpointMetrics): void => {
@@ -168,6 +190,31 @@ export const resetCheckpointMetrics = (metrics: CheckpointMetrics): void => {
   metrics.rejectedNotAttracting = 0;
   metrics.checkpointRolls = 0;
   metrics.reArms = 0;
+  metrics.analyticHits = 0;
+  metrics.systematic1to4 = 0;
+  metrics.systematic5to8 = 0;
+  metrics.systematic9to12 = 0;
+  metrics.systematic13Plus = 0;
+  metrics.opportunistic1to4 = 0;
+  metrics.opportunistic5to8 = 0;
+  metrics.opportunistic9to12 = 0;
+  metrics.opportunistic13Plus = 0;
+};
+
+const noteSystematicDetection = (metrics: CheckpointMetrics, period: number): void => {
+  const bucket = periodBucketIndex(period);
+  if (bucket === 0) metrics.systematic1to4 += 1;
+  else if (bucket === 1) metrics.systematic5to8 += 1;
+  else if (bucket === 2) metrics.systematic9to12 += 1;
+  else metrics.systematic13Plus += 1;
+};
+
+const noteOpportunisticDetection = (metrics: CheckpointMetrics, period: number): void => {
+  const bucket = periodBucketIndex(period);
+  if (bucket === 0) metrics.opportunistic1to4 += 1;
+  else if (bucket === 1) metrics.opportunistic5to8 += 1;
+  else if (bucket === 2) metrics.opportunistic9to12 += 1;
+  else metrics.opportunistic13Plus += 1;
 };
 
 /**
@@ -319,6 +366,7 @@ export const classifyCheckpointInto = (
       out.multiplierAngle = multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
       out.stabilityExponent =
         multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude);
+      metrics.analyticHits += 1;
       return;
     }
   } else {
@@ -339,6 +387,7 @@ export const classifyCheckpointInto = (
           multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
         out.stabilityExponent =
           multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude) / 2;
+        metrics.analyticHits += 1;
         return;
       }
     }
@@ -471,6 +520,7 @@ export const classifyCheckpointInto = (
     checkpointRe = spill[SPILL_CHECKPOINT_RE];
     checkpointIm = spill[SPILL_CHECKPOINT_IM];
     if (verdict === VERIFIER_VERDICT.accepted) {
+      noteSystematicDetection(metrics, out.period);
       return;
     }
     if (
@@ -542,6 +592,7 @@ export const classifyCheckpointInto = (
       zRe = spill[SPILL_Z_RE];
       zIm = spill[SPILL_Z_IM];
       if (verdict === VERIFIER_VERDICT.accepted) {
+        noteOpportunisticDetection(metrics, out.period);
         return;
       }
       if (

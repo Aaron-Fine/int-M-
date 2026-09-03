@@ -558,6 +558,8 @@ describe('RenderWorkerRuntime', () => {
       expect.objectContaining({ quality: STABLE_QUALITY }),
       STABLE_QUALITY,
       expect.any(AbortSignal),
+      undefined,
+      false,
     );
     expect(messages.filter((message) => message.type === 'frame')).toEqual([
       expect.objectContaining({ type: 'frame', requestId: 'first', stage: 'coarse' }),
@@ -632,5 +634,99 @@ describe('RenderWorkerRuntime', () => {
     expect(messages).not.toContainEqual(
       expect.objectContaining({ type: 'frame', stage: 'stable' }),
     );
+  });
+
+  it('threads perfCounters into the dynamics request and counters onto the frame message', async () => {
+    const countersFrame = (size: RasterSize): SemanticFrame => ({
+      ...semanticFrame(size),
+      counters: {
+        lagComparisons: 7,
+        proposals: 3,
+        analyticPathHits: 0,
+        rejectsNoClosure: 1,
+        rejectsNotAttracting: 0,
+        rejectsNonFinite: 0,
+        rejectsAmbiguous: 0,
+        checkpointRolls: 2,
+        reArms: 1,
+        systematic1to4: 4,
+        systematic5to8: 0,
+        systematic9to12: 0,
+        systematic13Plus: 0,
+        opportunistic1to4: 0,
+        opportunistic5to8: 0,
+        opportunistic9to12: 0,
+        opportunistic13Plus: 0,
+        escaped: 0,
+        attracting: size.width * size.height,
+        unresolved: 0,
+      },
+    });
+    const requests: DynamicsRenderRequest[] = [];
+    const renderer: Renderer = {
+      inspect: () => ({
+        status: 'unresolved',
+        iterations: 1,
+        evidence: ['iteration-limit'],
+      }),
+      render: async (request, _signal, onFrame) => {
+        requests.push(request);
+        await onFrame(countersFrame(request.size));
+      },
+      colorize,
+    };
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      renderer,
+    );
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 1,
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 2, height: 2 },
+      semanticView: 'stability',
+      perfCounters: true,
+    });
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.perfCounters).toBe(true);
+    const frameMessage = messages.find(
+      (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
+        message.type === 'frame',
+    );
+    expect(frameMessage?.counters?.attracting).toBe(4);
+    expect(frameMessage?.differential).toBeUndefined();
+
+    // Default path: no perfCounters on the request, and a counters-less
+    // frame produces a frame message without the counters field
+    // (byte-identical messages).
+    messages.length = 0;
+    requests.length = 0;
+    const plainRenderer: Renderer = {
+      inspect: (point, quality) => renderer.inspect(point, quality),
+      render: async (request, _signal, onFrame) => {
+        requests.push(request);
+        await onFrame(semanticFrame(request.size));
+      },
+      colorize,
+    };
+    const plainRuntime = new RenderWorkerRuntime(
+      { postMessage: (message) => messages.push(message) },
+      plainRenderer,
+    );
+    await plainRuntime.handle({
+      type: 'render',
+      requestId: 2,
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 2, height: 2 },
+      semanticView: 'stability',
+    });
+    expect(requests[0]).not.toHaveProperty('perfCounters');
+    const defaultFrame = messages.find(
+      (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
+        message.type === 'frame',
+    );
+    expect(defaultFrame).not.toHaveProperty('counters');
   });
 });

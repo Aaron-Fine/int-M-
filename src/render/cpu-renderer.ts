@@ -50,6 +50,8 @@ const classifyFull = async (
     signal,
     request.classifierMode,
     request.yieldMechanism,
+    undefined,
+    ...(request.perfCounters === true ? [true as const] : []),
   );
   throwIfAborted(signal);
   const semanticBand: SemanticBand = {
@@ -66,6 +68,8 @@ const classifyFull = async (
     bands: [semanticBand],
     progress: stage === 'coarse' ? 0.2 : 1,
     timing: band.timing,
+    ...(band.differential === undefined ? {} : { differential: band.differential }),
+    ...(band.counters === undefined ? {} : { counters: band.counters }),
   };
 };
 
@@ -128,7 +132,8 @@ export class CpuRenderer implements Renderer {
             request,
             quality,
             signal,
-            ...(request.classifierMode === undefined ? [] : [request.classifierMode]),
+            request.classifierMode,
+            request.perfCounters === true,
           )
         : await classifyFull(request, quality, 1, 'stable', signal);
     throwIfAborted(signal);
