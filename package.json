@@ -24,6 +24,7 @@
     "poc:perf": "node poc/performance/src/run.ts",
     "poc:bench:pr2": "vite build --ssr poc/performance/src/pr2-bench.ts --outDir .evidence-build --emptyOutDir && node --expose-gc .evidence-build/pr2-bench.js",
     "bench:cancel-quiescence": "vite build --ssr tools/benchmark/cancel-quiescence.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/cancel-quiescence.js",
+    "bench:recorder": "vite build --ssr tools/benchmark/recorder-cost.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/recorder-cost.js",
     "evidence:cpu": "vite build --ssr tools/measure_cpu.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/measure_cpu.js",
     "evidence:stage-a": "node tools/benchmark/run-stage-a.mjs",
     "test": "npm run test:unit && npm run test:browser",
