@@ -61,6 +61,26 @@ The **pilot root** is E2: prove one generic exact-period theorem using Mathlib's
 
 H (period algebra and center generation) is a separate **optional** consumer of E2: the generator currently tests all proper divisors with numerical residuals in [generate_catalog.py](../../tools/generate_catalog.py). It needs its own symbolic polynomial/division and root-enclosure obligations before any claim about enumerated centers becomes certified. Candidate ordering, checkpoint scheduling, SIMD, worker bands, and browser latency do not gain a useful guarantee from this Lean DAG.
 
+## Phase 3 and later research: gated extensions
+
+[Phase 3](../PLAN.md#phase-3--measured-numerical-extension) is conditional on a demonstrated product gap and [ADR 0002's perturbation gate](../decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md). The independently listed research overlays are not automatic Phase 3 requirements. Add these nodes only when their consumer is selected; none is presently proved.
+
+| Proposed ID | Requires | Precise target and consumer | Priority if selected |
+| --- | --- | --- | --- |
+| P1 — perturbation identity | E0, G1 | With reference orbit `Zₙ` at `c₀` and pixel orbit `zₙ` at `c₀+δc`, prove `dₙ=zₙ-Zₙ` obeys `dₙ₊₁=2Zₙdₙ+dₙ²+δc`, including its initial condition. This is an exact identity, even when `dₙ` is not small. | High; short proof |
+| P2 — rebase invariant | P1 | At the **same iterate** `n`, with new reference `Z'ₙ` at `c₁`, prove `δc'=c-c₁` and `d'ₙ=dₙ-(Z'ₙ-Zₙ)` preserve `zₙ=Z'ₙ+d'ₙ` and P1's recurrence. State rebase index, phase, and reference validity. | High; short proof |
+| P3 — accuracy and glitch rule | P1, P2, G1, E1 | Propagate an upper bound for reference-orbit, delta-orbit, and parameter-rounding errors; give an explicit condition that triggers rebase, subdivision, CPU repair, or unresolved **before** period/multiplier acceptance. Exact algebra alone cannot justify a floating-point glitch threshold. | High value; hard representation proof |
+| D0 — interior field | E1, G0 | Define a potential or distance *proxy* on a stated hyperbolic chart. A first-order quantity such as `(1-|λ|)/|λ'(c)|` is not a certified Euclidean distance to the component boundary without a domain and remainder bound. | Medium after field definition |
+| X0 — exterior potential | E0, escape-radius lemma | Define the exterior escape-rate potential and its normalization, then bound finite-orbit approximations on an explicitly escaping region. For external-angle charts also specify a branch and validity domain; do not identify a finite escape iterate with a certified external ray. | Medium to high after overlay design |
+| S0 — Significant Curves | E2, analytic period-1/2 lemmas | Start with one explicit low-period polynomial or parametrized curve, prove exact-period exclusions and the claimed locus. A resultant can include spurious branches; a plotted curve needs a stated approximation error. | Medium after choosing one curve |
+| R0 — real-slice ordering | E2 | Specify a real interval map and a particular orbit-forcing relation before proving or displaying a selected Sharkovsky relation. This does not order all complex components. | Low until an overlay is specified |
+| N0 — renormalization chart | E0 | First prove a concrete return map on a stated restricted domain and its relation to the canonical parameter `c`; polynomial-like properness and a straightening-coordinate theorem are much larger subsequent obligations. | Research only |
+| F0 — parabolic coordinates | E0 | Fix a parabolic point, petal, and Fatou-coordinate domain before stating `Φ(f_c^[p](z))=Φ(z)+1`. Numerical evaluation and branch/normalization choice are separate obligations. | Research only |
+
+The strongest small branch is `G1 → P1 → P2`: it checks the exact meaning of a rebase and reuses the same perturbation recurrence that bounds neighbor error. P3 is the essential numerical gate for using it in a renderer. A high-precision or Wasm backend has no new mathematical theorem merely because it changes representation; it needs a stated arithmetic error model and agreement with the same semantic verifier. Raising the 6,000,000× product ceiling still requires measured detection quality and latency.
+
+Sources for exploratory claims: [Significant Curves of the Mandelbrot Set](https://mendel-journal.org/index.php/mendel/article/view/157) defines low-period curves; [Sharkovsky's Ordering in the Mandelbrot Set](https://arxiv.org/abs/2506.06163) studies real/tree orderings. Neither supplies a ready-made, verified classifier for this project.
+
 ## Evidence and status discipline
 
 For each implemented node, record: ID, exact Lean declaration, natural-language claim, prerequisite IDs, source or derivation, Lean/mathlib commit, status (`specified`, `proved`, `conditional`, or `blocked`), admitted axioms, and the consuming code/test. Run a root-specific axiom check in CI after a Lean root exists; fail on `sorryAx` and unexpected project axioms. Never label a node proved from a green test or a graph edge inferred from text.
