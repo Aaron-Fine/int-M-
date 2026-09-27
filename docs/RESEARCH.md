@@ -158,7 +158,7 @@ The right treatment is an optional research overlay after the core atlas is stab
 
 Relevant recent work:
 
-- Thies Brockmoeller, Oscar Scherz, and Nedim Srkalovic, [Pi in the Mandelbrot Set Everywhere](https://arxiv.org/abs/2505.07138)
+- Dalibor Martisek, [Significant Curves of the Mandelbrot Set](https://mendel-journal.org/index.php/mendel/article/view/157) — the source defining the first- and second-period curves discussed here. The separately cited [Pi in the Mandelbrot Set Everywhere](https://arxiv.org/abs/2505.07138) concerns escape-time asymptotics near bifurcations, not this overlay.
 
 ## 7. Sharkovsky ordering
 
@@ -212,7 +212,7 @@ Do not build a generalized coordinate plug-in system, renormalization class hier
 Foundational references:
 
 - Adrien Douady and John H. Hubbard, [Étude dynamique des polynômes complexes](https://www.numdam.org/item/ASENS_1985_4_18_2_287_0/)
-- Luna Lomonaco and Carsten L. Petersen, [On the Notions of Renormalization and Multimodality](https://arxiv.org/abs/1505.05422)
+- Luna Lomonaco and Carsten Lunde Petersen, [On quasi-conformal (in-) compatibility of satellite copies of the Mandelbrot set: I](https://arxiv.org/abs/1505.05422)
 
 ## 10. CPU, WebGPU, and perturbation
 
