@@ -40,3 +40,55 @@ import IntMProof
 /-- info: 'IntMProof.criticalPeriod_iff_proper_divisors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.criticalPeriod_iff_proper_divisors
+
+/-- info: 'IntMProof.seedPolynomial_derivative_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.seedPolynomial_derivative_succ
+
+/-- info: 'IntMProof.parameterPolynomial_derivative_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterPolynomial_derivative_succ
+
+/-- info: 'IntMProof.minimalPeriod_map' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.minimalPeriod_map
+
+/-- info: 'IntMProof.transport_minimalPeriod' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.transport_minimalPeriod
+
+/-- info: 'IntMProof.negChart_minimalPeriod' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.negChart_minimalPeriod
+
+/-- info: 'IntMProof.conjugate_minimalPeriod' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.conjugate_minimalPeriod
+
+/-- info: 'IntMProof.Verifier.mem_properDivisors' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.mem_properDivisors
+
+/-- info: 'IntMProof.Verifier.inlineReduction_eq_reference' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.inlineReduction_eq_reference
+
+/-- info: 'IntMProof.Verifier.inline_eq_reference' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.inline_eq_reference
+
+/-- info: 'IntMProof.Verifier.reference_refusal_preserves' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.reference_refusal_preserves
+
+/-- info: 'IntMProof.Verifier.inline_refusal_preserves' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.inline_refusal_preserves
+
+/-- info: 'IntMProof.conjugate_seedDerivative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.conjugate_seedDerivative
+
+/-- info: 'IntMProof.conjugate_seedDerivative_normSq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.conjugate_seedDerivative_normSq

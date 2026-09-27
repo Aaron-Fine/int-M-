@@ -2,6 +2,7 @@ import Lake
 open Lake DSL
 
 package intMProof where
+  lintDriver := "batteries/runLinter"
   @[default_target]
   lean_lib IntMProof
 

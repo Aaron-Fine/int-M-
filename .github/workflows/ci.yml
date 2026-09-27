@@ -30,11 +30,17 @@ jobs:
           lake-package-directory: proof
           build: true
           test: false
-          lint: false
+          lint: true
+          axiom-audit: true
+          axiom-audit-root: IntMProof
 
       - name: Verify pilot theorem axioms
         working-directory: proof
         run: lake env lean IntMProof/Axioms.lean
+
+      - name: Check Lean source style
+        working-directory: proof
+        run: lake exe lint-style
 
   quality:
     name: Static checks and unit tests
