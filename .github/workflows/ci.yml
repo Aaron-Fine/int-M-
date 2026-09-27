@@ -15,6 +15,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lean-proof:
+    name: Lean pilot
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build pinned Lean project
+        uses: leanprover/lean-action@50fcf42d2e460296f1a34b402e990d1b24f8b596 # v1
+        with:
+          lake-package-directory: proof
+          build: true
+          test: false
+          lint: false
+
+      - name: Verify pilot theorem axioms
+        working-directory: proof
+        run: lake env lean IntMProof/Axioms.lean
+
   quality:
     name: Static checks and unit tests
     runs-on: ubuntu-24.04
