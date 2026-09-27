@@ -10,6 +10,7 @@ This is a small, consumer-driven graph of mathematical statements that could jus
 ```mermaid
 flowchart TD
   E0["E0 Iterate algebra"] --> E1["E1 Derivative recurrences"]
+  E2["E2 Exact period criterion"]
   E0 --> V0["V0 Exact verifier model"]
   E2 --> V0
   V0 --> V1["V1 Shared prefix equivalence"]
