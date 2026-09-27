@@ -51,6 +51,8 @@ The **pilot root** is E2: prove one generic exact-period theorem using Mathlib's
 
 **Edges are proof prerequisites, not statements of current implementation.** A V1 proof concerns a mathematical model of two verifier paths; a refinement argument plus differential tests must still connect that model to TypeScript. E2 concerns **exact equality** and cannot turn a binary64 residual smaller than `1e-8` into a proof of exact period. L0/L1/J0/J1 would require genuine outward enclosures to justify a certified result; the current double-double oracle is a floating reference.
 
+The E2 pilot also checks the equivalent all-proper-divisor and first-positive-return criteria for any positive candidate period `n`, with exact closure included in the unconditional statements. The critical-orbit specialization states the catalog generator's divisor test over exact ring arithmetic; its numerical residual checks remain separate.
+
 ## Execution order and gates
 
 1. **Pilot (complete):** [E0 and E2](../../proof/IntMProof.lean) compile under Lean `v4.33.1` and Mathlib `0df444a360eaa60ab8c11dca51a86af692955474`; [the manifest](../../proof/lake-manifest.json) pins dependencies. [Axiom guards](../../proof/IntMProof/Axioms.lean) record the precise axiom sets and fail on changes. Evaluate whether V0/V1's consumer uses the exact criterion before expanding.

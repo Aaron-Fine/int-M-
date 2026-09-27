@@ -16,3 +16,27 @@ import IntMProof
 /-- info: 'IntMProof.exactPeriod_iff_prime_quotient' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.exactPeriod_iff_prime_quotient
+
+/-- info: 'IntMProof.exactPeriod_iff_closure_and_prime_quotients' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exactPeriod_iff_closure_and_prime_quotients
+
+/-- info: 'IntMProof.exactPeriod_iff_proper_divisors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exactPeriod_iff_proper_divisors
+
+/-- info: 'IntMProof.prime_quotients_iff_proper_divisors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.prime_quotients_iff_proper_divisors
+
+/-- info: 'IntMProof.exactPeriod_iff_first_return' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exactPeriod_iff_first_return
+
+/-- info: 'IntMProof.criticalPeriod_iff_prime_quotients' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.criticalPeriod_iff_prime_quotients
+
+/-- info: 'IntMProof.criticalPeriod_iff_proper_divisors' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.criticalPeriod_iff_proper_divisors

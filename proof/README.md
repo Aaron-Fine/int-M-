@@ -1,9 +1,23 @@
 # Lean pilot: E0 and E2
 
 This isolated Lake project implements the E0 orbit algebra and the E2 exact
-period criterion in [the proof DAG](../docs/verification/LEAN-PROOF-DAG.md).
+period criteria in [the proof DAG](../docs/verification/LEAN-PROOF-DAG.md).
 The quadratic map is defined over any commutative ring. The period theorem is
 about an arbitrary self-map and reuses Mathlib's `Function.minimalPeriod`.
+
+For any positive candidate `n`, the following are equivalent to
+`minimalPeriod f x = n`, provided `f^[n] x = x`:
+
+- No return at `n / q` for any prime divisor `q` of `n`.
+- No return at any positive proper divisor of `n`.
+- No return at any earlier positive iterate.
+
+The `exactPeriod_iff_closure_and_prime_quotients` and
+`exactPeriod_iff_first_return` theorems include the closure equation in their
+conclusions. `criticalPeriod_iff_prime_quotients` and
+`criticalPeriod_iff_proper_divisors` specialize the criteria to the critical
+orbit of `z ↦ z² + c`. These match the **exact arithmetic** specification of
+the catalog's all-proper-divisor test.
 
 From this directory, with `elan` installed:
 

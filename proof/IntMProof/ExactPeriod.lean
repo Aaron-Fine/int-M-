@@ -50,4 +50,70 @@ theorem exactPeriod_iff_prime_quotient (p : ℕ) (hp : 0 < p)
     obtain ⟨q, hq, hqp, hmq⟩ := prime_quotient_of_proper_divisor hmp hne
     exact hprime q hq hqp ((isPeriodicPt_iff_minimalPeriod_dvd).mpr hmq)
 
+/-- An unconditional test for exact period `n`: closure and prime-quotient
+exclusions must both hold. In particular, `n = 0` is excluded. -/
+theorem exactPeriod_iff_closure_and_prime_quotients (n : ℕ) (hn : 0 < n) :
+    minimalPeriod f x = n ↔
+      f^[n] x = x ∧
+        ∀ q : ℕ, q.Prime → q ∣ n → f^[n / q] x ≠ x := by
+  constructor
+  · intro h
+    have hclose : f^[n] x = x := by
+      rw [← h]
+      exact iterate_minimalPeriod
+    exact ⟨hclose, (exactPeriod_iff_prime_quotient f x n hn hclose).mp h⟩
+  · rintro ⟨hclose, hprime⟩
+    exact (exactPeriod_iff_prime_quotient f x n hn hclose).mpr hprime
+
+/-- Under exact closure, testing all positive proper divisors of `n` is
+equivalent to exact period `n`. -/
+theorem exactPeriod_iff_proper_divisors (n : ℕ) (hn : 0 < n)
+    (hclose : f^[n] x = x) :
+    minimalPeriod f x = n ↔
+      ∀ d : ℕ, 0 < d → d ∣ n → d < n → f^[d] x ≠ x := by
+  have hperiod : IsPeriodicPt f n x := hclose
+  have hmdvd : minimalPeriod f x ∣ n := hperiod.minimalPeriod_dvd
+  have hmpos : 0 < minimalPeriod f x := hperiod.minimalPeriod_pos hn
+  constructor
+  · intro h d hd _ hlt hreturn
+    have hdiv : n ∣ d := by
+      simpa only [h] using
+        (show IsPeriodicPt f d x from hreturn).minimalPeriod_dvd
+    exact (Nat.not_le_of_gt hlt) (Nat.le_of_dvd hd hdiv)
+  · intro hnone
+    have hle : minimalPeriod f x ≤ n := Nat.le_of_dvd hn hmdvd
+    rcases lt_or_eq_of_le hle with hlt | heq
+    · exact False.elim (hnone (minimalPeriod f x) hmpos hmdvd hlt iterate_minimalPeriod)
+    · exact heq
+
+/-- For a closing period, the prime-quotient tests and all-proper-divisor
+tests are equivalent. -/
+theorem prime_quotients_iff_proper_divisors (n : ℕ) (hn : 0 < n)
+    (hclose : f^[n] x = x) :
+    (∀ q : ℕ, q.Prime → q ∣ n → f^[n / q] x ≠ x) ↔
+      ∀ d : ℕ, 0 < d → d ∣ n → d < n → f^[d] x ≠ x :=
+  (exactPeriod_iff_prime_quotient f x n hn hclose).symm.trans
+    (exactPeriod_iff_proper_divisors f x n hn hclose)
+
+/-- The first positive return criterion: closure at `n` and no return at any
+earlier positive iterate. -/
+theorem exactPeriod_iff_first_return (n : ℕ) (hn : 0 < n) :
+    minimalPeriod f x = n ↔
+      f^[n] x = x ∧
+        ∀ k : ℕ, 0 < k → k < n → f^[k] x ≠ x := by
+  constructor
+  · intro h
+    have hclose : f^[n] x = x := by
+      rw [← h]
+      exact iterate_minimalPeriod
+    refine ⟨hclose, ?_⟩
+    intro k hk hlt hreturn
+    have hdiv : n ∣ k := by
+      simpa only [h] using
+        (show IsPeriodicPt f k x from hreturn).minimalPeriod_dvd
+    exact (Nat.not_le_of_gt hlt) (Nat.le_of_dvd hk hdiv)
+  · rintro ⟨hclose, hnone⟩
+    exact (exactPeriod_iff_proper_divisors f x n hn hclose).mpr
+      (fun d hd _ hlt => hnone d hd hlt)
+
 end IntMProof
