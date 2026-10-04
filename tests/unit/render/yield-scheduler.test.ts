@@ -119,7 +119,7 @@ describe('createYieldScheduler (message-channel)', () => {
     scheduler.dispose();
     await pending;
     expect(scheduler.pendingCount).toBe(0);
-    void expect(scheduler.yieldToEventLoop()).resolves.toBeUndefined();
+    await expect(scheduler.yieldToEventLoop()).resolves.toBeUndefined();
   });
 
   it('falls back to timers when MessageChannel is unavailable', async () => {

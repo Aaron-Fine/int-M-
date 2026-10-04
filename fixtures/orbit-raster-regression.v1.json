@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "referenceCommit": "296d5be",
+  "method": "SHA-256 of row-major JSON records [status, iterations, evidence, period-or-zero] from the unmodified reference OrbitClassifier. Binary64 viewport mapping; maxPeriod 32, other default orbit options.",
+  "size": {
+    "width": 64,
+    "height": 48
+  },
+  "cases": [
+    {
+      "id": "full-set",
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "maxIterations": 48,
+      "expectedDigest": "9fac94e72921891fb05ec4a8578e19b50110511ca90d68b1d07cbae7b789ce57"
+    },
+    {
+      "id": "full-set",
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "maxIterations": 128,
+      "expectedDigest": "ac6ae06b6da6254099920d334026e1324a2d76491dfd313d3d851c86785c7143"
+    },
+    {
+      "id": "full-set",
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "maxIterations": 512,
+      "expectedDigest": "ab25e002515f8494cfc8d375014152a064e4e375dbf42c573f97cadea624b78d"
+    },
+    {
+      "id": "rabbit",
+      "viewport": {
+        "center": {
+          "re": -0.12,
+          "im": 0.74
+        },
+        "spanY": 0.35
+      },
+      "maxIterations": 48,
+      "expectedDigest": "f25453a28c8c44cca4bfe8b7af46bdce2d68e828ad806dad1b6e0a1c3ae4667d"
+    },
+    {
+      "id": "rabbit",
+      "viewport": {
+        "center": {
+          "re": -0.12,
+          "im": 0.74
+        },
+        "spanY": 0.35
+      },
+      "maxIterations": 128,
+      "expectedDigest": "b5ce4fea3cac03eddf669bfb969779cf32e942f39f8a980678961f7996404939"
+    },
+    {
+      "id": "rabbit",
+      "viewport": {
+        "center": {
+          "re": -0.12,
+          "im": 0.74
+        },
+        "spanY": 0.35
+      },
+      "maxIterations": 512,
+      "expectedDigest": "22d57bd286dd538bc656cc6e078b6120c99c40b5999900937288c502b3774ece"
+    },
+    {
+      "id": "seahorse",
+      "viewport": {
+        "center": {
+          "re": -0.7435,
+          "im": 0.1314
+        },
+        "spanY": 0.002
+      },
+      "maxIterations": 48,
+      "expectedDigest": "d7d26846c5ce71e7fe424be6e1830aa18abfc478e9079e2b6d6af4ea8428d27f"
+    },
+    {
+      "id": "seahorse",
+      "viewport": {
+        "center": {
+          "re": -0.7435,
+          "im": 0.1314
+        },
+        "spanY": 0.002
+      },
+      "maxIterations": 128,
+      "expectedDigest": "54052073ad58912c879f628d0a476287987a5edee04611f5a6098a50716a86b4"
+    },
+    {
+      "id": "seahorse",
+      "viewport": {
+        "center": {
+          "re": -0.7435,
+          "im": 0.1314
+        },
+        "spanY": 0.002
+      },
+      "maxIterations": 512,
+      "expectedDigest": "40cf0a67ffb56308f229d806fd8d5b077a625a669c6300a59c64e3fb8c34387d"
+    },
+    {
+      "id": "real-boundary",
+      "viewport": {
+        "center": {
+          "re": -1.75,
+          "im": 0
+        },
+        "spanY": 0.03
+      },
+      "maxIterations": 48,
+      "expectedDigest": "bd7cf3a35d3cee2c91a12511fe11bd5f25e45d383ff1f728fa509e4f36efc3fe"
+    },
+    {
+      "id": "real-boundary",
+      "viewport": {
+        "center": {
+          "re": -1.75,
+          "im": 0
+        },
+        "spanY": 0.03
+      },
+      "maxIterations": 128,
+      "expectedDigest": "5ed8da825a4a5d893859c4925fa55ec582adda407e2eca8435d6bb71fa71a915"
+    },
+    {
+      "id": "real-boundary",
+      "viewport": {
+        "center": {
+          "re": -1.75,
+          "im": 0
+        },
+        "spanY": 0.03
+      },
+      "maxIterations": 512,
+      "expectedDigest": "d4c60745aa01daa8306c957bf3aea94af423b267dd3528b264a9b3113eee8169"
+    }
+  ]
+}

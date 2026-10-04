@@ -1,0 +1,868 @@
+{
+  "schemaVersion": 1,
+  "referenceCommit": "296d5be52fc944e38a69108f333b5472edc2444e",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "platformRelease": "6.18.44",
+    "logicalCpuCount": 9,
+    "cpuModel": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "totalMemoryBytes": 10451460096,
+    "note": "Node harness measures numerical rendering, not browser main-thread long tasks."
+  },
+  "method": {
+    "samplesPerCase": 3,
+    "executionMode": "Node process invoking the production CpuRenderer directly",
+    "timing": "Median stable wall time, including worker-style event-loop yields; no explicit warmup. Serial Node CPU renderer, no browser paint or real child workers.",
+    "baselineNote": "Reference checkout used identical expanded benchmark cases. Reference first case briefly overlapped differential verification; subsequent cases ran alone.",
+    "defaultDetection": "scan",
+    "experimentalDetection": "checkpoint"
+  },
+  "measurements": [
+    {
+      "id": "full-set-512",
+      "viewport": {
+        "center": {
+          "re": -0.5,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "size": {
+        "width": 512,
+        "height": 384
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "baseline": {
+        "samples": [
+          {
+            "coarseMs": 19.01,
+            "stableMs": 262.53,
+            "totalMs": 281.53,
+            "semanticBytes": 4128768
+          },
+          {
+            "coarseMs": 10.82,
+            "stableMs": 254.53,
+            "totalMs": 265.35,
+            "semanticBytes": 4128768
+          },
+          {
+            "coarseMs": 12.38,
+            "stableMs": 255.86,
+            "totalMs": 268.24,
+            "semanticBytes": 4128768
+          }
+        ],
+        "median": {
+          "coarseMs": 12.38,
+          "stableMs": 255.86,
+          "totalMs": 268.24,
+          "cancellationAfterCoarseMs": 0.31,
+          "semanticBytes": 4128768
+        }
+      },
+      "optimizedDefault": {
+        "samples": [
+          {
+            "coarseMs": 18.62,
+            "stableMs": 143.92,
+            "totalMs": 162.55,
+            "semanticBytes": 4128768
+          },
+          {
+            "coarseMs": 11.11,
+            "stableMs": 134.87,
+            "totalMs": 145.98,
+            "semanticBytes": 4128768
+          },
+          {
+            "coarseMs": 10.91,
+            "stableMs": 138.42,
+            "totalMs": 149.33,
+            "semanticBytes": 4128768
+          }
+        ],
+        "median": {
+          "coarseMs": 11.11,
+          "stableMs": 138.42,
+          "totalMs": 149.33,
+          "cancellationAfterCoarseMs": 0.3,
+          "semanticBytes": 4128768
+        }
+      },
+      "experimentalCheckpoint": {
+        "samples": [
+          {
+            "coarseMs": 21.62,
+            "stableMs": 75.73,
+            "totalMs": 97.34,
+            "semanticBytes": 4128768
+          },
+          {
+            "coarseMs": 10.65,
+            "stableMs": 76.44,
+            "totalMs": 87.08,
+            "semanticBytes": 4128768
+          },
+          {
+            "coarseMs": 10.24,
+            "stableMs": 72.34,
+            "totalMs": 82.57,
+            "semanticBytes": 4128768
+          }
+        ],
+        "median": {
+          "coarseMs": 10.65,
+          "stableMs": 75.73,
+          "totalMs": 87.08,
+          "cancellationAfterCoarseMs": 0.32,
+          "semanticBytes": 4128768
+        }
+      },
+      "defaultStableSpeedup": 1.848432307470019
+    },
+    {
+      "id": "period-three-neighborhood-768",
+      "viewport": {
+        "center": {
+          "re": -0.12,
+          "im": 0.74
+        },
+        "spanY": 0.35
+      },
+      "size": {
+        "width": 768,
+        "height": 512
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "baseline": {
+        "samples": [
+          {
+            "coarseMs": 33.8,
+            "stableMs": 3414.27,
+            "totalMs": 3448.07,
+            "semanticBytes": 8257536
+          },
+          {
+            "coarseMs": 32.23,
+            "stableMs": 3360.3,
+            "totalMs": 3392.53,
+            "semanticBytes": 8257536
+          },
+          {
+            "coarseMs": 35.81,
+            "stableMs": 3883.6,
+            "totalMs": 3919.41,
+            "semanticBytes": 8257536
+          }
+        ],
+        "median": {
+          "coarseMs": 33.8,
+          "stableMs": 3414.27,
+          "totalMs": 3448.07,
+          "cancellationAfterCoarseMs": 0.52,
+          "semanticBytes": 8257536
+        }
+      },
+      "optimizedDefault": {
+        "samples": [
+          {
+            "coarseMs": 29.13,
+            "stableMs": 2880.34,
+            "totalMs": 2909.46,
+            "semanticBytes": 8257536
+          },
+          {
+            "coarseMs": 30.17,
+            "stableMs": 2860.88,
+            "totalMs": 2891.05,
+            "semanticBytes": 8257536
+          },
+          {
+            "coarseMs": 29.54,
+            "stableMs": 2819.16,
+            "totalMs": 2848.7,
+            "semanticBytes": 8257536
+          }
+        ],
+        "median": {
+          "coarseMs": 29.54,
+          "stableMs": 2860.88,
+          "totalMs": 2891.05,
+          "cancellationAfterCoarseMs": 0.16,
+          "semanticBytes": 8257536
+        }
+      },
+      "experimentalCheckpoint": {
+        "samples": [
+          {
+            "coarseMs": 21.31,
+            "stableMs": 426.9,
+            "totalMs": 448.21,
+            "semanticBytes": 8257536
+          },
+          {
+            "coarseMs": 20.58,
+            "stableMs": 441.94,
+            "totalMs": 462.52,
+            "semanticBytes": 8257536
+          },
+          {
+            "coarseMs": 19.59,
+            "stableMs": 428.89,
+            "totalMs": 448.49,
+            "semanticBytes": 8257536
+          }
+        ],
+        "median": {
+          "coarseMs": 20.58,
+          "stableMs": 428.89,
+          "totalMs": 448.49,
+          "cancellationAfterCoarseMs": 0.17,
+          "semanticBytes": 8257536
+        }
+      },
+      "defaultStableSpeedup": 1.1934334889963927
+    },
+    {
+      "id": "full-set-square-512",
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "size": {
+        "width": 512,
+        "height": 512
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "baseline": {
+        "samples": [
+          {
+            "coarseMs": 15.54,
+            "stableMs": 564.52,
+            "totalMs": 580.06,
+            "semanticBytes": 5505024
+          },
+          {
+            "coarseMs": 15.36,
+            "stableMs": 434.59,
+            "totalMs": 449.95,
+            "semanticBytes": 5505024
+          },
+          {
+            "coarseMs": 15.75,
+            "stableMs": 437.71,
+            "totalMs": 453.46,
+            "semanticBytes": 5505024
+          }
+        ],
+        "median": {
+          "coarseMs": 15.54,
+          "stableMs": 437.71,
+          "totalMs": 453.46,
+          "cancellationAfterCoarseMs": 0.11,
+          "semanticBytes": 5505024
+        }
+      },
+      "optimizedDefault": {
+        "samples": [
+          {
+            "coarseMs": 13.35,
+            "stableMs": 218.94,
+            "totalMs": 232.29,
+            "semanticBytes": 5505024
+          },
+          {
+            "coarseMs": 15.72,
+            "stableMs": 218.24,
+            "totalMs": 233.97,
+            "semanticBytes": 5505024
+          },
+          {
+            "coarseMs": 15.3,
+            "stableMs": 222.32,
+            "totalMs": 237.63,
+            "semanticBytes": 5505024
+          }
+        ],
+        "median": {
+          "coarseMs": 15.3,
+          "stableMs": 218.94,
+          "totalMs": 233.97,
+          "cancellationAfterCoarseMs": 0.1,
+          "semanticBytes": 5505024
+        }
+      },
+      "experimentalCheckpoint": {
+        "samples": [
+          {
+            "coarseMs": 13.14,
+            "stableMs": 100.89,
+            "totalMs": 114.03,
+            "semanticBytes": 5505024
+          },
+          {
+            "coarseMs": 12.39,
+            "stableMs": 103.62,
+            "totalMs": 116,
+            "semanticBytes": 5505024
+          },
+          {
+            "coarseMs": 13.46,
+            "stableMs": 100.7,
+            "totalMs": 114.16,
+            "semanticBytes": 5505024
+          }
+        ],
+        "median": {
+          "coarseMs": 13.14,
+          "stableMs": 100.89,
+          "totalMs": 114.16,
+          "cancellationAfterCoarseMs": 0.12,
+          "semanticBytes": 5505024
+        }
+      },
+      "defaultStableSpeedup": 1.9992235315611582
+    },
+    {
+      "id": "full-set-square-1024",
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "baseline": {
+        "samples": [
+          {
+            "coarseMs": 47.5,
+            "stableMs": 1952.46,
+            "totalMs": 1999.95,
+            "semanticBytes": 22020096
+          },
+          {
+            "coarseMs": 40.4,
+            "stableMs": 1692.12,
+            "totalMs": 1732.52,
+            "semanticBytes": 22020096
+          },
+          {
+            "coarseMs": 53.38,
+            "stableMs": 2079.52,
+            "totalMs": 2132.9,
+            "semanticBytes": 22020096
+          }
+        ],
+        "median": {
+          "coarseMs": 47.5,
+          "stableMs": 1952.46,
+          "totalMs": 1999.95,
+          "cancellationAfterCoarseMs": 0.17,
+          "semanticBytes": 22020096
+        }
+      },
+      "optimizedDefault": {
+        "samples": [
+          {
+            "coarseMs": 41.37,
+            "stableMs": 719.07,
+            "totalMs": 760.44,
+            "semanticBytes": 22020096
+          },
+          {
+            "coarseMs": 35.52,
+            "stableMs": 721.58,
+            "totalMs": 757.1,
+            "semanticBytes": 22020096
+          },
+          {
+            "coarseMs": 44.9,
+            "stableMs": 725.26,
+            "totalMs": 770.16,
+            "semanticBytes": 22020096
+          }
+        ],
+        "median": {
+          "coarseMs": 41.37,
+          "stableMs": 721.58,
+          "totalMs": 760.44,
+          "cancellationAfterCoarseMs": 0.17,
+          "semanticBytes": 22020096
+        }
+      },
+      "experimentalCheckpoint": {
+        "samples": [
+          {
+            "coarseMs": 34.48,
+            "stableMs": 281.56,
+            "totalMs": 316.04,
+            "semanticBytes": 22020096
+          },
+          {
+            "coarseMs": 31.82,
+            "stableMs": 264.48,
+            "totalMs": 296.3,
+            "semanticBytes": 22020096
+          },
+          {
+            "coarseMs": 37.31,
+            "stableMs": 305.14,
+            "totalMs": 342.45,
+            "semanticBytes": 22020096
+          }
+        ],
+        "median": {
+          "coarseMs": 34.48,
+          "stableMs": 281.56,
+          "totalMs": 316.04,
+          "cancellationAfterCoarseMs": 0.2,
+          "semanticBytes": 22020096
+        }
+      },
+      "defaultStableSpeedup": 2.7058122453504807
+    },
+    {
+      "id": "rabbit-square-768",
+      "viewport": {
+        "center": {
+          "re": -0.12,
+          "im": 0.74
+        },
+        "spanY": 0.35
+      },
+      "size": {
+        "width": 768,
+        "height": 768
+      },
+      "quality": {
+        "maxIterations": 512,
+        "maxPeriod": 32,
+        "coarseStride": 8
+      },
+      "baseline": {
+        "samples": [
+          {
+            "coarseMs": 55.96,
+            "stableMs": 6341.14,
+            "totalMs": 6397.09,
+            "semanticBytes": 12386304
+          },
+          {
+            "coarseMs": 57.48,
+            "stableMs": 6256.31,
+            "totalMs": 6313.8,
+            "semanticBytes": 12386304
+          },
+          {
+            "coarseMs": 59.52,
+            "stableMs": 6510.21,
+            "totalMs": 6569.73,
+            "semanticBytes": 12386304
+          }
+        ],
+        "median": {
+          "coarseMs": 57.48,
+          "stableMs": 6341.14,
+          "totalMs": 6397.09,
+          "cancellationAfterCoarseMs": 0.16,
+          "semanticBytes": 12386304
+        }
+      },
+      "optimizedDefault": {
+        "samples": [
+          {
+            "coarseMs": 50.82,
+            "stableMs": 5523.32,
+            "totalMs": 5574.14,
+            "semanticBytes": 12386304
+          },
+          {
+            "coarseMs": 50.82,
+            "stableMs": 5641.48,
+            "totalMs": 5692.3,
+            "semanticBytes": 12386304
+          },
+          {
+            "coarseMs": 51.68,
+            "stableMs": 5565.9,
+            "totalMs": 5617.58,
+            "semanticBytes": 12386304
+          }
+        ],
+        "median": {
+          "coarseMs": 50.82,
+          "stableMs": 5565.9,
+          "totalMs": 5617.58,
+          "cancellationAfterCoarseMs": 0.22,
+          "semanticBytes": 12386304
+        }
+      },
+      "experimentalCheckpoint": {
+        "samples": [
+          {
+            "coarseMs": 26.99,
+            "stableMs": 834.88,
+            "totalMs": 861.87,
+            "semanticBytes": 12386304
+          },
+          {
+            "coarseMs": 26.97,
+            "stableMs": 780.34,
+            "totalMs": 807.31,
+            "semanticBytes": 12386304
+          },
+          {
+            "coarseMs": 29.56,
+            "stableMs": 786.26,
+            "totalMs": 815.82,
+            "semanticBytes": 12386304
+          }
+        ],
+        "median": {
+          "coarseMs": 26.99,
+          "stableMs": 786.26,
+          "totalMs": 815.82,
+          "cancellationAfterCoarseMs": 0.17,
+          "semanticBytes": 12386304
+        }
+      },
+      "defaultStableSpeedup": 1.1392838534648486
+    }
+  ],
+  "referenceRegression": [
+    {
+      "id": "full-set",
+      "maxIterations": 48,
+      "samples": 3072,
+      "expectedDigest": "9fac94e72921891fb05ec4a8578e19b50110511ca90d68b1d07cbae7b789ce57",
+      "actualDigest": "9fac94e72921891fb05ec4a8578e19b50110511ca90d68b1d07cbae7b789ce57",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.7763568394002505e-15
+    },
+    {
+      "id": "full-set",
+      "maxIterations": 128,
+      "samples": 3072,
+      "expectedDigest": "ac6ae06b6da6254099920d334026e1324a2d76491dfd313d3d851c86785c7143",
+      "actualDigest": "ac6ae06b6da6254099920d334026e1324a2d76491dfd313d3d851c86785c7143",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.7763568394002505e-15
+    },
+    {
+      "id": "full-set",
+      "maxIterations": 512,
+      "samples": 3072,
+      "expectedDigest": "ab25e002515f8494cfc8d375014152a064e4e375dbf42c573f97cadea624b78d",
+      "actualDigest": "ab25e002515f8494cfc8d375014152a064e4e375dbf42c573f97cadea624b78d",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.7763568394002505e-15
+    },
+    {
+      "id": "rabbit",
+      "maxIterations": 48,
+      "samples": 3072,
+      "expectedDigest": "f25453a28c8c44cca4bfe8b7af46bdce2d68e828ad806dad1b6e0a1c3ae4667d",
+      "actualDigest": "f25453a28c8c44cca4bfe8b7af46bdce2d68e828ad806dad1b6e0a1c3ae4667d",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 7.105427357601002e-15
+    },
+    {
+      "id": "rabbit",
+      "maxIterations": 128,
+      "samples": 3072,
+      "expectedDigest": "b5ce4fea3cac03eddf669bfb969779cf32e942f39f8a980678961f7996404939",
+      "actualDigest": "b5ce4fea3cac03eddf669bfb969779cf32e942f39f8a980678961f7996404939",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 7.105427357601002e-15
+    },
+    {
+      "id": "rabbit",
+      "maxIterations": 512,
+      "samples": 3072,
+      "expectedDigest": "22d57bd286dd538bc656cc6e078b6120c99c40b5999900937288c502b3774ece",
+      "actualDigest": "22d57bd286dd538bc656cc6e078b6120c99c40b5999900937288c502b3774ece",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 7.105427357601002e-15
+    },
+    {
+      "id": "seahorse",
+      "maxIterations": 48,
+      "samples": 3072,
+      "expectedDigest": "d7d26846c5ce71e7fe424be6e1830aa18abfc478e9079e2b6d6af4ea8428d27f",
+      "actualDigest": "d7d26846c5ce71e7fe424be6e1830aa18abfc478e9079e2b6d6af4ea8428d27f",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 7.105427357601002e-15
+    },
+    {
+      "id": "seahorse",
+      "maxIterations": 128,
+      "samples": 3072,
+      "expectedDigest": "54052073ad58912c879f628d0a476287987a5edee04611f5a6098a50716a86b4",
+      "actualDigest": "54052073ad58912c879f628d0a476287987a5edee04611f5a6098a50716a86b4",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.4210854715202004e-14
+    },
+    {
+      "id": "seahorse",
+      "maxIterations": 512,
+      "samples": 3072,
+      "expectedDigest": "40cf0a67ffb56308f229d806fd8d5b077a625a669c6300a59c64e3fb8c34387d",
+      "actualDigest": "40cf0a67ffb56308f229d806fd8d5b077a625a669c6300a59c64e3fb8c34387d",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.4210854715202004e-14
+    },
+    {
+      "id": "real-boundary",
+      "maxIterations": 48,
+      "samples": 3072,
+      "expectedDigest": "bd7cf3a35d3cee2c91a12511fe11bd5f25e45d383ff1f728fa509e4f36efc3fe",
+      "actualDigest": "bd7cf3a35d3cee2c91a12511fe11bd5f25e45d383ff1f728fa509e4f36efc3fe",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 7.105427357601002e-15
+    },
+    {
+      "id": "real-boundary",
+      "maxIterations": 128,
+      "samples": 3072,
+      "expectedDigest": "5ed8da825a4a5d893859c4925fa55ec582adda407e2eca8435d6bb71fa71a915",
+      "actualDigest": "5ed8da825a4a5d893859c4925fa55ec582adda407e2eca8435d6bb71fa71a915",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.4210854715202004e-14
+    },
+    {
+      "id": "real-boundary",
+      "maxIterations": 512,
+      "samples": 3072,
+      "expectedDigest": "d4c60745aa01daa8306c957bf3aea94af423b267dd3528b264a9b3113eee8169",
+      "actualDigest": "d4c60745aa01daa8306c957bf3aea94af423b267dd3528b264a9b3113eee8169",
+      "numericDifferences": 0,
+      "maxSmoothDifference": 1.4210854715202004e-14
+    }
+  ],
+  "checkpointDifferential": [
+    {
+      "id": "full-set",
+      "maxIterations": 48,
+      "samples": 19200,
+      "statusDifferences": 4,
+      "periodDifferences": 4,
+      "maxMagnitudeDifference": 2.0272081235894746e-10,
+      "maxDirectionDifference": 3.2832174219149246e-10,
+      "firstDifference": {
+        "point": {
+          "re": -0.11458333333333337,
+          "im": 0.71875
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 0,
+        "scanPeriod": 3,
+        "checkpointPeriod": 0
+      }
+    },
+    {
+      "id": "full-set",
+      "maxIterations": 128,
+      "samples": 19200,
+      "statusDifferences": 0,
+      "periodDifferences": 4,
+      "maxMagnitudeDifference": 0.23643124660308817,
+      "maxDirectionDifference": 1.9986158971112227,
+      "firstDifference": {
+        "point": {
+          "re": -0.13541666666666674,
+          "im": 0.8020833333333333
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 2,
+        "scanPeriod": 6,
+        "checkpointPeriod": 3
+      }
+    },
+    {
+      "id": "full-set",
+      "maxIterations": 512,
+      "samples": 19200,
+      "statusDifferences": 0,
+      "periodDifferences": 18,
+      "maxMagnitudeDifference": 0.3628091950516364,
+      "maxDirectionDifference": 1.9990995080447351,
+      "firstDifference": {
+        "point": {
+          "re": -0.15625,
+          "im": 0.8020833333333333
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 2,
+        "scanPeriod": 6,
+        "checkpointPeriod": 3
+      }
+    },
+    {
+      "id": "rabbit",
+      "maxIterations": 48,
+      "samples": 19200,
+      "statusDifferences": 30,
+      "periodDifferences": 30,
+      "maxMagnitudeDifference": 3.0040359089156254e-10,
+      "maxDirectionDifference": 1.3070148599872781e-9,
+      "firstDifference": {
+        "point": {
+          "re": -0.11562499999999999,
+          "im": 0.8610416666666667
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 0,
+        "scanPeriod": 6,
+        "checkpointPeriod": 0
+      }
+    },
+    {
+      "id": "rabbit",
+      "maxIterations": 128,
+      "samples": 19200,
+      "statusDifferences": 0,
+      "periodDifferences": 27,
+      "maxMagnitudeDifference": 0.24765005676748492,
+      "maxDirectionDifference": 1.9999945067530172,
+      "firstDifference": {
+        "point": {
+          "re": -0.133125,
+          "im": 0.8027083333333334
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 2,
+        "scanPeriod": 6,
+        "checkpointPeriod": 3
+      }
+    },
+    {
+      "id": "rabbit",
+      "maxIterations": 512,
+      "samples": 19200,
+      "statusDifferences": 4,
+      "periodDifferences": 330,
+      "maxMagnitudeDifference": 0.4137918201123588,
+      "maxDirectionDifference": 1.9999945067530172,
+      "firstDifference": {
+        "point": {
+          "re": -0.10979166666666666,
+          "im": 0.8902083333333333
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 2,
+        "scanPeriod": 24,
+        "checkpointPeriod": 12
+      }
+    },
+    {
+      "id": "seahorse",
+      "maxIterations": 48,
+      "samples": 19200,
+      "statusDifferences": 0,
+      "periodDifferences": 0,
+      "maxMagnitudeDifference": 0,
+      "maxDirectionDifference": 0
+    },
+    {
+      "id": "seahorse",
+      "maxIterations": 128,
+      "samples": 19200,
+      "statusDifferences": 0,
+      "periodDifferences": 0,
+      "maxMagnitudeDifference": 0,
+      "maxDirectionDifference": 0
+    },
+    {
+      "id": "seahorse",
+      "maxIterations": 512,
+      "samples": 19200,
+      "statusDifferences": 0,
+      "periodDifferences": 0,
+      "maxMagnitudeDifference": 9.516162229328273e-7,
+      "maxDirectionDifference": 3.7380221445324202e-6
+    },
+    {
+      "id": "real-boundary",
+      "maxIterations": 48,
+      "samples": 19200,
+      "statusDifferences": 138,
+      "periodDifferences": 138,
+      "maxMagnitudeDifference": 4.85281959061723e-9,
+      "maxDirectionDifference": 2.0858537446013506e-8,
+      "firstDifference": {
+        "point": {
+          "re": -1.757875,
+          "im": 0.013875
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 0,
+        "scanPeriod": 9,
+        "checkpointPeriod": 0
+      }
+    },
+    {
+      "id": "real-boundary",
+      "maxIterations": 128,
+      "samples": 19200,
+      "statusDifferences": 2,
+      "periodDifferences": 144,
+      "maxMagnitudeDifference": 0.2495658373844752,
+      "maxDirectionDifference": 1.9999586606149988,
+      "firstDifference": {
+        "point": {
+          "re": -1.750125,
+          "im": 0.010375
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 0,
+        "scanPeriod": 12,
+        "checkpointPeriod": 0
+      }
+    },
+    {
+      "id": "real-boundary",
+      "maxIterations": 512,
+      "samples": 19200,
+      "statusDifferences": 4,
+      "periodDifferences": 1304,
+      "maxMagnitudeDifference": 0.4017133010105274,
+      "maxDirectionDifference": 1.9999795239291567,
+      "firstDifference": {
+        "point": {
+          "re": -1.758375,
+          "im": 0.014875000000000001
+        },
+        "scanStatus": 2,
+        "checkpointStatus": 2,
+        "scanPeriod": 18,
+        "checkpointPeriod": 9
+      }
+    }
+  ]
+}

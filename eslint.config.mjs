@@ -6,12 +6,13 @@ export default tseslint.config(
   {
     ignores: [
       'coverage/',
+      '.evidence-build/',
       'dist/',
       'model/',
       'node_modules/',
       'playwright-report/',
       'test-results/',
-      '.evidence-build/',
+      'proof/.lake/',
     ],
   },
   eslint.configs.recommended,
