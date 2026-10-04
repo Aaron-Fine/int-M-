@@ -188,3 +188,55 @@ import IntMProof
 /-- info: 'IntMProof.mainCardioid_inequality' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.mainCardioid_inequality
+
+/-- info: 'IntMProof.hasDerivAt_orbit_fixedSeed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.hasDerivAt_orbit_fixedSeed
+
+/-- info: 'IntMProof.hasDerivAt_orbit_fixedParameter' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.hasDerivAt_orbit_fixedParameter
+
+/-- info: 'IntMProof.hasDerivAt_orbit_total' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.hasDerivAt_orbit_total
+
+/-- info: 'IntMProof.branch_slope' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.branch_slope
+
+/-- info: 'IntMProof.branch_denominator_phase' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.branch_denominator_phase
+
+/-- info: 'IntMProof.exists_periodic_implicitSection' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exists_periodic_implicitSection
+
+/-- info: 'IntMProof.exists_branch_slope' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exists_branch_slope
+
+/-- info: 'IntMProof.perturbation_norm_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.perturbation_norm_succ
+
+/-- info: 'IntMProof.seedShift_norm_le_perturbationBound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.seedShift_norm_le_perturbationBound
+
+/-- info: 'IntMProof.perturbation_norm_le_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.perturbation_norm_le_bound
+
+/-- info: 'IntMProof.mapsTo_closedBall_of_lipschitzOnWith' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.mapsTo_closedBall_of_lipschitzOnWith
+
+/-- info: 'IntMProof.existsUnique_fixedPoint_closedBall' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_fixedPoint_closedBall
+
+/-- info: 'IntMProof.existsUnique_fixedPoint_orbit_of_multiplier_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_fixedPoint_orbit_of_multiplier_le
