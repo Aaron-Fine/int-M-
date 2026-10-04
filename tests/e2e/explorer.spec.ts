@@ -458,6 +458,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expectNoAccessibilityViolations(page);
 
     await page.getByRole('button', { name: 'Explore' }).click();
+    // Scan the settled state, not the guide's 150 ms opacity transition.
+    await expect(page.getByRole('button', { name: 'Explore', exact: true })).toBeHidden();
     const mainCardioid = page.getByRole('button', {
       name: 'Inspect Main cardioid, period 1',
     });
