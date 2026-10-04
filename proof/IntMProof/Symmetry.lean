@@ -1,5 +1,6 @@
 import IntMProof.ExactPeriod
 import IntMProof.Derivatives
+import Mathlib.Algebra.Group.Equiv.Basic
 import Mathlib.Data.Complex.Basic
 
 /-! # Ring-map symmetries and invertible changes of coordinates. -/
@@ -48,16 +49,14 @@ theorem transport_minimalPeriod {α β : Type*} (h : α ≃ β) (f : α → α)
   rw [transport_orbit h f x n]
   exact h.injective.eq_iff
 
-/-- The sign chart turns the quadratic map into a negative quadratic map. -/
-def negChart (R : Type*) [AddGroup R] : R ≃ R where
-  toFun := fun z => -z
-  invFun := fun z => -z
-  left_inv := by intro z; simp
-  right_inv := by intro z; simp
+/-- The sign chart is Mathlib's negation equivalence. It turns the quadratic
+map into a negative quadratic map. -/
+abbrev negChart (R : Type*) [InvolutiveNeg R] : R ≃ R := Equiv.neg R
 
 theorem negChart_quadratic (c w : R) :
     transport (negChart R) (quadratic c) w = -(w * w) - c := by
-  simp [transport, negChart, quadratic, neg_add_rev, sub_eq_add_neg, add_comm]
+  simp only [transport, negChart, Equiv.neg_apply, Equiv.neg_symm, quadratic]
+  ring
 
 theorem negChart_minimalPeriod (c z : R) :
     minimalPeriod (fun w => -(w * w) - c) (-z) =
@@ -93,4 +92,22 @@ theorem conjugate_seedDerivative_normSq (c z : ℂ) (n : ℕ) :
       ((starRingEnd ℂ) z)) =
       Complex.normSq ((derivative (seedPolynomial c n)).eval z) := by
   rw [← conjugate_seedDerivative, Complex.normSq_conj]
+
+/-- Conjugation transports the constant-seed parameter derivative. -/
+theorem conjugate_fixedSeed_parameterDerivative (z c : ℂ) (n : ℕ) :
+    (starRingEnd ℂ) ((derivative (parameterPolynomial (C z) n)).eval c) =
+      (derivative (parameterPolynomial (C ((starRingEnd ℂ) z)) n)).eval
+        ((starRingEnd ℂ) c) := by
+  induction n with
+  | zero => simp [fixedSeed_parameter_derivative_zero]
+  | succ n ih =>
+    simp only [parameterPolynomial_derivative_succ, map_mul, map_add, map_ofNat,
+      map_one, eval_C, conjugate_orbit, ih]
+
+/-- Squared norm of that parameter derivative is invariant under conjugation. -/
+theorem conjugate_fixedSeed_parameterDerivative_normSq (z c : ℂ) (n : ℕ) :
+    Complex.normSq ((derivative (parameterPolynomial (C ((starRingEnd ℂ) z)) n)).eval
+        ((starRingEnd ℂ) c)) =
+      Complex.normSq ((derivative (parameterPolynomial (C z) n)).eval c) := by
+  rw [← conjugate_fixedSeed_parameterDerivative, Complex.normSq_conj]
 end IntMProof

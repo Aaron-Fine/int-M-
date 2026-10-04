@@ -19,14 +19,7 @@ theorem criticalPeriod_iff_prime_quotients (c : R) (n : ℕ) (hn : 0 < n) :
 theorem criticalPeriod_iff_proper_divisors (c : R) (n : ℕ) (hn : 0 < n) :
     Function.minimalPeriod (quadratic c) (0 : R) = n ↔
       orbit c n 0 = 0 ∧
-        ∀ d : ℕ, 0 < d → d ∣ n → d < n → orbit c d 0 ≠ 0 := by
-  constructor
-  · intro h
-    have hclose : orbit c n 0 = 0 := by
-      rw [← h]
-      exact Function.iterate_minimalPeriod
-    exact ⟨hclose, (exactPeriod_iff_proper_divisors (quadratic c) 0 n hn hclose).mp h⟩
-  · rintro ⟨hclose, hnone⟩
-    exact (exactPeriod_iff_proper_divisors (quadratic c) 0 n hn hclose).mpr hnone
+        ∀ d : ℕ, 0 < d → d ∣ n → d < n → orbit c d 0 ≠ 0 :=
+  exactPeriod_iff_closure_and_proper_divisors (quadratic c) 0 n hn
 
 end IntMProof

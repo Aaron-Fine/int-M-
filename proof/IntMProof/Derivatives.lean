@@ -1,4 +1,5 @@
 import IntMProof.Quadratic
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Algebra.Polynomial.Derivative
 
 /-! # E1: formal orbit derivatives over a commutative ring. -/
@@ -40,6 +41,18 @@ theorem seedPolynomial_derivative_succ (c z : R) (n : ℕ) :
   simp only [seedPolynomial, derivative_add, derivative_mul, derivative_C,
     add_zero, eval_add, eval_mul, seedPolynomial_eval]
   ring
+
+/-- The seed derivative equals the product of the per-step factors `2 zₖ`.
+That product is the formal multiplier of the `n`th iterate. -/
+theorem seedPolynomial_derivative_eval_prod (c z : R) (n : ℕ) :
+    (derivative (seedPolynomial c n)).eval z =
+      ∏ k ∈ Finset.range n, (2 * orbit c k z) := by
+  symm
+  refine Finset.prod_range_induction (fun k => 2 * orbit c k z)
+      (fun m => (derivative (seedPolynomial c m)).eval z) ?_ n ?_
+  · simp [seedPolynomial_derivative_zero]
+  · intro k _
+    rw [seedPolynomial_derivative_succ, mul_comm]
 
 /-- A varying seed contributes its own parameter derivative at `n = 0`. -/
 theorem parameterPolynomial_derivative_zero (seed : R[X]) (c : R) :
