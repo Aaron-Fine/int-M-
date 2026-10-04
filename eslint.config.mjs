@@ -6,6 +6,7 @@ export default tseslint.config(
   {
     ignores: [
       'coverage/',
+      '.evidence-build/',
       'dist/',
       'model/',
       'node_modules/',

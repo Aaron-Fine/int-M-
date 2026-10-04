@@ -59,6 +59,8 @@ export type OrbitResult = EscapedOrbitResult | AttractingCycleOrbitResult | Unre
 export type SemanticView = 'stability' | 'multiplier' | 'period';
 
 export interface OrbitOptions {
+  /** Checkpoints propose candidates; both modes require recurrence and closure. */
+  readonly cycleDetection?: 'scan' | 'checkpoint';
   readonly maxIterations: number;
   readonly maxPeriod: number;
   readonly cycleTolerance: number;
@@ -66,6 +68,8 @@ export interface OrbitOptions {
 }
 
 export interface RenderQuality {
+  /** Experimental detector; scan remains the production default. */
+  readonly cycleDetection?: 'scan' | 'checkpoint';
   readonly maxIterations: number;
   readonly maxPeriod: number;
   readonly coarseStride: number;

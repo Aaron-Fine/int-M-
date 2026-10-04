@@ -1,4 +1,5 @@
 export * from './complex';
+export type { RasterOrbitSample } from './orbit';
 export { classifyOrbit, DEFAULT_ORBIT_OPTIONS, OrbitClassifier, OrbitScratch } from './orbit';
 export {
   colorForAttracting,
@@ -6,6 +7,7 @@ export {
   colorForOrbit,
   colorForUnresolved,
   modulateForMultiplierAngle,
+  modulateForMultiplierDirection,
 } from './semantic';
 export type { Rgba } from './semantic';
 export type {

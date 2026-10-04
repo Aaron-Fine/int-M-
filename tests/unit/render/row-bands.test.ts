@@ -12,7 +12,8 @@ const emptyFrame = (width: number, height: number): SemanticFrame => {
     status: new Uint8Array(pixelCount),
     period: new Uint32Array(pixelCount),
     smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
-    multiplierAngle: new Float64Array(pixelCount),
+    multiplierUnitRe: new Float32Array(pixelCount),
+    multiplierUnitIm: new Float32Array(pixelCount),
     progress: 1,
   };
 };
@@ -63,12 +64,14 @@ describe('copyBandIntoFrame', () => {
     const status = new Uint8Array(length);
     const period = new Uint32Array(length);
     const smoothIterationOrMultiplierMagnitude = new Float64Array(length);
-    const multiplierAngle = new Float64Array(length);
+    const multiplierUnitRe = new Float32Array(length);
+    const multiplierUnitIm = new Float32Array(length);
     for (let i = 0; i < length; i += 1) {
       status[i] = 2;
       period[i] = 7 + i;
       smoothIterationOrMultiplierMagnitude[i] = 1.5 + i;
-      multiplierAngle[i] = 0.25 * i;
+      multiplierUnitRe[i] = 0.25 * i;
+      multiplierUnitIm[i] = 0.25 * i;
     }
 
     copyBandIntoFrame(frame, {
@@ -77,7 +80,8 @@ describe('copyBandIntoFrame', () => {
       status,
       period,
       smoothIterationOrMultiplierMagnitude,
-      multiplierAngle,
+      multiplierUnitRe,
+      multiplierUnitIm,
     });
 
     const offset = y0 * width;
@@ -86,7 +90,8 @@ describe('copyBandIntoFrame', () => {
     expect(frame.smoothIterationOrMultiplierMagnitude.subarray(offset, offset + length)).toEqual(
       smoothIterationOrMultiplierMagnitude,
     );
-    expect(frame.multiplierAngle.subarray(offset, offset + length)).toEqual(multiplierAngle);
+    expect(frame.multiplierUnitRe.subarray(offset, offset + length)).toEqual(multiplierUnitRe);
+    expect(frame.multiplierUnitIm.subarray(offset, offset + length)).toEqual(multiplierUnitIm);
 
     // Earlier rows remain untouched zeros
     expect(frame.status.subarray(0, offset)).toEqual(new Uint8Array(offset));

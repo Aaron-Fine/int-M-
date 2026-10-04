@@ -4,6 +4,7 @@ import { DEFAULT_VIEWPORT, type RenderQuality } from '../../../src/domain';
 import { classifyRows } from '../../../src/render/classify-rows';
 import { RenderCancelledError } from '../../../src/render';
 import { splitRowBands } from '../../../src/render/row-bands';
+import { createTileHandler } from '../../../src/worker/tile-handler';
 import { createTilePool } from '../../../src/worker/tile-pool';
 import type {
   SupervisorToTileMessage,
@@ -75,7 +76,8 @@ const bandResult = (
     status: new Uint8Array(length).fill(fillStatus),
     period: new Uint32Array(length).fill(fillPeriod),
     smoothIterationOrMultiplierMagnitude: new Float64Array(length),
-    multiplierAngle: new Float64Array(length),
+    multiplierUnitRe: new Float32Array(length),
+    multiplierUnitIm: new Float32Array(length),
     yieldWaitMs,
     yieldCount,
   };
@@ -122,7 +124,8 @@ describe('createTilePool', () => {
     expect(frame.smoothIterationOrMultiplierMagnitude).toEqual(
       expected.smoothIterationOrMultiplierMagnitude,
     );
-    expect(frame.multiplierAngle).toEqual(expected.multiplierAngle);
+    expect(frame.multiplierUnitRe).toEqual(expected.multiplierUnitRe);
+    expect(frame.multiplierUnitIm).toEqual(expected.multiplierUnitIm);
     expect(frame.stage).toBe('stable');
     expect(frame.sampleStride).toBe(1);
   });
@@ -325,5 +328,66 @@ describe('createTilePool', () => {
     const frame = await pending;
     expect(frame.timing?.yieldCount).toBe(8);
     expect(frame.timing?.yieldWaitMs).toBe(10);
+  });
+});
+
+describe('symmetric tile scheduling', () => {
+  it.each([
+    { height: 1, im: 0 },
+    { height: 3, im: 0 },
+    { height: 8, im: 0 },
+    { height: 9, im: 0 },
+    { height: 9, im: 0.74 },
+  ])('merges actual worker classifications at height $height, im $im', async ({ height, im }) => {
+    const workers: FakeTileWorker[] = [];
+    const pool = createTilePool({
+      workerCount: 4,
+      factory: () => {
+        const worker = new FakeTileWorker();
+        const record = worker.postMessage.bind(worker);
+        const handler = createTileHandler({
+          postMessage: (message) => {
+            worker.emit(message);
+          },
+        });
+        worker.postMessage = (message): void => {
+          record(message);
+          void handler(message);
+        };
+        workers.push(worker);
+        return worker;
+      },
+    });
+    const request = {
+      viewport: { center: { re: -0.12, im }, spanY: 0.35 },
+      size: { width: 24, height },
+      quality: BALANCED,
+    };
+    try {
+      const frame = await pool.classifyStable(request, BALANCED, new AbortController().signal);
+      const reference = await classifyRows(
+        request,
+        BALANCED,
+        1,
+        0,
+        height,
+        new AbortController().signal,
+      );
+      expect(frame.status).toEqual(reference.status);
+      expect(frame.period).toEqual(reference.period);
+      expect(frame.smoothIterationOrMultiplierMagnitude).toEqual(
+        reference.smoothIterationOrMultiplierMagnitude,
+      );
+      expect(frame.multiplierUnitRe).toEqual(reference.multiplierUnitRe);
+      expect(frame.multiplierUnitIm).toEqual(reference.multiplierUnitIm);
+      const jobs = workers.flatMap((worker) =>
+        worker.posts.filter((post) => post.type === 'tile-classify'),
+      );
+      const rows = im === 0 ? Math.ceil(height / 2) : height;
+      expect(jobs.reduce((sum, job) => sum + job.y1 - job.y0, 0)).toBe(rows);
+      expect(jobs.every((job) => job.y1 <= rows)).toBe(true);
+    } finally {
+      pool.dispose();
+    }
   });
 });

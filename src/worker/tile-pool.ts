@@ -1,6 +1,6 @@
 import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
-import { copyBandIntoFrame, splitRowBands } from '../render/row-bands';
+import { copyBandIntoFrame, copyConjugateRow, splitRowBands } from '../render/row-bands';
 import type { DynamicsRenderRequest, SemanticFrame, TilePool } from '../render/renderer';
 import type { RenderQuality } from '../domain';
 import type {
@@ -38,7 +38,8 @@ const emptyStableFrame = (request: DynamicsRenderRequest): SemanticFrame => {
     status: new Uint8Array(pixelCount),
     period: new Uint32Array(pixelCount),
     smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
-    multiplierAngle: new Float64Array(pixelCount),
+    multiplierUnitRe: new Float32Array(pixelCount),
+    multiplierUnitIm: new Float32Array(pixelCount),
     progress: 1,
   };
 };
@@ -54,7 +55,8 @@ const frameFromBand = (
   period: band.period as Uint32Array<ArrayBuffer>,
   smoothIterationOrMultiplierMagnitude:
     band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
-  multiplierAngle: band.multiplierAngle as Float64Array<ArrayBuffer>,
+  multiplierUnitRe: band.multiplierUnitRe as Float32Array<ArrayBuffer>,
+  multiplierUnitIm: band.multiplierUnitIm as Float32Array<ArrayBuffer>,
   progress: 1,
 });
 
@@ -63,6 +65,7 @@ interface ActiveJob {
   readonly signal: AbortSignal;
   readonly onAbort: () => void;
   readonly expectedJobs: number;
+  readonly symmetric: boolean;
   readonly received: Map<number, TileResultMessage>;
   readonly frame: SemanticFrame;
   readonly startedAt: number;
@@ -139,7 +142,10 @@ class TilePoolImpl implements TilePool {
     signal: AbortSignal,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
-    const bands = splitRowBands(request.size.height, workers.length);
+    const bands = splitRowBands(
+      request.viewport.center.im === 0 ? Math.ceil(request.size.height / 2) : request.size.height,
+      workers.length,
+    );
     const generation = ++this.#generation;
     const frame = emptyStableFrame(request);
 
@@ -151,6 +157,7 @@ class TilePoolImpl implements TilePool {
           this.#cancelActive();
         },
         expectedJobs: bands.length,
+        symmetric: request.viewport.center.im === 0,
         received: new Map(),
         frame,
         startedAt: performance.now(),
@@ -218,6 +225,13 @@ class TilePoolImpl implements TilePool {
     }
 
     copyBandIntoFrame(active.frame, message);
+    if (active.symmetric) {
+      const { width, height } = active.frame.size;
+      for (let y = message.y0; y < message.y1; y += 1) {
+        const mirrorY = height - 1 - y;
+        if (mirrorY !== y) copyConjugateRow(active.frame, y * width, mirrorY * width, width);
+      }
+    }
     active.received.set(message.jobId, message);
     if (active.received.size === active.expectedJobs) {
       this.#finishActive((job) => {

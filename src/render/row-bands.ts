@@ -9,7 +9,8 @@ export interface BandArrays {
   readonly status: Uint8Array;
   readonly period: Uint32Array;
   readonly smoothIterationOrMultiplierMagnitude: Float64Array;
-  readonly multiplierAngle: Float64Array;
+  readonly multiplierUnitRe: Float32Array;
+  readonly multiplierUnitIm: Float32Array;
 }
 
 /** Remainder-front exclusive [y0, y1) covering [0, height). Stride-1 only. */
@@ -30,11 +31,16 @@ export function splitRowBands(height: number, bandCount: number): readonly RowBa
   return bands;
 }
 
-/** Merge a band's four channels into a full-raster frame at y0 * width. */
+/** Merge a band's semantic channels into a full-raster frame at y0 * width. */
 export function copyBandIntoFrame(
   frame: Pick<
     SemanticFrame,
-    'status' | 'period' | 'smoothIterationOrMultiplierMagnitude' | 'multiplierAngle' | 'size'
+    | 'status'
+    | 'period'
+    | 'smoothIterationOrMultiplierMagnitude'
+    | 'multiplierUnitRe'
+    | 'multiplierUnitIm'
+    | 'size'
   >,
   band: BandArrays & RowBand,
 ): void {
@@ -42,5 +48,26 @@ export function copyBandIntoFrame(
   frame.status.set(band.status, offset);
   frame.period.set(band.period, offset);
   frame.smoothIterationOrMultiplierMagnitude.set(band.smoothIterationOrMultiplierMagnitude, offset);
-  frame.multiplierAngle.set(band.multiplierAngle, offset);
+  frame.multiplierUnitRe.set(band.multiplierUnitRe, offset);
+  frame.multiplierUnitIm.set(band.multiplierUnitIm, offset);
+}
+
+/** Conjugation preserves all scalar channels and negates multiplier direction's im. */
+export function copyConjugateRow(
+  arrays: BandArrays,
+  source: number,
+  target: number,
+  width: number,
+): void {
+  arrays.status.set(arrays.status.subarray(source, source + width), target);
+  arrays.period.set(arrays.period.subarray(source, source + width), target);
+  arrays.smoothIterationOrMultiplierMagnitude.set(
+    arrays.smoothIterationOrMultiplierMagnitude.subarray(source, source + width),
+    target,
+  );
+  arrays.multiplierUnitRe.set(arrays.multiplierUnitRe.subarray(source, source + width), target);
+  for (let x = 0; x < width; x += 1) {
+    const im = arrays.multiplierUnitIm[source + x] ?? 0;
+    arrays.multiplierUnitIm[target + x] = im === 0 ? 0 : -im;
+  }
 }

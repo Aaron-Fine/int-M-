@@ -19,7 +19,8 @@ const frame = (stage: SemanticFrame['stage']): SemanticFrame => ({
   status: new Uint8Array(48),
   period: new Uint32Array(48),
   smoothIterationOrMultiplierMagnitude: new Float64Array(48),
-  multiplierAngle: new Float64Array(48),
+  multiplierUnitRe: new Float32Array(48),
+  multiplierUnitIm: new Float32Array(48),
   progress: stage === 'coarse' ? 0.2 : 1,
 });
 
@@ -53,6 +54,15 @@ describe('SemanticFrameStore', () => {
         quality: { maxIterations: 1024 },
       }),
     ).not.toBe(key);
+  });
+
+  it('separates experimental detection from the default cache entry', () => {
+    expect(semanticRequestKey({ ...request, quality: { cycleDetection: 'scan' } })).toBe(
+      semanticRequestKey(request),
+    );
+    expect(semanticRequestKey({ ...request, quality: { cycleDetection: 'checkpoint' } })).not.toBe(
+      semanticRequestKey(request),
+    );
   });
 
   it('retains only stable semantic evidence', () => {

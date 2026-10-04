@@ -29,7 +29,8 @@ const semanticFrame = (
     status: new Uint8Array(pixelCount).fill(2),
     period: new Uint32Array(pixelCount).fill(4),
     smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.5),
-    multiplierAngle: new Float64Array(pixelCount).fill(Math.PI),
+    multiplierUnitRe: new Float32Array(pixelCount).fill(-1),
+    multiplierUnitIm: new Float32Array(pixelCount),
     progress: stage === 'coarse' ? 0.2 : 1,
   };
 };

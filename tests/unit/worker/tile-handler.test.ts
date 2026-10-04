@@ -70,7 +70,8 @@ describe('tile-handler', () => {
       status: expected.status,
       period: expected.period,
       smoothIterationOrMultiplierMagnitude: expected.smoothIterationOrMultiplierMagnitude,
-      multiplierAngle: expected.multiplierAngle,
+      multiplierUnitRe: expected.multiplierUnitRe,
+      multiplierUnitIm: expected.multiplierUnitIm,
       yieldCount: expected.timing.yieldCount,
     });
     expect(posted.message.type).toBe('tile-result');
@@ -83,7 +84,8 @@ describe('tile-handler', () => {
         posted.message.status.buffer,
         posted.message.period.buffer,
         posted.message.smoothIterationOrMultiplierMagnitude.buffer,
-        posted.message.multiplierAngle.buffer,
+        posted.message.multiplierUnitRe.buffer,
+        posted.message.multiplierUnitIm.buffer,
       ]);
     }
   });
