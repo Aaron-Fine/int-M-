@@ -4,6 +4,11 @@ PR #12 failed because `docs/plans/int-m-performance-plan.html` did not match
 Prettier formatting. Formatting that file fixed the original failure without
 changing application behavior.
 
+The first updated CI run also exposed a Chromium accessibility-test race: axe
+scanned the Explore guide during its 150 ms dismissal fade and reported transient
+low contrast. The test now waits for the guide to become hidden before scanning
+the next state. This preserves the contrast assertion and normal UI animation.
+
 ## Selection rule
 
 Use stable releases published by **2026-09-27 04:43:31 UTC** (September 26,
