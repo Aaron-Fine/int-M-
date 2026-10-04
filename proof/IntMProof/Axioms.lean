@@ -240,3 +240,31 @@ import IntMProof
 /-- info: 'IntMProof.existsUnique_fixedPoint_orbit_of_multiplier_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.existsUnique_fixedPoint_orbit_of_multiplier_le
+
+/-- info: 'IntMProof.rebase_reconstruct' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebase_reconstruct
+
+/-- info: 'IntMProof.rebase_delta' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebase_delta
+
+/-- info: 'IntMProof.predictorDisplacement_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.predictorDisplacement_eq
+
+/-- info: 'IntMProof.predictorDisplacement_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.predictorDisplacement_le
+
+/-- info: 'IntMProof.branch_predictor_remainder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.branch_predictor_remainder
+
+/-- info: 'IntMProof.existsUnique_critical_return_of_entry' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_critical_return_of_entry
+
+/-- info: 'IntMProof.minimalPeriod_return_fixedPoint_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.minimalPeriod_return_fixedPoint_iff

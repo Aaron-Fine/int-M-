@@ -6,8 +6,11 @@ import IntMProof.ParameterSum
 import IntMProof.Symmetry
 import IntMProof.MultiplierPhase
 import IntMProof.Perturbation
+import IntMProof.Rebase
 import IntMProof.PerturbationBound
 import IntMProof.Branch
+import IntMProof.Guard
 import IntMProof.ReturnDisk
+import IntMProof.CriticalEntry
 import IntMProof.FastPath
 import IntMProof.VerifierModel
