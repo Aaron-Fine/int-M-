@@ -7,9 +7,9 @@ requirements, while this one defines the working boundaries and repeatable comma
 
 ## Supported environment
 
-- Node.js 24.18.0 LTS (`.nvmrc`)
-- npm 11.19.0 (recorded in `packageManager`)
-- Python 3.14.6 for the offline catalog generator and CI validation
+- Node.js 24.21.0 LTS (`.nvmrc`)
+- npm 12.1.0 (recorded in `packageManager`)
+- Python 3.14.7 for the offline catalog generator and CI validation
 - Current stable desktop Firefox and Chrome/Chromium
 - A mainstream four-core laptop with integrated graphics as the performance baseline
 
@@ -182,7 +182,7 @@ GitHub repository and use these project settings:
 | Build command          | `npm run build`                                  |
 | Build output directory | `dist`                                           |
 | Root directory         | repository root                                  |
-| Node version           | `24.18.0` via `.nvmrc` or `NODE_VERSION=24.18.0` |
+| Node version           | `24.21.0` via `.nvmrc` or `NODE_VERSION=24.21.0` |
 
 Enable preview deployments for pull requests. Do not store secrets in Vite `VITE_*` variables: all
 such variables are compiled into client assets. The application is intended to remain a fully static

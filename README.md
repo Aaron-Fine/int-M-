@@ -35,7 +35,7 @@ See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), [t
 
 ## Run locally
 
-Node.js 24.18.0 LTS and npm 11 are required.
+Node.js 24.21.0 LTS and npm 12.1.0 are required.
 
 ```sh
 npm ci
