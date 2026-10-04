@@ -29,7 +29,8 @@ const transferOf = (
   message.status.buffer,
   message.period.buffer,
   message.smoothIterationOrMultiplierMagnitude.buffer,
-  message.multiplierAngle.buffer,
+  message.multiplierUnitRe.buffer,
+  message.multiplierUnitIm.buffer,
 ];
 
 export function createTileHandler(
@@ -63,7 +64,8 @@ export function createTileHandler(
         period: band.period as Uint32Array<ArrayBuffer>,
         smoothIterationOrMultiplierMagnitude:
           band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
-        multiplierAngle: band.multiplierAngle as Float64Array<ArrayBuffer>,
+        multiplierUnitRe: band.multiplierUnitRe as Float32Array<ArrayBuffer>,
+        multiplierUnitIm: band.multiplierUnitIm as Float32Array<ArrayBuffer>,
         yieldWaitMs: band.timing.yieldWaitMs,
         yieldCount: band.timing.yieldCount,
       };

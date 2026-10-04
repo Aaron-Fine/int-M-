@@ -3,7 +3,7 @@ import {
   colorForAttracting,
   colorForEscaped,
   colorForUnresolved,
-  modulateForMultiplierAngle,
+  modulateForMultiplierDirection,
   validateRasterSize,
   type Complex,
   type OrbitResult,
@@ -49,7 +49,8 @@ const classifyFull = async (
     period: band.period as Uint32Array<ArrayBuffer>,
     smoothIterationOrMultiplierMagnitude:
       band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
-    multiplierAngle: band.multiplierAngle as Float64Array<ArrayBuffer>,
+    multiplierUnitRe: band.multiplierUnitRe as Float32Array<ArrayBuffer>,
+    multiplierUnitIm: band.multiplierUnitIm as Float32Array<ArrayBuffer>,
     progress: stage === 'coarse' ? 0.2 : 1,
     timing: band.timing,
   };
@@ -70,13 +71,21 @@ const colorForSemanticPixel = (frame: SemanticFrame, offset: number, view: Seman
       const color = colorForAttracting(
         frame.period[offset] ?? 0,
         frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0,
-        frame.multiplierAngle[offset] ?? 0,
+        view === 'multiplier'
+          ? Math.atan2(frame.multiplierUnitIm[offset] ?? 0, frame.multiplierUnitRe[offset] ?? 1)
+          : 0,
         view,
       );
       if (view !== 'multiplier') return color;
       const x = offset % frame.size.width;
       const y = Math.floor(offset / frame.size.width);
-      return modulateForMultiplierAngle(color, x, y, frame.multiplierAngle[offset] ?? 0);
+      return modulateForMultiplierDirection(
+        color,
+        x,
+        y,
+        frame.multiplierUnitRe[offset] ?? 1,
+        frame.multiplierUnitIm[offset] ?? 0,
+      );
     }
     default: {
       const x = offset % frame.size.width;
@@ -101,6 +110,7 @@ export class CpuRenderer implements Renderer {
       maxIterations: Math.min(quality.maxIterations, 256),
       maxPeriod: Math.min(quality.maxPeriod, 16),
       coarseStride,
+      ...(quality.cycleDetection === undefined ? {} : { cycleDetection: quality.cycleDetection }),
     };
 
     const coarse = await classifyFull(request, coarseQuality, coarseStride, 'coarse', signal);
@@ -122,6 +132,7 @@ export class CpuRenderer implements Renderer {
     return classifyOrbit(point, {
       maxIterations: resolved.maxIterations,
       maxPeriod: resolved.maxPeriod,
+      cycleDetection: resolved.cycleDetection ?? 'scan',
     });
   }
 

@@ -76,7 +76,24 @@ export const modulateForMultiplierAngle = (
   y: number,
   multiplierAngle: number,
 ): Rgba => {
-  const projection = x * Math.cos(multiplierAngle) + y * Math.sin(multiplierAngle);
+  return modulateForMultiplierDirection(
+    color,
+    x,
+    y,
+    Math.cos(multiplierAngle),
+    Math.sin(multiplierAngle),
+  );
+};
+
+/** Raster form consumes the multiplier direction without an angle round trip. */
+export const modulateForMultiplierDirection = (
+  color: Rgba,
+  x: number,
+  y: number,
+  unitRe: number,
+  unitIm: number,
+): Rgba => {
+  const projection = x * unitRe + y * unitIm;
   const offset = Math.sin(projection * 0.45) >= 0 ? 22 : -22;
   return [
     clampByte(color[0] + offset),

@@ -20,7 +20,8 @@ export interface TileResultMessage {
   readonly status: Uint8Array<ArrayBuffer>;
   readonly period: Uint32Array<ArrayBuffer>;
   readonly smoothIterationOrMultiplierMagnitude: Float64Array<ArrayBuffer>;
-  readonly multiplierAngle: Float64Array<ArrayBuffer>;
+  readonly multiplierUnitRe: Float32Array<ArrayBuffer>;
+  readonly multiplierUnitIm: Float32Array<ArrayBuffer>;
   readonly yieldWaitMs: number;
   readonly yieldCount: number;
 }

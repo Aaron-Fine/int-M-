@@ -1,20 +1,16 @@
 import {
   createViewportTransform,
   OrbitClassifier,
-  OrbitScratch,
-  type OrbitOptions,
-  type OrbitResult,
+  type RasterOrbitSample,
   type RenderQuality,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
 import type { DynamicsRenderRequest, SemanticStageTiming } from './renderer';
-import type { BandArrays } from './row-bands';
+import { copyConjugateRow, type BandArrays } from './row-bands';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
 
 const throwIfAborted = (signal: AbortSignal): void => {
-  if (signal.aborted) {
-    throw new RenderCancelledError();
-  }
+  if (signal.aborted) throw new RenderCancelledError();
 };
 
 const yieldToWorkerEventLoop = async (): Promise<void> => {
@@ -23,13 +19,11 @@ const yieldToWorkerEventLoop = async (): Promise<void> => {
   });
 };
 
-const nowMs = (): number => performance.now();
-
 export interface ClassifyRowsResult extends BandArrays {
   readonly timing: SemanticStageTiming;
 }
 
-const writeOrbitResult = (
+const writeSample = (
   band: BandArrays,
   width: number,
   y0: number,
@@ -37,32 +31,21 @@ const writeOrbitResult = (
   x: number,
   y: number,
   stride: number,
-  result: OrbitResult,
+  sample: Readonly<RasterOrbitSample>,
+  conjugate: boolean,
 ): void => {
-  let status = 0;
-  let period = 0;
-  let primary = 0;
-  let secondary = 0;
-
-  if (result.status === 'escaped') {
-    status = 1;
-    primary = result.smoothIteration;
-  } else if (result.status === 'attracting-cycle') {
-    status = 2;
-    period = result.period;
-    primary = result.multiplierMagnitude;
-    secondary = result.multiplierAngle;
-  }
-
   const limitY = Math.min(y1, y + stride);
   const limitX = Math.min(width, x + stride);
   for (let writeY = y; writeY < limitY; writeY += 1) {
     for (let writeX = x; writeX < limitX; writeX += 1) {
       const offset = (writeY - y0) * width + writeX;
-      band.status[offset] = status;
-      band.period[offset] = period;
-      band.smoothIterationOrMultiplierMagnitude[offset] = primary;
-      band.multiplierAngle[offset] = secondary;
+      band.status[offset] = sample.status;
+      band.period[offset] = sample.period;
+      band.smoothIterationOrMultiplierMagnitude[offset] =
+        sample.smoothIterationOrMultiplierMagnitude;
+      band.multiplierUnitRe[offset] = sample.multiplierUnitRe;
+      const im = conjugate ? -sample.multiplierUnitIm : sample.multiplierUnitIm;
+      band.multiplierUnitIm[offset] = im === 0 ? 0 : im;
     }
   }
 };
@@ -75,49 +58,67 @@ export async function classifyRows(
   y1: number,
   signal: AbortSignal,
 ): Promise<ClassifyRowsResult> {
-  const { width } = request.size;
+  const { width, height } = request.size;
   const length = (y1 - y0) * width;
   const band: BandArrays = {
     status: new Uint8Array(length),
     period: new Uint32Array(length),
     smoothIterationOrMultiplierMagnitude: new Float64Array(length),
-    multiplierAngle: new Float64Array(length),
+    multiplierUnitRe: new Float32Array(length),
+    multiplierUnitIm: new Float32Array(length),
   };
-  const orbitOptions: Partial<OrbitOptions> = {
+  const classifier = new OrbitClassifier({
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
-  };
-  const classifier = new OrbitClassifier(orbitOptions, new OrbitScratch(quality.maxPeriod));
-  const viewportTransform = createViewportTransform(request.viewport, request.size);
+    cycleDetection: quality.cycleDetection ?? 'scan',
+  });
+  const { viewport, unitsPerPixel } = createViewportTransform(request.viewport, request.size);
+  const symmetric = stride === 1 && viewport.center.im === 0;
+  // Preserve the canonical formula, avoiding cumulative addition drift at deep zoom.
+  const realCoordinates = new Float64Array(width);
+  for (let x = 0; x < width; x += stride) {
+    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+    realCoordinates[x] = viewport.center.re + (sampleX + 0.5 - width / 2) * unitsPerPixel;
+  }
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
-  const wallStarted = nowMs();
+  const wallStarted = performance.now();
   let yieldWaitMs = 0;
   let yieldCount = 0;
 
   for (let y = y0; y < y1; y += stride) {
     throwIfAborted(signal);
-    for (let x = 0; x < width; x += stride) {
-      const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-      const sampleY = Math.min(request.size.height - 1, y + (stride - 1) / 2);
-      const point = viewportTransform.pixelToComplex(sampleX, sampleY);
-      writeOrbitResult(band, width, y0, y1, x, y, stride, classifier.classify(point));
+    const mirrorY = height - 1 - y;
+    if (symmetric && mirrorY >= y0 && mirrorY < y) {
+      copyConjugateRow(band, (mirrorY - y0) * width, (y - y0) * width, width);
+    } else {
+      // Canonical upper-half sampling makes arbitrary band slices bit-identical
+      // to a full symmetric frame, even when its paired row is in another band.
+      const sampleY = symmetric ? Math.min(y, mirrorY) : Math.min(height - 1, y + (stride - 1) / 2);
+      const cIm = viewport.center.im - (sampleY + 0.5 - height / 2) * unitsPerPixel;
+      for (let x = 0; x < width; x += stride) {
+        writeSample(
+          band,
+          width,
+          y0,
+          y1,
+          x,
+          y,
+          stride,
+          classifier.classifyRaster(realCoordinates[x] ?? Number.NaN, cIm),
+          symmetric && y > mirrorY,
+        );
+      }
     }
-
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
-      const yieldStarted = nowMs();
+      const yieldStarted = performance.now();
       await yieldToWorkerEventLoop();
-      yieldWaitMs += nowMs() - yieldStarted;
+      yieldWaitMs += performance.now() - yieldStarted;
       yieldCount += 1;
     }
   }
-
   throwIfAborted(signal);
   return {
     ...band,
-    timing: {
-      classifyMs: nowMs() - wallStarted - yieldWaitMs,
-      yieldWaitMs,
-      yieldCount,
-    },
+    timing: { classifyMs: performance.now() - wallStarted - yieldWaitMs, yieldWaitMs, yieldCount },
   };
 }

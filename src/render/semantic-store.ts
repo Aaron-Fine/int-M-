@@ -2,10 +2,10 @@ import type { RenderQuality } from '../domain';
 import type { DynamicsRenderRequest, SemanticFrame } from './renderer';
 import { resolveRenderQuality } from './renderer';
 
-const SEMANTIC_ALGORITHM_VERSION = 1;
+const SEMANTIC_ALGORITHM_VERSION = 2;
 
 const qualityKey = (quality: RenderQuality): string =>
-  `${quality.maxIterations}:${quality.maxPeriod}:${quality.coarseStride}`;
+  `${quality.maxIterations}:${quality.maxPeriod}:${quality.coarseStride}:${quality.cycleDetection ?? 'scan'}`;
 
 export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
   const quality = resolveRenderQuality(request.quality);

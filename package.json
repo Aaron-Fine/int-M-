@@ -27,7 +27,8 @@
     "test:unit:watch": "vitest",
     "test:browser": "playwright test --pass-with-no-tests",
     "test:browser:headed": "playwright test --headed",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets",
+    "evidence:optimizations": "vite build --ssr tools/compare_orbit_optimizations.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/compare_orbit_optimizations.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

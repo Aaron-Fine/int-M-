@@ -25,9 +25,12 @@ export const resolveRenderQuality = (
     !Number.isInteger(resolved.maxPeriod) ||
     resolved.maxPeriod < 1 ||
     !Number.isInteger(resolved.coarseStride) ||
-    resolved.coarseStride < 1
+    resolved.coarseStride < 1 ||
+    !['scan', 'checkpoint'].includes(resolved.cycleDetection ?? 'scan')
   ) {
-    throw new RangeError('render quality values must be positive integers');
+    throw new RangeError(
+      'render quality values must be positive integers and detection must be scan or checkpoint',
+    );
   }
   return resolved;
 };
@@ -63,8 +66,9 @@ export interface SemanticFrame {
   readonly period: Uint32Array<ArrayBuffer>;
   /** Smooth escape iteration or multiplier magnitude, selected by status. */
   readonly smoothIterationOrMultiplierMagnitude: Float64Array<ArrayBuffer>;
-  /** Multiplier angle for attracting-cycle samples. */
-  readonly multiplierAngle: Float64Array<ArrayBuffer>;
+  /** Unit multiplier direction for attracting samples; zero multiplier uses (1, 0). */
+  readonly multiplierUnitRe: Float32Array<ArrayBuffer>;
+  readonly multiplierUnitIm: Float32Array<ArrayBuffer>;
   readonly progress: number;
   readonly timing?: SemanticStageTiming;
 }

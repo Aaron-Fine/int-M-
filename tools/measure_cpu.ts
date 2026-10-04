@@ -31,6 +31,30 @@ const CASES: readonly MeasurementCase[] = [
       quality: { maxIterations: 512, maxPeriod: 32, coarseStride: 8 },
     },
   },
+  {
+    id: 'full-set-square-512',
+    request: {
+      viewport: { center: { re: -0.75, im: 0 }, spanY: 2.5 },
+      size: { width: 512, height: 512 },
+      quality: { maxIterations: 512, maxPeriod: 32, coarseStride: 8 },
+    },
+  },
+  {
+    id: 'full-set-square-1024',
+    request: {
+      viewport: { center: { re: -0.75, im: 0 }, spanY: 2.5 },
+      size: { width: 1024, height: 1024 },
+      quality: { maxIterations: 512, maxPeriod: 32, coarseStride: 8 },
+    },
+  },
+  {
+    id: 'rabbit-square-768',
+    request: {
+      viewport: { center: { re: -0.12, im: 0.74 }, spanY: 0.35 },
+      size: { width: 768, height: 768 },
+      quality: { maxIterations: 512, maxPeriod: 32, coarseStride: 8 },
+    },
+  },
 ];
 
 const roundMilliseconds = (value: number): number => Math.round(value * 100) / 100;
@@ -59,7 +83,8 @@ const measureRender = async (
       frame.status.byteLength +
       frame.period.byteLength +
       frame.smoothIterationOrMultiplierMagnitude.byteLength +
-      frame.multiplierAngle.byteLength;
+      frame.multiplierUnitRe.byteLength +
+      frame.multiplierUnitIm.byteLength;
     if (frame.stage === 'coarse') coarseAt = performance.now();
     if (frame.stage === 'stable') stableAt = performance.now();
   });
@@ -97,9 +122,20 @@ if (!Number.isInteger(sampleCount) || sampleCount < 1 || sampleCount > 10) {
   throw new RangeError('INTM_EVIDENCE_SAMPLES must be an integer from 1 through 10');
 }
 
+const cycleDetection = process.env['INTM_EVIDENCE_DETECTION'] ?? 'scan';
+if (cycleDetection !== 'scan' && cycleDetection !== 'checkpoint') {
+  throw new RangeError('INTM_EVIDENCE_DETECTION must be scan or checkpoint');
+}
 const renderer = new CpuRenderer();
 const measurements = [];
-for (const measurementCase of CASES) {
+for (const originalCase of CASES) {
+  const measurementCase: MeasurementCase = {
+    ...originalCase,
+    request: {
+      ...originalCase.request,
+      quality: { ...originalCase.request.quality, cycleDetection },
+    },
+  };
   const samples: RenderTiming[] = [];
   for (let sample = 0; sample < sampleCount; sample += 1) {
     samples.push(await measureRender(renderer, measurementCase));
@@ -126,6 +162,7 @@ const report = {
   schemaVersion: 1,
   measuredAt: new Date().toISOString(),
   renderer: 'cpu-binary64',
+  cycleDetection,
   executionMode: 'Node process invoking the production CpuRenderer directly',
   environment: {
     node: process.version,

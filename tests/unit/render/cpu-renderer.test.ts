@@ -20,7 +20,8 @@ const emptyStableFrame = (request: DynamicsRenderRequest): SemanticFrame => {
     status: new Uint8Array(pixelCount),
     period: new Uint32Array(pixelCount),
     smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount),
-    multiplierAngle: new Float64Array(pixelCount),
+    multiplierUnitRe: new Float32Array(pixelCount),
+    multiplierUnitIm: new Float32Array(pixelCount),
     progress: 1,
   };
 };
@@ -42,7 +43,8 @@ describe('CpuRenderer', () => {
         expect(frame.status).toHaveLength(12 * 8);
         expect(frame.period).toHaveLength(12 * 8);
         expect(frame.smoothIterationOrMultiplierMagnitude).toHaveLength(12 * 8);
-        expect(frame.multiplierAngle).toHaveLength(12 * 8);
+        expect(frame.multiplierUnitRe).toHaveLength(12 * 8);
+        expect(frame.multiplierUnitIm).toHaveLength(12 * 8);
       },
     );
 
@@ -111,7 +113,8 @@ describe('CpuRenderer', () => {
       status,
       period,
       smoothIterationOrMultiplierMagnitude: new Float64Array(pixelCount).fill(0.2),
-      multiplierAngle: new Float64Array(pixelCount),
+      multiplierUnitRe: new Float32Array(pixelCount).fill(1),
+      multiplierUnitIm: new Float32Array(pixelCount),
       progress: 1,
     };
     const raster = renderer.colorize(frame, 'multiplier');
