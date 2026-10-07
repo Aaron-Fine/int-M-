@@ -128,7 +128,8 @@ evaluation, and the reference orbit must be enclosed if it is stored
 inexactly. The TypeScript verifier refinement and error-aware acceptance,
 refusal, subdivision, and renderer repair policy remain open.
 
-The next useful batch is to enclose an inexact stored reference using the
-existing residual budgets, followed by a specified arithmetic backend's
-outward evaluation. A quantitative predictor remainder would additionally
+The [stored-reference batch](LEAN-STORED-REFERENCES.md) now encloses an
+inexact reference from stored radii and local residual allowances, including
+both derivative and denominator/slope consumers. A specified arithmetic
+backend's outward evaluation remains the next boundary. A quantitative predictor remainder would additionally
 need second derivatives and a domain on which the branch remains enclosed.

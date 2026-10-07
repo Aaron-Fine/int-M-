@@ -121,7 +121,8 @@ parameter derivative and proves denominator/slope and finite root movement
 bounds. A second-order predictor remainder remains open. It does not certify the
 existing trap constants or change performance defaults.
 
-Next useful obligations are enclosing an inexact stored reference with the
-preceding batch's residual budgets and one specified arithmetic backend's
-outward evaluation. A practical certificate
+The [stored-reference batch](LEAN-STORED-REFERENCES.md) now supplies these
+enclosures and primitive disk certificates from an inexact prefix with
+initial and step error allowances. One specified arithmetic backend's
+outward evaluation remains the next useful obligation. A practical certificate
 consumer then needs error-aware acceptance/refusal and subdivision tests.
