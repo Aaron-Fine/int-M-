@@ -108,3 +108,8 @@ The next useful batch is to make these inputs constructive:
 
 Update the DAG and this document when a checked obligation changes. Mark
 conditional contracts separately from arithmetic refinements and consumers.
+
+The follow-on [disk-certificate batch](LEAN-DISK-CERTIFICATES.md) implements
+reference-centered orbit/multiplier enclosures and proper-divisor separations.
+Its validation status is recorded separately in the DAG; the arithmetic backend
+and outward evaluation obligations above remain open.
