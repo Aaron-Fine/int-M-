@@ -20,5 +20,8 @@ import IntMProof.CriticalEntryBudget
 import IntMProof.PrimitiveDisk
 import IntMProof.DiskCertificateExamples
 import IntMProof.DiskGuardExamples
+import IntMProof.StoredReference
+import IntMProof.StoredDisk
+import IntMProof.StoredReferenceExamples
 import IntMProof.FastPath
 import IntMProof.VerifierModel
