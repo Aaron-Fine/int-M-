@@ -8,9 +8,11 @@ import IntMProof.MultiplierPhase
 import IntMProof.Perturbation
 import IntMProof.Rebase
 import IntMProof.PerturbationBound
+import IntMProof.ErrorBudget
 import IntMProof.Branch
 import IntMProof.Guard
 import IntMProof.ReturnDisk
 import IntMProof.CriticalEntry
+import IntMProof.CriticalEntryBudget
 import IntMProof.FastPath
 import IntMProof.VerifierModel

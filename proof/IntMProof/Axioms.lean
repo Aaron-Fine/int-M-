@@ -268,3 +268,92 @@ import IntMProof
 /-- info: 'IntMProof.minimalPeriod_return_fixedPoint_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.minimalPeriod_return_fixedPoint_iff
+
+-- Rebase extensions and conditional error-budget contracts.
+/-- info: 'IntMProof.rebaseDelta_reconstruct' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebaseDelta_reconstruct
+
+/-- info: 'IntMProof.rebaseDelta_reverse' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebaseDelta_reverse
+
+/-- info: 'IntMProof.rebaseDelta_comp' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebaseDelta_comp
+
+/-- info: 'IntMProof.rebase_parameter' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebase_parameter
+
+/-- info: 'IntMProof.rebase_perturbation' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebase_perturbation
+
+/-- info: 'IntMProof.quadratic_reconstruct' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.quadratic_reconstruct
+
+/-- info: 'IntMProof.rebase_resume_orbit' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.rebase_resume_orbit
+
+/-- info: 'IntMProof.errorBudget_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.errorBudget_zero
+
+/-- info: 'IntMProof.errorBudget_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.errorBudget_succ
+
+/-- info: 'IntMProof.errorBudget_const' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.errorBudget_const
+
+/-- info: 'IntMProof.errorBudget_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.errorBudget_nonneg
+
+/-- info: 'IntMProof.inexactOrbit_error_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.inexactOrbit_error_succ
+
+/-- info: 'IntMProof.inexactOrbit_error_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.inexactOrbit_error_le_budget
+
+/-- info: 'IntMProof.reconstruction_residual' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.reconstruction_residual
+
+/-- info: 'IntMProof.reconstruction_residual_norm_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.reconstruction_residual_norm_le
+
+/-- info: 'IntMProof.rebase_error_norm_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.rebase_error_norm_le
+
+/-- info: 'IntMProof.errorBudget_mono' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.errorBudget_mono
+
+/-- info: 'IntMProof.orbit_norm_sub_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_norm_sub_le_budget
+
+/-- info: 'IntMProof.reconstruction_error_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.reconstruction_error_le_budget
+
+/-- info: 'IntMProof.inexactOrbit_error_le_budget_from' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.inexactOrbit_error_le_budget_from
+
+/-- info: 'IntMProof.critical_mem_closedBall_of_error_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.critical_mem_closedBall_of_error_budget
+
+/-- info: 'IntMProof.existsUnique_critical_return_of_error_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_critical_return_of_error_budget
