@@ -460,3 +460,89 @@ import IntMProof
 /-- info: 'IntMProof.uniform_periodTwo_critical_disk_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.uniform_periodTwo_critical_disk_certificate
+
+-- Parameter enclosures and finite continuation.
+
+/-- info: 'IntMProof.parameterDerivativeBound_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_zero
+
+/-- info: 'IntMProof.parameterDerivativeBound_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_succ
+
+/-- info: 'IntMProof.parameterDerivativeBound_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_nonneg
+
+/-- info: 'IntMProof.parameterDerivativeBound_mono' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_mono
+
+/-- info: 'IntMProof.parameterDerivative_norm_le_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivative_norm_le_bound
+
+/-- info: 'IntMProof.parameterDerivative_norm_le_disk_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivative_norm_le_disk_bound
+
+/-- info: 'IntMProof.lipschitzOnWith_parameter_orbit_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.lipschitzOnWith_parameter_orbit_of_disk_enclosure
+
+/-- info: 'IntMProof.one_sub_multiplier_norm_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.one_sub_multiplier_norm_lower
+
+/-- info: 'IntMProof.multiplier_ne_one_of_norm_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.multiplier_ne_one_of_norm_bound
+
+/-- info: 'IntMProof.branchSlope_norm_le_of_bounds' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.branchSlope_norm_le_of_bounds
+
+/-- info: 'IntMProof.disk_branch_denominator_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.disk_branch_denominator_lower
+
+/-- info: 'IntMProof.disk_branchSlope_norm_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.disk_branchSlope_norm_le
+
+/-- info: 'IntMProof.disk_predictorDisplacement_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.disk_predictorDisplacement_le
+
+/-- info: 'IntMProof.exists_branch_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exists_branch_of_disk_enclosure
+
+/-- info: 'IntMProof.orbit_dist_le_disk_joint_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_dist_le_disk_joint_bound
+
+/-- info: 'IntMProof.periodicPoint_dist_le_disk_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodicPoint_dist_le_disk_bound
+
+/-- info: 'IntMProof.periodTwo_disk_parameter_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_parameter_bound
+
+/-- info: 'IntMProof.periodTwo_disk_denominator_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_denominator_lower
+
+/-- info: 'IntMProof.periodTwo_disk_slope_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_slope_bound
+
+/-- info: 'IntMProof.periodTwo_disk_predictor_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_predictor_bound
+
+/-- info: 'IntMProof.periodTwo_periodicPoint_dist_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_periodicPoint_dist_bound

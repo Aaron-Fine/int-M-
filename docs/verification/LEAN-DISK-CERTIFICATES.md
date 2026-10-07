@@ -116,12 +116,12 @@ conservative at longer periods, and they do not guarantee that a useful disk
 exists for every parameter. A rigorous implementation must enclose the
 reference orbit and round all upper/lower bounds outward. Binary64/GPU local
 error bounds, finite-prefix verifier refinement, and renderer repair policy
-remain open. This batch encloses the seed derivative, not the parameter
-derivative or a second-order predictor remainder. It does not certify the
+remain open. The [follow-on continuation batch](LEAN-PARAMETER-ENCLOSURES.md) encloses the
+parameter derivative and proves denominator/slope and finite root movement
+bounds. A second-order predictor remainder remains open. It does not certify the
 existing trap constants or change performance defaults.
 
-Next useful obligations are parameter-derivative enclosures and an explicit
-`1 − Qₙ` denominator margin for G2, enclosing an inexact stored reference
-with the preceding batch's residual budgets, and one specified arithmetic
-backend's outward evaluation. A practical certificate
+Next useful obligations are enclosing an inexact stored reference with the
+preceding batch's residual budgets and one specified arithmetic backend's
+outward evaluation. A practical certificate
 consumer then needs error-aware acceptance/refusal and subdivision tests.

@@ -10,6 +10,8 @@ import IntMProof.Rebase
 import IntMProof.PerturbationBound
 import IntMProof.ErrorBudget
 import IntMProof.DiskEnclosure
+import IntMProof.ParameterEnclosure
+import IntMProof.DiskGuard
 import IntMProof.Branch
 import IntMProof.Guard
 import IntMProof.ReturnDisk
@@ -17,5 +19,6 @@ import IntMProof.CriticalEntry
 import IntMProof.CriticalEntryBudget
 import IntMProof.PrimitiveDisk
 import IntMProof.DiskCertificateExamples
+import IntMProof.DiskGuardExamples
 import IntMProof.FastPath
 import IntMProof.VerifierModel
