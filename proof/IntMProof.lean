@@ -11,6 +11,7 @@ import IntMProof.ExteriorEscape
 import IntMProof.RestrictedReturn
 import IntMProof.Derivatives
 import IntMProof.ParameterSum
+import IntMProof.ParameterJet
 import IntMProof.Symmetry
 import IntMProof.LogisticChart
 import IntMProof.MultiplierPhase
