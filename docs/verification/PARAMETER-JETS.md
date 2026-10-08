@@ -2,10 +2,10 @@
 
 This batch advances the P4 node in the [proof DAG](LEAN-PROOF-DAG.md).
 It now covers all-order, fixed-seed coefficients of a finite quadratic orbit,
-exact finite truncation, and a conditional finite-support norm bound. The
-second-order slice also has a recursive finite-disk error budget. Practical
-general-order cap generation, arithmetic refinement, and renderer integration
-remain open. No supported zoom or classifier policy changes.
+exact finite truncation, and recursive finite-order coefficient and error
+budgets. The retained-product route avoids the full discarded polynomial and
+has a concrete third-order disk certificate. Outward machine arithmetic,
+backend refinement, and measured renderer integration remain open. No supported zoom or classifier policy changes.
 
 ## Second-order algebraic contract
 
@@ -98,8 +98,61 @@ Nonnegativity of those caps follows on the support from the norm premise; no
 cap is required outside it. This is a conditional exact-polynomial bound.
 The full orbit polynomial can have exponentially growing degree in the
 iteration count. Constructing its tail and supplying every discarded cap is
-not yet a practical general-order certificate generator. The theorem also
+not itself a practical general-order certificate generator. The recursive
+retained-product route below removes this full-tail requirement. The theorem also
 does not bound rounded coefficient generation or evaluation.
+
+## Recursive finite-order disk contract
+
+[ParameterJetCoefficientBound.lean](../../proof/IntMProof/ParameterJetCoefficientBound.lean)
+defines `Dₙ,ₖ = parameterJetCoefficientBudget radius n k`, bounding the positive
+coefficient `Aₖ₊₁,ₙ`. Its shifted indexing avoids needing a cap for the constant
+coefficient at the final iterate:
+
+- `D₀,ₖ = 0`;
+- `Dₙ₊₁,₀ = 2 radius(n) Dₙ,₀ + 1`;
+- `Dₙ₊₁,ₖ₊₁ = 2 radius(n) Dₙ,ₖ₊₁ + ∑ᵢ₊ⱼ₌ₖ Dₙ,ᵢ Dₙ,ⱼ`.
+
+`parameterJetCoefficient_norm_le_budget` assumes only
+`‖orbit c j z‖≤radius j` for `j<n`. It bounds every positive order at iterate
+`n`; nonnegative earlier radii also give nonnegative caps. The first two caps
+are exactly the existing derivative and quadratic budgets. At a chosen finite
+retained order, this recurrence uses only that order and lower orders at the
+previous iterate. It permits a table construction without the full orbit
+polynomial. The definitions and theorems are mathematical contracts; this
+batch does not implement extraction, memoization, or a rounded backend.
+
+[ParameterJetResidual.lean](../../proof/IntMProof/ParameterJetResidual.lean)
+defines the finite discarded-pair set
+`Sₘ = {(i,j) | i≤m, j≤m, m<i+j}`. Both indices of every such pair are positive.
+For the inclusive order-`m` approximation `aₙ`, the exact local residual is
+
+`aₙ₊₁ − quadratic (c+δ) aₙ = −∑(i,j)∈Sₘ Aᵢ,ₙ Aⱼ,ₙ δ^(i+j) − [m=0]δ`.
+
+The order-zero term matters: the constant approximation omits the parameter
+shift itself. For positive `m`, the residual contains only products of retained
+coefficients, with offset degrees from `m+1` through `2m`.
+
+[ParameterJetRecursiveBound.lean](../../proof/IntMProof/ParameterJetRecursiveBound.lean)
+bounds this residual on `‖δ‖≤Δ` by
+
+`Fₙ = ∑(i,j)∈Sₘ Dₙ,ᵢ₋₁ Dₙ,ⱼ₋₁ Δ^(i+j) + [m=0]Δ`.
+
+`parameterJetApproximation_error_le_recursive_budget` applies P3 with initial
+error zero, this forcing, and justified target radii
+`Rₖ = radius(k) + errorBudget 0 radius (fun _ => Δ) k`. The final iterate `n`
+requires reference radii only at `k<n`. No caps on full discarded-orbit
+coefficients are used. `parameterJetRecursiveForcing_zero` gives `Fₙ=Δ` at
+order zero; `parameterJetRecursiveForcing_two` recovers the existing
+`secondOrderForcing` exactly, even for arbitrary real budget inputs.
+
+[ParameterJetDisk.lean](../../proof/IntMProof/ParameterJetDisk.lean) instantiates
+this contract at reference parameter and critical seed zero, where every
+reference radius is exactly zero. At inclusive order three, after four iterates,
+and for every complex offset `‖δ‖≤1/16`, the truncation error is at most
+`1/10000`. The computed recursive budget is exactly `353859/4294967296`.
+This small finite disk demonstrates the exact contract; it does not establish
+a useful bound on deep tiles, attraction, or rounded evaluation.
 
 ## Adversarial review and update loop
 
@@ -110,23 +163,30 @@ the explicit third-step remainder witness and P4/E1/P3 boundaries.
 An independent all-order reviewer checked the convolution forcing at orders
 zero and one, endpoint separation in characteristic two, inclusive truncation,
 and the quotient's quantifier order. Its documentation finding was incorporated:
-the finite-support bound requires caps on the full discarded tail, so practical
-cap generation stays open. The named quadratic Hasse bridge was added and
+the finite-support bound requires caps on the full discarded tail, motivating
+the retained-product route above. The named quadratic Hasse bridge was added and
 rereviewed. Independent Lean witnesses compiled for zero iteration, order zero,
 zero offset, the trivial ring, and an empty tail with negative unused caps.
 A characteristic-two witness has `A₂,₂=1` at `c=z=0` while the ordinary second
 derivative is zero, confirming why division-free identification matters.
 
+The recursive-budget reviewer independently compiled order-zero and order-one
+residuals, arbitrary-seed affine first-step exactness, characteristic-two
+residuals, and a finite-prefix cap with deliberately negative future radii.
+Its update findings were incorporated: persist order-zero and second-order
+forcing compatibility, state the concrete certificate at iterate four, and
+keep exact recurrence construction separate from rounded execution. It also
+checked the concrete rational budget independently and rereviewed the updates.
+
 ## Next obligations
 
-1. Derive usable general-order coefficient caps and an error recurrence without
-   materializing the full exact orbit polynomial. Supply outward reference and
-   coefficient bounds for one concrete finite disk. P4 remains partial until
-   this numerical certificate-generation obligation is discharged.
-2. Derive coefficient-generation and series-evaluation machine residuals in
-   the chosen backend and combine them with P3. The formal truncation bound
-   does not certify rounded arithmetic, rebase conversion, or verifier frames.
-3. Profile the existing renderer before adding a series path. Measure reference
+1. Choose the coefficient-table and series-evaluation operation sequence.
+   Derive outward bounds for reference radii, cap computation, coefficient
+   generation, and evaluation in the chosen backend, then combine local
+   machine residuals with P3. Exact truncation alone does not certify rebase
+   conversion or verifier frames. Extend the concrete certificate to a
+   representative nonzero reference disk with a useful finite horizon.
+2. Profile the existing renderer before adding a series path. Measure reference
    setup, coefficient storage, rebase frequency, repair rate, and total render
    time. Preserve the [Phase 3 product and numerical gates](PHASE-3-PROOF-PROGRAM.md).
 
@@ -162,3 +222,17 @@ The all-order continuation on 2026-10-08 passed:
   the same optional upstream style-exemption warning).
 - The independent edge-case Lean witnesses described above, changed Markdown
   formatting, and `git diff --check`. The pinned manifest remains unchanged.
+
+The recursive retained-order continuation on 2026-10-08 passed:
+
+- A bare `lake build` (3166 jobs), including all four new theorem modules and
+  the aggregate audit imports.
+- Eight new selected axiom guards; a namespace-wide audit inspected 878
+  declarations and found only `propext`, `Classical.choice`, and `Quot.sound`.
+- `lake lint`, selecting `[IntMProof.Axioms]`, and `lake exe lint-style` (with
+  the same optional upstream style-exemption warning).
+- Independent boundary, characteristic-two, compatibility, and finite-prefix
+  Lean witnesses against the compiled modules; the concrete rational budget
+  also matched an independent arithmetic check.
+- Changed Markdown formatting and `git diff --check`. Lean v4.33.1 and the
+  pinned manifest remain unchanged.

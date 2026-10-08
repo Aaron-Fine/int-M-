@@ -98,9 +98,17 @@ errors remain external obligations. See [the P4 batch notes](PARAMETER-JETS.md).
 `parameterJetApproximation_error_le_tail_budget` separately supplies an
 all-order exact-polynomial bound from caps on every coefficient in the finite
 discarded tail and an offset radius. It does not derive those caps or avoid the
-full polynomial's potentially exponential degree. Practical general-order
-recursive budgets and machine residuals remain open. This conditional tail
-bound does not change the premises of P3's comparison theorem.
+full polynomial's potentially exponential degree. This conditional tail bound
+does not change the premises of P3's comparison theorem.
+
+`parameterJetApproximation_error_le_recursive_budget` now uses that comparison
+at any retained order. Recursive positive-order caps bound only retained-product
+pairs whose total degree exceeds the truncation order; order zero separately
+supplies the parameter-offset forcing. Reference radii are needed only before
+the final iterate; target radii include the justified parameter-shift enclosure.
+The order-two forcing is exactly `secondOrderForcing`. The concrete order-three,
+parameter/seed-zero disk `‖δ‖≤1/16` has error at most `1/10000` at iterate four.
+Outward cap evaluation and machine residuals remain external obligations.
 
 ## Remaining obligations and next batch
 

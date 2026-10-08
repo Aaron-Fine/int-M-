@@ -86,7 +86,7 @@ candidate frequency, tile sizes, and time spent in verification and rebasing.
    A shared status and period do not determine each pixel's multiplier,
    rotation angle, or κ; preserve those fields through individual evaluation
    or separately certified approximations.
-2. **P4: reuse higher-order parameter series.** The [parameter-jet batches](PARAMETER-JETS.md) prove all-order Taylor/Hasse coefficient identification and convolution, exact finite truncation, and a conditional norm bound from caps on the full discarded tail. The second-order slice also has cubic/quartic step residuals and a recursive finite-disk norm budget. Practical general-order cap generation and machine arithmetic remain open. Derive useful finite-disk caps without constructing the exponentially growing full polynomial. Combine coefficient, evaluation,
+2. **P4: reuse higher-order parameter series.** The [parameter-jet batches](PARAMETER-JETS.md) prove Taylor/Hasse coefficient convolution, exact truncation, recursive finite-order coefficient caps, and P3 disk error propagation from retained-product residuals. This avoids caps on the full discarded polynomial; first/second-order budgets agree with prior APIs. A concrete third-order certificate gives an error bound after four iterates on `‖δ‖≤1/16` about parameter/seed zero. Specify the executable coefficient-table and evaluation sequence, derive outward machine bounds, and extend to a representative nonzero reference disk. Combine coefficient, evaluation,
    rebase, and verifier error bounds with P3; a glitch or exhausted bound
    must trigger repair or unresolved. Benchmark total reference setup,
    coefficient storage, rebasing, and pixel time against the lower-order path.
