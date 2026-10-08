@@ -87,13 +87,20 @@ It gives contraction of subsequent `n`-step returns to the unique disk fixed
 point. It does not claim that the critical point itself is periodic, or that
 the return fixed point has primitive period `n`.
 
-## Second-order series consumer (P4)
+## Parameter-series consumers (P4)
 
 `secondOrderApproximation_error_le_budget` applies this comparison to the
 exact second-order parameter approximation. Its local residual budget contains
 only cubic and quartic offset terms; its target radii include the existing
 parameter-shift enclosure. Reference radii and coefficient/evaluation machine
 errors remain external obligations. See [the P4 batch notes](PARAMETER-JETS.md).
+
+`parameterJetApproximation_error_le_tail_budget` separately supplies an
+all-order exact-polynomial bound from caps on every coefficient in the finite
+discarded tail and an offset radius. It does not derive those caps or avoid the
+full polynomial's potentially exponential degree. Practical general-order
+recursive budgets and machine residuals remain open. This conditional tail
+bound does not change the premises of P3's comparison theorem.
 
 ## Remaining obligations and next batch
 

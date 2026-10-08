@@ -86,10 +86,7 @@ candidate frequency, tile sizes, and time spent in verification and rebasing.
    A shared status and period do not determine each pixel's multiplier,
    rotation angle, or κ; preserve those fields through individual evaluation
    or separately certified approximations.
-2. **P4: reuse higher-order parameter series.** The [second-order batch](PARAMETER-JETS.md) proves the exact coefficient recurrence, cubic/quartic step residual, and finite-disk norm budget for a fixed seed. Arbitrary-order convolution and machine arithmetic remain open. For
-   `z_n(c₀+δ) = Z_n + B_n δ + C_n δ² + …`, prove
-   `C₀ = 0` and `Cₙ₊₁ = 2Zₙ Cₙ + Bₙ²` for a fixed seed, then bound the
-   finite-order remainder on a stated disk. Combine coefficient, evaluation,
+2. **P4: reuse higher-order parameter series.** The [parameter-jet batches](PARAMETER-JETS.md) prove all-order Taylor/Hasse coefficient identification and convolution, exact finite truncation, and a conditional norm bound from caps on the full discarded tail. The second-order slice also has cubic/quartic step residuals and a recursive finite-disk norm budget. Practical general-order cap generation and machine arithmetic remain open. Derive useful finite-disk caps without constructing the exponentially growing full polynomial. Combine coefficient, evaluation,
    rebase, and verifier error bounds with P3; a glitch or exhausted bound
    must trigger repair or unresolved. Benchmark total reference setup,
    coefficient storage, rebasing, and pixel time against the lower-order path.
