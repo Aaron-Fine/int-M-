@@ -4,6 +4,7 @@ import { buildCorpus } from '../corpus.ts';
 import { buildGrids } from '../grids.ts';
 import { CheckpointKernel } from './checkpoint.ts';
 import { ControlKernel } from './control.ts';
+import { predictCyclePoint } from './seed-common.ts';
 import { TRANSPLANT_THRESHOLDS, TransplantKernel } from './transplant.ts';
 
 // Transplant contract: multiplier-map guard, bounded Newton, common
@@ -26,6 +27,26 @@ describe('transplant: guard, prediction, and verifier acceptance', () => {
     expect(TRANSPLANT_THRESHOLDS.newtonSteps).toBe(3);
     expect(TRANSPLANT_THRESHOLDS.guardDisplacement).toBeGreaterThan(0);
     expect(TRANSPLANT_THRESHOLDS.newtonDenominatorMin).toBeLessThan(1e-6);
+  });
+
+  it('the displacement guard can pass across the parabolic boundary', () => {
+    const epsilon = 1e-3;
+    const cRe = (1 - epsilon * epsilon) / 4;
+    const seed = {
+      cRe,
+      cIm: 0,
+      period: 1,
+      zRe: (1 - epsilon) / 2,
+      zIm: 0,
+      lambdaRe: 1 - epsilon,
+      lambdaIm: 0,
+      lambdaMagnitude: 1 - epsilon,
+    };
+    const nextCRe = cRe + 5e-6;
+    expect(nextCRe).toBeGreaterThan(0.25);
+    const prediction = predictCyclePoint(seed, nextCRe, 0, TRANSPLANT_THRESHOLDS.guardDisplacement);
+    expect(prediction).toBeDefined();
+    expect(prediction?.displacement).toBeLessThan(TRANSPLANT_THRESHOLDS.guardDisplacement);
   });
 
   it('seeds from a verified cycle and hits the adjacent pixel', () => {

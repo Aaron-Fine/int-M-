@@ -231,3 +231,26 @@ described as proven or certified.
   ([poc/performance/README.md](../../poc/performance/README.md), "Known
   limits"); they become product policy only through the gates of
   [PERFORMANCE-PLAN.md](PERFORMANCE-PLAN.md).
+
+## 10. Next performance math questions
+
+The [proof DAG](verification/LEAN-PROOF-DAG.md#prospective-performance-mathematics)
+tracks three open optimization contracts:
+
+| Direction                | Potential saving                                                  | Missing proof and evidence                                                                                                                                                |
+| ------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| J2 certified tile reuse  | Share verifier decisions across a parameter rectangle             | Outward binary64 enclosures and TypeScript refinement; per-pixel output fields still need correct values; tile certificate and subdivision cost must beat per-pixel work. |
+| P4 parameter series      | Amortize deep-tile reference work using coefficients beyond `B_n` | Higher-order recurrence, finite-disk remainder, rounded coefficient/evaluation bounds, and glitch/rebase handling; benchmark total cost.                                  |
+| V2 verifier prefix reuse | Avoid repeated proper-divisor orbit prefixes after a candidate    | Exact decision and payload equivalence in divisor order, TypeScript operation-order parity, and a profile showing enough candidates to repay cache cost.                  |
+
+For a fixed seed, the first new series coefficient obeys
+`Cₙ₊₁ = 2ZₙCₙ + Bₙ²`, with `C₀ = 0`, when
+`zₙ(c₀+δ) = Zₙ + Bₙδ + Cₙδ² + O(δ³)`. This is an algebraic target, not an
+implemented accelerator or a certified truncation bound. The
+[Phase 3 program](verification/PHASE-3-PROOF-PROGRAM.md#optional-performance-math-packets)
+sets the numerical and measurement gates.
+
+The existing period-one and period-two analytic tests are the current
+closed-form hot paths. M0/M1, N0, and F0 offer exact chart identities, but an
+alternate coordinate system earns a runtime path only after its domain,
+conversion errors, canonical output fields, and net browser cost are established.

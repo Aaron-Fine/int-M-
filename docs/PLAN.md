@@ -399,6 +399,9 @@ CPU path and the ADR 0002 reconsideration criteria are met:
 - retain explicit evidence and unresolved behavior; and
 - compare the complexity and maintenance cost with the product value gained.
 
+The [Phase 3 proof and evidence program](verification/PHASE-3-PROOF-PROGRAM.md)
+records the prerequisites, numerical work packets, and release decision gates.
+
 ### Research extensions
 
 Explore independently, promoting only work that reinforces the interior-atlas thesis:

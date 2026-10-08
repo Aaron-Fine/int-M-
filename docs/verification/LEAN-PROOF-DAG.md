@@ -12,6 +12,7 @@ flowchart TD
   E1 --> M0
   V0["V0 Rational verifier model"]
   V0 --> V1["V1 Shared prefix agreement"]
+  V1 --> V2["V2 Verifier prefix reuse (open)"]
   E1 --> G0["G0 Cycle continuation"]
   E0 --> G1["G1 Parameter bound"]
   G0 --> G2["G2 Proposal contract"]
@@ -24,6 +25,7 @@ flowchart TD
   E1 --> J0
   J0 --> J1["J1 Uniform verdict"]
   V0 --> J1
+  J1 --> J2["J2 Certified tile reuse (open)"]
   L1 --> T2["T2 Period-two tile bridge"]
   J1 --> T2
   G1 --> P1["P1 Perturbation identity"]
@@ -32,6 +34,7 @@ flowchart TD
   G1 --> P3
   P3 --> J0
   P3 --> L1
+  P1 --> P4["P4 Higher-order parameter jets (open)"]
 ```
 
 ## Checked roots and boundaries
@@ -79,11 +82,11 @@ These ring and list lemmas sit on E0, E1, E2, M0, and V0. Each one is exact alge
 | First-order guard                   | `predictorDisplacement_eq`, `predictorDisplacement_le`, `branch_predictor_remainder`                                                                                                                                                                                              | `‖(B / (1 - λ)) δ‖ = ‖B‖ ‖δ‖ / ‖1 - λ‖`, and a positive lower bound `α ≤ ‖1 - λ‖` gives `‖B‖ ‖δ‖ / α`. Along the local periodic graph the linear predictor is the derivative, so the remainder over `‖δ‖` tends to 0.                                                                                                                                                                                                                                                                                                                                                                        | `guardDisplacement = 0.01`, the Newton floor `1e-12`, a remainder on a fixed disk, and periodicity of the corrected seed.  |
 | Critical return after entry         | `mem_closedBall_critical_return`, `dist_critical_return_of_entry`, `existsUnique_critical_return_of_entry`, `minimalPeriod_return_fixedPoint_iff`                                                                                                                                 | If `orbit c k 0` is in the return disk, `orbit c (k + m n) 0` stays there and its distance to the unique fixed point is at most `q ^ m` times the entry distance. The fixed point has minimal period `n` exactly when no positive proper divisor returns.                                                                                                                                                                                                                                                                                                                                    | That the critical orbit enters the disk, `minLambda = 0.8`, `diskFactor = 4`, or period `n` for the critical point itself. |
 
-The complex-norm perturbation bound, the rebase identity, the local periodic graph, the first-order guard displacement, and the return-disk contraction are checked. `exists_branch_slope` reparameterizes the kernel section as a graph `z(c)` whose derivative is `B / (1 - λ)`, and `branch_predictor_remainder` is the little-o remainder of that predictor. `existsUnique_critical_return_of_entry` contracts a critical iterate that has already entered the disk. `guardDisplacement = 0.01`, trap `minLambda = 0.8`, and disk factor 4 stay frozen PoC policy: the disk theorem supplies a sufficient `(q, r)` pair and does not compute those constants, and it does not prove that the critical orbit enters. Superattracting `arg λ = 0` and `κ = +∞` are verifier policy when the magnitude is zero, not a theorem about the quadratic.
+The complex-norm perturbation bound, the rebase identity, the local periodic graph, the first-order guard displacement, and the return-disk contraction are checked. `exists_branch_slope` reparameterizes the kernel section as a graph `z(c)` whose derivative is `B / (1 - λ)`, and `branch_predictor_remainder` is the little-o remainder of that predictor. `existsUnique_critical_return_of_entry` contracts a critical iterate that has already entered the disk. `guardDisplacement = 0.01` and disk factor 4 remain frozen PoC attempt policy; exact counterexamples below rule out treating either as a universal continuation or return-disk certificate. `minLambda = 0.8` is a workload gate. L0/L1 instead require certified `(q, r)`, critical entry, and divisor separation. Superattracting `arg λ = 0` and `κ = +∞` are verifier policy when the magnitude is zero, not a theorem about the quadratic.
 
 ## Phase 3 and symmetry exploration
 
-[Phase 3](../PLAN.md#phase-3--measured-numerical-extension) is gated by a demonstrated product gap and [ADR 0002](../decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md). The following overlays are conditional research topics, not current Phase 3 requirements.
+[Phase 3](../PLAN.md#phase-3--measured-numerical-extension) is gated by a demonstrated product gap and [ADR 0002](../decisions/0002-phase-0-renderer-zoom-and-gpu-gate.md). The [proof and evidence program](PHASE-3-PROOF-PROGRAM.md) now specifies the implementation gates. The following overlays are conditional research topics, not current Phase 3 requirements.
 
 | ID                       | Requires                | Target and mathematical boundary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ------------------------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -111,9 +114,33 @@ The period-two tile has two independent certificates:
 
 `periodTwoRationalTile_contains_nonperiodic` gives a rational point accepted by the model whose critical seed is not exactly period two. Thus the trap theorem concerns the attracting return point, while the verifier theorem concerns a tolerance verdict on the critical seed. The missing product bridge is still binary64/TypeScript refinement, including outward arithmetic and the frozen guard policy.
 
+## Prospective performance mathematics
+
+These nodes are open. Their arrows show mathematical prerequisites, not authorization to use an optimization in production. The [Phase 3 program](PHASE-3-PROOF-PROGRAM.md#optional-performance-math-packets) tracks arithmetic and evidence gates. None changes the Stage A decision or the current `legacy-scan` default.
+
+| ID                             | Requires | Next checkable result                                                                                                                                                                                                                                         | Product and measurement gate                                                                                                                                                                                                                                                                                                       |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| J2 Certified tile reuse        | J1       | For a stated parameter rectangle and verifier policy, prove that outward enclosures put every candidate residual, proper-divisor residual, and multiplier strictly on the same side of its threshold. Subdivision must explicitly refuse an inconclusive box. | Refine the enclosures to the actual binary64/TypeScript path before skipping per-pixel verification. J1 supplies only status and period; per-pixel multiplier, angle, and κ still need individual evaluation or their own certified approximation. Measure total tile cost, including certificates and splits, on target browsers. |
+| P4 Higher-order parameter jets | P1       | Formalize `A₀,ₙ = Zₙ`, `A₁,ₙ = Bₙ`, and `Aₖ,ₙ₊₁ = 2 Zₙ Aₖ,ₙ + ∑₁≤ⱼ<ₖ Aⱼ,ₙ Aₖ₋ⱼ,ₙ` for `k ≥ 2`, with `Aₖ,₀ = 0` for a fixed seed. In particular `A₂,ₙ₊₁ = 2 Zₙ A₂,ₙ + Bₙ²`. Bound the truncation remainder on a finite parameter disk.                         | Supply outward bounds for coefficient generation and series evaluation, then apply P3's error and glitch gate. Compare reference amortization, rebase frequency, memory, and total time against the existing perturbation path on deep tiles. A small formal remainder alone does not certify rounded evaluation.                  |
+| V2 Verifier prefix reuse       | V1       | Show that frames computed once along a shared orbit prefix give the same ascending proper-divisor decisions and final payload as V0/V1 when every arithmetic operation used for a frame is preserved.                                                         | Refine to both [`verifier.ts`](../../src/domain/verifier.ts) and [`orbit.ts`](../../src/domain/orbit.ts), including candidate selection, nonfinite behavior, and bitwise output fields. Profile proposal frequency and allocation cost; only retain the change if full render time improves.                                       |
+
+Alternate charts and symmetry remain under M0/M1, N0, and F0. A chart becomes a hot-loop candidate only with an explicit domain, conversion/error bounds, a way to recover canonical output fields, and a measured net saving. The existing period-one and period-two analytic fast paths are the current closed-form cases; further closed forms should target a measured cost center and still pass the verifier policy.
+
+## Frozen PoC policy audit
+
+| Decision                           | Checked evidence                                                                                                                                                                                                                                                   | Disposition                                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `guardDisplacement = 0.01`         | `displacementGuard_crosses_parabolic_parameter` gives an exact attracting fixed-point seed whose step passes the first-order guard and crosses `c = 1/4`; `real_above_quarter_fixedPoint_repelling` shows every fixed point beyond that real boundary is repelling | Keep only as a proposal filter in the research transplant kernel; a production continuation guarantee needs a fixed-disk remainder and certified input errors                       |
+| `newtonDenominatorMin = 1e-12`     | G2 controls the exact quotient only with a certified positive lower bound on `‖1 - λ‖`; no binary64 correction error is bounded at this floor                                                                                                                      | Keep as a heuristic refusal threshold; certify operation error and a Newton/verification margin before promotion                                                                    |
+| `minLambda = 0.8`                  | The weak-attraction PoC gate is a workload filter, not a contraction theorem                                                                                                                                                                                       | Keep as measured research eligibility, not an acceptance premise                                                                                                                    |
+| `diskFactor = 4`                   | `factorFourRadius_not_invariant` disproves a universal invariant-disk reading of the actual factor-four formula, even at an attracting fixed point                                                                                                                 | Treat the radius as a search neighborhood; production L0/L1 needs a uniform multiplier bound, center-image margin, critical entry, and divisor separation for each certified region |
+| Nonfinite derivative in trap probe | A derivative walk can overflow while its orbit endpoint stays finite; the research kernel now falls back to checkpoint instead of emitting escape                                                                                                                  | The main critical orbit alone owns the escape decision; retain a regression test                                                                                                    |
+
+These counterexamples invalidate universal policy claims, not the measured PoC results. Their period-one witnesses may be preempted by the analytic fast path in the current runner. The trap overflow fix is revision `poc-trap-1.0.1`; committed PoC measurements are from `1.0.0`, so revised quantitative claims need a fresh run. Transplant and trap are not imported into the production `src/` classifier; the production verifier still lacks binary64 refinement to V0/V1. The [Phase 3 program](PHASE-3-PROOF-PROGRAM.md) records the gates before any production promotion.
+
 ## Execution and evidence gates
 
-1. Build the pinned Lean v4.33.1 project and run the [axiom guards](../../proof/IntMProof/Axioms.lean). The [manifest](../../proof/lake-manifest.json) pins Mathlib to `0df444a360eaa60ab8c11dca51a86af692955474`.
+1. Build the pinned Lean v4.33.1 project and run the [axiom guards](../../proof/IntMProof/Axioms.lean). The default build selects the aggregate `IntMProof.Axioms` module, whose imports cover the theorem root and all separate axiom checks. They are compiled and checked without relying on an existing build cache, and Batteries lints the aggregate once. The [manifest](../../proof/lake-manifest.json) pins Mathlib to `0df444a360eaa60ab8c11dca51a86af692955474`.
 2. Run the package environment linter and Mathlib's text style checker as described in the [proof README](../../proof/README.md); CI audits all project declarations for unexpected axioms. Record Lean declaration, prerequisites, admitted axioms, and consuming code for each proved node.
 3. For a performance feature, connect its exact contract to floating point behavior through refinement or error bounds, differential/oracle tests, and target-browser benchmarks. [Phase 2 status](../PERFORMANCE-PLAN.md) keeps the legacy scan as default pending Stage A evidence; proof work does not waive that gate.
 
@@ -121,7 +148,6 @@ The period-two tile has two independent certificates:
 
 At the start of each batch, check main and the active performance branch before
 selecting open obligations. Update the node table and declaration links after
-each axiom audit. Before
-publishing, record the validation evidence and next useful obligations in the
-batch notes. Keep a partly proved node conditional while its arithmetic inputs
-or consuming implementation remain uncertified.
+each axiom audit. Before publishing, record the validation evidence and next
+useful obligations in the batch notes. Keep a partly proved node conditional
+while its arithmetic inputs or consuming implementation remain uncertified.

@@ -4,6 +4,8 @@ import IntMProof.InteriorFieldAxioms
 import IntMProof.RealSlicePeriodTwoAxioms
 import IntMProof.GlitchGateAxioms
 import IntMProof.RationalBoxOrbitAxioms
+import IntMProof.TrapPolicyCounterexample
+import IntMProof.GuardPolicyCounterexample
 
 -- Run `lake env lean IntMProof/Axioms.lean`; each guard fails if the axiom set changes.
 /-- info: 'IntMProof.orbit_zero' does not depend on any axioms -/
@@ -550,3 +552,15 @@ import IntMProof.RationalBoxOrbitAxioms
 /-- info: 'IntMProof.periodTwoRationalTile_complex_trap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.periodTwoRationalTile_complex_trap
+
+/-- info: 'IntMProof.factorFourRadius_not_invariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.factorFourRadius_not_invariant
+
+/-- info: 'IntMProof.displacementGuard_crosses_parabolic_parameter' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.displacementGuard_crosses_parabolic_parameter
+
+/-- info: 'IntMProof.real_above_quarter_fixedPoint_repelling' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.real_above_quarter_fixedPoint_repelling

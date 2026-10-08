@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { buildGrids } from '../grids.ts';
 import { CheckpointKernel } from './checkpoint.ts';
-import { TRAP_THRESHOLDS, TrapKernel } from './trap.ts';
+import * as seedCommon from './seed-common.ts';
+import { TRAP_REVISION, TRAP_THRESHOLDS, TrapKernel } from './trap.ts';
 
 // Trap (workstream L, research) contract: the frozen policy gates, the
 // verifier-only acceptance, the measured iteration savings on the
@@ -21,6 +22,7 @@ const detailed = { ...balanced, maxIterations: 1024, maxPeriod: 64 };
 
 describe('trap: frozen policy and gate behavior', () => {
   it('thresholds carry their documented values', () => {
+    expect(TRAP_REVISION).toBe('poc-trap-1.0.1');
     expect(TRAP_THRESHOLDS.minLambda).toBe(0.8);
     expect(TRAP_THRESHOLDS.diskFactor).toBe(4);
     expect(TRAP_THRESHOLDS.maxProposals).toBe(8);
@@ -83,6 +85,40 @@ describe('trap: frozen policy and gate behavior', () => {
         expect(result.status).toBe('escaped');
         expect(result.iterations).toBe(baseline.iterations);
       }
+    }
+  });
+
+  it('falls back when a derivative walk is nonfinite but its orbit endpoint is finite', () => {
+    const boundedOrbit = seedCommon.walkWithDerivative(0, 0, 1, 0, 1024);
+    expect(boundedOrbit).toMatchObject({ endRe: 1, endIm: 0, finite: false });
+    expect(boundedOrbit.lambdaRe).toBe(Number.POSITIVE_INFINITY);
+
+    const kernel = new TrapKernel(64);
+    const checkpoint = new CheckpointKernel(64);
+    const points = buildGrids().filter((p) => p.grid === 'weak-p6a');
+    const hit = points.find(
+      (point) => kernel.classify(point.cRe, point.cIm, detailed).evidence === 'trap-hit',
+    );
+    expect(hit).toBeDefined();
+    if (hit === undefined) return;
+
+    const baseline = checkpoint.classify(hit.cRe, hit.cIm, detailed);
+    const walk = vi.spyOn(seedCommon, 'walkWithDerivative').mockReturnValue({
+      endRe: 1,
+      endIm: 0,
+      lambdaRe: Number.POSITIVE_INFINITY,
+      lambdaIm: 0,
+      finite: false,
+    });
+    try {
+      const result = kernel.classify(hit.cRe, hit.cIm, detailed);
+      expect(walk).toHaveBeenCalled();
+      expect(result.status).toBe(baseline.status);
+      expect(result.iterations).toBe(baseline.iterations);
+      expect(result.evidence).toBe(baseline.evidence);
+      expect(result.metrics.trapOrbitWork).toBeGreaterThan(0);
+    } finally {
+      walk.mockRestore();
     }
   });
 });

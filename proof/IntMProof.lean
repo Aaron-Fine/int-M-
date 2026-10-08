@@ -24,6 +24,7 @@ import IntMProof.RegionResidual
 import IntMProof.Branch
 import IntMProof.Guard
 import IntMProof.GuardDisk
+import IntMProof.GuardPolicyCounterexample
 import IntMProof.InteriorField
 import IntMProof.ReturnDisk
 import IntMProof.CriticalEntry
@@ -31,6 +32,7 @@ import IntMProof.CriticalEntryBudget
 import IntMProof.PrimitiveEntry
 import IntMProof.PeriodTwoTrap
 import IntMProof.PeriodTwoNeighborhood
+import IntMProof.TrapPolicyCounterexample
 import IntMProof.FastPath
 import IntMProof.VerifierModel
 import IntMProof.UniformVerdict
