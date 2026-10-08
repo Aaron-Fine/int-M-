@@ -21,6 +21,9 @@ import IntMProof.ErrorBudget
 import IntMProof.GlitchGate
 import IntMProof.DerivativeBudget
 import IntMProof.RegionResidual
+import IntMProof.DiskEnclosure
+import IntMProof.ParameterEnclosure
+import IntMProof.DiskGuard
 import IntMProof.Branch
 import IntMProof.Guard
 import IntMProof.GuardDisk
@@ -33,6 +36,12 @@ import IntMProof.PrimitiveEntry
 import IntMProof.PeriodTwoTrap
 import IntMProof.PeriodTwoNeighborhood
 import IntMProof.TrapPolicyCounterexample
+import IntMProof.PrimitiveDisk
+import IntMProof.DiskCertificateExamples
+import IntMProof.DiskGuardExamples
+import IntMProof.StoredReference
+import IntMProof.StoredDisk
+import IntMProof.StoredReferenceExamples
 import IntMProof.FastPath
 import IntMProof.VerifierModel
 import IntMProof.UniformVerdict
