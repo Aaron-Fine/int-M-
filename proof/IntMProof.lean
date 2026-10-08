@@ -15,6 +15,10 @@ import IntMProof.ParameterJet
 import IntMProof.ParameterJetBound
 import IntMProof.ParameterJetTaylor
 import IntMProof.ParameterJetTruncation
+import IntMProof.ParameterJetCoefficientBound
+import IntMProof.ParameterJetResidual
+import IntMProof.ParameterJetRecursiveBound
+import IntMProof.ParameterJetDisk
 import IntMProof.Symmetry
 import IntMProof.LogisticChart
 import IntMProof.MultiplierPhase
