@@ -19,6 +19,8 @@ import IntMProof.ParameterJetCoefficientBound
 import IntMProof.ParameterJetResidual
 import IntMProof.ParameterJetRecursiveBound
 import IntMProof.ParameterJetDisk
+import IntMProof.ParameterJetEnclosure
+import IntMProof.ParameterJetNonzeroDisk
 import IntMProof.Symmetry
 import IntMProof.LogisticChart
 import IntMProof.MultiplierPhase
