@@ -4,6 +4,7 @@ import IntMProof.InteriorFieldAxioms
 import IntMProof.RealSlicePeriodTwoAxioms
 import IntMProof.GlitchGateAxioms
 import IntMProof.RationalBoxOrbitAxioms
+import IntMProof.ParameterJetAxioms
 import IntMProof.TrapPolicyCounterexample
 import IntMProof.GuardPolicyCounterexample
 

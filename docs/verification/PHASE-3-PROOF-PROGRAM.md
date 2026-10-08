@@ -86,7 +86,7 @@ candidate frequency, tile sizes, and time spent in verification and rebasing.
    A shared status and period do not determine each pixel's multiplier,
    rotation angle, or κ; preserve those fields through individual evaluation
    or separately certified approximations.
-2. **P4: reuse higher-order parameter series.** For
+2. **P4: reuse higher-order parameter series.** The [second-order batch](PARAMETER-JETS.md) proves the exact coefficient recurrence, cubic/quartic step residual, and finite-disk norm budget for a fixed seed. Arbitrary-order convolution and machine arithmetic remain open. For
    `z_n(c₀+δ) = Z_n + B_n δ + C_n δ² + …`, prove
    `C₀ = 0` and `Cₙ₊₁ = 2Zₙ Cₙ + Bₙ²` for a fixed seed, then bound the
    finite-order remainder on a stated disk. Combine coefficient, evaluation,

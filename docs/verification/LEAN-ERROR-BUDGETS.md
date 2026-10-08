@@ -87,6 +87,14 @@ It gives contraction of subsequent `n`-step returns to the unique disk fixed
 point. It does not claim that the critical point itself is periodic, or that
 the return fixed point has primitive period `n`.
 
+## Second-order series consumer (P4)
+
+`secondOrderApproximation_error_le_budget` applies this comparison to the
+exact second-order parameter approximation. Its local residual budget contains
+only cubic and quartic offset terms; its target radii include the existing
+parameter-shift enclosure. Reference radii and coefficient/evaluation machine
+errors remain external obligations. See [the P4 batch notes](PARAMETER-JETS.md).
+
 ## Remaining obligations and next batch
 
 The budgets are exact real inequalities supplied by the caller. No theorem
@@ -96,12 +104,14 @@ budget itself also needs outward rounding. L0's uniform multiplier bound and
 trap constants remain hypotheses. The TypeScript verifier still needs its
 finite-prefix refinement and arithmetic model.
 
-The next useful batch is to make these inputs constructive:
+The rational-box J0/J1 tile and primitive period-two trap already supply scoped
+exact enclosures and divisor exclusions. The numerical frontier is to refine
+those certificates to the [finite binary64 pilot](PHASE-3-PROOF-PROGRAM.md#first-executable-proof-slice):
 
-1. Enclose intermediate reference iterates and multipliers over disks and
-   parameter regions, supplying J0 and L0 with usable radius bounds.
-2. Prove proper-divisor exclusions throughout a return disk so a certified
-   return fixed point has primitive period.
+1. Extend exact reference-radius and multiplier certificates to other stated
+   disks when a consumer needs them; retain explicit finite-prefix domains.
+2. Extend primitive-return certificates beyond the existing period-two
+   neighborhood, including every relevant proper-divisor exclusion.
 3. Specify one arithmetic backend and derive local residual bounds for its
    actual evaluation order; then connect error-aware acceptance and repair to
    V0/V1. A heuristic glitch threshold alone is insufficient.
