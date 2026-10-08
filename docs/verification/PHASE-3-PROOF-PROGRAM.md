@@ -70,6 +70,43 @@ that either proves the same period-two verdict for a stated representable
 subregion or explicitly refuses parameters whose rounded margin is not
 certified. This pilot does not alter the supported zoom bound.
 
+## Optional performance math packets
+
+The [prospective DAG nodes](LEAN-PROOF-DAG.md#prospective-performance-mathematics)
+can be investigated before or during Phase 3, but they do not replace the
+product-need gate, P3's machine-error budget, V0/V1 refinement, or the release
+comparison. Prioritize them with a profile of the actual renderer, including
+candidate frequency, tile sizes, and time spent in verification and rebasing.
+
+1. **J2: certify shared tile decisions.** Extend J0/J1 from exact rational
+   intervals to outward machine enclosures for a finite tile. Prove the
+   candidate, every proper divisor, and the multiplier lie strictly within
+   their respective decision margins for all pixels; otherwise subdivide or
+   use the per-pixel verifier. Record certificate cost and split frequency.
+   A shared status and period do not determine each pixel's multiplier,
+   rotation angle, or κ; preserve those fields through individual evaluation
+   or separately certified approximations.
+2. **P4: reuse higher-order parameter series.** For
+   `z_n(c₀+δ) = Z_n + B_n δ + C_n δ² + …`, prove
+   `C₀ = 0` and `Cₙ₊₁ = 2Zₙ Cₙ + Bₙ²` for a fixed seed, then bound the
+   finite-order remainder on a stated disk. Combine coefficient, evaluation,
+   rebase, and verifier error bounds with P3; a glitch or exhausted bound
+   must trigger repair or unresolved. Benchmark total reference setup,
+   coefficient storage, rebasing, and pixel time against the lower-order path.
+3. **V2: reuse verifier orbit prefixes.** Specify a frame cache that preserves
+   ascending divisor order, the current operation sequence, nonfinite
+   handling, and every output field. Prove its V0/V1 verdict equivalence and
+   check TypeScript behavior in both verifier paths. Measure only after
+   profiling how often candidates reach the verifier; caching may cost more
+   than repeated walks on easy pixels.
+
+The alternate coordinates already proved in M0/M1, N0, and F0 can be evaluated
+for specific hot loops. A proposal needs its parameter domain, inverse
+conversion, certified error budget, canonical output-field recovery, and
+browser cost comparison. Period-one and period-two analytic fast paths already
+cover the obvious low-period closed forms. New algebraic cases must identify
+a measured cost center before adding another dispatch path.
+
 ## Independent research packets
 
 These may proceed without opening the product Phase 3 gate. Each needs an

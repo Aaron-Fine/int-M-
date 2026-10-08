@@ -12,6 +12,7 @@ flowchart TD
   E1 --> M0
   V0["V0 Rational verifier model"]
   V0 --> V1["V1 Shared prefix agreement"]
+  V1 --> V2["V2 Verifier prefix reuse (open)"]
   E1 --> G0["G0 Cycle continuation"]
   E0 --> G1["G1 Parameter bound"]
   G0 --> G2["G2 Proposal contract"]
@@ -24,6 +25,7 @@ flowchart TD
   E1 --> J0
   J0 --> J1["J1 Uniform verdict"]
   V0 --> J1
+  J1 --> J2["J2 Certified tile reuse (open)"]
   L1 --> T2["T2 Period-two tile bridge"]
   J1 --> T2
   G1 --> P1["P1 Perturbation identity"]
@@ -32,6 +34,7 @@ flowchart TD
   G1 --> P3
   P3 --> J0
   P3 --> L1
+  P1 --> P4["P4 Higher-order parameter jets (open)"]
 ```
 
 ## Checked roots and boundaries
@@ -110,6 +113,18 @@ The period-two tile has two independent certificates:
 2. `periodTwoRationalTile_near_minusOne` puts every complex tile point in the L1 trap disk; `periodTwoRationalTile_complex_trap` proves critical entry and a unique attracting primitive period-two return point there.
 
 `periodTwoRationalTile_contains_nonperiodic` gives a rational point accepted by the model whose critical seed is not exactly period two. Thus the trap theorem concerns the attracting return point, while the verifier theorem concerns a tolerance verdict on the critical seed. The missing product bridge is still binary64/TypeScript refinement, including outward arithmetic and the frozen guard policy.
+
+## Prospective performance mathematics
+
+These nodes are open. Their arrows show mathematical prerequisites, not authorization to use an optimization in production. The [Phase 3 program](PHASE-3-PROOF-PROGRAM.md#optional-performance-math-packets) tracks arithmetic and evidence gates. None changes the Stage A decision or the current `legacy-scan` default.
+
+| ID                             | Requires | Next checkable result                                                                                                                                                                                                                                         | Product and measurement gate                                                                                                                                                                                                                                                                                                       |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| J2 Certified tile reuse        | J1       | For a stated parameter rectangle and verifier policy, prove that outward enclosures put every candidate residual, proper-divisor residual, and multiplier strictly on the same side of its threshold. Subdivision must explicitly refuse an inconclusive box. | Refine the enclosures to the actual binary64/TypeScript path before skipping per-pixel verification. J1 supplies only status and period; per-pixel multiplier, angle, and κ still need individual evaluation or their own certified approximation. Measure total tile cost, including certificates and splits, on target browsers. |
+| P4 Higher-order parameter jets | P1       | Formalize `A₀,ₙ = Zₙ`, `A₁,ₙ = Bₙ`, and `Aₖ,ₙ₊₁ = 2 Zₙ Aₖ,ₙ + ∑₁≤ⱼ<ₖ Aⱼ,ₙ Aₖ₋ⱼ,ₙ` for `k ≥ 2`, with `Aₖ,₀ = 0` for a fixed seed. In particular `A₂,ₙ₊₁ = 2 Zₙ A₂,ₙ + Bₙ²`. Bound the truncation remainder on a finite parameter disk.                         | Supply outward bounds for coefficient generation and series evaluation, then apply P3's error and glitch gate. Compare reference amortization, rebase frequency, memory, and total time against the existing perturbation path on deep tiles. A small formal remainder alone does not certify rounded evaluation.                  |
+| V2 Verifier prefix reuse       | V1       | Show that frames computed once along a shared orbit prefix give the same ascending proper-divisor decisions and final payload as V0/V1 when every arithmetic operation used for a frame is preserved.                                                         | Refine to both [`verifier.ts`](../../src/domain/verifier.ts) and [`orbit.ts`](../../src/domain/orbit.ts), including candidate selection, nonfinite behavior, and bitwise output fields. Profile proposal frequency and allocation cost; only retain the change if full render time improves.                                       |
+
+Alternate charts and symmetry remain under M0/M1, N0, and F0. A chart becomes a hot-loop candidate only with an explicit domain, conversion/error bounds, a way to recover canonical output fields, and a measured net saving. The existing period-one and period-two analytic fast paths are the current closed-form cases; further closed forms should target a measured cost center and still pass the verifier policy.
 
 ## Frozen PoC policy audit
 
