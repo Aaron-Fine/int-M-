@@ -5,6 +5,8 @@ import IntMProof.RealSlicePeriodTwoAxioms
 import IntMProof.GlitchGateAxioms
 import IntMProof.RationalBoxOrbitAxioms
 import IntMProof.ParameterJetAxioms
+import IntMProof.ParameterJetTaylorAxioms
+import IntMProof.ParameterJetTruncationAxioms
 import IntMProof.TrapPolicyCounterexample
 import IntMProof.GuardPolicyCounterexample
 

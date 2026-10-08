@@ -13,6 +13,8 @@ import IntMProof.Derivatives
 import IntMProof.ParameterSum
 import IntMProof.ParameterJet
 import IntMProof.ParameterJetBound
+import IntMProof.ParameterJetTaylor
+import IntMProof.ParameterJetTruncation
 import IntMProof.Symmetry
 import IntMProof.LogisticChart
 import IntMProof.MultiplierPhase
