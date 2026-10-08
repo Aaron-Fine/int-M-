@@ -110,6 +110,16 @@ The order-two forcing is exactly `secondOrderForcing`. The concrete order-three,
 parameter/seed-zero disk `‖δ‖≤1/16` has error at most `1/10000` at iterate four.
 Outward cap evaluation and machine residuals remain external obligations.
 
+`errorBudget_le_enclosure` now bounds the exact recurrence by a caller's
+finite outward table when the initial and step inequalities hold.
+`parameterJetApproximation_error_le_enclosure` composes this with retained cap
+rows and a checked parameter-shift table. Target radii include that shift;
+reference radii alone are not silently reused for the target orbit. A third-order
+certificate at parameter minus one and critical seed zero checks dyadic tables
+and gives truncation error at most `1/1000000` through iterate sixteen on
+`‖δ‖≤1/256`. Table checking does not prove machine operations generate the
+coefficients or evaluate the jet within a particular rounding budget.
+
 ## Remaining obligations and next batch
 
 The budgets are exact real inequalities supplied by the caller. No theorem

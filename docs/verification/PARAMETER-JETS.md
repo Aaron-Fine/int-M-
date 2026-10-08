@@ -4,7 +4,8 @@ This batch advances the P4 node in the [proof DAG](LEAN-PROOF-DAG.md).
 It now covers all-order, fixed-seed coefficients of a finite quadratic orbit,
 exact finite truncation, and recursive finite-order coefficient and error
 budgets. The retained-product route avoids the full discarded polynomial and
-has a concrete third-order disk certificate. Outward machine arithmetic,
+has concrete third-order disk certificates at zero and minus one. Finite
+outward budget-table inequalities are checked. Machine coefficient/evaluation arithmetic,
 backend refinement, and measured renderer integration remain open. No supported zoom or classifier policy changes.
 
 ## Second-order algebraic contract
@@ -154,6 +155,55 @@ and for every complex offset `‖δ‖≤1/16`, the truncation error is at most
 This small finite disk demonstrates the exact contract; it does not establish
 a useful bound on deep tiles, attraction, or rounded evaluation.
 
+## Finite outward tables and a nonzero reference disk
+
+[ParameterJetEnclosure.lean](../../proof/IntMProof/ParameterJetEnclosure.lean)
+accepts caller-supplied finite real enclosure tables. Each retained coefficient
+entry must be nonnegative and dominate the corresponding recurrence applied
+to the previous row. `parameterJetCoefficientBudget_le_enclosure` then bounds
+the exact recursive caps. Initial coefficient rows may have nonnegative slack;
+entries outside the retained orders and finite horizon are unused.
+
+`errorBudget_le_enclosure` accepts an initial upper bound and outward step
+inequalities `2 radius(j) upper(j) + upper(j)² + forcing(j) ≤ upper(j+1)`
+on the stated finite prefix. With nonnegative initial error, radii, and forcing,
+it bounds P3's exact recurrence. `parameterJetEnclosureForcing` uses only
+retained coefficient-table entries; order zero still contributes `Δ`.
+
+`parameterJetApproximation_error_le_enclosure` combines coefficient checks,
+shift checks, and final error checks. A shift table `S` encloses the P1
+parameter-shift recurrence and justifies target radii `radius(j)+S(j)`.
+The final table `E` must dominate the P3 step using these target radii and the
+retained-product forcing. The result bounds the exact complex jet error by
+`E(n)`. Every assumption is restricted to the retained orders and horizon;
+no unproved future table entries or full discarded polynomial are used.
+These are checks of mathematical table values, not a proof that a floating
+point implementation generates or evaluates a jet correctly.
+
+[ParameterJetNonzeroDisk.lean](../../proof/IntMProof/ParameterJetNonzeroDisk.lean)
+uses reference parameter `c=−1` and critical seed zero. The reference orbit
+alternates exactly between `0` and `−1`, giving exact radii `0,1,0,1,…`.
+The finite cap table records the transient before its repeating rows: caps
+for orders one through three are `(3,19,30)` at iterate four and `(3,19,246)`
+at iterate six. All seventeen rows are stored and all sixteen transitions
+are checked; no stationary-row assumption is needed.
+
+The shift and error tables use dyadic units `2⁻⁴⁰`. Each stored row is checked
+as an upper bound for the recurrence from the previous stored row, so the
+externally calculated values are accepted through kernel-checked inequalities.
+The final error row is exactly `1097827/1099511627776`.
+
+| Reference parameter / seed | Retained order | Certified horizon | Offset disk | Truncation cap |
+| -------------------------- | -------------- | ----------------- | ----------- | -------------- |
+| `0 / 0`                    | 3              | At iterate 4      | `‖δ‖≤1/16`  | `1/10000`      |
+| `−1 / 0`                   | 3              | Every `0≤n≤16`    | `‖δ‖≤1/256` | `1/1000000`    |
+
+`minusOneJet_thirdOrder_error_le` proves the second row uniformly for every
+complex offset in the closed disk. Default values outside the finite tables
+are zero and carry no certificate; the shift step beyond the stored horizon
+fails. This is a nonzero period-two reference witness, not a general deep-tile
+result, a new attracting verdict, or a rounded-evaluation certificate.
+
 ## Adversarial review and update loop
 
 The second-order reviewer checked seed dependence, residual signs, exponent
@@ -178,14 +228,24 @@ forcing compatibility, state the concrete certificate at iterate four, and
 keep exact recurrence construction separate from rounded execution. It also
 checked the concrete rational budget independently and rereviewed the updates.
 
+The outward-table reviewer independently checked all rational rows and compiled
+boundary-offset, zero-horizon/order, initial-slack, and negative-unused-future
+witnesses. Its update request added persistent order-zero enclosure forcing.
+The nonzero-disk review checked all retained orders, finite table indices,
+ordered-product multiplicities, and the parameter-shift contribution to target
+radii. Independent Lean witnesses cover the closed disk boundary, the final
+rational row, table defaults after iterate sixteen, and failure of the shift
+step beyond the certified horizon. Updates were rereviewed before publishing.
+
 ## Next obligations
 
 1. Choose the coefficient-table and series-evaluation operation sequence.
-   Derive outward bounds for reference radii, cap computation, coefficient
-   generation, and evaluation in the chosen backend, then combine local
-   machine residuals with P3. Exact truncation alone does not certify rebase
-   conversion or verifier frames. Extend the concrete certificate to a
-   representative nonzero reference disk with a useful finite horizon.
+   Derive backend-specific bounds for reference radii, computed coefficients,
+   rounded cap generation, evaluation, and rebasing, then combine the machine
+   residuals with P3. The finite outward-table checks provide a certificate
+   consumer; they do not refine binary64 operations or verifier frames.
+   Extend to representative deep-tile reference orbits and assess whether
+   the budgets remain useful at the required horizons.
 2. Profile the existing renderer before adding a series path. Measure reference
    setup, coefficient storage, rebase frequency, repair rate, and total render
    time. Preserve the [Phase 3 product and numerical gates](PHASE-3-PROOF-PROGRAM.md).
@@ -234,5 +294,19 @@ The recursive retained-order continuation on 2026-10-08 passed:
 - Independent boundary, characteristic-two, compatibility, and finite-prefix
   Lean witnesses against the compiled modules; the concrete rational budget
   also matched an independent arithmetic check.
+- Changed Markdown formatting and `git diff --check`. Lean v4.33.1 and the
+  pinned manifest remain unchanged.
+
+The finite outward-table and nonzero-disk continuation on 2026-10-08 passed:
+
+- A bare `lake build` (3169 jobs), including both new theorem modules and
+  the aggregate audit imports.
+- Eight new selected axiom guards; the namespace-wide audit inspected 932
+  declarations and found only `propext`, `Classical.choice`, and `Quot.sound`.
+- `lake lint`, selecting `[IntMProof.Axioms]`, and `lake exe lint-style` (with
+  the same optional upstream style-exemption warning).
+- Independent exact rational reproduction of all seventeen shift/error rows
+  and compiled Lean boundary, zero-horizon/order, initial-slack, finite-default,
+  and negative-unused-future witnesses.
 - Changed Markdown formatting and `git diff --check`. Lean v4.33.1 and the
   pinned manifest remain unchanged.

@@ -237,15 +237,15 @@ described as proven or certified.
 The [proof DAG](verification/LEAN-PROOF-DAG.md#prospective-performance-mathematics)
 tracks three optimization contracts with remaining numerical and evidence gates:
 
-| Direction                | Potential saving                                                  | Missing proof and evidence                                                                                                                                                |
-| ------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| J2 certified tile reuse  | Share verifier decisions across a parameter rectangle             | Outward binary64 enclosures and TypeScript refinement; per-pixel output fields still need correct values; tile certificate and subdivision cost must beat per-pixel work. |
-| P4 parameter series      | Amortize deep-tile reference work using coefficients beyond `B_n` | Executable retained-order coefficient tables, outward coefficient/evaluation bounds, useful nonzero-reference disks, and glitch/rebase handling; benchmark total cost.    |
-| V2 verifier prefix reuse | Avoid repeated proper-divisor orbit prefixes after a candidate    | Exact decision and payload equivalence in divisor order, TypeScript operation-order parity, and a profile showing enough candidates to repay cache cost.                  |
+| Direction                | Potential saving                                                  | Missing proof and evidence                                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| J2 certified tile reuse  | Share verifier decisions across a parameter rectangle             | Outward binary64 enclosures and TypeScript refinement; per-pixel output fields still need correct values; tile certificate and subdivision cost must beat per-pixel work.   |
+| P4 parameter series      | Amortize deep-tile reference work using coefficients beyond `B_n` | Executable retained-order coefficient tables, outward coefficient/evaluation bounds, useful deep-reference disk horizons, and glitch/rebase handling; benchmark total cost. |
+| V2 verifier prefix reuse | Avoid repeated proper-divisor orbit prefixes after a candidate    | Exact decision and payload equivalence in divisor order, TypeScript operation-order parity, and a profile showing enough candidates to repay cache cost.                    |
 
 For a fixed seed, the first new series coefficient obeys
 `Cₙ₊₁ = 2ZₙCₙ + Bₙ²`, with `C₀ = 0`, when
-`zₙ(c₀+δ) = Zₙ + Bₙδ + Cₙδ² + O(δ³)`. The [P4 proofs](verification/PARAMETER-JETS.md) now check this recurrence, all-order Taylor/Hasse convolution, exact finite truncation, and recursive finite-order coefficient/error budgets using only retained-product residuals. A concrete third-order certificate gives an error bound after four iterates on the radius-1/16 disk about parameter/seed zero. Outward machine arithmetic and measured integration remain open; no series accelerator is implemented. The
+`zₙ(c₀+δ) = Zₙ + Bₙδ + Cₙδ² + O(δ³)`. The [P4 proofs](verification/PARAMETER-JETS.md) now check this recurrence, all-order Taylor/Hasse convolution, exact finite truncation, and recursive finite-order coefficient/error budgets using only retained-product residuals. Finite outward budget tables are checked; a third-order certificate about parameter minus one with critical seed zero bounds error by `1/1000000` through iterate sixteen on the radius-1/256 offset disk. Backend arithmetic refinement and measured integration remain open; no series accelerator is implemented. The
 [Phase 3 program](verification/PHASE-3-PROOF-PROGRAM.md#optional-performance-math-packets)
 sets the numerical and measurement gates.
 
