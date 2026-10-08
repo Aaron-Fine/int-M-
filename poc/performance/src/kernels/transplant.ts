@@ -13,10 +13,11 @@
  *
  * with B_cycle computed by running the seed's cycle forward ONCE with the
  * B recurrence (bounded, once per attempt). The first-order displacement
- * |B_cycle| * |dc| / |1 - lambda| is the plan's attempt-region guard: it is
- * derived from the multiplier map rather than tuned constants and degrades
- * exactly as lambda -> 1 (near parabolic boundaries the guard refuses the
- * attempt and the pixel falls back to the schedule kernel). At
+ * |B_cycle| * |dc| / |1 - lambda| is the plan's attempt-region guard. It is a
+ * first-order estimate, not a certified bound on movement of an exact cycle:
+ * the stored seed is only verifier-accepted within tolerance, and a
+ * fixed-disk remainder bound is not supplied. The guard tends to refuse
+ * attempts as lambda approaches 1 when B_cycle and dc stay nonzero. At
  * superattracting centers lambda = 0 the formula is well-conditioned
  * (1 - lambda = 1); the plan's Koenigs/Bottcher caveat concerns linearization
  * theory beyond this PoC and does not affect the first-order seed.
@@ -44,8 +45,8 @@
  *    falls back to the schedule kernel for the pixel.
  *
  * The seed persists across classify calls (raster order = call order);
- * classifySeedless equivalence holds whenever the guard refuses (far dc,
- * lambda near 1) - which is what the bucket report measures.
+ * classifySeedless equivalence holds whenever the guard refuses, which is
+ * what the bucket report measures.
  */
 
 import {
@@ -71,17 +72,17 @@ export const TRANSPLANT_REVISION = 'poc-transplant-1.0.0';
 
 /**
  * Frozen transplant policy. Provenance:
- * - guardDisplacement = 1e-2: the plan section 6 conditioning guard bounds
- *   the first-order seed displacement |B_cycle|*|dc|/|1-lambda|; 1e-2 keeps
- *   the predicted seed two orders below unit scale, safely inside the local
- *   basin of a hyperbolic cycle at corpus parameter scales. An
- *   over-permissive guard costs wasted attempts (verifier-rejected), never
- *   wrong results, and the bound degrades exactly as lambda -> 1.
+ * - guardDisplacement = 1e-2: a frozen PoC attempt threshold on the
+ *   first-order estimate |B_cycle|*|dc|/|1-lambda|. It does not certify
+ *   that the predicted point lies in a local basin. An over-permissive
+ *   attempt is still subject to the common verifier; correctness of an
+ *   accepted result depends on that verifier and its numeric refinement.
  * - newtonSteps = 3: the workstream G ship gate assumes convergence within
  *   3 corrections (">=90% of eligible attempts converge in <=3 corrections").
- * - newtonDenominatorMin = 1e-12: binary64 floor for |lambda - 1|; below it
- *   the Newton direction is numerically meaningless. Belt-and-braces only -
- *   the displacement guard already refuses the lambda -> 1 regime.
+ * - newtonDenominatorMin = 1e-12: heuristic floor for |lambda - 1|. No
+ *   binary64 error bound proves that a correction above this floor is
+ *   accurate; the displacement guard can pass near lambda = 1 when dc or
+ *   B_cycle is small.
  */
 export const TRANSPLANT_THRESHOLDS = Object.freeze({
   guardDisplacement: 1e-2,

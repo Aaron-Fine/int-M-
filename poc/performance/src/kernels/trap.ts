@@ -1,7 +1,7 @@
 /**
  * Trap-radius early accept (plan workstream L, research-only, oracle-gated).
  *
- * Research question: can a numerically estimated trapping disk around a
+ * Research question: can a numerically estimated attempt disk around a
  * verified NEIGHBOR cycle accept a pixel before the orbit converges to the
  * tauAccept closure scale, without weakening the common verifier?
  *
@@ -15,21 +15,22 @@
  *    (|lambda| >= TRAP_THRESHOLDS.minLambda) and the plan section 6
  *    first-order displacement |B_cycle| * |dc| / |1 - lambda| must stay
  *    inside the frozen transplant guard; otherwise the pixel falls back to
- *    the checkpoint kernel whole (the guard degrades exactly as
- *    lambda -> 1, the graceful-degradation requirement of plan section 12).
- * 4. Trapping disk: center = the predicted neighboring cycle point, radius
- *    R = TRAP_THRESHOLDS.diskFactor * |1 - lambda| * max(1, |z_pred|).
- *    Provenance: inside such a disk the p-step map's quadratic deviation is
- *    O(R^2) while the linear drift is O(R * |1 - lambda|), so the disk sits
- *    in the linear (contracting) regime of f_c^p and Newton-from-entry
- *    converges in O(1) steps; the factor 4 keeps reach well above the
- *    tauCandidate proximity scale down to |1 - lambda| ~ 2.5e-9.
+ *    the checkpoint kernel whole. The guard is only a first-order filter;
+ *    its parabolic-boundary counterexample is checked in Lean.
+ * 4. Attempt disk: center = the predicted neighboring cycle point, radius
+ *    R = TRAP_THRESHOLDS.diskFactor * (1 - |lambda_seed|)
+ *        * max(1, |Re z_pred|, |Im z_pred|).
+ *    This is a frozen PoC search radius, not a certified invariant or
+ *    contracting disk. Even an attracting period-one fixed point can have
+ *    an image outside the factor-four disk (Lean:
+ *    factorFourRadius_not_invariant). A production trap needs a uniform
+ *    return-derivative bound and a center-image margin for the chosen disk.
  * 5. Orbit walk from 0 with the escape check. On disk entry (and then every
  *    reproduceInterval steps while inside, at most maxProposals per pixel):
  *    compute the PER-PIXEL multiplier lambda_n = (f^p)'(z_n) by one p-step
  *    walk (counted in trapOrbitWork), require |lambda_n| < 1 - the
- *    verifier's attraction margin (per-pixel contraction; the criterion
- *    never assumes the seed's lambda), Newton-polish z_n against period p
+ *    verifier's attraction margin (a pointwise check, not disk contraction;
+ *    the criterion never assumes the seed's lambda), Newton-polish z_n against period p
  *    (at most newtonSteps steps in binary64, denominator floor as in the
  *    transplant), require the polished residual below the verifier's
  *    divisor-separation scale (polishTolerance), then propose to the common
@@ -67,7 +68,8 @@ import {
 import { TRANSPLANT_THRESHOLDS } from './transplant.ts';
 import type { ClassificationKernel, KernelMetrics, KernelOptions, KernelResult } from './shared.ts';
 
-export const TRAP_REVISION = 'poc-trap-1.0.0';
+// 1.0.1 refuses to infer critical-orbit escape from derivative-walk overflow.
+export const TRAP_REVISION = 'poc-trap-1.0.1';
 
 /**
  * Frozen trap policy. Provenance:
@@ -75,7 +77,7 @@ export const TRAP_REVISION = 'poc-trap-1.0.0';
  *   within ~85 iterations at corpus convergence scales, leaving little for
  *   the trap to save; the weak-attraction strata workstream L targets sit
  *   at |lambda| in [0.8, 1). PoC policy choice, frozen before benchmarking.
- * - diskFactor = 4: see the trapping-disk note above (linear-regime reach).
+ * - diskFactor = 4: PoC attempt reach; see the attempt-disk note above.
  * - reproduceInterval = 8: re-proposal cadence while the orbit remains
  *   inside the disk; bounds the per-pixel polish overhead.
  * - maxProposals = 8: per-pixel proposal cap; afterwards the pixel falls
@@ -300,14 +302,11 @@ export class TrapKernel implements ClassificationKernel {
       const trapped = walkWithDerivative(cRe, cIm, zRe, zIm, period);
       orbitWork += period;
       if (!trapped.finite) {
-        return {
-          status: 'escaped',
-          iterations: iteration,
-          evidence: 'escape-radius',
-          metrics,
-          escapeIteration: iteration,
-          magnitudeSquared: trapped.endRe * trapped.endRe + trapped.endIm * trapped.endIm,
-        };
+        // The extra derivative walk may overflow even when the critical
+        // orbit is still bounded. Only the main critical walk can certify
+        // escape; ask the checkpoint kernel to classify this pixel.
+        metrics.trapOrbitWork = orbitWork + walkSteps;
+        return undefined;
       }
       const lambdaMagnitude = Math.hypot(trapped.lambdaRe, trapped.lambdaIm);
       if (lambdaMagnitude >= attractBound) {

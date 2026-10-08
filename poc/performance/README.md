@@ -194,17 +194,20 @@ this harness is a common-verifier acceptance.
   against the new parameter, and lets the common verifier decide; refusals
   and rejections fall back to the checkpoint kernel. Analytic acceptances
   never seed (documented PoC simplification).
-- **Trap-radius early accept** (`kernels/trap.ts`, revision `poc-trap-1.0.0`,
+- **Trap-radius early accept** (`kernels/trap.ts`, revision `poc-trap-1.0.1`,
   **research, oracle-gated**): with a verified neighbor seed in the
   weak-attraction regime (seed |λ| ≥ 0.8, `TRAP_THRESHOLDS`, frozen) and
-  the plan §6 guard passed, the kernel estimates a trapping disk around the
-  predicted neighboring cycle point (radius `4·|1−λ|·max(1,|z_pred|)`,
-  inside the linear regime of `f_c^p`), and when the orbit enters the disk
+  the plan §6 guard passed, the kernel uses an attempt disk around the
+  predicted neighboring cycle point (radius
+  `4·(1−|λ_seed|)·max(1,|Re z_pred|,|Im z_pred|)`). This radius is not a
+  certified invariant disk. When the orbit enters the attempt disk,
   it computes the **per-pixel** multiplier `λ_n = (f^p)'(z_n)`, requires
   `|λ_n| < 1 − attractMargin`, Newton-polishes (≤ 4 steps, residual below
   the verifier's divisor scale), and proposes to the **unchanged common
   verifier** — the early accept only skips waiting for tighter orbit
-  convergence, never weakens acceptance.
+  convergence, never weakens acceptance. Revision `1.0.1` falls back when
+  the extra derivative walk overflows; the committed PoC result manifest
+  records revision `1.0.0`.
 - **Packed status+period output** (`kernels/packed.ts`, revision
   `poc-packed-1.0.0`): frozen encoding — status code in bits 24–31
   (0 reserved, 1 escaped, 2 attracting, 3 unresolved), primitive period ≤
