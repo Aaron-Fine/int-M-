@@ -147,3 +147,7 @@ evaluation and its error-aware acceptance/refusal checks. `orbit_sub_storedRefer
 index for a resumed segment. Rebase conversions can use the existing
 conversion-error contract to update that segment's initial allowance. A predictor remainder needs second derivatives and a
 domain on which the branch stays enclosed.
+
+The [outward-grid continuation](LEAN-OUTWARD-GRID.md) now certifies rational
+stored-value and local residual bounds and evaluates the budget exactly over
+rationals. Binary64, Wasm, and GPU operation bounds remain separate refinements.
