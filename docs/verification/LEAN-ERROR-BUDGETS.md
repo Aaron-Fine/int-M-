@@ -120,12 +120,32 @@ and gives truncation error at most `1/1000000` through iterate sixteen on
 `‖δ‖≤1/256`. Table checking does not prove machine operations generate the
 coefficients or evaluate the jet within a particular rounding budget.
 
+`parameterJetInexactHorner_error_le_orbit` now adds three separate contributions:
+local operation residuals propagated by the recursive Horner budget, inclusive
+coefficient errors weighted by `Δ^k`, and the exact truncation cap. The chosen
+sequence multiplies the decoded offset by the accumulator, then adds the
+coefficient to the product. Order zero performs no operations; its coefficient
+error still counts. The copied leading coefficient is also included. The
+operation model requires separate multiplication and addition error caps at
+the actual operands, without deriving backend primitive or decoding accuracy.
+
+`parameterJetInexactHorner_error_le_orbit_with_offset` additionally charges a
+target/decoded offset discrepancy `χ` through `errorBudget 0 radius (fun _ => χ) n`.
+Its comparison radii enclose the decoded-offset orbit through `j<n`. They are
+separate from the reference radii used to certify truncation. On the minus-one
+disk, order-three evaluation retains the `1/1000000` cap through iterate sixteen
+if every decoded coefficient and local multiply/add error is at most `2⁻⁴⁰`.
+That concrete result uses the same decoded offset for the target orbit; a
+different offset needs the additional P3 budget.
+
 ## Remaining obligations and next batch
 
 The budgets are exact real inequalities supplied by the caller. No theorem
-here derives them for binary64, GPU arithmetic, overflow, nonfinite input,
-signed zero, or a specific sequence of machine operations. Evaluating the
-budget itself also needs outward rounding. L0's uniform multiplier bound and
+here derives them for binary64, GPU arithmetic, overflow, nonfinite input, or
+signed zero, or proves that a backend executes the mathematical Horner sequence.
+Fused multiply-add and complex scalar-operation order need their own
+correspondence and error bounds. Evaluating the budget itself also needs outward
+rounding. L0's uniform multiplier bound and
 trap constants remain hypotheses. The TypeScript verifier still needs its
 finite-prefix refinement and arithmetic model.
 

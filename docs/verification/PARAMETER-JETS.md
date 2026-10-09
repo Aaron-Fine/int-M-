@@ -5,8 +5,10 @@ It now covers all-order, fixed-seed coefficients of a finite quadratic orbit,
 exact finite truncation, and recursive finite-order coefficient and error
 budgets. The retained-product route avoids the full discarded polynomial and
 has concrete third-order disk certificates at zero and minus one. Finite
-outward budget-table inequalities are checked. Machine coefficient/evaluation arithmetic,
-backend refinement, and measured renderer integration remain open. No supported zoom or classifier policy changes.
+outward budget-table inequalities and conditional decoded Horner error
+composition are checked. Backend operation and coefficient-generation bounds,
+finite decoding validity, and measured renderer integration remain open. No
+supported zoom or classifier policy changes.
 
 ## Second-order algebraic contract
 
@@ -204,6 +206,59 @@ are zero and carry no certificate; the shift step beyond the stored horizon
 fails. This is a nonzero period-two reference witness, not a general deep-tile
 result, a new attracting verdict, or a rounded-evaluation certificate.
 
+## Conditional decoded Horner evaluation
+
+[ParameterJetHorner.lean](../../proof/IntMProof/ParameterJetHorner.lean) fixes an
+inclusive order-`m` operation sequence. Starting with the copied coefficient
+`a m`, each step first calls `mul δ accumulator`, then calls
+`add (a k) product`, descending from `k=m−1` to zero. Order zero copies `a 0`
+and performs no arithmetic. `parameterJetHorner_eq_approximation` identifies
+exact Horner evaluation of the Taylor/Hasse coefficients with the retained jet.
+
+`parameterJetHornerLocalErrors` requires separate multiplication and addition
+residual caps at exactly the decoded operands encountered by that call.
+`parameterJetInexactHorner_error_le` bounds evaluation error by the recurrence
+
+`H(start,0)=0`,
+`H(start,m+1)=Δ H(start+1,m)+ρMul(start)+ρAdd(start)`.
+
+There are `m` multiply/add pairs, with no operation residual for copying the
+leading coefficient. These are functions on mathematical complex values;
+finite machine decoding, primitive operation accuracy, and the scalar operation
+order inside complex primitives require backend correspondence proofs. A fused
+multiply-add sequence needs its own contract.
+
+[ParameterJetEvaluation.lean](../../proof/IntMProof/ParameterJetEvaluation.lean)
+separately bounds decoded coefficient discrepancies
+`‖a k−Aₖ,ₙ‖≤η(k)` for every `0≤k≤m`. Their disk amplification is
+
+`C(m)=∑ₖ₌₀ᵐ η(k) Δ^k`.
+
+This includes both reference-orbit error in `a 0` and error in the copied
+leading coefficient `a m`. `parameterJetInexactHorner_error_le_orbit` combines
+operation error, coefficient error, and a certified exact truncation cap `T(n)`:
+
+`‖inexactHorner−orbit(c+δ,n,z)‖≤H(0,m)+C(m)+T(n)`.
+
+The evaluated decoded `δ` is also the offset defining that target orbit.
+`parameterJetInexactHorner_error_le_orbit_with_offset` handles a separate target
+offset. If `‖targetOffset−decodedOffset‖≤χ`, it adds
+`errorBudget 0 radius (fun _ => χ) n`. The comparison radii must enclose
+`orbit(c+decodedOffset,j,z)` for `j<n`; radii for a different orbit cannot be
+substituted without another enclosure proof.
+
+`minusOneJet_inexactHorner_error_le` gives a concrete conditional arithmetic
+allowance on the existing minus-one disk. At order three, for every `n≤16` and
+`‖δ‖≤1/256`, if all four decoded coefficient errors and each of the three
+multiplication and three addition residuals are at most `2⁻⁴⁰`, the total error
+is at most `1/1000000`. The operation and coefficient allowance is exactly
+`50529025/2^64`; adding the final dyadic truncation row gives
+`18418531238657/2^64`, below `1/1000000`. This theorem compares to the orbit at
+the same decoded offset. A distinct target offset incurs the separate P3 term.
+The arithmetic hypotheses still need proof for a chosen coefficient generator
+and backend; no IEEE754 or renderer refinement follows from this conditional
+composition.
+
 ## Adversarial review and update loop
 
 The second-order reviewer checked seed dependence, residual signs, exponent
@@ -237,15 +292,30 @@ radii. Independent Lean witnesses cover the closed disk boundary, the final
 rational row, table defaults after iterate sixteen, and failure of the shift
 step beyond the certified horizon. Updates were rereviewed before publishing.
 
+The Horner review checked operation order, copied leading-coefficient error,
+order-zero behavior, and the offset comparison orbit. Its updates preserve an
+explicit no-operation order-zero contract, include all retained coefficient
+errors, and identify the decoded-offset orbit as the source of comparison
+radii. The separate multiply/add model also states the remaining fused and
+complex-primitive correspondence obligations. An independent rational check
+confirmed the arithmetic allowance and its margin below the disk cap. Nine
+persistent Lean witnesses check nonzero starting indices, inclusive leading
+coefficient error, poisoned operations at order zero, unused negative caps,
+linear residual amplification, and a nonzero offset mismatch whose comparison
+radii are needed only on the earlier decoded-orbit prefix.
+
 ## Next obligations
 
-1. Choose the coefficient-table and series-evaluation operation sequence.
-   Derive backend-specific bounds for reference radii, computed coefficients,
-   rounded cap generation, evaluation, and rebasing, then combine the machine
-   residuals with P3. The finite outward-table checks provide a certificate
-   consumer; they do not refine binary64 operations or verifier frames.
-   Extend to representative deep-tile reference orbits and assess whether
-   the budgets remain useful at the required horizons.
+1. Prove that a chosen backend's decoded operations follow the separate Horner
+   sequence and satisfy the local residual caps at the actual operands.
+   Specify finite decoding validity and the coefficient-table generator, then
+   prove its inclusive coefficient error bounds, including the reference value
+   and copied leading coefficient. Derive bounds for reference radii, rounded
+   cap generation, offset conversion, and rebasing. The composition above and
+   finite outward-table checks consume these bounds; they do not establish
+   binary64 or verifier-frame correspondence. Extend to representative
+   deep-tile reference orbits and assess whether the budgets remain useful at
+   the required horizons.
 2. Profile the existing renderer before adding a series path. Measure reference
    setup, coefficient storage, rebase frequency, repair rate, and total render
    time. Preserve the [Phase 3 product and numerical gates](PHASE-3-PROOF-PROGRAM.md).
@@ -310,3 +380,18 @@ The finite outward-table and nonzero-disk continuation on 2026-10-08 passed:
   and negative-unused-future witnesses.
 - Changed Markdown formatting and `git diff --check`. Lean v4.33.1 and the
   pinned manifest remain unchanged.
+
+The decoded Horner continuation passed with Lean v4.33.1 and the unchanged
+pinned manifest:
+
+- A bare `lake build` (3173 jobs), including both new theorem modules,
+  nine selected axiom guards, and nine persistent adversarial witnesses.
+- A namespace-wide audit inspected 971 declarations and found only `propext`,
+  `Classical.choice`, and `Quot.sound`; no `sorryAx` or custom axiom appeared.
+- `lake lint`, selecting `[IntMProof.Axioms]`, and `lake exe lint-style` (with
+  the same optional upstream style-exemption warning).
+- Independent exact rational arithmetic reproduced the combined operation and
+  coefficient allowance and confirmed the final margin below `1/1000000`.
+- The adversarial review/update loop and documentation rereview closed with
+  backend correspondence and coefficient generation explicitly left open.
+- Changed Markdown passed pinned Prettier 3.9.9; `git diff --check` passed.

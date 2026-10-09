@@ -36,4 +36,31 @@ example : parameterJetCoefficientErrorBudget (fun k => if k = 2 then 1 else 0) 2
 example : parameterJetCoefficientErrorBudget (fun _ => 3) 2 0 = 3 := by
   norm_num [parameterJetCoefficientErrorBudget]
 
+-- Offset discrepancy uses only the decoded-orbit prefix; later radii may be negative.
+example : ‖parameterJetInexactHorner (fun _ => 0) 0
+    (fun x y => x * y) (fun x y => x + y) 0 0 - orbit (1 / 4) 1 0‖ ≤
+    errorBudget 0 (fun j => if j = 0 then 0 else -99) (fun _ => 1 / 4) 1 := by
+  have h := parameterJetInexactHorner_error_le_orbit_with_offset 0 0 0 (1 / 4)
+    (fun _ => 0) (fun x y => x * y) (fun x y => x + y) 0 (1 / 4)
+    (fun _ => 0) (fun _ => 0) (fun _ => 0)
+    (fun j => if j = 0 then 0 else -99) 0 1 0 (by simp) (by trivial)
+    (by
+      intro k hk
+      have hzero : k = 0 := by omega
+      subst k
+      simp [orbit_succ, quadratic])
+    (by simp [parameterJetApproximation_eq_sum, parameterJetCoefficient_zero,
+        orbit_succ, quadratic])
+    (by
+      simp only [sub_zero]
+      have hcast : (1 / 4 : ℂ) = ((1 / 4 : ℝ) : ℂ) := by norm_num
+      rw [hcast, Complex.norm_real]
+      norm_num)
+    (by
+      intro j hj
+      have hzero : j = 0 := by omega
+      subst j
+      simp)
+  simpa [parameterJetHornerRoundBudget, parameterJetCoefficientErrorBudget] using h
+
 end IntMProof
