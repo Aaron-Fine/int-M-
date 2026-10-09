@@ -17,7 +17,9 @@ def dyadicScale (precision : ℕ) : ℤ := 2 ^ precision
 
 /-- Unbounded integer coordinates on one common dyadic grid. -/
 structure DyadicComplex where
+  /-- Stored real coordinate in units of the common dyadic grid. -/
   re : ℤ
+  /-- Stored imaginary coordinate in units of the common dyadic grid. -/
   im : ℤ
   deriving DecidableEq, Repr
 
@@ -84,7 +86,8 @@ theorem dyadicScalarMultiply_decode (precision : ℕ) (x y : ℤ) :
       x * y / dyadicScale precision := by
     have hscale : ((dyadicScale precision : ℤ) : ℝ) = (2 : ℝ) ^ precision := by
       simp [dyadicScale]
-    rw [← hscale, Int.floor_div_cast_of_nonneg (by dsimp [dyadicScale]; positivity), Int.floor_intCast]
+    rw [← hscale, Int.floor_div_cast_of_nonneg (by dsimp [dyadicScale]; positivity),
+      Int.floor_intCast]
   rw [hfloor]
 
 /-- Decoding the executable complex product gives the scalar-operation model. -/

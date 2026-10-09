@@ -11,6 +11,8 @@ import IntMProof.ParameterJetRecursiveAxioms
 import IntMProof.ParameterJetEnclosureAxioms
 import IntMProof.ParameterJetEvaluationAxioms
 import IntMProof.ParameterJetHornerExamples
+import IntMProof.ParameterJetPrimitiveAxioms
+import IntMProof.ParameterJetPrimitiveExamples
 import IntMProof.TrapPolicyCounterexample
 import IntMProof.GuardPolicyCounterexample
 
