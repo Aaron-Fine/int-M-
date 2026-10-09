@@ -138,12 +138,39 @@ if every decoded coefficient and local multiply/add error is at most `2⁻⁴⁰
 That concrete result uses the same decoded offset for the target orbit; a
 different offset needs the additional P3 budget.
 
+`scalarComplexMultiply_error_le` now composes four scalar product caps with
+subtraction/addition caps at the actual inexact products. The finite retained
+generator accumulates ordered convolution products in ascending index order,
+then performs both final constant adds, even at zero operands. A coefficient
+update has defect at most `(k+1)(μ+α)+2α`. Generation discrepancy propagation
+includes product cross terms and needs only retained coefficients and earlier
+rows. Its inclusive error budgets, or supplied outward error-table inequalities,
+feed the existing weighted coefficient and Horner consumers.
+
+The executable dyadic reference stores unbounded integer coordinates on one
+`2^p` grid. Four separately rounded scalar products give complex multiplication
+residual at most `4·2⁻ᵖ`; grid addition is exact. Integer generation and Horner
+have proved decoded correspondence, so primitive residual hypotheses are
+supplied by the model. `dyadicGeneratedHorner_error_le_orbit` composes this with
+exact coefficient caps and truncation bounds at the same decoded parameter,
+seed, and offset. Copied real integer anchors and seeds have exact retained
+coefficients at every precision and horizon. The concrete
+`minusOneDyadicJetEvaluate_error_le` closes generation and evaluation on the
+42-bit fractional grid at reference `−1`, seed zero, order three, every `n≤16`,
+and `‖decode₄₂(δ)‖≤1/256`, with total error at most `1/1000000` and no external
+coefficient or primitive-accuracy hypotheses. Fractional anchors still require
+generation-error budgets. This reference model does not refine binary64 or GPU
+numbers; the target is the same decoded grid offset.
+
 ## Remaining obligations and next batch
 
-The budgets are exact real inequalities supplied by the caller. No theorem
+The remaining backend-dependent budgets are exact real inequalities supplied
+by the caller. No theorem
 here derives them for binary64, GPU arithmetic, overflow, nonfinite input, or
-signed zero, or proves that a backend executes the mathematical Horner sequence.
-Fused multiply-add and complex scalar-operation order need their own
+signed zero, or proves that the TypeScript backend executes the specified
+coefficient generator and Horner sequence. The separate scalar-operation order
+and unbounded-integer reference correspondence are now specified and proved;
+fused, square-specific, and symmetry-based alternatives need their own
 correspondence and error bounds. Evaluating the budget itself also needs outward
 rounding. L0's uniform multiplier bound and
 trap constants remain hypotheses. The TypeScript verifier still needs its

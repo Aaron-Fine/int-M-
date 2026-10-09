@@ -5,10 +5,12 @@ It now covers all-order, fixed-seed coefficients of a finite quadratic orbit,
 exact finite truncation, and recursive finite-order coefficient and error
 budgets. The retained-product route avoids the full discarded polynomial and
 has concrete third-order disk certificates at zero and minus one. Finite
-outward budget-table inequalities and conditional decoded Horner error
-composition are checked. Backend operation and coefficient-generation bounds,
-finite decoding validity, and measured renderer integration remain open. No
-supported zoom or classifier policy changes.
+outward budget-table inequalities and decoded Horner error composition are
+checked. Scalar primitive contracts and finite coefficient-generation budgets
+now connect to an executable unbounded-integer dyadic reference model. Actual
+binary64/TypeScript decoding and arithmetic refinement, useful deep-reference
+horizons, and measured renderer integration remain open. No supported zoom or
+classifier policy changes.
 
 ## Second-order algebraic contract
 
@@ -259,6 +261,107 @@ The arithmetic hypotheses still need proof for a chosen coefficient generator
 and backend; no IEEE754 or renderer refinement follows from this conditional
 composition.
 
+## Scalar primitives and finite coefficient generation
+
+[ScalarComplexArithmetic.lean](../../proof/IntMProof/ScalarComplexArithmetic.lean)
+fixes the complex multiplication topology used in `src/domain/complex.ts`:
+four separate scalar products, then real-component subtraction and
+imaginary-component addition. `scalarComplexMultiply_error_le` bounds the
+complex residual by the sum of all six scalar residual caps. The subtraction
+and addition caps concern their actual inexact-product operands. Componentwise
+complex addition consumes two scalar addition caps. These contracts specify
+mathematical decoded operations; they do not derive JavaScript-number errors
+or model a fused multiply-add.
+
+[ParameterJetGeneration.lean](../../proof/IntMProof/ParameterJetGeneration.lean)
+defines an inclusive retained coefficient generator. Each coefficient `k`
+accumulates `a j * a (k−j)` in ascending `j=0,…,k` order, starting from zero,
+then performs the forcing-constant add and the reference-parameter add. Both
+final adds run even when their operands vanish. Constants `c`, `z`, zero, and
+one are copied exactly in this decoded model; copying error requires an
+additional contract. Later rows reset omitted orders to zero. Exact operations
+recover every retained Taylor/Hasse coefficient without requiring higher
+orders. The generator uses all ordered products; symmetry-based convolution,
+`complexSquareAdd`, and fused operations would require their own correspondence.
+
+With a product residual cap `μ` and addition cap `α` at every actual operand,
+`parameterJetCoefficientUpdate_error_le` bounds the local update defect by
+
+`ρ(n,k) = (k+1)(μ(n,k)+α(n,k)) + 2α(n,k)`.
+
+If `B(n,k)` bounds the exact coefficient norm, generation error is propagated by
+`parameterJetGenerationBudget`:
+
+`E(0,k)=0`,
+`E(n+1,k)=∑ⱼ₌₀ᵏ [(B(n,j)+E(n,j))E(n,k−j)+E(n,j)B(n,k−j)] + ρ(n,k)`.
+
+The product discrepancy includes the cross term `E(n,j)E(n,k−j)`.
+`parameterJetGeneratedCoefficient_error_le` needs exact coefficient caps and
+local update defects only at earlier rows `m<n` and retained indices
+`k≤order`. Order zero and the inclusive leading coefficient both count.
+`parameterJetGeneratedCoefficient_error_le_enclosure` accepts an outward error
+table whose initial retained entries are nonnegative and whose earlier step
+inequalities dominate this recurrence. No future rows or omitted-order caps
+are required. `parameterJetGeneratedHorner_error_le_orbit` feeds these errors
+into the weighted coefficient, Horner-operation, and truncation composition;
+generation and evaluation may use different decoded primitive functions.
+
+## Executable dyadic reference arithmetic
+
+[DyadicArithmetic.lean](../../proof/IntMProof/DyadicArithmetic.lean) stores both
+complex coordinates as unbounded integers on a common grid with scale `2^p`.
+`dyadicMultiply` computes four scalar integer products and rounds each down by
+Euclidean division by the positive scale, then uses exact integer subtraction
+and addition. Its decoding agrees with the scalar floor-rounding model,
+including negative products. A scalar product has absolute error at most
+`2⁻ᵖ`; the decoded complex residual is at most `4·2⁻ᵖ`.
+`dyadicAdd` decodes exactly, so its addition residual is zero.
+`dyadicDecode_horner` identifies executable integer Horner evaluation with the
+specified decoded operation sequence, and `dyadicHorner_local_errors`
+discharges its actual residual hypotheses.
+
+[DyadicJetGeneration.lean](../../proof/IntMProof/DyadicJetGeneration.lean)
+implements the same ascending convolution, zero accumulator, and two final
+constant adds using that grid. Represented zero and one decode exactly, as do
+the copied represented parameter and seed. `dyadicDecode_generatedCoefficient`
+proves correspondence for every generated row and index.
+`dyadicGeneration_local_errors` discharges the generator's update residuals
+with `ρ(n,k)=(k+1)4·2⁻ᵖ`. `dyadicGeneratedHorner_error_le_orbit` composes
+executable generation and evaluation with supplied exact coefficient caps and
+an exact truncation certificate, at the same decoded constants and offset.
+
+[DyadicIntegerJets.lean](../../proof/IntMProof/DyadicIntegerJets.lean) proves
+that copied real integer parameters and seeds preserve exact integer
+coefficients under this executable convolution. The grid product has no
+rounding remainder on represented integers.
+`dyadicGeneratedCoefficient_decode_integer_exact` therefore gives zero
+coefficient discrepancy at every retained index, for every precision, horizon,
+and retained order. This concerns real integer anchors and seeds; a fractional
+grid anchor can incur coefficient-generation error and uses the general
+recurrence instead. No omitted coefficient is asserted to equal the full
+Taylor coefficient.
+
+[DyadicJetCertificate.lean](../../proof/IntMProof/DyadicJetCertificate.lean)
+defines `minusOneDyadicJetEvaluate`: generate coefficients zero through three
+at the copied reference `c=−1`, seed zero, then evaluate by integer Horner on
+a fixed grid with 42 fractional bits. Generated coefficients are exact. Each
+complex multiplication residual is at most `4·2⁻⁴²=2⁻⁴⁰`, and addition is exact.
+`minusOneDyadicJetEvaluate_error_le` proves
+
+`‖decode₄₂(minusOneDyadicJetEvaluate δ n) − orbit(−1+decode₄₂(δ),n,0)‖ ≤ 1/1000000`
+
+for every `n≤16` and every represented offset with `‖decode₄₂(δ)‖≤1/256`,
+including the closed boundary. It needs no external coefficient-generation or
+primitive-accuracy hypotheses. The Horner-operation allowance is exactly
+`65793/2^56`; adding the final truncation row gives `71947256065/2^56`, below
+`1/1000000`. The target uses the same decoded grid offset. A distinct intended
+parameter requires the separate offset-discrepancy budget.
+
+Integer storage has no fixed word-size limit. This is an executable reference
+arithmetic model, with a mathematical complex decoding, rather than an IEEE754
+or renderer refinement. It adds no production series accelerator, zoom change,
+classifier policy, or performance claim.
+
 ## Adversarial review and update loop
 
 The second-order reviewer checked seed dependence, residual signs, exponent
@@ -304,16 +407,31 @@ coefficient error, poisoned operations at order zero, unused negative caps,
 linear residual amplification, and a nonzero offset mismatch whose comparison
 radii are needed only on the earlier decoded-orbit prefix.
 
+The scalar/generation reviewer checked actual product operands, the ordered
+convolution loop, both final constant adds, and the generation cross term.
+Its precision updates now require both copied real integer anchors and seeds
+for exact generation, and distinguish remaining caller-supplied backend
+budgets from derived dyadic primitive bounds. Twenty-five persistent Lean
+witnesses cover negative Euclidean division, separate versus grouped scalar
+products, order zero versus zero horizon, ascending convolution order, both
+zero-operand adds, negative unused caps, copying a complex seed, exact real
+integer anchors and seeds, fractional-anchor and omitted-order counterexamples,
+and the closed 42-bit-grid disk boundary at iterate sixteen. An independent
+exact-fraction check reproduced the combined bound `71947256065/2^56` and its
+positive margin below `1/1000000`. The updated contracts and documentation were
+independently rereviewed before publishing.
+
 ## Next obligations
 
-1. Prove that a chosen backend's decoded operations follow the separate Horner
-   sequence and satisfy the local residual caps at the actual operands.
-   Specify finite decoding validity and the coefficient-table generator, then
-   prove its inclusive coefficient error bounds, including the reference value
-   and copied leading coefficient. Derive bounds for reference radii, rounded
-   cap generation, offset conversion, and rebasing. The composition above and
-   finite outward-table checks consume these bounds; they do not establish
-   binary64 or verifier-frame correspondence. Extend to representative
+1. Refine the specified scalar multiplication, ascending retained generator,
+   and Horner sequence to an actual backend, including finite decoding and
+   local primitive errors at the actual operands. The unbounded-integer dyadic
+   reference already supplies executable correspondence and primitive bounds,
+   and its minus-one certificate closes generation/evaluation error through
+   iterate sixteen. Binary64/TypeScript arithmetic still needs those proofs. Account for
+   reference/seed conversion, reference radii, outward cap generation, target
+   offset conversion, and rebasing. Alternative square, symmetric-convolution,
+   and fused-operation paths need their own contracts. Extend to representative
    deep-tile reference orbits and assess whether the budgets remain useful at
    the required horizons.
 2. Profile the existing renderer before adding a series path. Measure reference
@@ -394,4 +512,20 @@ pinned manifest:
   coefficient allowance and confirmed the final margin below `1/1000000`.
 - The adversarial review/update loop and documentation rereview closed with
   backend correspondence and coefficient generation explicitly left open.
+- Changed Markdown passed pinned Prettier 3.9.9; `git diff --check` passed.
+
+The scalar, generation, and executable dyadic continuation passed with Lean
+v4.33.1 and the unchanged pinned manifest:
+
+- Rebuilt project artifacts from scratch, then passed a bare `lake build`
+  (3181 jobs), including all six new theorem modules and aggregate imports.
+- Twenty-one new selected axiom guards and twenty-five persistent adversarial
+  witnesses passed. The namespace-wide audit inspected 1142 declarations and
+  found only `propext`, `Classical.choice`, and `Quot.sound`.
+- `lake lint`, selecting `[IntMProof.Axioms]`, passed after documenting the
+  stored integer coordinate fields. `lake exe lint-style` passed with the same
+  optional upstream style-exemption warning.
+- Independent exact-fraction arithmetic confirmed the final total and positive
+  margin, and the adversarial review/update and documentation rereview loops
+  closed before publishing.
 - Changed Markdown passed pinned Prettier 3.9.9; `git diff --check` passed.
