@@ -116,5 +116,30 @@ the tile could hide residual-arithmetic drift. The update added both source
 body observations and intermediate-frame comparisons, plus a policy-margin
 refusal test. All eight focused tests passed again, and the independent
 adversarial rereview found no remaining blockers or overstated scope claims.
-Final build, lint, axiom-audit, and browser results are recorded below after
-the checks complete.
+
+Validated on 2026-10-09:
+
+- The focused local Lean build passed 2123 jobs, including all five new
+  axiom guards. Only `propext`, `Classical.choice`, and `Quot.sound` occur.
+  Local `lake exe lint-style` passed; the existing optional upstream
+  style-exemption file remains absent.
+- `npm run check` passed formatting, ESLint, every TypeScript configuration,
+  catalog/fixture checks, all 375 unit tests in 46 files, and the production
+  build. Local Node was 24.19.0; npm 11.9.0 reported the existing requested
+  npm 12.1.0 minimum. Dependencies and lockfiles are unchanged.
+- [CI run 84](https://github.com/Aaron-Fine/int-M-/actions/runs/37939823135)
+  passed all three jobs on implementation/proof commit
+  `c0fa00d3d3f9d61cae570b6f30c1de469491d906`: Lean, static/unit checks, and
+  Chromium/Firefox browser tests. The full Lean build passed 3185 jobs;
+  declaration lint, aggregate axiom guards, and source style passed.
+  The namespace audit inspected 1291 declarations and found only the three
+  allowed standard axioms, with no `sorryAx` or custom axiom.
+- Browser validation used CI's pinned Playwright container. Local browser
+  installation received truncated download archives, so no local browser
+  success is claimed.
+- `git diff --check` passed. Production source and imports are unchanged;
+  the pilot is absent from the production bundle.
+
+The pilot's definition of done is met. Further numerical generalization
+requires a named consumer and its measured need; no additional arithmetic
+backend or renderer work is implied by this certificate.
