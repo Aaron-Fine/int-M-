@@ -6,7 +6,7 @@ package intMProof where
   lintDriverArgs := #["IntMProof.Axioms"]
   @[default_target]
   lean_lib IntMProof where
-    -- Keep root submodules addressable; build every check and lint the aggregate once.
+    -- Select the root to keep its submodules buildable, then build every audit import.
     globs := #[.one `IntMProof, .one `IntMProof.Axioms]
 
 require mathlib from git

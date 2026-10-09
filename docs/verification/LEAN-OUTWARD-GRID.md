@@ -138,8 +138,14 @@ checker does not cover production candidate selection, nonfinite handling,
 per-pixel angle or κ fields, or binary64/TypeScript refinement. Translating
 the backend to fixed-word arithmetic needs explicit overflow and error bounds.
 
-The next useful step is to certify a finite binary64 evaluation order or
-generalize the rational-grid decision checker to arbitrary candidates while
-preserving refusal. A production use still needs implementation refinement,
-oracle agreement, and the existing target-browser evidence gates. The
-supported zoom ceiling remains `6,000,000×`.
+The complementary [bounded binary64 correctness pilot](PERIOD-TWO-VERIFIER-PILOT.md)
+now audits a finite critical-seed evaluation and policy with exact BigInt
+checks. It does not refine this arbitrary-size rational-grid backend to
+binary64. Generalizing this checker to arbitrary candidates while preserving
+refusal remains open and should follow a measured consumer. Production use
+still needs implementation refinement, oracle agreement, and the existing
+target-browser evidence gates. The supported zoom ceiling remains `6,000,000×`.
+
+PR #22 was reconciled with merged PR #21 on 2026-10-09. Both certificate
+families and their aggregate axiom imports are retained; the 947-declaration
+audit above records the original outward-grid batch, before that reconciliation.
