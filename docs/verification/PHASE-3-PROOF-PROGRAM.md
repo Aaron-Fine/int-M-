@@ -56,6 +56,17 @@ tracks theorem status. Each work packet should link a Lean declaration, the
 consumer code, the oracle fixture, and the measured evidence before its gate
 is marked complete.
 
+### Checked rational-grid precursor
+
+The [outward-grid continuation](LEAN-OUTWARD-GRID.md) provides a specified
+arbitrary-size rational backend: endpoints round down/up on a positive grid,
+finite orbit/multiplier boxes remain sound, and a period-two tile checker
+certifies exact-model acceptance or explicitly refuses an inconclusive box.
+Computed residual boxes also discharge stored-reference local allowances,
+and the rational error recurrence casts to the real budget. This precursor
+does not discharge the binary64/TypeScript slice below or authorize a product
+Phase 3 launch.
+
 ### First executable proof slice
 
 The [bounded P4 numerical-kernel pilot](NUMERICAL-KERNEL-PILOT.md) now provides

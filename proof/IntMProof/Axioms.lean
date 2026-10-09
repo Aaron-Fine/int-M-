@@ -4,6 +4,7 @@ import IntMProof.InteriorFieldAxioms
 import IntMProof.RealSlicePeriodTwoAxioms
 import IntMProof.GlitchGateAxioms
 import IntMProof.RationalBoxOrbitAxioms
+import IntMProof.OutwardGridAxioms
 import IntMProof.ParameterJetAxioms
 import IntMProof.ParameterJetTaylorAxioms
 import IntMProof.ParameterJetTruncationAxioms
@@ -575,3 +576,309 @@ import IntMProof.GuardPolicyCounterexample
 /-- info: 'IntMProof.real_above_quarter_fixedPoint_repelling' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.real_above_quarter_fixedPoint_repelling
+-- Disk enclosures, primitive-period certificates, and their exact witness.
+/-- info: 'IntMProof.diskOrbitError_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.diskOrbitError_zero
+
+/-- info: 'IntMProof.diskOrbitError_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.diskOrbitError_succ
+
+/-- info: 'IntMProof.diskOrbitError_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.diskOrbitError_nonneg
+
+/-- info: 'IntMProof.diskOrbitRadius_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.diskOrbitRadius_nonneg
+
+/-- info: 'IntMProof.orbit_sub_reference_le_diskOrbitError' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_sub_reference_le_diskOrbitError
+
+/-- info: 'IntMProof.orbit_norm_le_diskOrbitRadius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_norm_le_diskOrbitRadius
+
+/-- info: 'IntMProof.multiplierBound_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.multiplierBound_zero
+
+/-- info: 'IntMProof.multiplierBound_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.multiplierBound_succ
+
+/-- info: 'IntMProof.multiplierBound_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.multiplierBound_nonneg
+
+/-- info: 'IntMProof.seedDerivative_norm_le_multiplierBound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.seedDerivative_norm_le_multiplierBound
+
+/-- info: 'IntMProof.seedDerivative_norm_le_disk_multiplier' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.seedDerivative_norm_le_disk_multiplier
+
+/-- info: 'IntMProof.center_return_norm_le_diskCenterReturnBound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.center_return_norm_le_diskCenterReturnBound
+
+/-- info: 'IntMProof.lipschitzOnWith_orbit_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.lipschitzOnWith_orbit_of_disk_enclosure
+
+/-- info: 'IntMProof.existsUnique_fixedPoint_orbit_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_fixedPoint_orbit_of_disk_enclosure
+
+/-- info: 'IntMProof.orbit_ne_of_disk_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_ne_of_disk_separation
+
+/-- info: 'IntMProof.minimalPeriod_eq_of_disk_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.minimalPeriod_eq_of_disk_separation
+
+/-- info: 'IntMProof.prime_quotient_returns_ne_of_disk_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.prime_quotient_returns_ne_of_disk_separation
+
+/-- info: 'IntMProof.existsUnique_primitivePoint_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_primitivePoint_of_disk_enclosure
+
+/-- info: 'IntMProof.uniform_primitivePoint_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.uniform_primitivePoint_of_disk_enclosure
+
+/-- info: 'IntMProof.critical_entry_of_reference_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.critical_entry_of_reference_enclosure
+
+/-- info: 'IntMProof.existsUnique_primitive_critical_return_of_disk_enclosure' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_primitive_critical_return_of_disk_enclosure
+
+/-- info: 'IntMProof.periodTwo_disk_multiplier_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_multiplier_bound
+
+/-- info: 'IntMProof.periodTwo_disk_center_return_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_center_return_bound
+
+/-- info: 'IntMProof.periodTwo_disk_divisor_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_divisor_separation
+
+/-- info: 'IntMProof.uniform_periodTwo_critical_disk_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.uniform_periodTwo_critical_disk_certificate
+
+-- Parameter enclosures and finite continuation.
+
+/-- info: 'IntMProof.parameterDerivativeBound_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_zero
+
+/-- info: 'IntMProof.parameterDerivativeBound_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_succ
+
+/-- info: 'IntMProof.parameterDerivativeBound_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_nonneg
+
+/-- info: 'IntMProof.parameterDerivativeBound_mono' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivativeBound_mono
+
+/-- info: 'IntMProof.parameterDerivative_norm_le_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivative_norm_le_bound
+
+/-- info: 'IntMProof.parameterDerivative_norm_le_disk_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivative_norm_le_disk_bound
+
+/-- info: 'IntMProof.lipschitzOnWith_parameter_orbit_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.lipschitzOnWith_parameter_orbit_of_disk_enclosure
+
+/-- info: 'IntMProof.one_sub_multiplier_norm_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.one_sub_multiplier_norm_lower
+
+/-- info: 'IntMProof.multiplier_ne_one_of_norm_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.multiplier_ne_one_of_norm_bound
+
+/-- info: 'IntMProof.branchSlope_norm_le_of_bounds' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.branchSlope_norm_le_of_bounds
+
+/-- info: 'IntMProof.disk_branch_denominator_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.disk_branch_denominator_lower
+
+/-- info: 'IntMProof.disk_branchSlope_norm_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.disk_branchSlope_norm_le
+
+/-- info: 'IntMProof.disk_predictorDisplacement_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.disk_predictorDisplacement_le
+
+/-- info: 'IntMProof.exists_branch_of_disk_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.exists_branch_of_disk_enclosure
+
+/-- info: 'IntMProof.orbit_dist_le_disk_joint_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_dist_le_disk_joint_bound
+
+/-- info: 'IntMProof.periodicPoint_dist_le_disk_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodicPoint_dist_le_disk_bound
+
+/-- info: 'IntMProof.periodTwo_disk_parameter_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_parameter_bound
+
+/-- info: 'IntMProof.periodTwo_disk_denominator_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_denominator_lower
+
+/-- info: 'IntMProof.periodTwo_disk_slope_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_slope_bound
+
+/-- info: 'IntMProof.periodTwo_disk_predictor_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_disk_predictor_bound
+
+/-- info: 'IntMProof.periodTwo_periodicPoint_dist_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodTwo_periodicPoint_dist_bound
+
+-- Stored-reference enclosures and disk consumers.
+
+/-- info: 'IntMProof.storedOrbitError_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitError_zero
+
+/-- info: 'IntMProof.storedOrbitError_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitError_succ
+
+/-- info: 'IntMProof.storedOrbitError_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitError_nonneg
+
+/-- info: 'IntMProof.storedOrbitError_mono' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitError_mono
+
+/-- info: 'IntMProof.storedReference_error_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedReference_error_succ
+
+/-- info: 'IntMProof.orbit_sub_storedReference_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_sub_storedReference_le_budget
+
+/-- info: 'IntMProof.storedOrbitRadius_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitRadius_nonneg
+
+/-- info: 'IntMProof.orbit_norm_le_storedOrbitRadius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_norm_le_storedOrbitRadius
+
+/-- info: 'IntMProof.seed_sub_storedReference_zero_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.seed_sub_storedReference_zero_le
+
+/-- info: 'IntMProof.orbit_sub_storedReference_le_budget_from' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_sub_storedReference_le_budget_from
+
+/-- info: 'IntMProof.storedOrbitError_exact_reference' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitError_exact_reference
+
+/-- info: 'IntMProof.storedOrbitRadius_exact_reference' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedOrbitRadius_exact_reference
+
+/-- info: 'IntMProof.seedDerivative_norm_le_stored_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.seedDerivative_norm_le_stored_bound
+
+/-- info: 'IntMProof.parameterDerivative_norm_le_stored_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.parameterDerivative_norm_le_stored_bound
+
+/-- info: 'IntMProof.center_return_norm_le_stored_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.center_return_norm_le_stored_bound
+
+/-- info: 'IntMProof.stored_branch_denominator_lower' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.stored_branch_denominator_lower
+
+/-- info: 'IntMProof.stored_branchSlope_norm_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.stored_branchSlope_norm_le
+
+/-- info: 'IntMProof.existsUnique_fixedPoint_of_stored_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_fixedPoint_of_stored_enclosure
+
+/-- info: 'IntMProof.orbit_ne_of_stored_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_ne_of_stored_separation
+
+/-- info: 'IntMProof.minimalPeriod_eq_of_stored_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.minimalPeriod_eq_of_stored_separation
+
+/-- info: 'IntMProof.existsUnique_primitivePoint_of_stored_enclosure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.existsUnique_primitivePoint_of_stored_enclosure
+
+/-- info: 'IntMProof.critical_entry_of_storedReference' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.critical_entry_of_storedReference
+
+/-- info: 'IntMProof.storedPeriodTwo_initial_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedPeriodTwo_initial_bound
+
+/-- info: 'IntMProof.storedPeriodTwo_radius_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedPeriodTwo_radius_bound
+
+/-- info: 'IntMProof.storedPeriodTwo_residual_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedPeriodTwo_residual_bound
+
+/-- info: 'IntMProof.storedPeriodTwo_multiplier_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedPeriodTwo_multiplier_bound
+
+/-- info: 'IntMProof.storedPeriodTwo_center_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedPeriodTwo_center_bound
+
+/-- info: 'IntMProof.storedPeriodTwo_divisor_separation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.storedPeriodTwo_divisor_separation
+
+/-- info: 'IntMProof.uniform_storedPeriodTwo_disk_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.uniform_storedPeriodTwo_disk_certificate
