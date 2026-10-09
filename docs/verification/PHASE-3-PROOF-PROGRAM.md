@@ -65,17 +65,25 @@ Its frozen coefficient packet is Lean checked; JavaScript decoder/checker
 correspondence remains trusted/tested. It makes no verifier, classification,
 performance, or Phase 3 release claim and does not close the pilot below.
 
-Use the existing period-two tile near `c = -1` as the pilot. Specify the
-binary64 evaluation order of the critical two-step orbit and period-two
-verifier frames in [`verifier.ts`](../../src/domain/verifier.ts) and the
-[`orbit.ts`](../../src/domain/orbit.ts) inline path, including the one-step
-proper-divisor frame. Enclose each operation and
-comparison for finite representable parameters in the tile, then connect
-those enclosures to `periodTwoRationalTile_residual_margins` and the V0/V1
-decision. The exit artifact is a checked theorem or executable certificate
-that either proves the same period-two verdict for a stated representable
-subregion or explicitly refuses parameters whose rounded margin is not
-certified. This pilot does not alter the supported zoom bound.
+The [period-two correctness pilot](PERIOD-TWO-VERIFIER-PILOT.md) now closes
+this bounded slice through an executable certificate and a checked Lean
+conditional bridge. For finite decoded parameters in the existing rectangle
+`|Re(c)+1|, |Im(c)| <= 2^-32`, with critical seed zero and proposed period two,
+exact BigInt checks audit the two-step candidate, the one-step proper divisor,
+zero derivative products, rounded residual squares, and actual policy cutoffs.
+`periodTwoVerifierPilot_audited_accepts` proves V0/V1 acceptance and the full
+supplied record from these margins. The production verifier must agree before
+the pilot returns `audited`; any uncertified arithmetic or disagreement refuses.
+
+The actual `orbit.ts` inline block is executed at the same seed in a source
+extraction test, bypassing analytic/proposal paths only in the test harness.
+JavaScript decoding/checking and source correspondence remain trusted/tested;
+this is not a formal TypeScript or engine refinement. The critical-seed zero
+multiplier is not the multiplier of the true nearby attracting cycle. The
+existing independent trap certificate supplies that cycle claim. No renderer
+integration, tile fill, performance claim, product gate, or zoom change follows.
+General finite-prefix correspondence, arbitrary candidates and periods,
+nonzero multiplier/`hypot` bounds, and output accuracy remain open.
 
 ## Optional performance math packets
 

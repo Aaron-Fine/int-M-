@@ -176,9 +176,16 @@ rounding. L0's uniform multiplier bound and
 trap constants remain hypotheses. The TypeScript verifier still needs its
 finite-prefix refinement and arithmetic model.
 
-The rational-box J0/J1 tile and primitive period-two trap already supply scoped
-exact enclosures and divisor exclusions. The numerical frontier is to refine
-those certificates to the [finite binary64 pilot](PHASE-3-PROOF-PROGRAM.md#first-executable-proof-slice):
+The [bounded period-two correctness pilot](PERIOD-TWO-VERIFIER-PILOT.md) now
+connects the rational-box J0/J1 tile to audited binary64 critical-seed frames:
+exact BigInt discrepancy/cutoff checks supply
+`periodTwoVerifierPilot_audited_accepts`, and the actual verifier must agree.
+For this two-step slice, direct exact iteration replaces a general P3 error
+recurrence. JavaScript decoding/checking and source correspondence remain
+trusted/tested. This closes the scoped executable-certificate pilot, not
+universal backend bounds or production perturbation refinement.
+
+Further numerical work should follow a demonstrated consumer:
 
 1. Extend exact reference-radius and multiplier certificates to other stated
    disks when a consumer needs them; retain explicit finite-prefix domains.
