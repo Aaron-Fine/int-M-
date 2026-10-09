@@ -21,6 +21,8 @@ import IntMProof.ParameterJetRecursiveBound
 import IntMProof.ParameterJetDisk
 import IntMProof.ParameterJetEnclosure
 import IntMProof.ParameterJetNonzeroDisk
+import IntMProof.ParameterJetHorner
+import IntMProof.ParameterJetEvaluation
 import IntMProof.Symmetry
 import IntMProof.LogisticChart
 import IntMProof.MultiplierPhase
