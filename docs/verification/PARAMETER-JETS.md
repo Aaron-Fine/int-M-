@@ -438,6 +438,31 @@ independently rereviewed before publishing.
    setup, coefficient storage, rebase frequency, repair rate, and total render
    time. Preserve the [Phase 3 product and numerical gates](PHASE-3-PROOF-PROGRAM.md).
 
+## Bounded binary64 evaluator pilot
+
+The [numerical-kernel pilot](NUMERICAL-KERNEL-PILOT.md) records the prior-art
+check and a deliberately finite executable consumer. It reuses the existing
+complex multiplication expression and three Horner steps at reference `-1`,
+seed zero, order three, and `n≤16`. A literal integer coefficient packet has
+checked exact correspondence in `minusOneJetKernelCoefficient_eq`.
+`minusOneJetKernel_error_le` specializes the existing disk theorem to this
+packet under actual complex multiply/add residual caps of `2⁻⁴⁰`.
+
+The isolated TypeScript consumer decodes finite binary64 inputs and operation
+results exactly into BigInt units, checks disk membership and those local
+residual caps, and either returns an **audited** approximation with exact
+`1/1000000` allowance or refuses. It supports represented offsets throughout
+the disk, including subnormals, without imposing the dyadic reference's 42-bit
+grid. Its target is the mathematical parameter `-1 + decoded offset`; a
+separately rounded parameter sum or intended-input discrepancy is not included.
+
+This is per-call checked numerical evidence relying on a trusted/tested
+JavaScript decoder and checker. It is not a machine-checked correspondence
+proof for TypeScript, a binary64 generator, a classification rule, or a
+renderer optimization. The complete binary64/TypeScript and performance
+obligations remain open. The packet has no new dependencies or configurable
+precision/order/anchor and is not imported by the production renderer.
+
 ## Validation
 
 Initial second-order batch checked on 2026-10-08 with Lean v4.33.1 and the unchanged pinned manifest:
@@ -529,3 +554,18 @@ v4.33.1 and the unchanged pinned manifest:
   margin, and the adversarial review/update and documentation rereview loops
   closed before publishing.
 - Changed Markdown passed pinned Prettier 3.9.9; `git diff --check` passed.
+
+The bounded numerical-kernel continuation passed with Lean v4.33.1 and the
+unchanged pinned manifest:
+
+- Bare `lake build` (3183 jobs), three new selected axiom guards, `lake lint`,
+  and `lake exe lint-style` passed. The namespace audit inspected 1153
+  declarations and found only the three standard permitted axioms.
+- `npm run check` passed, including 367 unit tests in 45 files and the
+  production build. Eight focused kernel tests include exact-rational orbit
+  comparisons at every certified horizon, packet parity, disk/format boundaries,
+  operation order, and corrupted-result refusal.
+- The independent adversarial review/update loop added inclusive residual
+  threshold and summed-component witnesses; the focused tests passed again.
+  See the [pilot record](NUMERICAL-KERNEL-PILOT.md) for exact scope, trust boundary,
+  local tool versions, and reuse decisions. P4 remains partial.

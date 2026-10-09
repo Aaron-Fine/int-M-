@@ -58,6 +58,13 @@ is marked complete.
 
 ### First executable proof slice
 
+The [bounded P4 numerical-kernel pilot](NUMERICAL-KERNEL-PILOT.md) now provides
+a separate research-only consumer of the existing minus-one jet certificate:
+three binary64 Horner steps with per-call exact BigInt disk/residual checks.
+Its frozen coefficient packet is Lean checked; JavaScript decoder/checker
+correspondence remains trusted/tested. It makes no verifier, classification,
+performance, or Phase 3 release claim and does not close the pilot below.
+
 Use the existing period-two tile near `c = -1` as the pilot. Specify the
 binary64 evaluation order of the critical two-step orbit and period-two
 verifier frames in [`verifier.ts`](../../src/domain/verifier.ts) and the
