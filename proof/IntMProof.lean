@@ -29,6 +29,7 @@ import IntMProof.ParameterJetGeneration
 import IntMProof.DyadicJetGeneration
 import IntMProof.DyadicIntegerJets
 import IntMProof.DyadicJetCertificate
+import IntMProof.MinusOneJetKernel
 import IntMProof.Symmetry
 import IntMProof.LogisticChart
 import IntMProof.MultiplierPhase
