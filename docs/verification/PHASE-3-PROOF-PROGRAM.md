@@ -58,17 +58,32 @@ is marked complete.
 
 ### First executable proof slice
 
-Use the existing period-two tile near `c = -1` as the pilot. Specify the
-binary64 evaluation order of the critical two-step orbit and period-two
-verifier frames in [`verifier.ts`](../../src/domain/verifier.ts) and the
-[`orbit.ts`](../../src/domain/orbit.ts) inline path, including the one-step
-proper-divisor frame. Enclose each operation and
-comparison for finite representable parameters in the tile, then connect
-those enclosures to `periodTwoRationalTile_residual_margins` and the V0/V1
-decision. The exit artifact is a checked theorem or executable certificate
-that either proves the same period-two verdict for a stated representable
-subregion or explicitly refuses parameters whose rounded margin is not
-certified. This pilot does not alter the supported zoom bound.
+The [bounded P4 numerical-kernel pilot](NUMERICAL-KERNEL-PILOT.md) now provides
+a separate research-only consumer of the existing minus-one jet certificate:
+three binary64 Horner steps with per-call exact BigInt disk/residual checks.
+Its frozen coefficient packet is Lean checked; JavaScript decoder/checker
+correspondence remains trusted/tested. It makes no verifier, classification,
+performance, or Phase 3 release claim and does not close the pilot below.
+
+The [period-two correctness pilot](PERIOD-TWO-VERIFIER-PILOT.md) now closes
+this bounded slice through an executable certificate and a checked Lean
+conditional bridge. For finite decoded parameters in the existing rectangle
+`|Re(c)+1|, |Im(c)| <= 2^-32`, with critical seed zero and proposed period two,
+exact BigInt checks audit the two-step candidate, the one-step proper divisor,
+zero derivative products, rounded residual squares, and actual policy cutoffs.
+`periodTwoVerifierPilot_audited_accepts` proves V0/V1 acceptance and the full
+supplied record from these margins. The production verifier must agree before
+the pilot returns `audited`; any uncertified arithmetic or disagreement refuses.
+
+The actual `orbit.ts` inline block is executed at the same seed in a source
+extraction test, bypassing analytic/proposal paths only in the test harness.
+JavaScript decoding/checking and source correspondence remain trusted/tested;
+this is not a formal TypeScript or engine refinement. The critical-seed zero
+multiplier is not the multiplier of the true nearby attracting cycle. The
+existing independent trap certificate supplies that cycle claim. No renderer
+integration, tile fill, performance claim, product gate, or zoom change follows.
+General finite-prefix correspondence, arbitrary candidates and periods,
+nonzero multiplier/`hypot` bounds, and output accuracy remain open.
 
 ## Optional performance math packets
 
@@ -86,10 +101,7 @@ candidate frequency, tile sizes, and time spent in verification and rebasing.
    A shared status and period do not determine each pixel's multiplier,
    rotation angle, or κ; preserve those fields through individual evaluation
    or separately certified approximations.
-2. **P4: reuse higher-order parameter series.** For
-   `z_n(c₀+δ) = Z_n + B_n δ + C_n δ² + …`, prove
-   `C₀ = 0` and `Cₙ₊₁ = 2Zₙ Cₙ + Bₙ²` for a fixed seed, then bound the
-   finite-order remainder on a stated disk. Combine coefficient, evaluation,
+2. **P4: reuse higher-order parameter series.** The [parameter-jet batches](PARAMETER-JETS.md) prove Taylor/Hasse coefficient convolution, exact truncation, recursive finite-order coefficient caps, and P3 disk error propagation from retained-product residuals. This avoids caps on the full discarded polynomial; first/second-order budgets agree with prior APIs. Finite outward coefficient, shift, and error table checks now compose into the exact disk bound. Concrete third-order certificates cover iterate four at parameter/seed zero and every iterate through sixteen on `‖δ‖≤1/256` about parameter minus one with critical seed zero. A separate multiply-then-add Horner sequence is now specified and its local operation, inclusive coefficient, and truncation error budgets compose; offset mismatch is charged separately through P3 using decoded-orbit comparison radii. Order-three evaluation retains the minus-one `1/1000000` cap when each coefficient and local operation discrepancy is at most `2⁻⁴⁰`. Scalar primitive contracts now specify four separate products and component subtraction/addition. The ascending retained generator propagates inclusive errors with product cross terms. An executable unbounded-integer dyadic reference has proved generator/Horner decoding correspondence, complex multiplication residual at most `4·2⁻ᵖ`, and exact addition. Copied real integer anchors and seeds have exact retained generation; the 42-bit fractional-grid minus-one generator/evaluator closes total error at `1/1000000` through iterate sixteen on the decoded radius-1/256 disk. This remains an integer reference model. Refine this sequence to actual binary64/TypeScript decoding and primitive/coefficient bounds, then test representative deep-tile references. Fused, square-specific, and symmetry-based alternatives require their own contracts. Combine coefficient, evaluation,
    rebase, and verifier error bounds with P3; a glitch or exhausted bound
    must trigger repair or unresolved. Benchmark total reference setup,
    coefficient storage, rebasing, and pixel time against the lower-order path.

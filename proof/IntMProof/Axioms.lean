@@ -4,6 +4,17 @@ import IntMProof.InteriorFieldAxioms
 import IntMProof.RealSlicePeriodTwoAxioms
 import IntMProof.GlitchGateAxioms
 import IntMProof.RationalBoxOrbitAxioms
+import IntMProof.ParameterJetAxioms
+import IntMProof.ParameterJetTaylorAxioms
+import IntMProof.ParameterJetTruncationAxioms
+import IntMProof.ParameterJetRecursiveAxioms
+import IntMProof.ParameterJetEnclosureAxioms
+import IntMProof.ParameterJetEvaluationAxioms
+import IntMProof.ParameterJetHornerExamples
+import IntMProof.ParameterJetPrimitiveAxioms
+import IntMProof.ParameterJetPrimitiveExamples
+import IntMProof.MinusOneJetKernelAxioms
+import IntMProof.PeriodTwoVerifierPilotAxioms
 import IntMProof.TrapPolicyCounterexample
 import IntMProof.GuardPolicyCounterexample
 
