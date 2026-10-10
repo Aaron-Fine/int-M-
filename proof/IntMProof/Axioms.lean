@@ -16,6 +16,7 @@ import IntMProof.ParameterJetPrimitiveAxioms
 import IntMProof.ParameterJetPrimitiveExamples
 import IntMProof.MinusOneJetKernelAxioms
 import IntMProof.PeriodTwoVerifierPilotAxioms
+import IntMProof.VerifierPrefixCacheAxioms
 import IntMProof.TrapPolicyCounterexample
 import IntMProof.GuardPolicyCounterexample
 
