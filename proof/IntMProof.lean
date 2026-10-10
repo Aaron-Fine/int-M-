@@ -5,6 +5,7 @@ import IntMProof.OutwardGrid
 import IntMProof.RoundedBoxOrbit
 import IntMProof.RationalStoredBudget
 import IntMProof.CertifiedRationalTile
+import IntMProof.CertifiedAcceptance
 import IntMProof.RoundedTileCertificate
 import IntMProof.PeriodTwoVerifierPilot
 import IntMProof.ExactPeriod
