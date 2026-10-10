@@ -19,6 +19,7 @@ import IntMProof.PeriodTwoVerifierPilotAxioms
 import IntMProof.VerifierPrefixCacheAxioms
 import IntMProof.CertifiedAcceptanceAxioms
 import IntMProof.TileCheckerAxioms
+import IntMProof.BoundaryTileCorpusAxioms
 import IntMProof.TrapPolicyCounterexample
 import IntMProof.GuardPolicyCounterexample
 

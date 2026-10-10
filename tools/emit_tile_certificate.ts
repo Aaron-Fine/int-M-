@@ -207,6 +207,7 @@ iterate K.
                     fails; by default it exits with status 1 and writes nothing.
 --module            wrap the output in a full Lean module (always on with --batch).
 --batch SPEC.json   SPEC is {"name": ID, "summary": "conjunction"|"all",
+                    "doc": optional module docstring text,
                     "certificates": [{...per-certificate flags without --...}]}.
                     Emits all certificates into one module plus one summary theorem.
 -h, --help          show this message.
@@ -732,7 +733,9 @@ function emitCertificate(options: Options, checkTheorem: boolean): Emitted {
       stderr.write(`${options.name}: check FAIL: lower multiplier bound is zero\n`);
       ok = false;
     }
-    lowerCheck = `checkTileMultiplierLower ${options.name} ${bound.toString()} ${options.name}Lower`;
+    lowerCheck =
+      `checkTileMultiplierLower ${options.name}\n        ` +
+      `${bound.toString()} ${options.name}Lower`;
   }
   const text = renderLean(inputs, z0, q, cycle, critical, lower, checkTheorem);
   return { name: options.name, ok, text, lowerCheck };
@@ -740,7 +743,14 @@ function emitCertificate(options: Options, checkTheorem: boolean): Emitted {
 
 const MODULE_HEADER = ['import IntMProof.TileChecker', '', 'namespace IntMProof', ''];
 
-function batchModule(specPath: string): { text: string; ok: boolean } {
+interface BatchSpec {
+  batchName: string;
+  perCertificate: boolean;
+  doc: string | undefined;
+  options: ReturnType<typeof batchOptions>[];
+}
+
+function readBatchSpec(specPath: string): BatchSpec {
   let spec: unknown;
   try {
     spec = JSON.parse(readFileSync(specPath, 'utf8'));
@@ -752,7 +762,9 @@ function batchModule(specPath: string): { text: string; ok: boolean } {
   }
   const record = spec as Record<string, unknown>;
   for (const key of Object.keys(record)) {
-    if (!['name', 'summary', 'certificates'].includes(key)) fail(`batch spec: unknown key ${key}`);
+    if (!['name', 'summary', 'doc', 'certificates'].includes(key)) {
+      fail(`batch spec: unknown key ${key}`);
+    }
   }
   const batchName = checkIdentifier(
     typeof record['name'] === 'string' ? record['name'] : fail('batch spec needs a string name'),
@@ -771,9 +783,16 @@ function batchModule(specPath: string): { text: string; ok: boolean } {
     if (names.has(option.name)) fail(`duplicate certificate name ${option.name}`);
     names.add(option.name);
   }
-  const perCertificate = summary === 'conjunction';
+  const doc = record['doc'];
+  if (doc !== undefined && typeof doc !== 'string') fail('batch spec doc must be a string');
+  return { batchName, perCertificate: summary === 'conjunction', doc, options };
+}
+
+function batchModule(specPath: string): { text: string; ok: boolean } {
+  const { batchName, perCertificate, doc, options } = readBatchSpec(specPath);
   const emitted = options.map((option) => emitCertificate(option, perCertificate));
   const lines = [...MODULE_HEADER];
+  if (doc !== undefined) lines.splice(1, 0, '', '/-!', doc.trimEnd(), '-/');
   for (const item of emitted) lines.push(item.text);
   const certificateNames = emitted.map((item) => item.name);
   const lowerChecks = emitted.flatMap((item) =>
