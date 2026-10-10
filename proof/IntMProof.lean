@@ -7,6 +7,8 @@ import IntMProof.RationalStoredBudget
 import IntMProof.CertifiedRationalTile
 import IntMProof.CertifiedAcceptance
 import IntMProof.RoundedTileCertificate
+import IntMProof.TileChecker
+import IntMProof.TileCheckerExamples
 import IntMProof.PeriodTwoVerifierPilot
 import IntMProof.ExactPeriod
 import IntMProof.CriticalPeriod
