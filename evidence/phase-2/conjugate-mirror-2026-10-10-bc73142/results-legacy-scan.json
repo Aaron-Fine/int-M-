@@ -1,0 +1,2849 @@
+{
+  "schemaVersion": 1,
+  "measurement": "conjugate-mirror-node-classifier",
+  "label": "directional Node/V8 evidence (single thread, classifyRows only); NOT the plan section 9 release protocol",
+  "generatedAt": "2026-10-10T15:03:07.453Z",
+  "git": {
+    "head": "1aa8871",
+    "dirty": true
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux 7.2.8-200.fc44.x86_64",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "logicalCores": 8,
+    "memoryTotalBytes": 16465481728
+  },
+  "loadAverage1m5m15m": {
+    "start": [1.28, 1.43, 1.45],
+    "end": [1.5, 1.59, 1.54]
+  },
+  "raster": {
+    "id": "shipping-1024x640",
+    "width": 1024,
+    "height": 640
+  },
+  "classifierMode": "legacy-scan",
+  "repetitions": 15,
+  "armOrder": "alternating (even repetitions direct-first, odd mirrored-first)",
+  "timing": "performance.now around classifyRows (+plan+fill for mirrored), minus row-yield wait",
+  "cases": [
+    {
+      "id": "mi-easy-default-full",
+      "class": "Easy",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.2041240000000002,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 385.4371080000001,
+          "mirroredMs": 188.24563199999966,
+          "planMs": 0.08007800000007137,
+          "fillMs": 2.685820999999919,
+          "speedup": 2.047522186331531,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 377.7822949999987,
+          "mirroredMs": 189.10514300000057,
+          "planMs": 0.06934400000000096,
+          "fillMs": 2.5322199999999384,
+          "speedup": 1.997736756424428,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 378.1947070000008,
+          "mirroredMs": 192.00362400000017,
+          "planMs": 0.0760859999998047,
+          "fillMs": 2.930166999999983,
+          "speedup": 1.969726920362714,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 378.28979800000025,
+          "mirroredMs": 199.92094699999825,
+          "planMs": 0.07379500000001826,
+          "fillMs": 4.879077000000052,
+          "speedup": 1.892196909211337,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 395.93539000000146,
+          "mirroredMs": 193.00743899999952,
+          "planMs": 0.08060900000009497,
+          "fillMs": 2.3556100000000697,
+          "speedup": 2.051399635430645,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 376.6067590000016,
+          "mirroredMs": 197.45078900000135,
+          "planMs": 0.07113900000013018,
+          "fillMs": 5.086917999999969,
+          "speedup": 1.9073449182317475,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 374.86598799999956,
+          "mirroredMs": 189.61323400000038,
+          "planMs": 0.07404700000006414,
+          "fillMs": 2.920607000000018,
+          "speedup": 1.9770032929241574,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 374.32537499999853,
+          "mirroredMs": 189.55986900000244,
+          "planMs": 0.08012700000017503,
+          "fillMs": 2.4611639999993713,
+          "speedup": 1.9747079219599677,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 387.96724200000153,
+          "mirroredMs": 198.00984600000265,
+          "planMs": 0.07164299999931245,
+          "fillMs": 2.660652000000482,
+          "speedup": 1.9593330828609217,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 373.8016650000027,
+          "mirroredMs": 188.35368599999947,
+          "planMs": 0.10184899999967456,
+          "fillMs": 1.3213839999998527,
+          "speedup": 1.9845731343957014,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 377.6154459999998,
+          "mirroredMs": 189.25348000000122,
+          "planMs": 0.08630900000025576,
+          "fillMs": 1.2024819999996907,
+          "speedup": 1.9952893125135525,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 394.39673899999707,
+          "mirroredMs": 188.11433200000556,
+          "planMs": 0.08366000000023632,
+          "fillMs": 1.3606119999994917,
+          "speedup": 2.0965799618074046,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 382.76429800000005,
+          "mirroredMs": 188.68990300000405,
+          "planMs": 0.08199299999978393,
+          "fillMs": 1.1350159999992684,
+          "speedup": 2.0285361957072596,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 395.5706610000034,
+          "mirroredMs": 189.024250999998,
+          "planMs": 0.07459199999993871,
+          "fillMs": 1.2738319999998566,
+          "speedup": 2.092697941704885,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 377.22189999999864,
+          "mirroredMs": 195.18013999999494,
+          "planMs": 0.07440599999972619,
+          "fillMs": 2.7611329999999725,
+          "speedup": 1.9326858767495936,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 378.1947070000008,
+      "mirroredMedianMs": 189.55986900000244,
+      "speedupMedian": 1.9845731343957014,
+      "speedupP90": 2.076178619195189,
+      "speedupP10": 1.9174813016388859,
+      "speedupMin": 1.892196909211337,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-easy-exterior-heavy",
+      "class": "Easy",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": 2.5,
+          "im": 1
+        },
+        "spanY": 2
+      },
+      "profile": "balanced",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.0531250000003638,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-easy-exterior-heavy@im0",
+      "class": "Easy",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": 2.5,
+          "im": 0
+        },
+        "spanY": 2
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.0501879999992525,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 51.377548999987994,
+          "mirroredMs": 26.848462999998446,
+          "planMs": 0.06099100000028557,
+          "fillMs": 1.3201030000000173,
+          "speedup": 1.9136122987744575,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 56.364969000011115,
+          "mirroredMs": 26.360398999997415,
+          "planMs": 0.05568700000003446,
+          "fillMs": 1.28298900000118,
+          "speedup": 2.1382441517678332,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 55.23828499999763,
+          "mirroredMs": 30.548689000001104,
+          "planMs": 0.06604599999991478,
+          "fillMs": 1.6933590000007825,
+          "speedup": 1.808204764531651,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 50.94118499999786,
+          "mirroredMs": 39.317119999997885,
+          "planMs": 0.09606499999972584,
+          "fillMs": 1.5780380000014702,
+          "speedup": 1.2956489437680228,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 52.949578000003385,
+          "mirroredMs": 26.64696599999661,
+          "planMs": 0.06667900000138616,
+          "fillMs": 1.1986359999991691,
+          "speedup": 1.987077177942514,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 50.886914999997316,
+          "mirroredMs": 27.249382000005426,
+          "planMs": 0.06094899999879999,
+          "fillMs": 1.0572750000010274,
+          "speedup": 1.867452076527357,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 52.93183499999759,
+          "mirroredMs": 33.27439000000413,
+          "planMs": 0.07165300000087882,
+          "fillMs": 2.0616210000007413,
+          "speedup": 1.5907680050630835,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 52.62584099999003,
+          "mirroredMs": 26.69978199999423,
+          "planMs": 0.0655689999985043,
+          "fillMs": 1.164600000000064,
+          "speedup": 1.9710213738824311,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 50.945727999989685,
+          "mirroredMs": 27.256137000005765,
+          "planMs": 0.06532200000037847,
+          "fillMs": 1.3663950000009208,
+          "speedup": 1.8691470475063618,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 59.050407999993695,
+          "mirroredMs": 26.477341999994678,
+          "planMs": 0.05840400000124646,
+          "fillMs": 1.258256999999503,
+          "speedup": 2.23022416676136,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 51.92793900000288,
+          "mirroredMs": 26.49013100000593,
+          "planMs": 0.06390699999974458,
+          "fillMs": 1.1831939999992755,
+          "speedup": 1.9602749038874612,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 62.91753600001175,
+          "mirroredMs": 28.03323900000578,
+          "planMs": 0.05998300000101153,
+          "fillMs": 1.4417539999994915,
+          "speedup": 2.244390525119084,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 51.10449199999675,
+          "mirroredMs": 26.848034999997253,
+          "planMs": 0.06636600000092585,
+          "fillMs": 1.1310379999995348,
+          "speedup": 1.90347233978211,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 51.21436099999846,
+          "mirroredMs": 34.74202300000434,
+          "planMs": 0.05798200000026554,
+          "fillMs": 2.2148570000008476,
+          "speedup": 1.4741329542033885,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 51.50651999999354,
+          "mirroredMs": 32.15871599999082,
+          "planMs": 0.07688799999959883,
+          "fillMs": 1.7455819999995583,
+          "speedup": 1.601634841391312,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 51.92793900000288,
+      "mirroredMedianMs": 27.249382000005426,
+      "speedupMedian": 1.90347233978211,
+      "speedupP90": 2.1934321607639493,
+      "speedupP10": 1.5207869745472664,
+      "speedupMin": 1.2956489437680228,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-easy-main-cardioid",
+      "class": "Easy",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": 0.1,
+          "im": 0.05
+        },
+        "spanY": 0.2
+      },
+      "profile": "balanced",
+      "mirroredRows": 78,
+      "mirroredPixelFraction": 0.121875,
+      "planMedianMs": 0.04573300000083691,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 62.87892799999463,
+          "mirroredMs": 60.77647099999194,
+          "planMs": 0.06894699999975273,
+          "fillMs": 0.401917000001049,
+          "speedup": 1.0345932721234006,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 61.78216300000349,
+          "mirroredMs": 62.45204000001104,
+          "planMs": 0.06105299999944691,
+          "fillMs": 0.4083950000003824,
+          "speedup": 0.9892737370947782,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 63.29522100000031,
+          "mirroredMs": 57.5679089999976,
+          "planMs": 0.06801799999993818,
+          "fillMs": 0.5217460000003484,
+          "speedup": 1.0994879282484091,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 64.90000100000543,
+          "mirroredMs": 56.31356799998866,
+          "planMs": 0.05775499999981548,
+          "fillMs": 0.50575199999912,
+          "speedup": 1.1524753856835799,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 66.59990900000048,
+          "mirroredMs": 54.48446599998897,
+          "planMs": 0.06273099999998522,
+          "fillMs": 0.32980400000087684,
+          "speedup": 1.2223650865920932,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 61.473704000003636,
+          "mirroredMs": 53.95536400001038,
+          "planMs": 0.06200600000011036,
+          "fillMs": 0.4362330000003567,
+          "speedup": 1.1393436989877745,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 61.16817899999296,
+          "mirroredMs": 56.01032899999882,
+          "planMs": 0.06155600000056438,
+          "fillMs": 0.4159989999989193,
+          "speedup": 1.0920874790789794,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 62.64639999999963,
+          "mirroredMs": 61.20553900000232,
+          "planMs": 0.05738999999994121,
+          "fillMs": 0.3521180000007007,
+          "speedup": 1.023541349746095,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 62.153856999999334,
+          "mirroredMs": 56.08792899999753,
+          "planMs": 0.06395399999928486,
+          "fillMs": 0.4470149999997375,
+          "speedup": 1.1081503294586268,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 63.736800000002404,
+          "mirroredMs": 57.46109599999363,
+          "planMs": 0.05920200000036857,
+          "fillMs": 0.7547689999992144,
+          "speedup": 1.1092165732447823,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 66.24409099999866,
+          "mirroredMs": 55.667060999996465,
+          "planMs": 0.0636240000003454,
+          "fillMs": 0.4373890000006213,
+          "speedup": 1.1900051809813144,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 62.57341399998768,
+          "mirroredMs": 55.959970000001704,
+          "planMs": 0.06820200000038312,
+          "fillMs": 0.32475000000158616,
+          "speedup": 1.1181816930921473,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 61.22538099999838,
+          "mirroredMs": 54.60271600001943,
+          "planMs": 0.06208700000024692,
+          "fillMs": 0.3961220000001049,
+          "speedup": 1.121288197458467,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 61.00499800001489,
+          "mirroredMs": 60.3415820000082,
+          "planMs": 0.06442500000048312,
+          "fillMs": 0.328905999998824,
+          "speedup": 1.0109943421769518,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 60.61257000000478,
+          "mirroredMs": 57.44091199998911,
+          "planMs": 0.06385899999986577,
+          "fillMs": 0.49174700000003213,
+          "speedup": 1.0552160104981667,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 62.57341399998768,
+      "mirroredMedianMs": 56.31356799998866,
+      "speedupMedian": 1.1081503294586268,
+      "speedupP90": 1.1749932628622206,
+      "speedupP10": 1.016013145204609,
+      "speedupMin": 0.9892737370947782,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-easy-main-cardioid@im0",
+      "class": "Easy",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": 0.1,
+          "im": 0
+        },
+        "spanY": 0.2
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.046104000000923406,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 68.17459600000439,
+          "mirroredMs": 38.4576369999977,
+          "planMs": 0.07176899999831221,
+          "fillMs": 2.472873000000618,
+          "speedup": 1.7727193171023081,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 63.1935389999926,
+          "mirroredMs": 36.481292999995276,
+          "planMs": 0.05928200000016659,
+          "fillMs": 2.600518999999622,
+          "speedup": 1.7322176327467556,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 64.45153999999638,
+          "mirroredMs": 34.60354400000142,
+          "planMs": 0.07327499999883003,
+          "fillMs": 1.5951289999993605,
+          "speedup": 1.8625704927794027,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 62.774117999992086,
+          "mirroredMs": 32.35523999999896,
+          "planMs": 0.06060099999922386,
+          "fillMs": 1.3567070000008243,
+          "speedup": 1.9401530633057924,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 68.93534999998701,
+          "mirroredMs": 36.82521799999449,
+          "planMs": 0.06530399999974179,
+          "fillMs": 1.8859709999996994,
+          "speedup": 1.8719604049593765,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 63.03766899999391,
+          "mirroredMs": 34.83506200000738,
+          "planMs": 0.06729699999959848,
+          "fillMs": 1.4193649999997433,
+          "speedup": 1.8096040420419102,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 65.45214000000851,
+          "mirroredMs": 35.23750099999597,
+          "planMs": 0.06508200000098441,
+          "fillMs": 2.766763000001447,
+          "speedup": 1.8574569178448832,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 64.13928500000111,
+          "mirroredMs": 38.16770100000576,
+          "planMs": 0.05902600000081293,
+          "fillMs": 2.7450360000002547,
+          "speedup": 1.680459742649719,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 65.40957299999354,
+          "mirroredMs": 33.071980999991865,
+          "planMs": 0.06726800000069488,
+          "fillMs": 1.4459440000009636,
+          "speedup": 1.977794224059624,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 63.243279000003895,
+          "mirroredMs": 33.86914099999922,
+          "planMs": 0.059972999999445165,
+          "fillMs": 1.405375999998796,
+          "speedup": 1.8672832298878013,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 72.27294699999584,
+          "mirroredMs": 32.9616330000008,
+          "planMs": 0.06755100000009406,
+          "fillMs": 1.3987560000005033,
+          "speedup": 2.192638544334077,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 64.59313100000509,
+          "mirroredMs": 33.171751000007134,
+          "planMs": 0.06026600000041071,
+          "fillMs": 1.3768700000000536,
+          "speedup": 1.947233083957226,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 65.9856020000152,
+          "mirroredMs": 35.26296700000057,
+          "planMs": 0.06908999999905063,
+          "fillMs": 2.759730000001582,
+          "speedup": 1.8712436194042927,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 63.10295500000393,
+          "mirroredMs": 38.832765000008294,
+          "planMs": 0.06493199999931676,
+          "fillMs": 2.6941530000003695,
+          "speedup": 1.6249925803632694,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 72.80447799999274,
+          "mirroredMs": 33.033714999997756,
+          "planMs": 0.08345100000042294,
+          "fillMs": 1.363376999999673,
+          "speedup": 2.203944606290806,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 64.59313100000509,
+      "mirroredMedianMs": 34.83506200000738,
+      "speedupMedian": 1.8672832298878013,
+      "speedupP90": 2.1067008162242957,
+      "speedupP10": 1.7011628986885337,
+      "speedupMin": 1.6249925803632694,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-easy-period2-bulb",
+      "class": "Easy",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -1.05,
+          "im": 0.05
+        },
+        "spanY": 0.15
+      },
+      "profile": "balanced",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.0450829999990674,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-easy-period2-bulb@im0",
+      "class": "Easy",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": -1.05,
+          "im": 0
+        },
+        "spanY": 0.15
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.046620000000984874,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 48.407489000004716,
+          "mirroredMs": 25.490603000000192,
+          "planMs": 0.06964300000072399,
+          "fillMs": 1.2327879999993456,
+          "speedup": 1.8990327141340813,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 47.964116999994076,
+          "mirroredMs": 31.50559500000236,
+          "planMs": 0.06289400000059686,
+          "fillMs": 1.2198399999997491,
+          "speedup": 1.5223999737186518,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 49.73110100000122,
+          "mirroredMs": 24.768438000004608,
+          "planMs": 0.07204599999931816,
+          "fillMs": 1.1804599999995844,
+          "speedup": 2.0078416329682143,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 49.79043400000592,
+          "mirroredMs": 26.740223000007973,
+          "planMs": 0.0574479999995674,
+          "fillMs": 2.465930999998818,
+          "speedup": 1.8620051897095649,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 55.847916999997324,
+          "mirroredMs": 25.38288000000466,
+          "planMs": 0.06926000000021304,
+          "fillMs": 1.1974599999994098,
+          "speedup": 2.200219872606539,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 48.905260999996244,
+          "mirroredMs": 25.109328000009555,
+          "planMs": 0.06102199999986624,
+          "fillMs": 1.1529059999993478,
+          "speedup": 1.9476929450273475,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 48.366142000000764,
+          "mirroredMs": 25.799200000001292,
+          "planMs": 0.06603800000084448,
+          "fillMs": 1.3644079999994574,
+          "speedup": 1.8747147973579934,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 47.7265360000074,
+          "mirroredMs": 31.404722000006586,
+          "planMs": 0.058779999999387655,
+          "fillMs": 1.1625810000005004,
+          "speedup": 1.519724836284091,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 56.08713699999498,
+          "mirroredMs": 25.43549599999824,
+          "planMs": 0.0723390000002837,
+          "fillMs": 1.2706319999997504,
+          "speedup": 2.205073453255988,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 50.22749899999508,
+          "mirroredMs": 27.776940000007016,
+          "planMs": 0.06276899999829766,
+          "fillMs": 3.2675660000004427,
+          "speedup": 1.8082445006535057,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 63.44634300000689,
+          "mirroredMs": 24.662762000009025,
+          "planMs": 0.06437700000060431,
+          "fillMs": 1.1942890000009356,
+          "speedup": 2.5725562692444455,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 48.63754199999494,
+          "mirroredMs": 25.249810999996043,
+          "planMs": 0.06383400000049733,
+          "fillMs": 1.436878999998953,
+          "speedup": 1.9262537054238766,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 48.512628999998924,
+          "mirroredMs": 27.64296899999681,
+          "planMs": 0.08667700000114564,
+          "fillMs": 1.176448000000164,
+          "speedup": 1.7549717253600552,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 47.60822499999267,
+          "mirroredMs": 29.564430000002176,
+          "planMs": 0.061612999999852036,
+          "fillMs": 1.1725319999986823,
+          "speedup": 1.6103210851685341,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 48.41345999999976,
+          "mirroredMs": 24.62436499999785,
+          "planMs": 0.0636240000003454,
+          "fillMs": 1.1970900000014808,
+          "speedup": 1.9660795313911235,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 48.63754199999494,
+      "mirroredMedianMs": 25.490603000000192,
+      "speedupMedian": 1.8990327141340813,
+      "speedupP90": 2.2031320209962084,
+      "speedupP10": 1.5575684182986047,
+      "speedupMin": 1.519724836284091,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-rabbit-boundary",
+      "class": "Hard known",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -0.1225611668766535,
+          "im": 0.7448617666197435
+        },
+        "spanY": 0.3
+      },
+      "profile": "balanced",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.04453099999955157,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-rabbit-boundary@im0",
+      "class": "Hard known",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": -0.1225611668766535,
+          "im": 0
+        },
+        "spanY": 0.3
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.046587999999246676,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 73.60365500000444,
+          "mirroredMs": 34.78384699999879,
+          "planMs": 0.06896299999971234,
+          "fillMs": 2.7791330000000016,
+          "speedup": 2.116029747946137,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 60.85539799999242,
+          "mirroredMs": 37.33790099999533,
+          "planMs": 0.06458500000007916,
+          "fillMs": 2.8647860000000946,
+          "speedup": 1.629855893613303,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 62.65598099999988,
+          "mirroredMs": 33.69658199999685,
+          "planMs": 0.06782700000076147,
+          "fillMs": 1.2213520000004792,
+          "speedup": 1.8594165129272084,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 60.66604899999584,
+          "mirroredMs": 36.33425599999646,
+          "planMs": 0.05969600000025821,
+          "fillMs": 1.3893069999994623,
+          "speedup": 1.669665370332662,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 67.56905700000607,
+          "mirroredMs": 34.572582999995575,
+          "planMs": 0.07668400000147813,
+          "fillMs": 1.6082919999989826,
+          "speedup": 1.9544115925620806,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 61.822006999986115,
+          "mirroredMs": 33.296901000003345,
+          "planMs": 0.07003600000098231,
+          "fillMs": 1.176381000001129,
+          "speedup": 1.8566895159396337,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 63.41628300000593,
+          "mirroredMs": 34.00571000000309,
+          "planMs": 0.06352899999910733,
+          "fillMs": 2.518113000000085,
+          "speedup": 1.8648716053862768,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 60.15003500000421,
+          "mirroredMs": 41.15593400001126,
+          "planMs": 0.05945100000099046,
+          "fillMs": 2.493597000000591,
+          "speedup": 1.461515488871854,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 59.99900100000741,
+          "mirroredMs": 30.90541600000506,
+          "planMs": 0.06716899999992165,
+          "fillMs": 1.1657210000012128,
+          "speedup": 1.941374968063772,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 60.19242900000245,
+          "mirroredMs": 30.30983899999228,
+          "planMs": 0.06691499999942607,
+          "fillMs": 1.3023700000012468,
+          "speedup": 1.9859039501997282,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 66.07793899999524,
+          "mirroredMs": 31.43182600000182,
+          "planMs": 0.06450700000095821,
+          "fillMs": 1.511555999999473,
+          "speedup": 2.1022621784681363,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 59.73156600000402,
+          "mirroredMs": 31.629695000006905,
+          "planMs": 0.05720699999983481,
+          "fillMs": 1.316805000000386,
+          "speedup": 1.8884648113107314,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 63.01633600000059,
+          "mirroredMs": 32.175706999993054,
+          "planMs": 0.07021999999960826,
+          "fillMs": 2.372739000000365,
+          "speedup": 1.9585066460237905,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 60.17250199999944,
+          "mirroredMs": 37.23070600000028,
+          "planMs": 0.060638000000835746,
+          "fillMs": 2.5673729999998613,
+          "speedup": 1.6162063109949885,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 62.55244899998979,
+          "mirroredMs": 31.910704000005353,
+          "planMs": 0.0709290000013425,
+          "fillMs": 1.2550940000000992,
+          "speedup": 1.9602340644060783,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 61.822006999986115,
+      "mirroredMedianMs": 33.69658199999685,
+      "speedupMedian": 1.8884648113107314,
+      "speedupP90": 2.055718887160773,
+      "speedupP10": 1.6216661440423144,
+      "speedupMin": 1.461515488871854,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-supplied-126x",
+      "class": "Hard known",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -0.158902249,
+          "im": -1.034028
+        },
+        "spanY": 0.01984126984126984
+      },
+      "profile": "detailed",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.04481600000144681,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-supplied-126x@im0",
+      "class": "Hard known",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": -0.158902249,
+          "im": 0
+        },
+        "spanY": 0.01984126984126984
+      },
+      "profile": "detailed",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.04430599999977858,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 60.6024360000265,
+          "mirroredMs": 31.322923999963677,
+          "planMs": 0.0644350000002305,
+          "fillMs": 1.137380000000121,
+          "speedup": 1.9347630508600275,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 59.97329899998658,
+          "mirroredMs": 37.06364999997459,
+          "planMs": 0.05370000000038999,
+          "fillMs": 1.175441999999748,
+          "speedup": 1.6181163754791474,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 60.70315899997513,
+          "mirroredMs": 31.34483899999759,
+          "planMs": 0.06786599999759346,
+          "fillMs": 1.3063820000024862,
+          "speedup": 1.9366237293475903,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 63.765612999999576,
+          "mirroredMs": 30.25512499999968,
+          "planMs": 0.05990100000053644,
+          "fillMs": 1.1493240000017977,
+          "speedup": 2.107597076528365,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 66.20099299998037,
+          "mirroredMs": 31.928171999978076,
+          "planMs": 0.07126399999833666,
+          "fillMs": 1.2185669999998936,
+          "speedup": 2.073435115547042,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 59.60940800001845,
+          "mirroredMs": 30.935580999972444,
+          "planMs": 0.06441799999811337,
+          "fillMs": 1.244206999999733,
+          "speedup": 1.9268882650069363,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 60.24272600000768,
+          "mirroredMs": 30.04530099999465,
+          "planMs": 0.06460099999821978,
+          "fillMs": 1.1674310000016703,
+          "speedup": 2.005063154468594,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 59.70789900002637,
+          "mirroredMs": 37.035352000002604,
+          "planMs": 0.062245000000984874,
+          "fillMs": 1.5719269999972312,
+          "speedup": 1.6121866210431097,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 60.31676199999856,
+          "mirroredMs": 31.765711000021838,
+          "planMs": 0.06622399999832851,
+          "fillMs": 1.3927049999983865,
+          "speedup": 1.8988009429399233,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 67.75197199999457,
+          "mirroredMs": 30.578464999980497,
+          "planMs": 0.06325500000093598,
+          "fillMs": 1.4199989999979152,
+          "speedup": 2.215676032136923,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 67.25619200000801,
+          "mirroredMs": 31.320011000014347,
+          "planMs": 0.07011299999794574,
+          "fillMs": 1.154039000000921,
+          "speedup": 2.1473872406997945,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 59.53192299996226,
+          "mirroredMs": 31.0352570000141,
+          "planMs": 0.05727699999988545,
+          "fillMs": 1.2590689999997267,
+          "speedup": 1.918202997318025,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 59.845649999999296,
+          "mirroredMs": 30.372004999971978,
+          "planMs": 0.0665660000013304,
+          "fillMs": 1.2523000000001048,
+          "speedup": 1.9704214456719111,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 60.5702569999994,
+          "mirroredMs": 35.11160900002142,
+          "planMs": 0.06146000000080676,
+          "fillMs": 1.1574340000006487,
+          "speedup": 1.7250777940698319,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 59.932015999987925,
+          "mirroredMs": 30.927469000016572,
+          "planMs": 0.06090499999845633,
+          "fillMs": 1.2890709999992396,
+          "speedup": 1.9378247861134648,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 60.31676199999856,
+      "mirroredMedianMs": 31.320011000014347,
+      "speedupMedian": 1.9366237293475903,
+      "speedupP90": 2.1314711750312227,
+      "speedupP10": 1.6609009429154211,
+      "speedupMin": 1.6121866210431097,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-supplied-609x",
+      "class": "Hard known",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -1.94130973,
+          "im": -0.0000974722949
+        },
+        "spanY": 0.004105090311986864
+      },
+      "profile": "detailed",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.044047999999747844,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-supplied-609x@im0",
+      "class": "Hard known",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": -1.94130973,
+          "im": 0
+        },
+        "spanY": 0.004105090311986864
+      },
+      "profile": "detailed",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.044872999998915475,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 2841.8137249999636,
+          "mirroredMs": 1420.441161999981,
+          "planMs": 0.07122800000070129,
+          "fillMs": 2.5503260000004957,
+          "speedup": 2.0006557124820925,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 2770.0509989999955,
+          "mirroredMs": 1448.6742699999995,
+          "planMs": 0.0670109999991837,
+          "fillMs": 2.6235969999979716,
+          "speedup": 1.9121282515772138,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 2754.8577530000184,
+          "mirroredMs": 1374.4671170000074,
+          "planMs": 0.07062600000062957,
+          "fillMs": 1.4201800000009825,
+          "speedup": 2.00430968404172,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 2973.3708119999283,
+          "mirroredMs": 1389.8953749999855,
+          "planMs": 0.0592240000005404,
+          "fillMs": 1.2413830000004964,
+          "speedup": 2.139276714982924,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 2918.5710959999487,
+          "mirroredMs": 1613.3813519999749,
+          "planMs": 0.0871049999987008,
+          "fillMs": 1.124709999996412,
+          "speedup": 1.808977829316075,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 2929.585527999945,
+          "mirroredMs": 1636.4940070000011,
+          "planMs": 0.06459300000278745,
+          "fillMs": 1.352827000002435,
+          "speedup": 1.79015964340158,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 2857.1496770000595,
+          "mirroredMs": 1420.6647319999684,
+          "planMs": 0.07037600000330713,
+          "fillMs": 1.577831000002334,
+          "speedup": 2.01113578217561,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 2835.8702809999886,
+          "mirroredMs": 1476.695739999952,
+          "planMs": 0.05989100000442704,
+          "fillMs": 1.8746340000070632,
+          "speedup": 1.9204161048098378,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 2902.258724000014,
+          "mirroredMs": 1446.936332000012,
+          "planMs": 0.06414399999630405,
+          "fillMs": 1.3475849999958882,
+          "speedup": 2.005795735316424,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 2915.1698990001096,
+          "mirroredMs": 1443.846610999979,
+          "planMs": 0.060062000004108995,
+          "fillMs": 2.884837999998126,
+          "speedup": 2.019030191151068,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 2839.405619000012,
+          "mirroredMs": 1410.9007989999518,
+          "planMs": 0.07236700000066776,
+          "fillMs": 1.357375999999931,
+          "speedup": 2.0124771500679466,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 2877.2242280000064,
+          "mirroredMs": 1412.0369120000105,
+          "planMs": 0.06463999999687076,
+          "fillMs": 1.2539790000009816,
+          "speedup": 2.0376409451823063,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 3009.5235730000422,
+          "mirroredMs": 1512.6272239999962,
+          "planMs": 0.08010600000852719,
+          "fillMs": 1.8539809999929275,
+          "speedup": 1.9896002962591461,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 2886.824726000137,
+          "mirroredMs": 1632.8078099999402,
+          "planMs": 0.07228200000827201,
+          "fillMs": 1.2912400000059279,
+          "speedup": 1.7680125660350945,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 3245.92373699983,
+          "mirroredMs": 1437.4924530000571,
+          "planMs": 0.06787400000030175,
+          "fillMs": 1.3904869999969378,
+          "speedup": 2.2580457589363783,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 2886.824726000137,
+      "mirroredMedianMs": 1443.846610999979,
+      "speedupMedian": 2.00430968404172,
+      "speedupP90": 2.098622407062677,
+      "speedupP10": 1.797686917767378,
+      "speedupMin": 1.7680125660350945,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-supplied-13x",
+      "class": "Hard known",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": 0.305376533,
+          "im": 0.552677981
+        },
+        "spanY": 0.19230769230769232
+      },
+      "profile": "detailed",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.04452000001037959,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-hard-supplied-13x@im0",
+      "class": "Hard known",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": 0.305376533,
+          "im": 0
+        },
+        "spanY": 0.19230769230769232
+      },
+      "profile": "detailed",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.04655100000672974,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 1039.3489700000064,
+          "mirroredMs": 531.2057209999766,
+          "planMs": 0.07227000000420958,
+          "fillMs": 1.187822000007145,
+          "speedup": 1.956584669388476,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 1047.6661980001227,
+          "mirroredMs": 529.2901470001525,
+          "planMs": 0.0611300000018673,
+          "fillMs": 1.390746000004583,
+          "speedup": 1.9793797484006836,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 1061.4366229999869,
+          "mirroredMs": 520.9885510000167,
+          "planMs": 0.08189200000197161,
+          "fillMs": 1.417725999999675,
+          "speedup": 2.037351149008172,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 1034.3442740000028,
+          "mirroredMs": 518.2923790000204,
+          "planMs": 0.06452599998738151,
+          "fillMs": 1.1810550000082003,
+          "speedup": 1.9956771812767904,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 1136.6874199999875,
+          "mirroredMs": 659.4091049999988,
+          "planMs": 0.08342599999741651,
+          "fillMs": 2.139437000005273,
+          "speedup": 1.723796974262267,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 1097.8969689999794,
+          "mirroredMs": 604.3594150000281,
+          "planMs": 0.07692399999359623,
+          "fillMs": 1.363167000003159,
+          "speedup": 1.8166292139255056,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 1073.9256169999862,
+          "mirroredMs": 552.2246359999117,
+          "planMs": 0.07547499999054708,
+          "fillMs": 1.5059020000044256,
+          "speedup": 1.944726017258234,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 1100.177479999751,
+          "mirroredMs": 574.063403999884,
+          "planMs": 0.06912600000214297,
+          "fillMs": 1.4399750000011409,
+          "speedup": 1.9164738116627502,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 1078.736633999899,
+          "mirroredMs": 517.8318149999832,
+          "planMs": 0.07617800000298303,
+          "fillMs": 1.2756780000054277,
+          "speedup": 2.0831795242243545,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 1054.9429500002152,
+          "mirroredMs": 529.0288940000028,
+          "planMs": 0.06254299999272916,
+          "fillMs": 1.3857960000023013,
+          "speedup": 1.9941121590236046,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 1122.9333389999374,
+          "mirroredMs": 661.0805970000511,
+          "planMs": 0.08340800000587478,
+          "fillMs": 3.1713440000021365,
+          "speedup": 1.6986330321835943,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 1057.3987839999754,
+          "mirroredMs": 615.4596649999439,
+          "planMs": 0.08477200000197627,
+          "fillMs": 3.8378340000053868,
+          "speedup": 1.7180634964926123,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 1039.1144150000764,
+          "mirroredMs": 532.6172060000536,
+          "planMs": 0.06653699999151286,
+          "fillMs": 1.3087059999961639,
+          "speedup": 1.9509591565841602,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 1066.2350029999361,
+          "mirroredMs": 524.2236910000065,
+          "planMs": 0.06151800000225194,
+          "fillMs": 1.3120469999994384,
+          "speedup": 2.033931356604642,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 1055.5392129998654,
+          "mirroredMs": 618.1173110000236,
+          "planMs": 0.0714330000046175,
+          "fillMs": 1.439014000003226,
+          "speedup": 1.7076680982969996,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 1061.4366229999869,
+      "mirroredMedianMs": 532.6172060000536,
+      "speedupMedian": 1.9509591565841602,
+      "speedupP90": 2.0359832320467603,
+      "speedupP10": 1.7118262575752448,
+      "speedupMin": 1.6986330321835943,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-unknown-high-period",
+      "class": "Fallback",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -0.7436438870371587,
+          "im": 0.1318259042053119
+        },
+        "spanY": 0.00001
+      },
+      "profile": "balanced",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.05541900001117028,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-unknown-high-period@im0",
+      "class": "Fallback",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": -0.7436438870371587,
+          "im": 0
+        },
+        "spanY": 0.00001
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.05550299999595154,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 76.93249399999331,
+          "mirroredMs": 39.44696499996644,
+          "planMs": 0.08398399999714456,
+          "fillMs": 1.4652669999923091,
+          "speedup": 1.9502766309159338,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 80.715903000033,
+          "mirroredMs": 39.99874700001965,
+          "planMs": 0.07233300000370946,
+          "fillMs": 2.1728390000062063,
+          "speedup": 2.0179607876215058,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 85.91537100006826,
+          "mirroredMs": 39.99671700007457,
+          "planMs": 0.08576900001207832,
+          "fillMs": 1.425334000014118,
+          "speedup": 2.148060577069565,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 75.65259700005117,
+          "mirroredMs": 41.08361800003331,
+          "planMs": 0.07990900000731926,
+          "fillMs": 1.4655459999921732,
+          "speedup": 1.841429764048284,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 78.45621799990477,
+          "mirroredMs": 38.105415000070934,
+          "planMs": 0.08257499999308493,
+          "fillMs": 1.4019370000023628,
+          "speedup": 2.05892569336297,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 75.08994800005166,
+          "mirroredMs": 50.203818000038154,
+          "planMs": 0.0737210000079358,
+          "fillMs": 1.472420999998576,
+          "speedup": 1.4957019404379681,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 80.46478000000934,
+          "mirroredMs": 65.91958199995861,
+          "planMs": 0.08992600000055972,
+          "fillMs": 3.025706000000355,
+          "speedup": 1.2206506406557593,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 87.42340399998648,
+          "mirroredMs": 44.37343500000134,
+          "planMs": 0.08382800000254065,
+          "fillMs": 3.1054129999974975,
+          "speedup": 1.9701743622053114,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 84.40387999991071,
+          "mirroredMs": 39.19049300001643,
+          "planMs": 0.08509399999456946,
+          "fillMs": 1.3582210000022314,
+          "speedup": 2.1536825270321382,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 70.40049300008104,
+          "mirroredMs": 36.33573500007333,
+          "planMs": 0.07420099999580998,
+          "fillMs": 1.2878139999957057,
+          "speedup": 1.9375001771655085,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 68.56146299997636,
+          "mirroredMs": 33.997947000010754,
+          "planMs": 0.07156799999938812,
+          "fillMs": 1.3168490000098245,
+          "speedup": 2.016635386835407,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 65.82347599993227,
+          "mirroredMs": 43.5772830000642,
+          "planMs": 0.07007299999531824,
+          "fillMs": 2.8053879999933997,
+          "speedup": 1.5104997711728676,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 65.20714400011639,
+          "mirroredMs": 33.28808199999912,
+          "planMs": 0.07545699999900535,
+          "fillMs": 1.4067579999973532,
+          "speedup": 1.958873569228714,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 63.29453300005116,
+          "mirroredMs": 32.18157600003178,
+          "planMs": 0.06706800000392832,
+          "fillMs": 1.2251260000048205,
+          "speedup": 1.9667940749697483,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 67.17410399991786,
+          "mirroredMs": 33.46953700002632,
+          "planMs": 0.06987100001424551,
+          "fillMs": 1.3282539999927394,
+          "speedup": 2.007022206487799,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 75.65259700005117,
+      "mirroredMedianMs": 39.44696499996644,
+      "speedupMedian": 1.9667940749697483,
+      "speedupP90": 2.112406623586927,
+      "speedupP10": 1.501621072731928,
+      "speedupMin": 1.2206506406557593,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-weak-attraction",
+      "class": "Fallback",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -0.1205,
+          "im": 0.8268
+        },
+        "spanY": 0.005
+      },
+      "profile": "balanced",
+      "mirroredRows": 0,
+      "mirroredPixelFraction": 0,
+      "planMedianMs": 0.04821799999626819,
+      "samples": [],
+      "directMedianMs": null,
+      "mirroredMedianMs": null,
+      "speedupMedian": null,
+      "speedupP90": null,
+      "speedupP10": null,
+      "speedupMin": null,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-weak-attraction@im0",
+      "class": "Fallback",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": -0.1205,
+          "im": 0
+        },
+        "spanY": 0.005
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.04821899998933077,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 67.01565700006904,
+          "mirroredMs": 35.02844700003334,
+          "planMs": 0.06710500000917818,
+          "fillMs": 2.425816000002669,
+          "speedup": 1.9131780806612768,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 67.78606399994169,
+          "mirroredMs": 36.674786999981734,
+          "planMs": 0.06079300001147203,
+          "fillMs": 2.8014839999959804,
+          "speedup": 1.8483015047906195,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 72.71916200009582,
+          "mirroredMs": 33.314418999972986,
+          "planMs": 0.07107299999915995,
+          "fillMs": 1.2138010000053328,
+          "speedup": 2.1828134538427575,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 62.298747999971965,
+          "mirroredMs": 33.55968000004941,
+          "planMs": 0.06265999999595806,
+          "fillMs": 1.3812440000037896,
+          "speedup": 1.8563570331981782,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 62.40420900002937,
+          "mirroredMs": 30.62049499999557,
+          "planMs": 0.06979099998716265,
+          "fillMs": 1.2186270000092918,
+          "speedup": 2.0379882493747536,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 60.162483000051,
+          "mirroredMs": 36.86916000004567,
+          "planMs": 0.055416999995941296,
+          "fillMs": 1.1723619999975199,
+          "speedup": 1.6317833929489165,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 59.751952000005986,
+          "mirroredMs": 30.827542999992147,
+          "planMs": 0.06235300000116695,
+          "fillMs": 1.1550920000008773,
+          "speedup": 1.9382651416631291,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 62.210551000069245,
+          "mirroredMs": 30.07307900003798,
+          "planMs": 0.0605890000006184,
+          "fillMs": 1.2022480000014184,
+          "speedup": 2.0686458809219594,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 64.7278260000603,
+          "mirroredMs": 31.187598999997135,
+          "planMs": 0.06355200000689365,
+          "fillMs": 1.2225109999999404,
+          "speedup": 2.0754347264778623,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 59.31883899999957,
+          "mirroredMs": 31.050028999976348,
+          "planMs": 0.05701099999714643,
+          "fillMs": 1.1759319999982836,
+          "speedup": 1.9104278131284436,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 59.05828399998427,
+          "mirroredMs": 33.5528080000513,
+          "planMs": 0.06373600001097657,
+          "fillMs": 1.8783999999868684,
+          "speedup": 1.760159209324417,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 60.0773059999774,
+          "mirroredMs": 36.98548200003279,
+          "planMs": 0.06292399999802001,
+          "fillMs": 1.1665009999996983,
+          "speedup": 1.6243483321354075,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 60.29371699996409,
+          "mirroredMs": 31.251712000070256,
+          "planMs": 0.06904699999722652,
+          "fillMs": 1.1604669999942416,
+          "speedup": 1.9292932495931276,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 62.061123999999836,
+          "mirroredMs": 29.984197000070708,
+          "planMs": 0.05853900000511203,
+          "fillMs": 1.1394160000054399,
+          "speedup": 2.0697944320421016,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 65.0783999999694,
+          "mirroredMs": 30.25001900002826,
+          "planMs": 0.06284800000139512,
+          "fillMs": 1.1639539999887347,
+          "speedup": 2.151350714851075,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 62.210551000069245,
+      "mirroredMedianMs": 31.251712000070256,
+      "speedupMedian": 1.9292932495931276,
+      "speedupP90": 2.12098431950179,
+      "speedupP10": 1.6831337194991167,
+      "speedupMin": 1.6243483321354075,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-ambiguous-boundary",
+      "class": "Fallback",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": 0.3,
+          "im": 0.008
+        },
+        "spanY": 0.02
+      },
+      "profile": "balanced",
+      "mirroredRows": 32,
+      "mirroredPixelFraction": 0.05,
+      "planMedianMs": 0.04218299999774899,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 754.851023999945,
+          "mirroredMs": 734.634939999989,
+          "planMs": 0.074877999999444,
+          "fillMs": 0.12884600000688806,
+          "speedup": 1.0275185441083925,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 743.4254899999214,
+          "mirroredMs": 734.8474730000016,
+          "planMs": 0.055775000000721775,
+          "fillMs": 0.17959699999482837,
+          "speedup": 1.011673193846473,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 743.0698630000552,
+          "mirroredMs": 741.3257239999803,
+          "planMs": 0.07337899999401998,
+          "fillMs": 0.19794399999955203,
+          "speedup": 1.0023527296350436,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 759.1423059999797,
+          "mirroredMs": 737.0504150000343,
+          "planMs": 0.07564100000308827,
+          "fillMs": 0.1257810000097379,
+          "speedup": 1.029973378415294,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 734.6278350000648,
+          "mirroredMs": 750.9518709999684,
+          "planMs": 0.06355999999505002,
+          "fillMs": 0.17460299999220297,
+          "speedup": 0.9782622074325928,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 741.4954980000039,
+          "mirroredMs": 727.3269769999752,
+          "planMs": 0.06355900000198744,
+          "fillMs": 0.16158399998676032,
+          "speedup": 1.0194802632764564,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 731.1583079999109,
+          "mirroredMs": 717.7391319999297,
+          "planMs": 0.0693699999974342,
+          "fillMs": 0.1980420000036247,
+          "speedup": 1.018696453072845,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 727.9394350000221,
+          "mirroredMs": 723.5124549999746,
+          "planMs": 0.057415000002947636,
+          "fillMs": 0.23539000000164378,
+          "speedup": 1.0061187336437043,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 742.2988410000107,
+          "mirroredMs": 726.9730599999602,
+          "planMs": 0.07727500000328291,
+          "fillMs": 0.14431999999214895,
+          "speedup": 1.0210816354048269,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 744.5233610000287,
+          "mirroredMs": 744.6306250000343,
+          "planMs": 0.06361599999945611,
+          "fillMs": 0.2596169999887934,
+          "speedup": 0.9998559500557667,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 736.4321390000405,
+          "mirroredMs": 756.3001139999978,
+          "planMs": 0.06883699999889359,
+          "fillMs": 0.16389900000649504,
+          "speedup": 0.9737300383377208,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 774.0748890000104,
+          "mirroredMs": 740.5893660000729,
+          "planMs": 0.06571900000562891,
+          "fillMs": 0.11939399999391753,
+          "speedup": 1.0452146959397932,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 761.9093590000266,
+          "mirroredMs": 749.1807379999664,
+          "planMs": 0.07592499999736901,
+          "fillMs": 0.19744200000423007,
+          "speedup": 1.0169900537406247,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 765.3079510000243,
+          "mirroredMs": 766.8656060000649,
+          "planMs": 0.06785600000876002,
+          "fillMs": 0.17319500001030974,
+          "speedup": 0.9979688031542252,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 759.4770260001242,
+          "mirroredMs": 745.4338119999447,
+          "planMs": 0.07175499998265877,
+          "fillMs": 0.2029529999999795,
+          "speedup": 1.0188389817769368,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 743.4254899999214,
+      "mirroredMedianMs": 740.5893660000729,
+      "speedupMedian": 1.0169900537406247,
+      "speedupP90": 1.0289914446925335,
+      "speedupP10": 0.9861448457212458,
+      "speedupMin": 0.9737300383377208,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-ambiguous-boundary@im0",
+      "class": "Fallback",
+      "derived": true,
+      "viewport": {
+        "center": {
+          "re": 0.3,
+          "im": 0
+        },
+        "spanY": 0.02
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.045104999997420236,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 83.30749399997876,
+          "mirroredMs": 43.04951700006495,
+          "planMs": 0.0674449999933131,
+          "fillMs": 1.2953819999820553,
+          "speedup": 1.9351551377418026,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 82.5107699999644,
+          "mirroredMs": 44.14931100001559,
+          "planMs": 0.05955599999288097,
+          "fillMs": 1.7510790000087582,
+          "speedup": 1.8689027785719072,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 84.31524899994838,
+          "mirroredMs": 42.90366899990477,
+          "planMs": 0.2946219999867026,
+          "fillMs": 1.1094480000028852,
+          "speedup": 1.965222344973236,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 82.21139899993432,
+          "mirroredMs": 45.59057699999539,
+          "planMs": 0.08125700001255609,
+          "fillMs": 2.835581999999704,
+          "speedup": 1.8032541900038384,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 91.6877810000733,
+          "mirroredMs": 43.377746000071056,
+          "planMs": 0.0648300000175368,
+          "fillMs": 1.0818300000100862,
+          "speedup": 2.113705516186182,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 82.78565900001558,
+          "mirroredMs": 42.95149700000184,
+          "planMs": 0.06583899998804554,
+          "fillMs": 1.265343999984907,
+          "speedup": 1.9274219708805969,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 83.32731100003002,
+          "mirroredMs": 42.73073599982308,
+          "planMs": 0.06748500000685453,
+          "fillMs": 1.2402650000003632,
+          "speedup": 1.9500555993319428,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 85.3819080000394,
+          "mirroredMs": 43.29021200002171,
+          "planMs": 0.05685100000118837,
+          "fillMs": 1.1291090000013355,
+          "speedup": 1.972314388296287,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 83.32740599976387,
+          "mirroredMs": 42.81609900001786,
+          "planMs": 0.07215700001688674,
+          "fillMs": 1.0799209999968298,
+          "speedup": 1.9461699675098638,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 82.48178599996027,
+          "mirroredMs": 42.94366200015065,
+          "planMs": 0.06332000001566485,
+          "fillMs": 1.1643650000041816,
+          "speedup": 1.9206975408774154,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 89.49288899995736,
+          "mirroredMs": 43.11320500008878,
+          "planMs": 0.07324599998537451,
+          "fillMs": 1.25166999999783,
+          "speedup": 2.075765162895523,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 82.41939899986028,
+          "mirroredMs": 42.37334999997984,
+          "planMs": 0.061308000003919005,
+          "fillMs": 1.0622070000099484,
+          "speedup": 1.9450763038537076,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 84.02951199986273,
+          "mirroredMs": 42.630809000111185,
+          "planMs": 0.06604200002038851,
+          "fillMs": 1.1178840000065975,
+          "speedup": 1.9710982261594796,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 82.22610199989867,
+          "mirroredMs": 42.77263900014805,
+          "planMs": 0.05657200000132434,
+          "fillMs": 1.1348069999949075,
+          "speedup": 1.9223995507879248,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 82.4592750002339,
+          "mirroredMs": 42.77098499998101,
+          "planMs": 0.0697130000044126,
+          "fillMs": 1.0735559999884572,
+          "speedup": 1.9279255551460999,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 83.30749399997876,
+      "mirroredMedianMs": 42.94366200015065,
+      "speedupMedian": 1.9450763038537076,
+      "speedupP90": 2.0343848530558284,
+      "speedupP10": 1.8896206834941105,
+      "speedupMin": 1.8032541900038384,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-fallback-budget-exhaustion",
+      "class": "Fallback",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -1.401155189092,
+          "im": 0
+        },
+        "spanY": 0.001
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.04370100001688115,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 18572.33492300019,
+          "mirroredMs": 10024.11533,
+          "planMs": 0.08465200001955964,
+          "fillMs": 1.1119870000111405,
+          "speedup": 1.8527654871864079,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 19642.992089999985,
+          "mirroredMs": 10340.885477000033,
+          "planMs": 0.06669400000828318,
+          "fillMs": 1.5456319999939296,
+          "speedup": 1.8995464299154547,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 19344.975383000157,
+          "mirroredMs": 9642.521619999985,
+          "planMs": 0.10562800001935102,
+          "fillMs": 1.3884970000071917,
+          "speedup": 2.0062154014646834,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 18863.208186999836,
+          "mirroredMs": 9971.98618700009,
+          "planMs": 0.07370099998661317,
+          "fillMs": 1.1782529999909457,
+          "speedup": 1.891619967503638,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 19462.27778799989,
+          "mirroredMs": 9601.975003000058,
+          "planMs": 0.07415800000308082,
+          "fillMs": 1.2869010000140406,
+          "speedup": 2.026903609092823,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 19821.879580000474,
+          "mirroredMs": 9952.400628000207,
+          "planMs": 0.0752090000314638,
+          "fillMs": 1.3938729999936186,
+          "speedup": 1.9916681734287658,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 19601.13947899989,
+          "mirroredMs": 9787.718153999944,
+          "planMs": 0.09208500001113862,
+          "fillMs": 1.154753000009805,
+          "speedup": 2.002626063664236,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 19501.404226999963,
+          "mirroredMs": 9696.453716000018,
+          "planMs": 0.07017400005133823,
+          "fillMs": 1.4005870000110008,
+          "speedup": 2.0111893273744914,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 19206.63486500032,
+          "mirroredMs": 9435.27608499967,
+          "planMs": 0.0722550000064075,
+          "fillMs": 1.3419449999928474,
+          "speedup": 2.035619805077595,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 19225.843495000096,
+          "mirroredMs": 9403.052730000229,
+          "planMs": 0.06598999997368082,
+          "fillMs": 1.33707000000868,
+          "speedup": 2.0446384857186297,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 19873.115447999677,
+          "mirroredMs": 9980.541301999765,
+          "planMs": 0.07761300000129268,
+          "fillMs": 1.2289110000128858,
+          "speedup": 1.9911861337638843,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 21191.184238999966,
+          "mirroredMs": 10051.263550000265,
+          "planMs": 0.07369099999777973,
+          "fillMs": 1.3335409999708645,
+          "speedup": 2.108310475950002,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 18664.714487000077,
+          "mirroredMs": 9303.958151999977,
+          "planMs": 0.08210800000233576,
+          "fillMs": 1.3464570000069216,
+          "speedup": 2.0061047332836415,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 18652.92998700007,
+          "mirroredMs": 9408.350791000295,
+          "planMs": 0.06772700004512444,
+          "fillMs": 1.2104319999925792,
+          "speedup": 1.9825929540002718,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 18781.25653399981,
+          "mirroredMs": 9473.284813000006,
+          "planMs": 0.07742200000211596,
+          "fillMs": 1.3328700000420213,
+          "speedup": 1.982549549046246,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 19344.975383000157,
+      "mirroredMedianMs": 9696.453716000018,
+      "speedupMedian": 2.002626063664236,
+      "speedupP90": 2.0410310134622156,
+      "speedupP10": 1.8947905524683648,
+      "speedupMin": 1.8527654871864079,
+      "totalMismatches": 0
+    },
+    {
+      "id": "mi-scale-6mx-basilica-rim",
+      "class": "Scale",
+      "derived": false,
+      "viewport": {
+        "center": {
+          "re": -1.25,
+          "im": 0
+        },
+        "spanY": 4.1666666666666667e-7
+      },
+      "profile": "balanced",
+      "mirroredRows": 320,
+      "mirroredPixelFraction": 0.5,
+      "planMedianMs": 0.05328600003849715,
+      "samples": [
+        {
+          "repetition": 0,
+          "firstArm": "direct",
+          "directMs": 17435.43816500029,
+          "mirroredMs": 8601.134723000112,
+          "planMs": 0.07778900000266731,
+          "fillMs": 1.4129240000620484,
+          "speedup": 2.0271090648512406,
+          "mismatches": 0
+        },
+        {
+          "repetition": 1,
+          "firstArm": "mirrored",
+          "directMs": 17544.41193000041,
+          "mirroredMs": 8540.749123999616,
+          "planMs": 0.06925999990198761,
+          "fillMs": 1.422004000050947,
+          "speedup": 2.054200594734762,
+          "mismatches": 0
+        },
+        {
+          "repetition": 2,
+          "firstArm": "direct",
+          "directMs": 16932.156767000095,
+          "mirroredMs": 8600.017617999925,
+          "planMs": 0.07525400002487004,
+          "fillMs": 1.8662060000933707,
+          "speedup": 1.968851404625139,
+          "mismatches": 0
+        },
+        {
+          "repetition": 3,
+          "firstArm": "mirrored",
+          "directMs": 17309.14588800003,
+          "mirroredMs": 9501.006797000184,
+          "planMs": 0.07697599998209625,
+          "fillMs": 1.431135999970138,
+          "speedup": 1.821822282399078,
+          "mismatches": 0
+        },
+        {
+          "repetition": 4,
+          "firstArm": "direct",
+          "directMs": 17220.20999699994,
+          "mirroredMs": 8442.947619999992,
+          "planMs": 0.08064699999522418,
+          "fillMs": 1.2882499999832362,
+          "speedup": 2.039596924207846,
+          "mismatches": 0
+        },
+        {
+          "repetition": 5,
+          "firstArm": "mirrored",
+          "directMs": 17257.402809999767,
+          "mirroredMs": 8630.237323999987,
+          "planMs": 0.06571300001814961,
+          "fillMs": 1.370509999920614,
+          "speedup": 1.999644061004943,
+          "mismatches": 0
+        },
+        {
+          "repetition": 6,
+          "firstArm": "direct",
+          "directMs": 16831.214756999863,
+          "mirroredMs": 8656.17003899999,
+          "planMs": 0.07222900004126132,
+          "fillMs": 1.3691220000619069,
+          "speedup": 1.9444182220505803,
+          "mismatches": 0
+        },
+        {
+          "repetition": 7,
+          "firstArm": "mirrored",
+          "directMs": 17106.825868000393,
+          "mirroredMs": 8485.088703000103,
+          "planMs": 0.06166100001428276,
+          "fillMs": 2.75825299997814,
+          "speedup": 2.0161045413646494,
+          "mismatches": 0
+        },
+        {
+          "repetition": 8,
+          "firstArm": "direct",
+          "directMs": 17097.522079999908,
+          "mirroredMs": 8427.735892999917,
+          "planMs": 0.07643799996003509,
+          "fillMs": 1.7612600000575185,
+          "speedup": 2.0287206786108616,
+          "mismatches": 0
+        },
+        {
+          "repetition": 9,
+          "firstArm": "mirrored",
+          "directMs": 16909.870422000415,
+          "mirroredMs": 8704.303701000172,
+          "planMs": 0.08906200004275888,
+          "fillMs": 1.4029050000244752,
+          "speedup": 1.942702254294893,
+          "mismatches": 0
+        },
+        {
+          "repetition": 10,
+          "firstArm": "direct",
+          "directMs": 17062.23833200033,
+          "mirroredMs": 8433.749348999816,
+          "planMs": 0.08533400006126612,
+          "fillMs": 2.8311770000727847,
+          "speedup": 2.023090517152231,
+          "mismatches": 0
+        },
+        {
+          "repetition": 11,
+          "firstArm": "mirrored",
+          "directMs": 16761.03107799997,
+          "mirroredMs": 8394.087371999747,
+          "planMs": 0.06399699999019504,
+          "fillMs": 1.373596000019461,
+          "speedup": 1.9967663350645994,
+          "mismatches": 0
+        },
+        {
+          "repetition": 12,
+          "firstArm": "direct",
+          "directMs": 16978.549895999022,
+          "mirroredMs": 8600.414597000228,
+          "planMs": 0.0726509999949485,
+          "fillMs": 1.4321429999545217,
+          "speedup": 1.9741548159691087,
+          "mismatches": 0
+        },
+        {
+          "repetition": 13,
+          "firstArm": "mirrored",
+          "directMs": 16942.14935599966,
+          "mirroredMs": 8554.16247900005,
+          "planMs": 0.07045400002971292,
+          "fillMs": 1.3838749999413267,
+          "speedup": 1.9805737145619584,
+          "mismatches": 0
+        },
+        {
+          "repetition": 14,
+          "firstArm": "direct",
+          "directMs": 17054.404793999973,
+          "mirroredMs": 8558.699601999833,
+          "planMs": 0.08092199999373406,
+          "fillMs": 1.2971749999560416,
+          "speedup": 1.9926397218118306,
+          "mismatches": 0
+        }
+      ],
+      "directMedianMs": 17062.23833200033,
+      "mirroredMedianMs": 8558.699601999833,
+      "speedupMedian": 1.9967663350645994,
+      "speedupP90": 2.0352464259690524,
+      "speedupP10": 1.943388641397168,
+      "speedupMin": 1.821822282399078,
+      "totalMismatches": 0
+    }
+  ]
+}

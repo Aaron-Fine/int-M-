@@ -179,6 +179,36 @@ describe('RenderWorkerRuntime', () => {
     expect(requests[0]).not.toHaveProperty('classifierMode');
   });
 
+  it('threads the conjugateMirror experiment flag only when set, defaulting to absent', async () => {
+    const requests: DynamicsRenderRequest[] = [];
+    const renderer: Renderer = {
+      inspect: () => ({
+        status: 'unresolved',
+        iterations: 1,
+        evidence: ['iteration-limit'],
+      }),
+      render: async (request, _signal, onFrame) => {
+        requests.push(request);
+        await onFrame(semanticFrame(request.size));
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
+    const base = {
+      type: 'render' as const,
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 2, height: 2 },
+      semanticView: 'stability' as const,
+    };
+
+    await runtime.handle({ ...base, requestId: 1 });
+    await runtime.handle({ ...base, requestId: 2, conjugateMirror: true });
+
+    expect(requests).toHaveLength(2);
+    expect(requests[0]).not.toHaveProperty('conjugateMirror');
+    expect(requests[1]?.conjugateMirror).toBe(true);
+  });
+
   it('returns structured inspection evidence', async () => {
     const messages: WorkerToMainMessage[] = [];
     const port: WorkerMessagePort = {

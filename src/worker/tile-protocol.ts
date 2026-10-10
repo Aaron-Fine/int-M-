@@ -52,6 +52,13 @@ export interface TileClassifyMessage {
    * Additive optional field: absent on the default path.
    */
   readonly perfCounters?: boolean;
+  /**
+   * EXPERIMENT (workstream M), default OFF: the worker derives the same
+   * conjugate-mirror plan from viewport+size (a pure function) and skips the
+   * mirrored rows of its band; the supervisor fills them after the last
+   * band returns. Additive optional field: absent on the default path.
+   */
+  readonly conjugateMirror?: true;
 }
 
 export interface TileResultMessage {

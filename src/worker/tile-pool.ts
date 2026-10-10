@@ -1,4 +1,5 @@
-import { classifyRows } from '../render/classify-rows';
+import { classifyRows, classifyRowsTrailingArgs } from '../render/classify-rows';
+import { applyConjugateMirror } from '../render/conjugate-mirror';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { orderRowBandsForDispatch, splitRowBands } from '../render/row-bands';
 import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
@@ -17,7 +18,8 @@ import type {
   TilePool,
 } from '../render/renderer';
 import type { ClassifierMode, DifferentialStats, RenderQuality } from '../domain';
-import { createDifferentialStats } from '../domain';
+import { computedPrefixRows, createDifferentialStats, planConjugateMirror } from '../domain';
+import type { ConjugateMirrorPlan } from '../domain';
 import type {
   SupervisorToTileMessage,
   TileMessageEvent,
@@ -122,6 +124,10 @@ interface ActiveJob {
   readonly quality: RenderQuality;
   readonly classifierMode?: ClassifierMode;
   readonly perfCounters: boolean;
+  /** Experiment (workstream M): rows to fill by mirroring after the last band returns. */
+  readonly mirrorPlan: ConjugateMirrorPlan | undefined;
+  /** True when bands span mirrored rows and workers must skip them in place. */
+  readonly workersSkipMirroredRows: boolean;
   readonly bands: readonly RowBand[];
   readonly expectedJobs: number;
   readonly received: Map<number, TileResultMessage>;
@@ -205,6 +211,10 @@ class TilePoolImpl implements TilePool {
     classifierMode?: ClassifierMode,
     perfCounters = false,
   ): Promise<SemanticFrame> {
+    const mirrorPlan =
+      request.conjugateMirror === true
+        ? planConjugateMirror(request.viewport, request.size)
+        : undefined;
     const band = await classifyRows(
       request,
       quality,
@@ -215,24 +225,29 @@ class TilePoolImpl implements TilePool {
       classifierMode,
       request.yieldMechanism,
       undefined,
-      ...(perfCounters ? [true as const] : []),
+      ...classifyRowsTrailingArgs(perfCounters, mirrorPlan),
     );
     throwIfAborted(signal);
+    const semanticBand: SemanticBand = {
+      y0: 0,
+      y1: request.size.height,
+      packedStatusPeriod: band.packedStatusPeriod,
+      smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
+      multiplierAngle: band.multiplierAngle,
+    };
+    let timing = band.timing;
+    if (mirrorPlan !== undefined) {
+      const mirrorStarted = performance.now();
+      applyConjugateMirror(mirrorPlan, [semanticBand], request.size.width);
+      timing = { ...timing, classifyMs: timing.classifyMs + (performance.now() - mirrorStarted) };
+    }
     return {
       stage: 'stable',
       size: request.size,
       sampleStride: 1,
-      bands: [
-        {
-          y0: 0,
-          y1: request.size.height,
-          packedStatusPeriod: band.packedStatusPeriod,
-          smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
-          multiplierAngle: band.multiplierAngle,
-        },
-      ],
+      bands: [semanticBand],
       progress: 1,
-      timing: band.timing,
+      timing,
       ...(band.differential === undefined ? {} : { differential: band.differential }),
       ...(band.counters === undefined ? {} : { counters: band.counters }),
     };
@@ -246,11 +261,30 @@ class TilePoolImpl implements TilePool {
     perfCounters = false,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
-    const bands = splitRowBands(request.size.height, workers.length * BANDS_PER_WORKER);
+    // Conjugate mirroring (experiment, workstream M). When the computed rows
+    // are a leading prefix [0, R) (always true for center.im === 0, where
+    // R = ceil(height / 2); the PR #15 / 138a31b scheduling design), bands
+    // are dispatched over those R rows only and one undispatched tail band
+    // [R, height) is filled by the supervisor's mirror. Otherwise (a lucky
+    // exact-pair view with unpaired rows at the bottom) every band is
+    // dispatched and workers skip their mirrored rows in place.
+    const mirrorPlan =
+      request.conjugateMirror === true
+        ? planConjugateMirror(request.viewport, request.size)
+        : undefined;
+    const computedRows = mirrorPlan === undefined ? undefined : computedPrefixRows(mirrorPlan);
+    const dispatchBands = splitRowBands(
+      computedRows ?? request.size.height,
+      workers.length * BANDS_PER_WORKER,
+    );
+    const bands: readonly RowBand[] =
+      computedRows === undefined
+        ? dispatchBands
+        : [...dispatchBands, { y0: computedRows, y1: request.size.height }];
     const dispatchOrder =
       request.bandOrder === 'legacy'
-        ? bands.map((_, index) => index)
-        : orderRowBandsForDispatch(bands, request.size.height, workers.length);
+        ? dispatchBands.map((_, index) => index)
+        : orderRowBandsForDispatch(dispatchBands, request.size.height, workers.length);
     const generation = ++this.#generation;
     const frameOutput = request.frameOutput ?? 'zero-copy';
     // Zero-copy: per-band buffers are the frame storage and travel to the
@@ -271,8 +305,10 @@ class TilePoolImpl implements TilePool {
         quality,
         ...(classifierMode === undefined ? {} : { classifierMode }),
         perfCounters,
+        mirrorPlan,
+        workersSkipMirroredRows: computedRows === undefined && mirrorPlan !== undefined,
         bands,
-        expectedJobs: bands.length,
+        expectedJobs: dispatchBands.length,
         received: new Map(),
         startedAt: performance.now(),
         dispatchOrder,
@@ -280,7 +316,7 @@ class TilePoolImpl implements TilePool {
         frameOutput,
         bandStorage,
         nextDispatch: 0,
-        bandsElapsedMs: new Array<number>(bands.length).fill(Number.NaN),
+        bandsElapsedMs: new Array<number>(dispatchBands.length).fill(Number.NaN),
         mergeCpuMs: 0,
         counters: perfCounters ? createPerfCounters() : undefined,
         differential: classifierMode === 'differential' ? createDifferentialStats() : undefined,
@@ -352,6 +388,9 @@ class TilePoolImpl implements TilePool {
         ? {}
         : { yieldMechanism: active.request.yieldMechanism }),
       ...(active.perfCounters ? { perfCounters: true } : {}),
+      // Only in the in-place fallback; with prefix scheduling workers never
+      // see a mirrored row and need no flag.
+      ...(active.workersSkipMirroredRows ? { conjugateMirror: true as const } : {}),
       ...(bandOutput === undefined ? {} : { bandOutput }),
       ...(bandOutput === undefined ? {} : { outputRevision: PACKED_OUTPUT_REVISION }),
     };
@@ -445,23 +484,39 @@ class TilePoolImpl implements TilePool {
     if (current.received.size === current.expectedJobs) {
       this.#finishActive((job) => {
         const results = [...job.received.values()];
-        job.resolve(
-          frameFromBands(
-            job.request,
-            job.bands,
-            job.bandStorage,
-            1,
-            {
-              classifyMs: performance.now() - job.startedAt,
-              yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
-              yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
-              bandsElapsedMs: [...job.bandsElapsedMs],
-              mergeCpuMs: job.mergeCpuMs,
-            },
-            job.counters,
-            job.differential,
-          ),
+        const frame = frameFromBands(
+          job.request,
+          job.bands,
+          job.bandStorage,
+          1,
+          {
+            classifyMs: performance.now() - job.startedAt,
+            yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
+            yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
+            bandsElapsedMs: [...job.bandsElapsedMs],
+            mergeCpuMs: job.mergeCpuMs,
+          },
+          job.counters,
+          job.differential,
         );
+        const timing = frame.timing;
+        if (job.mirrorPlan !== undefined && timing !== undefined) {
+          // Single-threaded fill after every band has returned: all band
+          // buffers are supervisor-owned here, so there is no worker race.
+          const mirrorStarted = performance.now();
+          applyConjugateMirror(job.mirrorPlan, frame.bands, job.request.size.width);
+          const mirrorMs = performance.now() - mirrorStarted;
+          job.resolve({
+            ...frame,
+            timing: {
+              ...timing,
+              classifyMs: timing.classifyMs + mirrorMs,
+              mergeCpuMs: job.mergeCpuMs + mirrorMs,
+            },
+          });
+          return;
+        }
+        job.resolve(frame);
       });
     }
   }

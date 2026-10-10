@@ -41,6 +41,11 @@ export interface BenchmarkParams {
    * or invalid. Diagnostic arm selector for the zero-copy gate.
    */
   readonly frameOutput?: FrameOutput | undefined;
+  /**
+   * `?perf=1&conjugateMirror=1` only; EXPERIMENT (workstream M), default OFF:
+   * mirrors exact-conjugate pixel rows of the stable pass. Absent otherwise.
+   */
+  readonly conjugateMirror?: true | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -91,6 +96,7 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const result: {
     perfEnabled: boolean;
     perfCounters?: true;
+    conjugateMirror?: true;
     classifierMode?: ClassifierMode;
     bandOrder?: BandOrder;
     yieldMechanism?: YieldMechanism;
@@ -102,6 +108,11 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   // on without ?perf=1 and add nothing to the default path.
   if (result.perfEnabled && params.get('perfCounters') === '1') {
     result.perfCounters = true;
+  }
+
+  // Like perfCounters, the experiment flag never turns on without ?perf=1.
+  if (result.perfEnabled && params.get('conjugateMirror') === '1') {
+    result.conjugateMirror = true;
   }
 
   const classifierMode = params.get('classifierMode');

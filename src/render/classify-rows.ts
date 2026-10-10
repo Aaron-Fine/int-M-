@@ -4,6 +4,8 @@ import {
   OrbitClassifier,
   OrbitScratch,
   type ClassifierMode,
+  type ConjugateMirrorPlan,
+  mirrorSourceOf,
   type DifferentialStats,
   type MutableComplex,
   type OrbitOptions,
@@ -97,6 +99,26 @@ const writeSampleToBand = (
   }
 };
 
+/**
+ * Trailing optional classifyRows arguments for a call site. Keeps the default
+ * call shape unchanged: no perf counters and no mirror plan adds no arguments.
+ */
+export const classifyRowsTrailingArgs = (
+  perfCounters: boolean,
+  mirrorPlan: ConjugateMirrorPlan | undefined,
+): [perfCounters?: boolean, mirrorPlan?: ConjugateMirrorPlan] =>
+  mirrorPlan === undefined ? (perfCounters ? [true] : []) : [perfCounters, mirrorPlan];
+
+const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
+  if (plan !== undefined && stride !== 1) {
+    throw new RangeError('conjugate mirroring requires stride 1');
+  }
+};
+
+/** True when the plan assigns row y a source row (it is copied, not classified). */
+const isMirroredRow = (plan: ConjugateMirrorPlan | undefined, y: number): boolean =>
+  plan !== undefined && mirrorSourceOf(plan, y) >= 0;
+
 export async function classifyRows(
   request: DynamicsRenderRequest,
   quality: RenderQuality,
@@ -118,7 +140,12 @@ export async function classifyRows(
   // unless the caller opted in; with it, the classifier selects the
   // instrumented kernel variant OUTSIDE the raster loop below.
   perfCounters?: boolean,
+  // Conjugate-mirror plan (workstream M experiment): rows with a source row
+  // are left untouched here (the caller fills them with applyConjugateMirror
+  // once every band has returned). Stride-1 only.
+  mirrorPlan?: ConjugateMirrorPlan,
 ): Promise<ClassifyRowsResult> {
+  assertMirrorStride(mirrorPlan, stride);
   const { width } = request.size;
   const length = (y1 - y0) * width;
   const band: BandOutputBuffers = output ?? {
@@ -167,6 +194,8 @@ export async function classifyRows(
 
   for (let y = y0; y < y1; y += stride) {
     throwIfAborted(signal);
+    // Mirrored rows are copied later; skipping them also skips their yield.
+    if (isMirroredRow(mirrorPlan, y)) continue;
     for (let x = 0; x < width; x += stride) {
       const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
       const sampleY = Math.min(request.size.height - 1, y + (stride - 1) / 2);
@@ -193,7 +222,17 @@ export async function classifyRows(
   const countersResult =
     counters === undefined
       ? undefined
-      : assembleCounters(counters, classifier, classifierMode, band, width, stride, y0, y1);
+      : assembleCounters(
+          counters,
+          classifier,
+          classifierMode,
+          band,
+          width,
+          stride,
+          y0,
+          y1,
+          mirrorPlan,
+        );
   return {
     y0,
     y1,
@@ -212,6 +251,9 @@ export async function classifyRows(
 
 /**
  * Opt-in counters assembly (plan §8), run once per band after classification.
+ * With a mirror plan, the counters and differential-mode stats count only the
+ * computed (non-mirrored) rows: mirrored rows are copied after classification
+ * and are never classified, so they add nothing here.
  * Status totals come from one pass over the band's written cells; the
  * reported kernel's counters were either written into the sink directly
  * (legacy/differential instrumented scan) or live in the checkpoint kernel's
@@ -226,12 +268,16 @@ const assembleCounters = (
   stride: number,
   y0: number,
   y1: number,
+  mirrorPlan: ConjugateMirrorPlan | undefined,
 ): PerfCounters => {
   // Status totals over the classified cells: block origins of the sampled
   // grid (stride-folded cells on the coarse pass, every pixel at stride 1).
   // Unwritten words are never read (a zero word is not a valid status).
   const packed = band.packedStatusPeriod;
+  // Mirrored rows are not classified here (their words are still unwritten
+  // zeros), so the status totals and kernel counters cover computed pixels.
   for (let y = y0; y < y1; y += stride) {
+    if (isMirroredRow(mirrorPlan, y)) continue;
     const rowOffset = (y - y0) * width;
     for (let x = 0; x < width; x += stride) {
       const word = packed[rowOffset + x];

@@ -24,6 +24,10 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     // frame must not be served to a counters-less request or vice versa).
     // Conditional so the default key stays byte-identical.
     ...(request.perfCounters === true ? ['pc:1'] : []),
+    // Experiment arm marker: mirrored output is designed to be bit-identical,
+    // but the flag must change the key so A/B toggling re-renders instead of
+    // being served from the cache. Conditional: default key unchanged.
+    ...(request.conjugateMirror === true ? ['cj:1'] : []),
   ].join('|');
 };
 

@@ -81,6 +81,14 @@ export interface DynamicsRenderRequest {
    * no counter field appears on any message.
    */
   readonly perfCounters?: boolean;
+  /**
+   * EXPERIMENT (performance workstream M), default OFF: when true the stable
+   * pass classifies only one row of each exact conjugate pair of pixel rows
+   * and fills the other by copying with the multiplier angle negated. Absent
+   * (or false) on the default path. The coarse pass is never mirrored. See
+   * src/domain/conjugate-mirror.ts.
+   */
+  readonly conjugateMirror?: boolean;
 }
 
 /**

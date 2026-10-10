@@ -48,6 +48,12 @@ export interface RenderMessage {
    * stay byte-identical and no counters structure is allocated anywhere.
    */
   readonly perfCounters?: boolean;
+  /**
+   * EXPERIMENT (workstream M), default OFF: conjugate-symmetry row mirroring
+   * of the stable pass (`?conjugateMirror=1`). Additive optional field:
+   * absent on the default path.
+   */
+  readonly conjugateMirror?: boolean;
 }
 
 export interface InspectMessage {

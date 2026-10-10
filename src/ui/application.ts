@@ -566,6 +566,7 @@ export function mountApplication(host: HTMLElement): () => void {
         ? {}
         : { yieldMechanism: benchmark.yieldMechanism }),
       ...(benchmark.perfCounters ? { perfCounters: true } : {}),
+      ...(benchmark.conjugateMirror ? { conjugateMirror: true } : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,

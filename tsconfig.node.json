@@ -28,6 +28,7 @@
     "tests/unit/**/*.ts",
     "tools/measure_cpu.ts",
     "tools/benchmark/cancel-quiescence.ts",
+    "tools/benchmark/conjugate-mirror.ts",
     "tools/benchmark/recorder-cost.ts",
     "tools/compare_orbit_optimizations.ts"
   ]

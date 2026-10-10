@@ -45,6 +45,7 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   ...(message.yieldMechanism === undefined ? {} : { yieldMechanism: message.yieldMechanism }),
   ...(message.frameOutput === undefined ? {} : { frameOutput: message.frameOutput }),
   ...(message.perfCounters === undefined ? {} : { perfCounters: message.perfCounters }),
+  ...(message.conjugateMirror === true ? { conjugateMirror: true } : {}),
 });
 
 export class RenderWorkerRuntime {
