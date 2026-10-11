@@ -45,12 +45,26 @@ export class OrbitScratch {
    * documented at classifyInto). Unused by the lag scan.
    */
   public checkpointSpill: Float64Array;
+  /**
+   * Prefix cache for the verifier-prefix-cache kernel (classifyIntoPrefixCache,
+   * OrbitOptions.verifierPrefixCache). Index d holds the walk state and
+   * derivative after d steps from the candidate start z (index 0 = z with
+   * derivative 1+0i). Unused by the default kernels.
+   */
+  public cacheRe: Float64Array;
+  public cacheIm: Float64Array;
+  public cacheDerivativeRe: Float64Array;
+  public cacheDerivativeIm: Float64Array;
 
   public constructor(maxPeriod: number = DEFAULT_ORBIT_OPTIONS.maxPeriod) {
     const capacity = Math.max(2, Math.ceil(maxPeriod) + 1);
     this.historyRe = new Float64Array(capacity);
     this.historyIm = new Float64Array(capacity);
     this.checkpointSpill = new Float64Array(4);
+    this.cacheRe = new Float64Array(capacity);
+    this.cacheIm = new Float64Array(capacity);
+    this.cacheDerivativeRe = new Float64Array(capacity);
+    this.cacheDerivativeIm = new Float64Array(capacity);
   }
 
   public ensureCapacity(maxPeriod: number): void {
@@ -60,6 +74,10 @@ export class OrbitScratch {
     }
     this.historyRe = new Float64Array(required);
     this.historyIm = new Float64Array(required);
+    this.cacheRe = new Float64Array(required);
+    this.cacheIm = new Float64Array(required);
+    this.cacheDerivativeRe = new Float64Array(required);
+    this.cacheDerivativeIm = new Float64Array(required);
   }
 }
 
@@ -180,6 +198,9 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
     );
   }
   const exhaustionScan = resolved.exhaustionScan ?? true;
+  // Experiment flag (default off): normalized so kernel selection reads a
+  // plain boolean.
+  const verifierPrefixCache = resolved.verifierPrefixCache ?? false;
   // Normalized form: the optional mode/scan fields are always set, so kernel
   // code reads plain values instead of re-applying defaults.
   // PR 5 (plan section 4): attach versioned period-policy metadata. The
@@ -192,6 +213,7 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
     ...resolved,
     classifierMode,
     exhaustionScan,
+    verifierPrefixCache,
     periodPolicy:
       periodPolicy === undefined
         ? defaultPeriodPolicyFor(resolved.maxIterations, resolved.maxPeriod)
@@ -533,6 +555,293 @@ export const classifyInto = (
 };
 
 /**
+ * EXPERIMENT kernel (performance workstream v2-prefix-cache; flag
+ * OrbitOptions.verifierPrefixCache, default off). A separate copy of
+ * classifyInto: every decision is the same, but the candidate period walk
+ * records each prefix state and derivative into the scratch cache, and the
+ * proper-divisor reduction reads those recorded states instead of re-walking
+ * from z. Divisor d's walk is the same sequence of operations as the first d
+ * steps of the candidate walk, so the recorded values are bit-identical to the
+ * re-walk values.
+ *
+ * Per-step divisor finiteness checks are dropped. Non-finite arithmetic is
+ * absorbing (a non-finite operand of +, -, * gives a non-finite result), so a
+ * non-finite prefix state at step d < period forces a non-finite candidate end
+ * state, which the end-check rejects first. The divisor residual-square check
+ * stays, because finite minus finite can still overflow.
+ */
+export const classifyIntoPrefixCache = (
+  cRe: number,
+  cIm: number,
+  options: OrbitOptions,
+  scratch: OrbitScratch,
+  out: OrbitSample,
+  // eslint-disable-next-line complexity -- the branch count is the fused scan + verifier policy body; see the comments above and at the lag scan
+): void => {
+  // Analytic fast paths (closed form): main cardioid and period-2 bulb.
+  // Their acceptance migrates to the verifier policy (plan section 4 stage
+  // 1): the exact closed-form multiplier must satisfy the frozen attraction
+  // margin; margin-adjacent points are refused here and fall through to the
+  // lag scan (verify or fall back), which applies the same policy. The
+  // closed forms carry no closure residual, so the scale-aware tolerance has
+  // no analytic counterpart; period 1 has no proper divisor and the period-2
+  // cycle is genuinely period 2 everywhere inside the bulb (the two cycle
+  // points merge only on the excluded boundary), so divisor reduction is
+  // vacuous on both paths.
+  const x = cRe;
+  const ySquared = cIm * cIm;
+  const cardioidX = x - 0.25;
+  const q = cardioidX * cardioidX + ySquared;
+
+  if (q * (q + cardioidX) < 0.25 * ySquared) {
+    const sqrtArgRe = 1 - 4 * x;
+    const sqrtArgIm = -4 * cIm;
+    const discriminantMagnitude = Math.hypot(sqrtArgRe, sqrtArgIm);
+    const rootRe = Math.sqrt(Math.max(0, (discriminantMagnitude + sqrtArgRe) / 2));
+    const rootImMagnitude = Math.sqrt(Math.max(0, (discriminantMagnitude - sqrtArgRe) / 2));
+    // Legacy multiplier is 1 - sqrt(1 - 4x, -4y) componentwise, so the
+    // imaginary part carries the negated principal root sign.
+    const multiplierRe = 1 - rootRe;
+    const multiplierIm = sqrtArgIm < 0 ? rootImMagnitude : -rootImMagnitude;
+    const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
+    if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
+      finishAttractingCycle(
+        out,
+        1,
+        multiplierRe,
+        multiplierIm,
+        0,
+        ORBIT_EVIDENCE_CODE.analyticMainCardioid,
+        multiplierMagnitude,
+      );
+      return;
+    }
+  } else {
+    const bulbX = x + 1;
+    if (bulbX * bulbX + ySquared < 1 / 16) {
+      const multiplierRe = 4 * bulbX;
+      const multiplierIm = 4 * cIm;
+      const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
+      if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
+        finishAttractingCycle(
+          out,
+          2,
+          multiplierRe,
+          multiplierIm,
+          0,
+          ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb,
+          multiplierMagnitude,
+        );
+        return;
+      }
+    }
+  }
+
+  scratch.ensureCapacity(options.maxPeriod);
+  const historyRe = scratch.historyRe;
+  const historyIm = scratch.historyIm;
+  const capacity = historyRe.length;
+  const cacheRe = scratch.cacheRe;
+  const cacheIm = scratch.cacheIm;
+  const cacheDerivativeRe = scratch.cacheDerivativeRe;
+  const cacheDerivativeIm = scratch.cacheDerivativeIm;
+  let zRe = 0;
+  let zIm = 0;
+  // Candidate proposal gate (frozen): the lag-scan proximity threshold.
+  // Acceptance below is the common verifier's frozen policy and does not
+  // scale with this option.
+  const toleranceSquared = options.cycleTolerance * options.cycleTolerance;
+
+  // The orbit loop must not contain non-inlined JS calls with the orbit
+  // state live across them: a lazy-deopt frame state at such a call switches
+  // zRe/zIm's V8 representation to tagged, allocating a HeapNumber every
+  // iteration (~120 MB per million-pixel interior-heavy pass, measured by
+  // the pr2 microbench). The cycle verification below is therefore written
+  // out at its single call site instead of in a helper, and V8-internal
+  // builtins (Math.hypot) are acceptable only because they cannot lazily
+  // deopt the caller.
+
+  for (let iteration = 1; iteration <= options.maxIterations; iteration += 1) {
+    const nextRe = zRe * zRe - zIm * zIm + cRe;
+    zIm = 2 * zRe * zIm + cIm;
+    zRe = nextRe;
+    const magnitudeSquared = zRe * zRe + zIm * zIm;
+
+    if (magnitudeSquared > 4) {
+      const smoothIteration = iteration + 1 - Math.log2(Math.log2(Math.sqrt(magnitudeSquared)));
+      out.status = 1;
+      out.iterations = iteration;
+      out.evidence = ORBIT_EVIDENCE_CODE.escapeRadius;
+      out.escapeIteration = iteration;
+      out.smoothIteration = Number.isFinite(smoothIteration) ? smoothIteration : iteration;
+      out.magnitudeSquared = magnitudeSquared;
+      return;
+    }
+
+    const currentIndex = (iteration - 1) % capacity;
+    historyRe[currentIndex] = zRe;
+    historyIm[currentIndex] = zIm;
+    if (iteration < options.cycleWarmup) {
+      continue;
+    }
+
+    const largestPeriod = Math.min(options.maxPeriod, iteration - 1);
+    for (let period = 1; period <= largestPeriod; period += 1) {
+      // previousIndex is always in [0, capacity - 1]: currentIndex is reduced
+      // modulo capacity and 1 <= period <= largestPeriod < capacity, so the
+      // history loads below are provably total. They must stay bare: the
+      // defensive `history[i] ?? Number.NaN` pattern forces a tagged
+      // materialization of the loaded double for its undefined check. The
+      // non-null assertions restate the in-bounds proof for the
+      // noUncheckedIndexedAccess checker and compile to nothing; the rule is
+      // disabled for exactly these two loads because every assertion style
+      // lint allows carries runtime cost in a hot loop.
+      const previousIndex = (currentIndex - period + capacity) % capacity;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+      const distanceRe = zRe - historyRe[previousIndex]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+      const distanceIm = zIm - historyIm[previousIndex]!;
+      if (distanceRe * distanceRe + distanceIm * distanceIm > toleranceSquared) {
+        continue;
+      }
+
+      // Verifier acceptance, prefix-cache form. Mirrors the frozen policy of
+      // verifyCycleInto (src/domain/verifier.ts) body for body, except that
+      // the proper-divisor states are read from the cache written below.
+      const verifierScale = Math.max(1, Math.abs(zRe), Math.abs(zIm));
+      const acceptSquared = TAU_CLOSURE_SCALED * TAU_CLOSURE_SCALED * verifierScale * verifierScale;
+      const excludeSquared =
+        VERIFIER_THRESHOLDS.tauExclude *
+        VERIFIER_THRESHOLDS.tauExclude *
+        verifierScale *
+        verifierScale;
+
+      // Prefix cache: index d holds the state and derivative after d steps
+      // from z (index 0 is z with derivative 1+0i). Each entry is written with
+      // the same expressions the verifier walk uses, so it equals the re-walk
+      // value bit for bit. Indices 0..period are valid for this candidate.
+      cacheRe[0] = zRe;
+      cacheIm[0] = zIm;
+      cacheDerivativeRe[0] = 1;
+      cacheDerivativeIm[0] = 0;
+      let cycleRe = zRe;
+      let cycleIm = zIm;
+      let derivativeRe = 1;
+      let derivativeIm = 0;
+      for (let index = 0; index < period; index += 1) {
+        const nextDerivativeRe = derivativeRe * (2 * cycleRe) - derivativeIm * (2 * cycleIm);
+        derivativeIm = derivativeRe * (2 * cycleIm) + derivativeIm * (2 * cycleRe);
+        derivativeRe = nextDerivativeRe;
+
+        const nextStateRe = cycleRe * cycleRe - cycleIm * cycleIm + cRe;
+        cycleIm = 2 * cycleRe * cycleIm + cIm;
+        cycleRe = nextStateRe;
+
+        cacheRe[index + 1] = cycleRe;
+        cacheIm[index + 1] = cycleIm;
+        cacheDerivativeRe[index + 1] = derivativeRe;
+        cacheDerivativeIm[index + 1] = derivativeIm;
+      }
+
+      // Non-finite state, derivative, or residual: rejected, never attracting.
+      // Non-finite arithmetic is absorbing, so this end-check also rejects any
+      // candidate whose earlier prefix went non-finite (see the doc comment).
+      if (
+        !Number.isFinite(cycleRe) ||
+        !Number.isFinite(cycleIm) ||
+        !Number.isFinite(derivativeRe) ||
+        !Number.isFinite(derivativeIm)
+      ) {
+        continue;
+      }
+      const closureRe = cycleRe - zRe;
+      const closureIm = cycleIm - zIm;
+      const candidateClosureSquared = closureRe * closureRe + closureIm * closureIm;
+      if (!Number.isFinite(candidateClosureSquared)) {
+        continue;
+      }
+      // Three-way closure policy, as in classifyInto.
+      if (candidateClosureSquared > excludeSquared) {
+        continue;
+      }
+      if (candidateClosureSquared > acceptSquared) {
+        continue;
+      }
+
+      // Primitive-period reduction over proper divisors, ascending, reading
+      // the recorded prefix states instead of re-walking from z.
+      let primitive = period;
+      let primitiveDerivativeRe = derivativeRe;
+      let primitiveDerivativeIm = derivativeIm;
+      let accepted = true;
+      for (let divisor = 1; divisor < period; divisor += 1) {
+        if (period % divisor !== 0) {
+          continue;
+        }
+        // divisor < period <= maxPeriod < capacity, so these loads are inside
+        // the entries written by the candidate walk above.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+        const divisorRe = cacheRe[divisor]!;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+        const divisorIm = cacheIm[divisor]!;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+        const divisorDerivativeRe = cacheDerivativeRe[divisor]!;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds proof above
+        const divisorDerivativeIm = cacheDerivativeIm[divisor]!;
+        // The per-step divisor finiteness checks of classifyInto are dropped
+        // (absorption, see the doc comment). The residual-square check stays.
+        const divisorResidualRe = divisorRe - zRe;
+        const divisorResidualIm = divisorIm - zIm;
+        const cacheResidualSquared =
+          divisorResidualRe * divisorResidualRe + divisorResidualIm * divisorResidualIm;
+        if (!Number.isFinite(cacheResidualSquared)) {
+          accepted = false;
+          break;
+        }
+        if (cacheResidualSquared <= acceptSquared) {
+          primitive = divisor;
+          primitiveDerivativeRe = divisorDerivativeRe;
+          primitiveDerivativeIm = divisorDerivativeIm;
+          break;
+        }
+        if (cacheResidualSquared < excludeSquared) {
+          // Divisor-ambiguous: primitivity undecidable, candidate refused.
+          accepted = false;
+          break;
+        }
+      }
+      if (!accepted) {
+        continue;
+      }
+
+      // Attraction margin on the primitive multiplier: |lambda| must stay
+      // below 1 - margin (plan section 3), not merely below 1.
+      const multiplierMagnitude = Math.hypot(primitiveDerivativeRe, primitiveDerivativeIm);
+      if (
+        !Number.isFinite(multiplierMagnitude) ||
+        multiplierMagnitude >= 1 - VERIFIER_THRESHOLDS.attractMargin
+      ) {
+        continue;
+      }
+      finishAttractingCycle(
+        out,
+        primitive,
+        primitiveDerivativeRe,
+        primitiveDerivativeIm,
+        iteration,
+        ORBIT_EVIDENCE_CODE.convergedCycle,
+        multiplierMagnitude,
+      );
+      return;
+    }
+  }
+
+  out.status = 0;
+  out.iterations = options.maxIterations;
+  out.evidence = ORBIT_EVIDENCE_CODE.iterationLimit;
+};
+
+/**
  * Rich result boundary for the primitive record. Allocates; intended for the
  * inspector and legacy callers only — hot raster paths consume OrbitSample
  * directly.
@@ -608,6 +917,9 @@ export class OrbitClassifier {
   // preallocated LegacyScanCounters record, in which case the legacy answer
   // comes from classifyIntoInstrumented (bit-identical, counted).
   readonly #legacyCounters: LegacyScanCounters | undefined;
+  // EXPERIMENT flag (verifierPrefixCache), fixed at construction. False on
+  // the default path, which then calls classifyInto unchanged.
+  readonly #prefixCache: boolean;
 
   public constructor(
     options: Partial<OrbitOptions> = {},
@@ -620,6 +932,7 @@ export class OrbitClassifier {
     this.#scratch = scratch ?? new OrbitScratch(this.#options.maxPeriod);
     this.#scratch.ensureCapacity(this.#options.maxPeriod);
     this.#legacyCounters = legacyCounters;
+    this.#prefixCache = this.#options.verifierPrefixCache === true;
     // resolveOrbitOptions normalizes the optional mode field, so mode is a
     // concrete ClassifierMode here.
     const mode = this.#options.classifierMode ?? 'legacy-scan';
@@ -650,7 +963,11 @@ export class OrbitClassifier {
     if (extras === undefined) {
       const counters = this.#legacyCounters;
       if (counters === undefined) {
-        classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+        if (this.#prefixCache) {
+          classifyIntoPrefixCache(cRe, cIm, this.#options, this.#scratch, out);
+        } else {
+          classifyInto(cRe, cIm, this.#options, this.#scratch, out);
+        }
       } else {
         classifyIntoInstrumented(cRe, cIm, this.#options, this.#scratch, out, counters);
       }
@@ -726,6 +1043,14 @@ export const classifyOrbit = (
     const diffSample = createOrbitSample();
     classifyCheckpointInto(c.re, c.im, resolved, share, diffSample, createCheckpointMetrics());
     recordDifferentialInto(createDifferentialStats(), sample, diffSample);
+  } else if (resolved.verifierPrefixCache === true) {
+    classifyIntoPrefixCache(
+      c.re,
+      c.im,
+      resolved,
+      scratch ?? new OrbitScratch(resolved.maxPeriod),
+      sample,
+    );
   } else {
     classifyInto(c.re, c.im, resolved, scratch ?? new OrbitScratch(resolved.maxPeriod), sample);
   }

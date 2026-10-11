@@ -4,6 +4,7 @@
  * always supplies it.
  */
 import { checkpoint } from './checkpoint';
+import { v2PrefixCache } from './v2-prefix-cache';
 import type { Candidate } from './types';
 
-export const CANDIDATES: readonly Candidate[] = [checkpoint];
+export const CANDIDATES: readonly Candidate[] = [checkpoint, v2PrefixCache];

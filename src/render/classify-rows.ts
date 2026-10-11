@@ -170,6 +170,7 @@ export async function classifyRows(
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
     ...(classifierMode === undefined ? {} : { classifierMode }),
+    ...(request.verifierPrefixCache === true ? { verifierPrefixCache: true } : {}),
   };
   const classifier = new OrbitClassifier(
     orbitOptions,

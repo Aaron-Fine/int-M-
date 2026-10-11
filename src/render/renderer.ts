@@ -89,6 +89,14 @@ export interface DynamicsRenderRequest {
    * src/domain/conjugate-mirror.ts.
    */
   readonly conjugateMirror?: boolean;
+  /**
+   * EXPERIMENT (performance workstream v2-prefix-cache), default OFF: when true
+   * the lag scan's verifier reads proper-divisor states recorded during the
+   * period walk instead of re-walking them. Bit-identical to the default
+   * kernel; absent (or false) on the default path. See
+   * OrbitOptions.verifierPrefixCache in src/domain/types.ts.
+   */
+  readonly verifierPrefixCache?: boolean;
 }
 
 /**

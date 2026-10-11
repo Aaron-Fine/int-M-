@@ -146,6 +146,14 @@ export interface OrbitOptions {
    */
   readonly exhaustionScan?: boolean;
   /**
+   * EXPERIMENT (performance workstream v2-prefix-cache), default OFF. When
+   * true, the lag scan uses classifyIntoPrefixCache: the verifier's
+   * proper-divisor re-walks read states recorded during the period walk
+   * instead of recomputing them. Bit-identical to the default kernel by
+   * construction; only the rarely-run verifier path changes cost.
+   */
+  readonly verifierPrefixCache?: boolean;
+  /**
    * Versioned period policy (PR 5, plan section 4) describing the search
    * this classification runs: the systematic ceiling and orbit budget it
    * declares must equal `maxPeriod`/`maxIterations` (enforced by
