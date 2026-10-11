@@ -35,6 +35,7 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets",
     "poc:bench:pr4": "vite build --ssr poc/performance/src/pr4-bench.ts --outDir .evidence-build --emptyOutDir && node --expose-gc .evidence-build/pr4-bench.js",
     "evidence:early-accept": "vite build --ssr tools/measure_early_accept.ts --outDir .evidence-build --emptyOutDir && node --max-old-space-size=1536 .evidence-build/measure_early_accept.js",
+    "tournament": "vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js",
     "evidence:optimizations": "vite build --ssr tools/compare_orbit_optimizations.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/compare_orbit_optimizations.js"
   },
   "devDependencies": {

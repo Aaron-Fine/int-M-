@@ -27,6 +27,9 @@
     "tools/benchmark/view-chain.d.mts",
     "tools/phase0-browser-benchmark.ts",
     "tools/emit_tile_certificate.ts",
-    "tools/measure_early_accept.ts"
+    "tools/measure_early_accept.ts",
+    "tools/benchmark/tournament.ts",
+    "tools/benchmark/candidates/**/*.ts",
+    "tools/benchmark/judge/**/*.ts"
   ]
 }
