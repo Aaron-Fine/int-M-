@@ -14,6 +14,7 @@ import {
   recordDifferentialInto,
 } from './checkpoint';
 import { classifyIntoInstrumented, type LegacyScanCounters } from './orbit-instrumented';
+import { classifyEarlyAcceptInto, EarlyAcceptState } from './early-accept';
 
 // Shared evidence vocabulary moved to types.ts so every classifier kernel
 // (the lag scan here and the PR 4 checkpoint schedule) writes the same
@@ -596,7 +597,9 @@ export class OrbitClassifier {
   // monomorphic field check.
   readonly #extras:
     | {
-        readonly mode: 'checkpoint' | 'differential';
+        readonly mode: 'checkpoint' | 'differential' | 'early-accept';
+        // Non-null only in 'early-accept' mode (src/domain/early-accept.ts).
+        readonly early: EarlyAcceptState | undefined;
         readonly metrics: CheckpointMetrics;
         readonly diffSample: OrbitSample;
         readonly diffStats: DifferentialStats;
@@ -628,6 +631,8 @@ export class OrbitClassifier {
         ? undefined
         : {
             mode,
+            early:
+              mode === 'early-accept' ? new EarlyAcceptState(this.#options.maxPeriod) : undefined,
             metrics: createCheckpointMetrics(),
             diffSample: createOrbitSample(),
             diffStats: createDifferentialStats(),
@@ -660,6 +665,10 @@ export class OrbitClassifier {
       classifyCheckpointInto(cRe, cIm, this.#options, this.#scratch, out, extras.metrics);
       return;
     }
+    if (extras.early !== undefined) {
+      classifyEarlyAcceptInto(cRe, cIm, this.#options, this.#scratch, out, extras.early);
+      return;
+    }
     // Differential: both kernels per pixel; the legacy answer stays the
     // reported one and every semantic divergence is counted.
     const counters = this.#legacyCounters;
@@ -686,6 +695,14 @@ export class OrbitClassifier {
   public get differentialStats(): DifferentialStats | null {
     const extras = this.#extras;
     return extras?.mode === 'differential' ? extras.diffStats : null;
+  }
+
+  /**
+   * The early-accept state (counters and the last certificate); null unless
+   * classifierMode is 'early-accept'.
+   */
+  public get earlyAccept(): EarlyAcceptState | null {
+    return this.#extras?.early ?? null;
   }
 
   /**
@@ -716,6 +733,15 @@ export const classifyOrbit = (
       scratch ?? new OrbitScratch(resolved.maxPeriod),
       sample,
       createCheckpointMetrics(),
+    );
+  } else if (mode === 'early-accept') {
+    classifyEarlyAcceptInto(
+      c.re,
+      c.im,
+      resolved,
+      scratch ?? new OrbitScratch(resolved.maxPeriod),
+      sample,
+      new EarlyAcceptState(resolved.maxPeriod),
     );
   } else if (mode === 'differential') {
     // Both kernels; the legacy answer is reported. Per-call stats are not

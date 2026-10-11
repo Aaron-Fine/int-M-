@@ -117,13 +117,19 @@ export type SemanticView = 'stability' | 'multiplier' | 'period';
  * - 'differential': both kernels run per pixel; disagreements (status,
  *   period, |lambda| bits) are counted into a preallocated differential
  *   record while the legacy answer stays the reported one.
+ * - 'early-accept': the lag scan plus a certified early-acceptance trigger
+ *   (src/domain/early-accept.ts): a lag-p cycle is accepted as soon as a
+ *   disk certificate (src/domain/certify-cycle.ts) proves a unique attracting
+ *   primitive period-p cycle, if the production verifier has not accepted
+ *   first. Opt-in; changes results only by certified revisions.
  */
-export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential';
+export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential' | 'early-accept';
 
 export const CLASSIFIER_MODES: readonly ClassifierMode[] = Object.freeze([
   'legacy-scan',
   'checkpoint',
   'differential',
+  'early-accept',
 ]);
 
 export interface OrbitOptions {
