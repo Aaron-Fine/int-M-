@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-11T16:43:49.595Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465481728,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "d77eb7c50772864fa6be15d7e529c4d9004242ec",
+    "algorithm": "d77eb7c50772864fa6be15d7e529c4d9004242ec",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+  },
+  "render": {
+    "workerCount": 4,
+    "backend": "cpu"
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-11-d77eb7c-watched-lag-stage-a/environment.json --note Stage A paired classifier-mode run (firefox); production bundle via vite build + vite preview.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Stage A paired classifier-mode run (firefox); production bundle via vite build + vite preview.",
+    "Browser facts filled by tools/benchmark/run-stage-a.mjs (firefox run)."
+  ],
+  "browsers": {
+    "chromium": {
+      "build": "151.0.7922.34",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "automation": "Playwright 1.63.0 automation-bundled chromium, headless",
+      "label": "automation-bundled headless engine — directional only, not release evidence per plan §9",
+      "workerCount": [4],
+      "backend": "cpu",
+      "samples": 234
+    },
+    "firefox": {
+      "build": "153.0",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "automation": "Playwright 1.63.0 automation-bundled firefox, headless",
+      "label": "automation-bundled headless engine — directional only, not release evidence per plan §9",
+      "workerCount": [4],
+      "backend": "cpu",
+      "samples": 234
+    }
+  },
+  "protocol": {
+    "buildMode": "vite build (production bundle) served by vite preview; dev server never used",
+    "repetitions": 9,
+    "pairing": "per repetition both arms run adjacently; baseline/candidate order alternates per repetition",
+    "coldWarm": "repetition 0 runs each arm in a fresh browser context (cold; the browser process is shared and per-context HTTP cache is empty); repetitions 1+ re-navigate one persistent page (warm)",
+    "outOfScope": "cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope for this first Stage A pass",
+    "raster": "shipping-1024x640",
+    "wallMetric": "requestToPresentMs of the computed stable frame (plan §8 fresh delivery timing)",
+    "hashByteOrder": "SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas",
+    "engineLabels": "chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol",
+    "powerMode": "unknown in the headless automation environment; recorded as null"
+  }
+}

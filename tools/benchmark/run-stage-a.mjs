@@ -31,6 +31,8 @@
  *   node tools/benchmark/run-stage-a.mjs [--engine chromium|firefox]
  *       [--reps 9] [--out-dir <evidence/phase-2/<date>-<commit>>]
  *       [--candidate checkpoint|triggered-scan] [--baseline-mirror-off]
+ *       [--executable <browser binary>] (a cached build other than the one the
+ *       installed Playwright expects; recorded in the environment capture)
  *
  * --baseline-mirror-off renders the legacy-scan arm with
  * `conjugateMirror=0`, i.e. the production default before conjugate
@@ -210,7 +212,11 @@ log(`vite preview serving dist/ at ${baseUrl}`);
 
 const launcher = engine === 'chromium' ? chromium : firefox;
 const playwrightVersion = require('@playwright/test/package.json').version;
-const browser = await launcher.launch({ headless: true });
+const executablePath = readOption('--executable');
+const browser = await launcher.launch({
+  headless: true,
+  ...(executablePath === undefined ? {} : { executablePath }),
+});
 log(`${engine} ${browser.version()} launched (headless, automation-bundled)`);
 
 const newContext = () => browser.newContext({ viewport: viewportSize, deviceScaleFactor: 1 });

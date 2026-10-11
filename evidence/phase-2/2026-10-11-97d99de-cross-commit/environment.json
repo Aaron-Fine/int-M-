@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-11T16:24:36.909Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465481728,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "d77eb7c50772864fa6be15d7e529c4d9004242ec",
+    "algorithm": "d77eb7c50772864fa6be15d7e529c4d9004242ec",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out evidence/phase-2/2026-10-11-97d99de-cross-commit/environment.json --note Node serial CpuRenderer, cross-commit stable-pass timing; commits 296d5be (pre-PR 15 main), 49845bf (PR 15 main), 97d99de (head). Run sequentially, commits interleaved per case, nothing else running.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Node serial CpuRenderer, cross-commit stable-pass timing; commits 296d5be (pre-PR 15 main), 49845bf (PR 15 main), 97d99de (head). Run sequentially, commits interleaved per case, nothing else running."
+  ]
+}

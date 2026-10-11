@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "method": {
+    "statusCodes": "0 unresolved, 1 escaped, 2 attracting; per-pixel status of the stable frame (first render), row-major",
+    "note": "pre-PR 15 and PR 15 main run the pre-verifier mainline kernel; head runs the verifier-gated watched-lag kernel. Status agreement only; period/multiplier semantics differ by design between the mainline and verifier kernels. Head vs legacy-scan per-pixel parity (status, period, multiplier bits) at the shipping raster: kernel-parity-1024x640.txt."
+  },
+  "cases": [
+    {
+      "caseId": "pr15-full-set-512",
+      "pixels": 196608,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "pr15-period-three-768",
+      "pixels": 393216,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "pr15-full-set-square-1024",
+      "pixels": 1048576,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "pr15-rabbit-square-768",
+      "pixels": 589824,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-easy-default-full",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-easy-exterior-heavy",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-easy-main-cardioid",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-easy-period2-bulb",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-hard-rabbit-boundary",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-hard-supplied-126x",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-hard-supplied-609x",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-hard-supplied-13x",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-fallback-unknown-high-period",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-fallback-weak-attraction",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-fallback-budget-exhaustion",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    },
+    {
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "pixels": 655360,
+      "statusMismatchesVs296d5be": 0,
+      "firstMismatchesVs296d5be": [],
+      "statusMismatchesVs49845bf": 0,
+      "firstMismatchesVs49845bf": []
+    }
+  ]
+}
