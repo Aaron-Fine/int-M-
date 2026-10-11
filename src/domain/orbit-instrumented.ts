@@ -130,8 +130,6 @@ export const classifyIntoInstrumented = (
       out.multiplierIm = multiplierIm;
       out.multiplierMagnitude = multiplierMagnitude;
       out.multiplierAngle = multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
-      out.stabilityExponent =
-        multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude);
       return;
     }
   } else {
@@ -151,8 +149,6 @@ export const classifyIntoInstrumented = (
         out.multiplierMagnitude = multiplierMagnitude;
         out.multiplierAngle =
           multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
-        out.stabilityExponent =
-          multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude) / 2;
         return;
       }
     }
@@ -324,10 +320,6 @@ export const classifyIntoInstrumented = (
       out.multiplierMagnitude = multiplierMagnitude;
       out.multiplierAngle =
         multiplierMagnitude === 0 ? 0 : Math.atan2(primitiveDerivativeIm, primitiveDerivativeRe);
-      out.stabilityExponent =
-        multiplierMagnitude === 0
-          ? Number.POSITIVE_INFINITY
-          : -Math.log(multiplierMagnitude) / primitive;
       return;
     }
   }

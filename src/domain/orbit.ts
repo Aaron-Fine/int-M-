@@ -3,7 +3,12 @@ import {
   evidenceSourceForFlag,
   resolvePeriodPolicy,
 } from './period-policy';
-import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
+import {
+  stabilityExponentOf,
+  TAU_CLOSURE_SCALED,
+  VERIFIER_REVISION,
+  VERIFIER_THRESHOLDS,
+} from './verifier';
 import { classifyTriggeredOrbitInto } from './orbit-triggered';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
 import { CLASSIFIER_MODES, EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE } from './types';
@@ -107,8 +112,6 @@ export interface OrbitSample {
   multiplierMagnitude: number;
   /** Attracting-cycle only: principal argument of lambda in [-pi, pi]. */
   multiplierAngle: number;
-  /** Attracting-cycle only: intrinsic stability kappa = -log(|lambda|) / period. */
-  stabilityExponent: number;
   /** Escaped only. */
   escapeIteration: number;
   smoothIteration: number;
@@ -124,7 +127,6 @@ export const createOrbitSample = (): OrbitSample => ({
   multiplierIm: 0,
   multiplierMagnitude: 0,
   multiplierAngle: 0,
-  stabilityExponent: 0,
   escapeIteration: 0,
   smoothIteration: 0,
   magnitudeSquared: 0,
@@ -150,8 +152,6 @@ const finishAttractingCycle = (
   out.multiplierIm = multiplierIm;
   out.multiplierMagnitude = multiplierMagnitude;
   out.multiplierAngle = multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
-  out.stabilityExponent =
-    multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude) / period;
 };
 
 /**
@@ -590,7 +590,7 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
       period: sample.period,
       multiplierMagnitude: sample.multiplierMagnitude,
       multiplierAngle: sample.multiplierAngle,
-      stabilityExponent: sample.stabilityExponent,
+      stabilityExponent: stabilityExponentOf(sample.multiplierMagnitude, sample.period),
       verifierRevision: VERIFIER_REVISION,
       // Origin metadata (PR 5, plan section 4): the single evidence flag an
       // attracting result carries identifies its proposal path — the

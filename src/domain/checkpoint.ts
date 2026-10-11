@@ -364,8 +364,6 @@ export const classifyCheckpointInto = (
       out.multiplierIm = multiplierIm;
       out.multiplierMagnitude = multiplierMagnitude;
       out.multiplierAngle = multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
-      out.stabilityExponent =
-        multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude);
       metrics.analyticHits += 1;
       return;
     }
@@ -385,8 +383,6 @@ export const classifyCheckpointInto = (
         out.multiplierMagnitude = multiplierMagnitude;
         out.multiplierAngle =
           multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
-        out.stabilityExponent =
-          multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude) / 2;
         metrics.analyticHits += 1;
         return;
       }

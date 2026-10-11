@@ -52,6 +52,7 @@ export {
   TAU_CLOSURE_SCALED,
   VERIFIER_REVISION,
   VERIFIER_THRESHOLDS,
+  stabilityExponentOf,
   VERIFIER_VERDICT,
   verifyCycle,
   verifyCycleInto,

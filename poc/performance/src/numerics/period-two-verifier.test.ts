@@ -251,7 +251,6 @@ describe('bounded period-two verifier correctness pilot', () => {
         multiplierIm: 0,
         multiplierMagnitude: 0,
         multiplierAngle: 0,
-        stabilityExponent: 0,
       };
       expect(verifier.verifyCycleInto(c.re, c.im, 0, 0, 2, 17, 23, out)).toBe(
         verifier.VERIFIER_VERDICT.accepted,
@@ -275,7 +274,7 @@ describe('bounded period-two verifier correctness pilot', () => {
         expect(observed.divisorSteps).toEqual(audited.certificate.divisor.steps);
       }
       expect(out.multiplierAngle).toBe(0);
-      expect(out.stabilityExponent).toBe(Infinity);
+      expect(verifier.stabilityExponentOf(out.multiplierMagnitude, out.period)).toBe(Infinity);
     }
   });
 

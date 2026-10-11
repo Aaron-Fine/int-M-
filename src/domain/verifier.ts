@@ -77,6 +77,16 @@ export const TAU_CLOSURE_SCALED =
 export const VERIFIER_REVISION = 'src-verifier-1.0.0';
 
 /**
+ * Intrinsic stability kappa = -log(|lambda|) / period of an accepted cycle;
+ * +Infinity for a superattracting cycle (|lambda| = 0) by identity. Derived
+ * at the rich-result boundaries only: no raster consumer reads it (the
+ * stability coloring derives it from the stored |lambda| and period), so the
+ * hot records do not carry it.
+ */
+export const stabilityExponentOf = (multiplierMagnitude: number, period: number): number =>
+  multiplierMagnitude === 0 ? Number.POSITIVE_INFINITY : -Math.log(multiplierMagnitude) / period;
+
+/**
  * Verdict codes for the allocation-free hot form (same encoding discipline
  * as ORBIT_EVIDENCE_CODE: small integers, no per-call objects).
  */
@@ -105,7 +115,6 @@ export interface VerifierCycleTarget {
   multiplierIm: number;
   multiplierMagnitude: number;
   multiplierAngle: number;
-  stabilityExponent: number;
 }
 
 /**
@@ -262,16 +271,12 @@ export const verifyCycleInto = (
   out.multiplierRe = primitiveDerivativeRe;
   out.multiplierIm = primitiveDerivativeIm;
   out.multiplierMagnitude = multiplierMagnitude;
-  // Superattracting identity: |lambda| = 0 means arg lambda = 0 and
-  // kappa = +Infinity by identity (plan section 3 semantic contract:
+  // Superattracting identity: |lambda| = 0 means arg lambda = 0 (and kappa
+  // = +Infinity, see stabilityExponentOf) by identity (plan section 3 semantic contract:
   // superattracting points compare by identity, never by arithmetic on
   // infinities).
   out.multiplierAngle =
     multiplierMagnitude === 0 ? 0 : Math.atan2(primitiveDerivativeIm, primitiveDerivativeRe);
-  out.stabilityExponent =
-    multiplierMagnitude === 0
-      ? Number.POSITIVE_INFINITY
-      : -Math.log(multiplierMagnitude) / primitive;
   return VERIFIER_VERDICT.accepted;
 };
 
@@ -296,7 +301,6 @@ export const verifyCycle = (
     multiplierIm: 0,
     multiplierMagnitude: 0,
     multiplierAngle: 0,
-    stabilityExponent: 0,
   };
   const code = verifyCycleInto(cRe, cIm, cycleStartRe, cycleStartIm, proposedPeriod, 0, 0, target);
   if (code === VERIFIER_VERDICT.accepted) {
@@ -307,7 +311,7 @@ export const verifyCycle = (
       multiplierIm: target.multiplierIm,
       multiplierMagnitude: target.multiplierMagnitude,
       multiplierAngle: target.multiplierAngle,
-      kappa: target.stabilityExponent,
+      kappa: stabilityExponentOf(target.multiplierMagnitude, target.period),
       verifierRevision: VERIFIER_REVISION,
     };
   }

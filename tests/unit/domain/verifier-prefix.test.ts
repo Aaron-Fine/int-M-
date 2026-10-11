@@ -86,7 +86,6 @@ describe('verifier divisor reduction from the walk prefix', () => {
             expect(Object.is(production.multiplierIm, reference.multiplierIm)).toBe(true);
             expect(production.multiplierMagnitude).toBe(reference.multiplierMagnitude);
             expect(production.multiplierAngle).toBe(reference.multiplierAngle);
-            expect(production.stabilityExponent).toBe(reference.stabilityExponent);
           }
         }
       }

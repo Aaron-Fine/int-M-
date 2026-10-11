@@ -33,7 +33,6 @@ const sampleFieldsEqual = (lean: Readonly<OrbitSample>, counted: Readonly<OrbitS
   lean.multiplierIm === counted.multiplierIm &&
   lean.multiplierMagnitude === counted.multiplierMagnitude &&
   lean.multiplierAngle === counted.multiplierAngle &&
-  lean.stabilityExponent === counted.stabilityExponent &&
   lean.escapeIteration === counted.escapeIteration &&
   lean.smoothIteration === counted.smoothIteration &&
   lean.magnitudeSquared === counted.magnitudeSquared;

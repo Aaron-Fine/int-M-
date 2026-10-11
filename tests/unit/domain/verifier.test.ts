@@ -347,7 +347,6 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
       expect(canonical.multiplierIm).toBe(sample.multiplierIm);
       expect(canonical.multiplierMagnitude).toBe(sample.multiplierMagnitude);
       expect(canonical.multiplierAngle).toBe(sample.multiplierAngle);
-      expect(canonical.stabilityExponent).toBe(sample.stabilityExponent);
     }
     expect(accepted).toBeGreaterThan(0);
   });

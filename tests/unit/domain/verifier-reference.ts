@@ -138,9 +138,5 @@ export const referenceVerifyCycleInto = (
   // infinities).
   out.multiplierAngle =
     multiplierMagnitude === 0 ? 0 : Math.atan2(primitiveDerivativeIm, primitiveDerivativeRe);
-  out.stabilityExponent =
-    multiplierMagnitude === 0
-      ? Number.POSITIVE_INFINITY
-      : -Math.log(multiplierMagnitude) / primitive;
   return VERIFIER_VERDICT.accepted;
 };
