@@ -26,6 +26,9 @@
  * Labels are honest: an automation-bundled engine (Playwright Chromium or
  * Firefox, headless) is directional evidence, not the release protocol of
  * plan §9 (stable branded Chrome/Firefox, headed, declared target hardware).
+ * `--release` runs that protocol on the machine it is launched on: branded
+ * stable browsers, headed, at least 22 repetitions (rep 0 is cold, so ≥21
+ * warm pairs), with 95% BCa paired intervals per case.
  *
  * Usage:
  *   node tools/benchmark/run-stage-a.mjs [--engine chromium|firefox]
@@ -33,6 +36,10 @@
  *       [--candidate checkpoint|triggered-scan] [--baseline-mirror-off]
  *       [--executable <browser binary>] (a cached build other than the one the
  *       installed Playwright expects; recorded in the environment capture)
+ *       [--release] (branded stable, headed; --executable is then the branded
+ *       browser: Firefox is driven over WebDriver BiDi, default /usr/bin/firefox;
+ *       Chrome is a launch command connected over CDP, default
+ *       `flatpak run com.google.Chrome`)
  *
  * --baseline-mirror-off renders the legacy-scan arm with
  * `conjugateMirror=0`, i.e. the production default before conjugate
@@ -40,19 +47,24 @@
  * the new one. Mirrored output is designed to be bit-identical, so the
  * semantic hash comparison is unaffected.
  */
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { build, preview } from 'vite';
+import { bcaInterval } from './bca.ts';
 
 const require = createRequire(import.meta.url);
 const { chromium, firefox } = require('@playwright/test');
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const PREVIEW_PORT = 4179;
+const CDP_PORT = 9333;
+const BOOTSTRAP_REPS = 10_000;
+const BOOTSTRAP_SEED = 20_261_011;
 const SHIPPING_RASTER_ID = 'shipping-1024x640';
 const TARGET_RASTER = { width: 1024, height: 640 };
 const NAVIGATION_TIMEOUT_MS = 10 * 60_000;
@@ -78,9 +90,16 @@ if (CANDIDATE !== 'checkpoint' && CANDIDATE !== 'triggered-scan') {
 }
 const MODES = ['legacy-scan', CANDIDATE];
 const BASELINE_MIRROR_OFF = args.includes('--baseline-mirror-off');
-const reps = Number(readOption('--reps') ?? 9);
+const RELEASE = args.includes('--release');
+const reps = Number(readOption('--reps') ?? (RELEASE ? 22 : 9));
 if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
+  process.exit(2);
+}
+if (RELEASE && reps < 22) {
+  process.stderr.write(
+    '--release needs --reps >= 22 (rep 0 is cold; plan §9 asks for >= 21 pairs)\n',
+  );
   process.exit(2);
 }
 
@@ -213,11 +232,70 @@ log(`vite preview serving dist/ at ${baseUrl}`);
 const launcher = engine === 'chromium' ? chromium : firefox;
 const playwrightVersion = require('@playwright/test/package.json').version;
 const executablePath = readOption('--executable');
-const browser = await launcher.launch({
-  headless: true,
-  ...(executablePath === undefined ? {} : { executablePath }),
-});
-log(`${engine} ${browser.version()} launched (headless, automation-bundled)`);
+
+// Branded Chrome cannot take Playwright's pipe transport through a wrapper such
+// as `flatpak run`, so it is launched as an ordinary process with a fresh
+// profile and attached over CDP; branded Firefox is driven over WebDriver BiDi.
+const launchBrandedChrome = async () => {
+  const command = (executablePath ?? 'flatpak run com.google.Chrome').split(/\s+/);
+  const profileRoot = command.includes('com.google.Chrome')
+    ? path.join(os.homedir(), '.var/app/com.google.Chrome')
+    : os.tmpdir();
+  mkdirSync(profileRoot, { recursive: true });
+  const profileDir = mkdtempSync(path.join(profileRoot, 'int-m-stage-a-'));
+  const child = spawn(
+    command[0],
+    [
+      ...command.slice(1),
+      `--remote-debugging-port=${CDP_PORT}`,
+      `--user-data-dir=${profileDir}`,
+      '--no-first-run',
+      '--no-default-browser-check',
+      'about:blank',
+    ],
+    { stdio: 'ignore' },
+  );
+  let connected;
+  for (let attempt = 0; attempt < 120 && connected === undefined; attempt += 1) {
+    try {
+      connected = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  if (connected === undefined)
+    throw new Error(`branded Chrome did not expose CDP: ${command.join(' ')}`);
+  const exited = new Promise((resolve) => child.once('exit', resolve));
+  const close = async () => {
+    const session = await connected.newBrowserCDPSession();
+    await session.send('Browser.close').catch(() => undefined);
+    await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 10_000))]);
+    rmSync(profileDir, { recursive: true, force: true });
+  };
+  return { browser: connected, close, launchedBy: `${command.join(' ')} (CDP)` };
+};
+
+const launchBrowser = async () => {
+  if (RELEASE && engine === 'chromium') return launchBrandedChrome();
+  const launched = await launcher.launch({
+    headless: !RELEASE,
+    ...(RELEASE
+      ? { channel: 'moz-firefox', executablePath: executablePath ?? '/usr/bin/firefox' }
+      : {}),
+    ...(!RELEASE && executablePath !== undefined ? { executablePath } : {}),
+  });
+  return {
+    browser: launched,
+    close: () => launched.close(),
+    launchedBy: RELEASE ? `${executablePath ?? '/usr/bin/firefox'} (WebDriver BiDi)` : undefined,
+  };
+};
+
+const { browser, close: closeBrowser, launchedBy } = await launchBrowser();
+log(
+  `${engine} ${browser.version()} launched ` +
+    (RELEASE ? `(branded, headed: ${launchedBy})` : '(headless, automation-bundled)'),
+);
 
 const newContext = () => browser.newContext({ viewport: viewportSize, deviceScaleFactor: 1 });
 
@@ -431,15 +509,34 @@ spawnSync(
   { cwd: repoRoot, stdio: 'inherit' },
 );
 const environment = JSON.parse(readFileSync(environmentPath, 'utf8'));
+// Power state from sysfs (Linux): AC adapter online flag and the ACPI platform
+// profile; null where the machine does not expose them.
+const readSysfs = (file) => {
+  try {
+    return readFileSync(file, 'utf8').trim();
+  } catch {
+    return null;
+  }
+};
+const powerMode = (() => {
+  const ac = readSysfs('/sys/class/power_supply/AC/online');
+  const profile = readSysfs('/sys/firmware/acpi/platform_profile');
+  if (ac === null && profile === null) return null;
+  return `${ac === '1' ? 'AC' : ac === '0' ? 'battery' : 'power source unknown'}, platform profile ${profile ?? 'unknown'}`;
+})();
 const engineFacts = {
   build: browser.version(),
   engine: userAgent,
-  headed: false,
-  powerMode: null,
+  headed: RELEASE,
+  powerMode: RELEASE ? powerMode : null,
   devicePixelRatio: 1,
   viewport: viewportSize,
-  automation: `Playwright ${playwrightVersion} automation-bundled ${engine}, headless`,
-  label: 'automation-bundled headless engine — directional only, not release evidence per plan §9',
+  automation: RELEASE
+    ? `Playwright ${playwrightVersion} driving branded stable ${engine === 'chromium' ? 'Google Chrome' : 'Firefox'}, headed: ${launchedBy}`
+    : `Playwright ${playwrightVersion} automation-bundled ${engine}, headless`,
+  label: RELEASE
+    ? 'release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥21 warm pairs, BCa paired intervals'
+    : 'automation-bundled headless engine — directional only, not release evidence per plan §9',
   workerCount: [...new Set(allSamples.map((sample) => sample.workerCount))].sort((a, b) => a - b),
   backend: 'cpu',
   samples: allSamples.length,
@@ -462,9 +559,15 @@ environment.protocol = {
   wallMetric: 'requestToPresentMs of the computed stable frame (plan §8 fresh delivery timing)',
   hashByteOrder:
     'SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas',
-  engineLabels:
-    'chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol',
-  powerMode: 'unknown in the headless automation environment; recorded as null',
+  engineLabels: RELEASE
+    ? 'chromium = branded stable Google Chrome, firefox = branded stable Firefox, both headed with DevTools closed, on the declared target hardware (the machine running this harness)'
+    : 'chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol',
+  powerMode: RELEASE
+    ? `${powerMode ?? 'not exposed by sysfs'} (read from /sys at the end of the run)`
+    : 'unknown in the headless automation environment; recorded as null',
+  deviceScaleFactor:
+    'every context is created with deviceScaleFactor 1 so the canvas raster is exactly the shipping 1024x640 raster',
+  pairedIntervals: `95% BCa bootstrap on warm pairs, ${BOOTSTRAP_REPS} resamples, seed ${BOOTSTRAP_SEED} (tools/benchmark/bca.ts): median log-ratio ln(legacy/candidate) for the speed ratio, median candidate−legacy difference for the regression cap`,
 };
 environment.notes.push(`Browser facts filled by tools/benchmark/run-stage-a.mjs (${engine} run).`);
 writeFileSync(environmentPath, `${JSON.stringify(environment, null, 2)}\n`);
@@ -483,6 +586,7 @@ const rawObservations = {
   },
   raster: shippingRaster,
   repetitions: reps,
+  bootstrap: { resamples: BOOTSTRAP_REPS, seed: BOOTSTRAP_SEED, alpha: 0.05, method: 'BCa' },
   samplesByEngine,
 };
 writeFileSync(rawPath, `${JSON.stringify(rawObservations, null, 2)}\n`);
@@ -573,10 +677,30 @@ const summarizeEngine = (engineSamples) =>
       legacyMedian === undefined || candidateMedian === undefined
         ? undefined
         : candidateMedian - legacyMedian;
-    const flag =
-      delta === undefined || legacyMedian === undefined
+    // Pairs are matched by repetition (both arms ran adjacently).
+    const pairs = [];
+    for (const legacy of warm.filter((sample) => sample.mode === 'legacy-scan')) {
+      const candidate = warm.find(
+        (sample) => sample.mode === CANDIDATE && sample.repetition === legacy.repetition,
+      );
+      if (candidate !== undefined) {
+        pairs.push({ legacy: legacy.requestToPresentMs, candidate: candidate.requestToPresentMs });
+      }
+    }
+    const intervalOf = (values) =>
+      values.length < 2
         ? undefined
-        : delta > Math.max(0.05 * legacyMedian, 20);
+        : bcaInterval({ values, resamples: BOOTSTRAP_REPS, seed: BOOTSTRAP_SEED });
+    const speedInterval = intervalOf(pairs.map((pair) => Math.log(pair.legacy / pair.candidate)));
+    const differenceInterval = intervalOf(pairs.map((pair) => pair.candidate - pair.legacy));
+    // Plan §9 cap: the paired median difference exceeds max(5%, 20 ms) AND its
+    // paired interval excludes zero. Without an interval only the median part applies.
+    const pairedDelta = differenceInterval === undefined ? delta : differenceInterval.estimate;
+    const flag =
+      pairedDelta === undefined || legacyMedian === undefined
+        ? undefined
+        : pairedDelta > Math.max(0.05 * legacyMedian, 20) &&
+          (differenceInterval === undefined || differenceInterval.interval[0] > 0);
     const coldFor = (mode) =>
       median(
         cold.filter((sample) => sample.mode === mode).map((sample) => sample.requestToPresentMs),
@@ -593,6 +717,25 @@ const summarizeEngine = (engineSamples) =>
       coldMedianLegacyMs: coldFor('legacy-scan'),
       coldMedianCandidateMs: coldFor(CANDIDATE),
       warmRepsPerMode: legacyWarm.length,
+      pairs: pairs.length,
+      speedup:
+        speedInterval === undefined
+          ? undefined
+          : {
+              estimate: Math.exp(speedInterval.estimate),
+              low: Math.exp(speedInterval.interval[0]),
+              high: Math.exp(speedInterval.interval[1]),
+              degenerate: speedInterval.degenerate,
+            },
+      differenceInterval:
+        differenceInterval === undefined
+          ? undefined
+          : {
+              estimate: differenceInterval.estimate,
+              low: differenceInterval.interval[0],
+              high: differenceInterval.interval[1],
+              degenerate: differenceInterval.degenerate,
+            },
     };
   });
 
@@ -607,33 +750,36 @@ summaryLines.push(
     'Wall metric: stable-frame `requestToPresentMs` (plan §8).',
 );
 summaryLines.push('');
+const formatRatio = (value) => `${value.toFixed(2)}×`;
+const formatInterval = (interval, format) =>
+  interval === undefined
+    ? '—'
+    : `${format(interval.estimate)} [${format(interval.low)}, ${format(interval.high)}]` +
+      (interval.degenerate ? ' (degenerate)' : '');
 for (const engineKey of Object.keys(samplesByEngine).sort()) {
   const engineSamples = samplesByEngine[engineKey];
-  const engineLabel =
-    engineKey === 'chromium'
-      ? 'automation-bundled headless chromium via Playwright'
-      : 'automation-bundled headless Firefox via Playwright';
-  summaryLines.push(
-    `**Label (${engineKey}):** ${engineLabel} — directional only, ` +
-      'not release evidence per plan §9 (branded stable browsers, headed, declared target hardware).',
-  );
+  const facts = environment.browsers[engineKey];
+  summaryLines.push(`**Label (${engineKey}):** ${facts.automation} — ${facts.label}.`);
   summaryLines.push('');
   summaryLines.push(`## Headline ${engineKey} (paired warm medians, ms)`);
   summaryLines.push('');
   summaryLines.push(
-    `| Case | Designation | legacy-scan median (MAD) | ${CANDIDATE} median (MAD) | Δ (candidate−legacy) | Regression flag max(5%, 20 ms) |`,
+    `| Case | Designation | Pairs | legacy-scan median (MAD) | ${CANDIDATE} median (MAD) | Speed ratio legacy/candidate [95% BCa] | Δ candidate−legacy [95% BCa] | Regression flag |`,
   );
-  summaryLines.push('| --- | --- | --- | --- | --- | --- |');
+  summaryLines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const row of summarizeEngine(engineSamples)) {
     summaryLines.push(
-      `| ${row.caseId} | ${row.designation} | ${formatMs(row.legacyMedianMs)} (${formatMs(row.legacyMadMs)}) | ${formatMs(row.candidateMedianMs)} (${formatMs(row.candidateMadMs)}) | ${row.deltaMs === undefined ? '—' : `${row.deltaMs.toFixed(1)} ms`} | ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? '**flagged**' : 'no'} |`,
+      `| ${row.caseId} | ${row.designation} | ${row.pairs} | ${formatMs(row.legacyMedianMs)} (${formatMs(row.legacyMadMs)}) | ${formatMs(row.candidateMedianMs)} (${formatMs(row.candidateMadMs)}) | ${formatInterval(row.speedup, formatRatio)} | ${formatInterval(row.differenceInterval, formatMs)} | ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? '**flagged**' : 'no'} |`,
     );
   }
   summaryLines.push('');
 }
 summaryLines.push(
-  'The flag column applies the median part of the plan §9 cap only; the BCa paired ' +
-    'interval excluding zero is not computed at 9 screening reps and remains release-gate work.',
+  'Speed ratio: exp of the median paired log-ratio ln(legacy/candidate), >1 means the candidate is faster. ' +
+    `Intervals: 95% BCa bootstrap over the warm pairs (${BOOTSTRAP_REPS} resamples, seed ${BOOTSTRAP_SEED}, ` +
+    '`tools/benchmark/bca.ts`). Regression flag (plan §9): the paired median difference exceeds ' +
+    'max(5% of the legacy median, 20 ms) and its BCa interval excludes zero.' +
+    (RELEASE ? '' : ' At screening rep counts the intervals are directional.'),
 );
 summaryLines.push('');
 summaryLines.push('## Semantic comparison (stable-frame RGBA hash)');
@@ -677,7 +823,9 @@ for (const note of [
   'Cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope for this first pass.',
   'requestToPresentMs ends at the next presentation opportunity after image upload; it is not proof of physical paint (plan §8).',
   'Detected-period histograms are not exposed by the ring; the RGBA hash is a palette-inclusive proxy for semantic comparison.',
-  '9 paired repetitions = screening protocol (plan §9); release-gate cases need 21+ reps, BCa paired intervals, branded stable browsers, and declared target hardware.',
+  RELEASE
+    ? `${reps} repetitions per case (${reps - 1} warm pairs) in branded stable browsers, headed, on the declared target hardware: the plan §9 release protocol. Easy (screening) cases ran at the release count too. Contexts use deviceScaleFactor 1 so the raster is exactly the shipping 1024x640 raster; no p95 is quoted (fewer than 40 observations per case and arm).`
+    : '9 paired repetitions = screening protocol (plan §9); release-gate cases need 21+ reps, BCa paired intervals, branded stable browsers, and declared target hardware.',
 ]) {
   summaryLines.push(`- ${note}`);
 }
@@ -694,6 +842,6 @@ if (manifest.status !== 0) {
 }
 log(`evidence directory: ${path.relative(repoRoot, outDir)}`);
 
-await browser.close();
+await closeBrowser();
 await server.close();
 process.exit(0);
