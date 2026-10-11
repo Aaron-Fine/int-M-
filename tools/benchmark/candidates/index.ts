@@ -4,6 +4,7 @@
  * always supplies it.
  */
 import { checkpoint } from './checkpoint';
+import { staggeredLag } from './staggered-lag';
 import type { Candidate } from './types';
 
-export const CANDIDATES: readonly Candidate[] = [checkpoint];
+export const CANDIDATES: readonly Candidate[] = [checkpoint, staggeredLag];

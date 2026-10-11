@@ -117,13 +117,18 @@ export type SemanticView = 'stability' | 'multiplier' | 'period';
  * - 'differential': both kernels run per pixel; disagreements (status,
  *   period, |lambda| bits) are counted into a preallocated differential
  *   record while the legacy answer stays the reported one.
+ * - 'staggered-lag': the staggered harmonic lag schedule (lag p tested only
+ *   at iterations divisible by p, src/domain/staggered-lag.ts), with the
+ *   frozen rejected-candidate budget and a final window scan; candidate-
+ *   only toward the common verifier.
  */
-export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential';
+export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential' | 'staggered-lag';
 
 export const CLASSIFIER_MODES: readonly ClassifierMode[] = Object.freeze([
   'legacy-scan',
   'checkpoint',
   'differential',
+  'staggered-lag',
 ]);
 
 export interface OrbitOptions {
@@ -139,10 +144,12 @@ export interface OrbitOptions {
   /** Versioned classifier mode; default 'legacy-scan' (see ClassifierMode). */
   readonly classifierMode?: ClassifierMode;
   /**
-   * Checkpoint-schedule exhaustion scan (plan section 4): one final full lag
-   * scan from the final state when the orbit budget ends unresolved,
-   * verifier-gated like every candidate path. Default on; read only by the
-   * checkpoint kernel (the legacy scan is unaffected).
+   * Final scan of the checkpoint-schedule kernel (plan section 4): one full
+   * lag scan from the final state when the orbit budget ends unresolved,
+   * verifier-gated like every candidate path. The staggered-lag kernel runs
+   * the narrower final window scan instead (see src/domain/staggered-lag.ts).
+   * Default on; read only by the checkpoint and staggered-lag kernels (the
+   * legacy scan is unaffected).
    */
   readonly exhaustionScan?: boolean;
   /**

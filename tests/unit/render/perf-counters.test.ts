@@ -37,7 +37,7 @@ const classifyBand = async (
   width: number,
   height: number,
   options: {
-    classifierMode?: 'legacy-scan' | 'checkpoint' | 'differential';
+    classifierMode?: 'legacy-scan' | 'checkpoint' | 'differential' | 'staggered-lag';
     stride?: number;
     perfCounters?: boolean;
   } = {},

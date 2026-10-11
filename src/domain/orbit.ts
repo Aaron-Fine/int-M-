@@ -13,6 +13,7 @@ import {
   createDifferentialStats,
   recordDifferentialInto,
 } from './checkpoint';
+import { classifyStaggeredInto } from './staggered-lag';
 import { classifyIntoInstrumented, type LegacyScanCounters } from './orbit-instrumented';
 
 // Shared evidence vocabulary moved to types.ts so every classifier kernel
@@ -596,7 +597,7 @@ export class OrbitClassifier {
   // monomorphic field check.
   readonly #extras:
     | {
-        readonly mode: 'checkpoint' | 'differential';
+        readonly mode: 'checkpoint' | 'differential' | 'staggered-lag';
         readonly metrics: CheckpointMetrics;
         readonly diffSample: OrbitSample;
         readonly diffStats: DifferentialStats;
@@ -660,6 +661,10 @@ export class OrbitClassifier {
       classifyCheckpointInto(cRe, cIm, this.#options, this.#scratch, out, extras.metrics);
       return;
     }
+    if (extras.mode === 'staggered-lag') {
+      classifyStaggeredInto(cRe, cIm, this.#options, this.#scratch, out, extras.metrics);
+      return;
+    }
     // Differential: both kernels per pixel; the legacy answer stays the
     // reported one and every semantic divergence is counted.
     const counters = this.#legacyCounters;
@@ -710,6 +715,15 @@ export const classifyOrbit = (
   const mode = resolved.classifierMode;
   if (mode === 'checkpoint') {
     classifyCheckpointInto(
+      c.re,
+      c.im,
+      resolved,
+      scratch ?? new OrbitScratch(resolved.maxPeriod),
+      sample,
+      createCheckpointMetrics(),
+    );
+  } else if (mode === 'staggered-lag') {
+    classifyStaggeredInto(
       c.re,
       c.im,
       resolved,
