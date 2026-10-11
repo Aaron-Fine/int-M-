@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   classifyInto,
+  createLegacyScanCounters,
   createOrbitSample,
   materializeOrbitResult,
+  OrbitClassifier,
   OrbitScratch,
   resolveOrbitOptions,
   type OrbitOptions,
@@ -80,5 +82,58 @@ describe('triggered-scan classifier mode', () => {
     }
     expect(outcomes.has('attracting-cycle')).toBe(true);
     expect(outcomes.has('escaped')).toBe(true);
+  });
+
+  it('keeps legacy acceptances that land inside the end-of-budget window at large maxPeriod', () => {
+    // Legacy-accepted pixels (maxIterations 1024, maxPeriod 128) whose first
+    // acceptable lag scan lies more than 64 iterations before the budget end
+    // and so was lost by a fixed 64-iteration tail window.
+    const legacyOptions = resolveOrbitOptions({
+      classifierMode: 'legacy-scan',
+      maxIterations: 1024,
+      maxPeriod: 128,
+    });
+    const triggeredOptions = resolveOrbitOptions({
+      classifierMode: 'triggered-scan',
+      maxIterations: 1024,
+      maxPeriod: 128,
+    });
+    const pixels: readonly (readonly [number, number, number])[] = [
+      [0.0582386729470506, 0.6199566293493743, 94],
+      [0.3716336745978876, -0.2877599674776909, 128],
+      [-0.3855504355631629, -0.5939111473845738, 105],
+    ];
+    for (const [re, im, period] of pixels) {
+      const legacy = classifyPixel(re, im, legacyOptions);
+      const triggered = classifyPixel(re, im, triggeredOptions);
+      expect(legacy.status).toBe('attracting-cycle');
+      expect(triggered.status).toBe('attracting-cycle');
+      if (legacy.status !== 'attracting-cycle' || triggered.status !== 'attracting-cycle') {
+        continue;
+      }
+      expect(legacy.period).toBe(period);
+      expect(triggered.period).toBe(legacy.period);
+      expect(triggered.iterations).toBeGreaterThanOrEqual(legacy.iterations);
+    }
+  });
+
+  it('rejects perfCounters instead of silently running the legacy instrumented kernel', () => {
+    expect(
+      () =>
+        new OrbitClassifier(
+          { classifierMode: 'triggered-scan' },
+          undefined,
+          createLegacyScanCounters(),
+        ),
+    ).toThrow(RangeError);
+    // The legacy mode with counters is still allowed.
+    expect(
+      () =>
+        new OrbitClassifier(
+          { classifierMode: 'legacy-scan' },
+          undefined,
+          createLegacyScanCounters(),
+        ),
+    ).not.toThrow();
   });
 });

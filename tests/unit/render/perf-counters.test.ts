@@ -62,6 +62,15 @@ describe('classifyRows diagnostics counters (plan §8 opt-in)', () => {
     expect(result.counters).toBeUndefined();
   });
 
+  it('rejects triggered-scan combined with perfCounters instead of reporting legacy counters', async () => {
+    await expect(
+      classifyBand(MAIN_CARDIOID_VIEWPORT, 8, 8, {
+        classifierMode: 'triggered-scan',
+        perfCounters: true,
+      }),
+    ).rejects.toBeInstanceOf(RangeError);
+  });
+
   it('produces correct totals on a small analytic raster (legacy-scan)', async () => {
     const width = 32;
     const height = 24;

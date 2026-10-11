@@ -119,7 +119,8 @@ export type SemanticView = 'stability' | 'multiplier' | 'period';
  *   record while the legacy answer stays the reported one.
  * - 'triggered-scan': the legacy lag scan run only when a scale-aware step
  *   gate fires, plus a periodic safety scan and a full scan of every iteration
- *   in the last 64 of the budget.
+ *   in the last max(64, 2 * maxPeriod) of the budget. Not combinable with
+ *   perfCounters (the instrumented kernel only mirrors the legacy scan).
  *   Same status and period as 'legacy-scan' on accepted pixels; escapes are
  *   bit-identical; iteration counts at acceptance may differ.
  */

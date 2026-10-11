@@ -45,12 +45,16 @@ const TRIGGERED_GATE_REARM_DIVISOR = 4;
 const TRIGGERED_MAX_GATE_SCANS = 8;
 const TRIGGERED_SAFETY_INTERVAL = 32;
 /**
- * Every iteration in the last TRIGGERED_TAIL_WINDOW of the budget is scanned.
+ * Every iteration from (maxIterations - window) through the end of the budget
+ * is scanned, with window = max(TRIGGERED_TAIL_WINDOW_MIN, 2 * maxPeriod).
  * Slowly attracting cycles of period > 1 can be accepted only transiently
  * near the budget (measured on the shipping raster: legacy acceptances at
- * iterations 473..511), so periodic sampling alone misses them.
+ * iterations 473..511), so periodic sampling alone misses them. The window
+ * scales with maxPeriod because a period-p cycle needs on the order of p
+ * further iterations for the lag-p distance to fall under the proposal
+ * threshold (a fixed 64 lost p = 94..128 cycles at maxPeriod 128).
  */
-const TRIGGERED_TAIL_WINDOW = 64;
+const TRIGGERED_TAIL_WINDOW_MIN = 64;
 
 /**
  * Reusable storage for the orbit hot path. One instance may be reused
@@ -379,8 +383,13 @@ export const classifyInto = (
   // predictable branch per iteration). The gate sees the step between
   // consecutive orbit points; a fired gate runs the same lag scan the legacy
   // path runs at that iteration, so a triggered acceptance is always a
-  // legacy acceptance at the same or an earlier iteration.
+  // legacy acceptance at the same or a LATER iteration (legacy scans every
+  // iteration, so it can never accept later than the triggered scan does).
   const triggered = options.classifierMode === 'triggered-scan';
+  // First iteration of the unconditional end-of-budget scan window; the
+  // boundary is inclusive (iteration >= tailStart).
+  const tailStart =
+    options.maxIterations - Math.max(TRIGGERED_TAIL_WINDOW_MIN, 2 * options.maxPeriod);
   let previousRe = 0;
   let previousIm = 0;
   let gate = TRIGGERED_GATE_INITIAL;
@@ -417,9 +426,7 @@ export const classifyInto = (
         const gateSquared = gate * gate * gateScale * gateScale;
         gateFired = stepRe * stepRe + stepIm * stepIm <= gateSquared;
       }
-      const safetyDue =
-        iteration % TRIGGERED_SAFETY_INTERVAL === 0 ||
-        iteration > options.maxIterations - TRIGGERED_TAIL_WINDOW;
+      const safetyDue = iteration % TRIGGERED_SAFETY_INTERVAL === 0 || iteration >= tailStart;
       if (!gateFired && !safetyDue) {
         continue;
       }
@@ -678,6 +685,13 @@ export class OrbitClassifier {
     this.#scratch = scratch ?? new OrbitScratch(this.#options.maxPeriod);
     this.#scratch.ensureCapacity(this.#options.maxPeriod);
     this.#legacyCounters = legacyCounters;
+    // The instrumented kernel is a legacy-scan mirror; running it for
+    // 'triggered-scan' would silently report legacy behavior and counters.
+    if (legacyCounters !== undefined && this.#options.classifierMode === 'triggered-scan') {
+      throw new RangeError(
+        "classifierMode 'triggered-scan' does not support perfCounters: the instrumented kernel only mirrors the legacy scan",
+      );
+    }
     // resolveOrbitOptions normalizes the optional mode field, so mode is a
     // concrete ClassifierMode here.
     // 'triggered-scan' runs the lag-scan kernel itself (gated inside
