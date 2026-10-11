@@ -16,7 +16,6 @@ export {
 export type { OrbitSample, OrbitStatusCode } from './orbit';
 export {
   classifyTriggeredOrbitInto,
-  TRIGGERED_MAX_FIRES,
   TRIGGERED_SCAN_INTERVAL_FIRST,
   TRIGGERED_SCAN_INTERVAL_MAX,
 } from './orbit-triggered';

@@ -8,6 +8,7 @@ import {
   OrbitClassifier,
   OrbitScratch,
   resolveOrbitOptions,
+  type Complex,
   type OrbitOptions,
   type OrbitResult,
 } from '../../../src/domain';
@@ -138,5 +139,44 @@ describe('triggered-scan classifier mode', () => {
           createLegacyScanCounters(),
         ),
     ).not.toThrow();
+  });
+});
+
+describe('triggered-scan never loses a legacy acceptance to refused proposals', () => {
+  // Review reproducers: the watched lag proposes repeatedly while the
+  // verifier refuses (divisor-ambiguous near lambda = -1 at the default
+  // tolerance; closure-ambiguous at a loose tolerance). A per-pixel cap on
+  // fired scans skipped the iteration where legacy accepts, ending unresolved.
+  const cases: readonly { c: Complex; options: Partial<OrbitOptions> }[] = [
+    {
+      c: { re: -0.11577919362193681, im: 0.8375396650544321 },
+      options: { maxIterations: 8402, maxPeriod: 64 },
+    },
+    {
+      c: { re: -0.11577919362193681, im: 0.8375396650544321 },
+      options: { maxIterations: 20000, maxPeriod: 64 },
+    },
+    {
+      c: { re: -1.2813498829491436, im: 0.04482033597305417 },
+      options: { maxIterations: 512, maxPeriod: 32, cycleTolerance: 1e-6 },
+    },
+  ];
+  it('matches the legacy scan bit for bit on the reproducers', () => {
+    for (const { c, options } of cases) {
+      const legacy = createOrbitSample();
+      const triggered = createOrbitSample();
+      new OrbitClassifier({ ...options, classifierMode: 'legacy-scan' }).classifyInto(
+        c.re,
+        c.im,
+        legacy,
+      );
+      new OrbitClassifier({ ...options, classifierMode: 'triggered-scan' }).classifyInto(
+        c.re,
+        c.im,
+        triggered,
+      );
+      expect(legacy.status).toBe(2);
+      expect(triggered).toEqual(legacy);
+    }
   });
 });

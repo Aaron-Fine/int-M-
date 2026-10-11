@@ -13,9 +13,11 @@ import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
  * (squared distance <= cycleTolerance^2). A full scan, identical to the legacy
  * scan at that iteration (ascending lags, inline verifier), runs when
  *
- * - the watched lag proposes (a "fire"; at most MAX_FIRES per pixel, so a
- *   candidate the verifier keeps refusing cannot turn this into the legacy
- *   every-iteration scan),
+ * - the watched lag proposes (a "fire"). Fires are not capped: while the
+ *   verifier keeps refusing a proposing lag, the pixel scans every iteration,
+ *   exactly as the legacy scan does there. (A per-pixel cap let refusals
+ *   at an ambiguous closure or divisor exhaust the fires before the
+ *   iteration where legacy accepts, which could then be missed for good.)
  * - on a schedule: at the first scanning iteration, then after gaps of
  *   TRIGGERED_SCAN_INTERVAL_FIRST iterations doubling up to
  *   TRIGGERED_SCAN_INTERVAL_MAX (re-chooses the watched lag; catches a
@@ -50,8 +52,6 @@ import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
  */
 export const TRIGGERED_SCAN_INTERVAL_FIRST = 16;
 export const TRIGGERED_SCAN_INTERVAL_MAX = 128;
-/** Per-pixel cap on scans fired by the watched lag. */
-export const TRIGGERED_MAX_FIRES = 8;
 
 // OrbitScratch.checkpointSpill slots used across the verifier call.
 const SPILL_Z_RE = 0;
@@ -84,7 +84,6 @@ export const classifyTriggeredOrbitInto = (
   let zRe = 0;
   let zIm = 0;
   let watch = 1;
-  let fires = 0;
   let due = scanStart;
   let interval = TRIGGERED_SCAN_INTERVAL_FIRST;
 
@@ -120,8 +119,7 @@ export const classifyTriggeredOrbitInto = (
     const watchRe = zRe - historyRe[watchIndex]!;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked index < capacity
     const watchIm = zIm - historyIm[watchIndex]!;
-    const fired =
-      fires < TRIGGERED_MAX_FIRES && watchRe * watchRe + watchIm * watchIm <= toleranceSquared;
+    const fired = watchRe * watchRe + watchIm * watchIm <= toleranceSquared;
     if (!fired && iteration !== due && iteration !== maxIterations) {
       continue;
     }
@@ -180,9 +178,6 @@ export const classifyTriggeredOrbitInto = (
       nearestSquared = spill[SPILL_NEAREST]!;
     }
     watch = nearestLag;
-    if (fired) {
-      fires += 1;
-    }
   }
 
   out.status = 0;

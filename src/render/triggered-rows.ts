@@ -4,7 +4,6 @@ import {
   ORBIT_EVIDENCE_CODE,
   OrbitScratch,
   resolveOrbitOptions,
-  TRIGGERED_MAX_FIRES,
   TRIGGERED_SCAN_INTERVAL_FIRST,
   TRIGGERED_SCAN_INTERVAL_MAX,
   VERIFIER_VERDICT,
@@ -43,8 +42,8 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * - escape (|z|^2 > 4);
  * - the watched-lag proposal test against `armX`, the lane's proposal
  *   threshold: cycleTolerance^2 while the lane may fire, -1 otherwise
- *   (before the first scanning iteration, after TRIGGERED_MAX_FIRES fires,
- *   or while parked), which makes the test false for every distance;
+ *   (before the first scanning iteration, or while parked), which makes the
+ *   test false for every distance;
  * - `itX === dueX`, the next event iteration: one before the first
  *   scanning iteration (arms the lane), then the scalar kernel's next
  *   scheduled scan (`scheduledX`, gap `intervalX`) or the final iteration of
@@ -138,7 +137,6 @@ export class TriggeredRowKernel {
     let intervalA = TRIGGERED_SCAN_INTERVAL_FIRST;
     let armA = DISARMED;
     let watchA = 1;
-    let firesA = 0;
     let xB = -1;
     let cB = 0;
     let zbRe = 0;
@@ -149,7 +147,6 @@ export class TriggeredRowKernel {
     let intervalB = TRIGGERED_SCAN_INTERVAL_FIRST;
     let armB = DISARMED;
     let watchB = 1;
-    let firesB = 0;
     let pendingA = true;
     let pendingB = true;
 
@@ -201,7 +198,6 @@ export class TriggeredRowKernel {
           scheduledA = scanStart;
           intervalA = TRIGGERED_SCAN_INTERVAL_FIRST;
           watchA = 1;
-          firesA = 0;
           break;
         }
       }
@@ -251,7 +247,6 @@ export class TriggeredRowKernel {
           scheduledB = scanStart;
           intervalB = TRIGGERED_SCAN_INTERVAL_FIRST;
           watchB = 1;
-          firesB = 0;
           break;
         }
       }
@@ -327,7 +322,6 @@ export class TriggeredRowKernel {
           dueA = Math.min(scheduledA, maxIterations);
         }
       } else if (watchedA <= armA || itA === dueA) {
-        const firedA = watchedA <= armA;
         if (itA === scheduledA) {
           scheduledA = itA + intervalA;
           intervalA = Math.min(2 * intervalA, TRIGGERED_SCAN_INTERVAL_MAX);
@@ -401,10 +395,6 @@ export class TriggeredRowKernel {
           pendingA = true;
         } else {
           watchA = nearestLag;
-          if (firedA) {
-            firesA += 1;
-            if (firesA >= TRIGGERED_MAX_FIRES) armA = DISARMED;
-          }
           dueA = Math.min(scheduledA, maxIterations);
         }
       }
@@ -429,7 +419,6 @@ export class TriggeredRowKernel {
           dueB = Math.min(scheduledB, maxIterations);
         }
       } else if (watchedB <= armB || itB === dueB) {
-        const firedB = watchedB <= armB;
         if (itB === scheduledB) {
           scheduledB = itB + intervalB;
           intervalB = Math.min(2 * intervalB, TRIGGERED_SCAN_INTERVAL_MAX);
@@ -502,10 +491,6 @@ export class TriggeredRowKernel {
           pendingB = true;
         } else {
           watchB = nearestLag;
-          if (firedB) {
-            firesB += 1;
-            if (firesB >= TRIGGERED_MAX_FIRES) armB = DISARMED;
-          }
           dueB = Math.min(scheduledB, maxIterations);
         }
       }

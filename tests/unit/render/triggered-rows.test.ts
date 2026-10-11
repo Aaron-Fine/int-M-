@@ -34,6 +34,7 @@ const OPTION_SETS: readonly Partial<OrbitOptions>[] = [
   { maxIterations: 30, maxPeriod: 3, cycleWarmup: 40 },
   { maxIterations: 1, maxPeriod: 1 },
   { maxIterations: 33, maxPeriod: 1, cycleWarmup: 2 },
+  { maxIterations: 512, maxPeriod: 32, cycleTolerance: 1e-6 },
 ];
 
 const compareRow = (
