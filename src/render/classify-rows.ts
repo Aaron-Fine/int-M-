@@ -1,6 +1,7 @@
 import {
   createOrbitSample,
   createViewportTransform,
+  InterleavedClassifier,
   OrbitClassifier,
   OrbitScratch,
   type ClassifierMode,
@@ -10,7 +11,9 @@ import {
   type MutableComplex,
   type OrbitOptions,
   type OrbitSample,
+  type RasterSize,
   type RenderQuality,
+  type ViewportTransform,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
 import { packStatusPeriod, unpackStatus } from './packed-semantic';
@@ -100,14 +103,74 @@ const writeSampleToBand = (
 };
 
 /**
+ * Interleaved variant of the row loop (experiment interleave-2): classifies
+ * pairs of horizontally adjacent sample cells through one lockstep kernel,
+ * plus a scalar trailing cell for odd counts. Same sample points and band
+ * writes as the scalar loop in classifyRows.
+ */
+const classifyRowPairs = (
+  pairClassifier: InterleavedClassifier,
+  viewportTransform: ViewportTransform,
+  band: BandOutputBuffers,
+  size: RasterSize,
+  y0: number,
+  y1: number,
+  y: number,
+  stride: number,
+  point: MutableComplex,
+  pointB: MutableComplex,
+  sample: OrbitSample,
+  sampleB: OrbitSample,
+): void => {
+  const { width, height } = size;
+  const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
+  let x = 0;
+  for (; x + stride < width; x += 2 * stride) {
+    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+    const sampleXB = Math.min(width - 1, x + stride + (stride - 1) / 2);
+    viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
+    viewportTransform.pixelToComplexInto(sampleXB, sampleY, pointB);
+    pairClassifier.classifyPairInto(point.re, point.im, pointB.re, pointB.im, sample, sampleB);
+    writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+    writeSampleToBand(band, width, y0, y1, x + stride, y, stride, sampleB);
+  }
+  if (x < width) {
+    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+    viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
+    pairClassifier.classifyInto(point.re, point.im, sample);
+    writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+  }
+};
+
+/** The interleaved kernel only replaces the plain legacy scan without counters. */
+const createPairClassifier = (
+  interleave: boolean | undefined,
+  hasCounters: boolean,
+  classifierMode: ClassifierMode | undefined,
+  orbitOptions: Partial<OrbitOptions>,
+): InterleavedClassifier | undefined =>
+  interleave === true &&
+  !hasCounters &&
+  (classifierMode === undefined || classifierMode === 'legacy-scan')
+    ? new InterleavedClassifier(orbitOptions)
+    : undefined;
+
+/**
  * Trailing optional classifyRows arguments for a call site. Keeps the default
  * call shape unchanged: no perf counters and no mirror plan adds no arguments.
  */
 export const classifyRowsTrailingArgs = (
   perfCounters: boolean,
   mirrorPlan: ConjugateMirrorPlan | undefined,
-): [perfCounters?: boolean, mirrorPlan?: ConjugateMirrorPlan] =>
-  mirrorPlan === undefined ? (perfCounters ? [true] : []) : [perfCounters, mirrorPlan];
+  interleave = false,
+): [perfCounters?: boolean, mirrorPlan?: ConjugateMirrorPlan | undefined, interleave?: boolean] =>
+  interleave
+    ? [perfCounters, mirrorPlan, true]
+    : mirrorPlan === undefined
+      ? perfCounters
+        ? [true]
+        : []
+      : [perfCounters, mirrorPlan];
 
 const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
   if (plan !== undefined && stride !== 1) {
@@ -144,6 +207,9 @@ export async function classifyRows(
   // are left untouched here (the caller fills them with applyConjugateMirror
   // once every band has returned). Stride-1 only.
   mirrorPlan?: ConjugateMirrorPlan,
+  // Two-pixel interleaved kernel (experiment interleave-2): honored only for
+  // the plain legacy-scan classifier without counters; otherwise scalar.
+  interleave?: boolean,
 ): Promise<ClassifyRowsResult> {
   assertMirrorStride(mirrorPlan, stride);
   const { width } = request.size;
@@ -176,10 +242,18 @@ export async function classifyRows(
     new OrbitScratch(quality.maxPeriod),
     ...(counters === undefined ? [] : [counters]),
   );
+  const pairClassifier = createPairClassifier(
+    interleave,
+    counters !== undefined,
+    classifierMode,
+    orbitOptions,
+  );
   // Per-band working state: the classification loop below allocates nothing
   // per pixel (plan workstream B) — scalars in, band channels out.
   const sample = createOrbitSample();
+  const sampleB = createOrbitSample();
   const point: MutableComplex = { re: 0, im: 0 };
+  const pointB: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   // The 'timeout' arm is the paired-evidence measurement arm; it is created
@@ -196,13 +270,29 @@ export async function classifyRows(
     throwIfAborted(signal);
     // Mirrored rows are copied later; skipping them also skips their yield.
     if (isMirroredRow(mirrorPlan, y)) continue;
-    for (let x = 0; x < width; x += stride) {
-      const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-      const sampleY = Math.min(request.size.height - 1, y + (stride - 1) / 2);
-      viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
-      classifier.classifyInto(point.re, point.im, sample);
-      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-    }
+    if (pairClassifier !== undefined) {
+      classifyRowPairs(
+        pairClassifier,
+        viewportTransform,
+        band,
+        request.size,
+        y0,
+        y1,
+        y,
+        stride,
+        point,
+        pointB,
+        sample,
+        sampleB,
+      );
+    } else
+      for (let x = 0; x < width; x += stride) {
+        const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+        const sampleY = Math.min(request.size.height - 1, y + (stride - 1) / 2);
+        viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
+        classifier.classifyInto(point.re, point.im, sample);
+        writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+      }
 
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
       const yieldStarted = nowMs();

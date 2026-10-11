@@ -13,6 +13,7 @@ export {
   OrbitScratch,
 } from './orbit';
 export type { OrbitSample, OrbitStatusCode } from './orbit';
+export { InterleavedClassifier } from './orbit-interleaved';
 export {
   CHECKPOINT_CANDIDATE_BUDGET,
   CHECKPOINT_REVISION,

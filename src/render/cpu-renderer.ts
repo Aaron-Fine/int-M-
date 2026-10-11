@@ -58,7 +58,11 @@ const classifyFull = async (
     request.classifierMode,
     request.yieldMechanism,
     undefined,
-    ...classifyRowsTrailingArgs(request.perfCounters === true, mirrorPlan),
+    ...classifyRowsTrailingArgs(
+      request.perfCounters === true,
+      mirrorPlan,
+      request.interleave === true,
+    ),
   );
   throwIfAborted(signal);
   let timing = band.timing;

@@ -28,6 +28,8 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     // but the flag must change the key so A/B toggling re-renders instead of
     // being served from the cache. Conditional: default key unchanged.
     ...(request.conjugateMirror === true ? ['cj:1'] : []),
+    // Experiment arm marker (bit-identical output; see conjugateMirror).
+    ...(request.interleave === true ? ['il:1'] : []),
   ].join('|');
 };
 

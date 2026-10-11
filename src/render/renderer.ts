@@ -89,6 +89,14 @@ export interface DynamicsRenderRequest {
    * src/domain/conjugate-mirror.ts.
    */
   readonly conjugateMirror?: boolean;
+  /**
+   * EXPERIMENT (tournament candidate interleave-2), default OFF: when true
+   * the legacy-scan classifier handles two pixels of a row at once in one
+   * lockstep orbit loop (src/domain/orbit-interleaved.ts). Results are
+   * bit-identical to the scalar kernel. Ignored (scalar kernel) when
+   * perfCounters or a non-legacy classifierMode is requested.
+   */
+  readonly interleave?: boolean;
 }
 
 /**
