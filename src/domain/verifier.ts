@@ -174,11 +174,27 @@ export const verifyCycleInto = (
   // A non-finite state never returns to finite (NaN and Inf are absorbing
   // under this recurrence's arithmetic), so per-step or final checks give
   // identical verdicts; the canonical form bails per step.
+  //
+  // Primitive-period reduction rides on the same walk. The walk for a proper
+  // divisor d of p is the first d steps of this walk (same start, same
+  // recurrence, same operation order), so its residual and derivative are
+  // read off at step d instead of re-walking from the start. The smallest
+  // divisor whose residual lies below the exclusion bound decides: closing
+  // below the acceptance bound reduces the candidate to it; inside the
+  // (accept, exclude) gap primitivity is undecidable (three-way policy). The
+  // decision is applied only after the full-period closure checks, in the
+  // order of the policy above. (Prefix states are finite whenever the final
+  // state is, so the divisor walks need no finiteness checks of their own.)
   let zRe = cycleStartRe;
   let zIm = cycleStartIm;
   let derivativeRe = 1;
   let derivativeIm = 0;
-  for (let index = 0; index < proposedPeriod; index += 1) {
+  let primitive = proposedPeriod;
+  let primitiveDerivativeRe = 0;
+  let primitiveDerivativeIm = 0;
+  let divisorDecided = false;
+  let divisorAmbiguous = false;
+  for (let step = 1; step <= proposedPeriod; step += 1) {
     const nextDerivativeRe = derivativeRe * (2 * zRe) - derivativeIm * (2 * zIm);
     derivativeIm = derivativeRe * (2 * zIm) + derivativeIm * (2 * zRe);
     derivativeRe = nextDerivativeRe;
@@ -188,6 +204,21 @@ export const verifyCycleInto = (
     zRe = nextRe;
     if (!Number.isFinite(zRe) || !Number.isFinite(zIm)) {
       return VERIFIER_VERDICT.rejectedNonFinite;
+    }
+    if (!divisorDecided && step < proposedPeriod) {
+      const prefixRe = zRe - cycleStartRe;
+      const prefixIm = zIm - cycleStartIm;
+      const prefixSquared = prefixRe * prefixRe + prefixIm * prefixIm;
+      if (prefixSquared < excludeSquared && proposedPeriod % step === 0) {
+        divisorDecided = true;
+        if (prefixSquared <= acceptSquared) {
+          primitive = step;
+          primitiveDerivativeRe = derivativeRe;
+          primitiveDerivativeIm = derivativeIm;
+        } else {
+          divisorAmbiguous = true;
+        }
+      }
     }
   }
   if (!Number.isFinite(derivativeRe) || !Number.isFinite(derivativeIm)) {
@@ -206,51 +237,12 @@ export const verifyCycleInto = (
   if (residualSquared > acceptSquared) {
     return VERIFIER_VERDICT.unresolvedClosureAmbiguous;
   }
-
-  // Primitive-period reduction over proper divisors, ascending: the smallest
-  // divisor that also closes is the primitive period. A divisor residual
-  // inside the (accept, exclude) gap makes primitivity undecidable and the
-  // candidate is refused (three-way policy).
-  let primitive = proposedPeriod;
-  let primitiveDerivativeRe = derivativeRe;
-  let primitiveDerivativeIm = derivativeIm;
-  for (let divisor = 1; divisor < proposedPeriod; divisor += 1) {
-    if (proposedPeriod % divisor !== 0) {
-      continue;
-    }
-    let walkRe = cycleStartRe;
-    let walkIm = cycleStartIm;
-    let walkDerivativeRe = 1;
-    let walkDerivativeIm = 0;
-    for (let index = 0; index < divisor; index += 1) {
-      const nextWalkDerivativeRe =
-        walkDerivativeRe * (2 * walkRe) - walkDerivativeIm * (2 * walkIm);
-      walkDerivativeIm = walkDerivativeRe * (2 * walkIm) + walkDerivativeIm * (2 * walkRe);
-      walkDerivativeRe = nextWalkDerivativeRe;
-
-      const nextWalkRe = walkRe * walkRe - walkIm * walkIm + cRe;
-      walkIm = 2 * walkRe * walkIm + cIm;
-      walkRe = nextWalkRe;
-      if (!Number.isFinite(walkRe) || !Number.isFinite(walkIm)) {
-        return VERIFIER_VERDICT.rejectedNonFinite;
-      }
-    }
-    const divisorResidualRe = walkRe - cycleStartRe;
-    const divisorResidualIm = walkIm - cycleStartIm;
-    const divisorResidualSquared =
-      divisorResidualRe * divisorResidualRe + divisorResidualIm * divisorResidualIm;
-    if (!Number.isFinite(divisorResidualSquared)) {
-      return VERIFIER_VERDICT.rejectedNonFinite;
-    }
-    if (divisorResidualSquared <= acceptSquared) {
-      primitive = divisor;
-      primitiveDerivativeRe = walkDerivativeRe;
-      primitiveDerivativeIm = walkDerivativeIm;
-      break;
-    }
-    if (divisorResidualSquared < excludeSquared) {
-      return VERIFIER_VERDICT.unresolvedDivisorAmbiguous;
-    }
+  if (divisorAmbiguous) {
+    return VERIFIER_VERDICT.unresolvedDivisorAmbiguous;
+  }
+  if (primitive === proposedPeriod) {
+    primitiveDerivativeRe = derivativeRe;
+    primitiveDerivativeIm = derivativeIm;
   }
 
   // Attraction margin on the primitive multiplier: |lambda| must stay below

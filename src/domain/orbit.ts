@@ -4,6 +4,7 @@ import {
   resolvePeriodPolicy,
 } from './period-policy';
 import { TAU_CLOSURE_SCALED, VERIFIER_REVISION, VERIFIER_THRESHOLDS } from './verifier';
+import { classifyTriggeredOrbitInto } from './orbit-triggered';
 import type { Complex, EvidenceFlag, OrbitOptions, OrbitResult } from './types';
 import { CLASSIFIER_MODES, EVIDENCE_BY_CODE, ORBIT_EVIDENCE_CODE } from './types';
 import type { CheckpointMetrics, DifferentialStats } from './checkpoint';
@@ -32,29 +33,16 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
 });
 
 /**
- * Triggered-scan policy (ported from poc/performance/src/kernels/trigger.ts;
- * the frozen PoC values). The gate starts at the permissive verifier proposal
- * threshold, is scale-aware, and re-arms at a quarter threshold after each
- * failed gate-fired scan; at most TRIGGERED_MAX_GATE_SCANS gate-fired scans
- * run per pixel. The safety scans are not part of the PoC: they guarantee that
- * period-p cycles (whose per-step distance does not vanish) and any cycle the
- * gate happens to miss are still seen at the sample points below.
+ * History ring capacity for lags up to maxPeriod: the smallest power of two
+ * holding maxPeriod + 1 points, so ring indices can be reduced with a mask
+ * (the triggered kernel); the modulo-indexed kernels work with any capacity
+ * of at least maxPeriod + 1.
  */
-const TRIGGERED_GATE_INITIAL = VERIFIER_THRESHOLDS.tauCandidate;
-const TRIGGERED_GATE_REARM_DIVISOR = 4;
-const TRIGGERED_MAX_GATE_SCANS = 8;
-const TRIGGERED_SAFETY_INTERVAL = 32;
-/**
- * Every iteration from (maxIterations - window) through the end of the budget
- * is scanned, with window = max(TRIGGERED_TAIL_WINDOW_MIN, 2 * maxPeriod).
- * Slowly attracting cycles of period > 1 can be accepted only transiently
- * near the budget (measured on the shipping raster: legacy acceptances at
- * iterations 473..511), so periodic sampling alone misses them. The window
- * scales with maxPeriod because a period-p cycle needs on the order of p
- * further iterations for the lag-p distance to fall under the proposal
- * threshold (a fixed 64 lost p = 94..128 cycles at maxPeriod 128).
- */
-const TRIGGERED_TAIL_WINDOW_MIN = 64;
+const ringCapacity = (maxPeriod: number): number => {
+  let capacity = 2;
+  while (capacity < maxPeriod + 1) capacity *= 2;
+  return capacity;
+};
 
 /**
  * Reusable storage for the orbit hot path. One instance may be reused
@@ -72,19 +60,19 @@ export class OrbitScratch {
   public checkpointSpill: Float64Array;
 
   public constructor(maxPeriod: number = DEFAULT_ORBIT_OPTIONS.maxPeriod) {
-    const capacity = Math.max(2, Math.ceil(maxPeriod) + 1);
+    const capacity = ringCapacity(Math.max(1, Math.ceil(maxPeriod)));
     this.historyRe = new Float64Array(capacity);
     this.historyIm = new Float64Array(capacity);
     this.checkpointSpill = new Float64Array(4);
   }
 
   public ensureCapacity(maxPeriod: number): void {
-    const required = maxPeriod + 1;
-    if (this.historyRe.length >= required) {
+    if (this.historyRe.length >= maxPeriod + 1) {
       return;
     }
-    this.historyRe = new Float64Array(required);
-    this.historyIm = new Float64Array(required);
+    const capacity = ringCapacity(maxPeriod);
+    this.historyRe = new Float64Array(capacity);
+    this.historyIm = new Float64Array(capacity);
   }
 }
 
@@ -180,6 +168,75 @@ const finishAttractingCycle = (
  * The differential tests pin the inline copy and the canonical function
  * together bit for bit; change them only as a pair.
  */
+
+/**
+ * Analytic fast paths (closed form) shared by every kernel: writes the
+ * attracting record and returns true when c lies in the main cardioid or the
+ * period-2 bulb with a multiplier inside the attraction margin; returns false
+ * (record untouched) otherwise, including margin-adjacent points, which fall
+ * through to the orbit loop.
+ */
+export const classifyAnalyticInto = (cRe: number, cIm: number, out: OrbitSample): boolean => {
+  // Analytic fast paths (closed form): main cardioid and period-2 bulb.
+  // Their acceptance migrates to the verifier policy (plan section 4 stage
+  // 1): the exact closed-form multiplier must satisfy the frozen attraction
+  // margin; margin-adjacent points are refused here and fall through to the
+  // lag scan (verify or fall back), which applies the same policy. The
+  // closed forms carry no closure residual, so the scale-aware tolerance has
+  // no analytic counterpart; period 1 has no proper divisor and the period-2
+  // cycle is genuinely period 2 everywhere inside the bulb (the two cycle
+  // points merge only on the excluded boundary), so divisor reduction is
+  // vacuous on both paths.
+  const x = cRe;
+  const ySquared = cIm * cIm;
+  const cardioidX = x - 0.25;
+  const q = cardioidX * cardioidX + ySquared;
+
+  if (q * (q + cardioidX) < 0.25 * ySquared) {
+    const sqrtArgRe = 1 - 4 * x;
+    const sqrtArgIm = -4 * cIm;
+    const discriminantMagnitude = Math.hypot(sqrtArgRe, sqrtArgIm);
+    const rootRe = Math.sqrt(Math.max(0, (discriminantMagnitude + sqrtArgRe) / 2));
+    const rootImMagnitude = Math.sqrt(Math.max(0, (discriminantMagnitude - sqrtArgRe) / 2));
+    // Legacy multiplier is 1 - sqrt(1 - 4x, -4y) componentwise, so the
+    // imaginary part carries the negated principal root sign.
+    const multiplierRe = 1 - rootRe;
+    const multiplierIm = sqrtArgIm < 0 ? rootImMagnitude : -rootImMagnitude;
+    const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
+    if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
+      finishAttractingCycle(
+        out,
+        1,
+        multiplierRe,
+        multiplierIm,
+        0,
+        ORBIT_EVIDENCE_CODE.analyticMainCardioid,
+        multiplierMagnitude,
+      );
+      return true;
+    }
+  } else {
+    const bulbX = x + 1;
+    if (bulbX * bulbX + ySquared < 1 / 16) {
+      const multiplierRe = 4 * bulbX;
+      const multiplierIm = 4 * cIm;
+      const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
+      if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
+        finishAttractingCycle(
+          out,
+          2,
+          multiplierRe,
+          multiplierIm,
+          0,
+          ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb,
+          multiplierMagnitude,
+        );
+        return true;
+      }
+    }
+  }
+  return false;
+};
 
 export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitOptions => {
   const { periodPolicy, ...operative } = options;
@@ -300,66 +357,17 @@ export const classifyInto = (
   out: OrbitSample,
   // eslint-disable-next-line complexity -- the branch count is the fused scan + verifier policy body; see the comments above and at the lag scan
 ): void => {
-  // Analytic fast paths (closed form): main cardioid and period-2 bulb.
-  // Their acceptance migrates to the verifier policy (plan section 4 stage
-  // 1): the exact closed-form multiplier must satisfy the frozen attraction
-  // margin; margin-adjacent points are refused here and fall through to the
-  // lag scan (verify or fall back), which applies the same policy. The
-  // closed forms carry no closure residual, so the scale-aware tolerance has
-  // no analytic counterpart; period 1 has no proper divisor and the period-2
-  // cycle is genuinely period 2 everywhere inside the bulb (the two cycle
-  // points merge only on the excluded boundary), so divisor reduction is
-  // vacuous on both paths.
-  const x = cRe;
-  const ySquared = cIm * cIm;
-  const cardioidX = x - 0.25;
-  const q = cardioidX * cardioidX + ySquared;
-
-  if (q * (q + cardioidX) < 0.25 * ySquared) {
-    const sqrtArgRe = 1 - 4 * x;
-    const sqrtArgIm = -4 * cIm;
-    const discriminantMagnitude = Math.hypot(sqrtArgRe, sqrtArgIm);
-    const rootRe = Math.sqrt(Math.max(0, (discriminantMagnitude + sqrtArgRe) / 2));
-    const rootImMagnitude = Math.sqrt(Math.max(0, (discriminantMagnitude - sqrtArgRe) / 2));
-    // Legacy multiplier is 1 - sqrt(1 - 4x, -4y) componentwise, so the
-    // imaginary part carries the negated principal root sign.
-    const multiplierRe = 1 - rootRe;
-    const multiplierIm = sqrtArgIm < 0 ? rootImMagnitude : -rootImMagnitude;
-    const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
-    if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
-      finishAttractingCycle(
-        out,
-        1,
-        multiplierRe,
-        multiplierIm,
-        0,
-        ORBIT_EVIDENCE_CODE.analyticMainCardioid,
-        multiplierMagnitude,
-      );
-      return;
-    }
-  } else {
-    const bulbX = x + 1;
-    if (bulbX * bulbX + ySquared < 1 / 16) {
-      const multiplierRe = 4 * bulbX;
-      const multiplierIm = 4 * cIm;
-      const multiplierMagnitude = Math.hypot(multiplierRe, multiplierIm);
-      if (multiplierMagnitude < 1 - VERIFIER_THRESHOLDS.attractMargin) {
-        finishAttractingCycle(
-          out,
-          2,
-          multiplierRe,
-          multiplierIm,
-          0,
-          ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb,
-          multiplierMagnitude,
-        );
-        return;
-      }
-    }
+  if (classifyAnalyticInto(cRe, cIm, out)) {
+    return;
   }
 
   scratch.ensureCapacity(options.maxPeriod);
+  if (options.classifierMode === 'triggered-scan') {
+    // Watched-lag kernel (src/domain/orbit-triggered.ts). Called before the
+    // orbit loop starts, so no orbit state is live across the call.
+    classifyTriggeredOrbitInto(cRe, cIm, options, scratch, out);
+    return;
+  }
   const historyRe = scratch.historyRe;
   const historyIm = scratch.historyIm;
   const capacity = historyRe.length;
@@ -378,22 +386,6 @@ export const classifyInto = (
   // out at its single call site instead of in a helper, and V8-internal
   // builtins (Math.hypot) are acceptable only because they cannot lazily
   // deopt the caller.
-
-  // Triggered-scan state (inert on the legacy path: the mode check is one
-  // predictable branch per iteration). The gate sees the step between
-  // consecutive orbit points; a fired gate runs the same lag scan the legacy
-  // path runs at that iteration, so a triggered acceptance is always a
-  // legacy acceptance at the same or a LATER iteration (legacy scans every
-  // iteration, so it can never accept later than the triggered scan does).
-  const triggered = options.classifierMode === 'triggered-scan';
-  // First iteration of the unconditional end-of-budget scan window; the
-  // boundary is inclusive (iteration >= tailStart).
-  const tailStart =
-    options.maxIterations - Math.max(TRIGGERED_TAIL_WINDOW_MIN, 2 * options.maxPeriod);
-  let previousRe = 0;
-  let previousIm = 0;
-  let gate = TRIGGERED_GATE_INITIAL;
-  let gateScans = 0;
 
   for (let iteration = 1; iteration <= options.maxIterations; iteration += 1) {
     const nextRe = zRe * zRe - zIm * zIm + cRe;
@@ -415,22 +407,6 @@ export const classifyInto = (
     const currentIndex = (iteration - 1) % capacity;
     historyRe[currentIndex] = zRe;
     historyIm[currentIndex] = zIm;
-    let gateFired = false;
-    if (triggered) {
-      const stepRe = zRe - previousRe;
-      const stepIm = zIm - previousIm;
-      previousRe = zRe;
-      previousIm = zIm;
-      if (iteration >= options.cycleWarmup && gateScans < TRIGGERED_MAX_GATE_SCANS) {
-        const gateScale = Math.max(1, Math.abs(zRe), Math.abs(zIm));
-        const gateSquared = gate * gate * gateScale * gateScale;
-        gateFired = stepRe * stepRe + stepIm * stepIm <= gateSquared;
-      }
-      const safetyDue = iteration % TRIGGERED_SAFETY_INTERVAL === 0 || iteration >= tailStart;
-      if (!gateFired && !safetyDue) {
-        continue;
-      }
-    }
     if (iteration < options.cycleWarmup) {
       continue;
     }
@@ -582,12 +558,6 @@ export const classifyInto = (
       );
       return;
     }
-    if (gateFired) {
-      // Failed gate-fired scan: consume one of the per-pixel gate scans and
-      // re-arm the gate at a quarter of its previous threshold.
-      gateScans += 1;
-      gate /= TRIGGERED_GATE_REARM_DIVISOR;
-    }
   }
 
   out.status = 0;
@@ -647,8 +617,9 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
  * construction. 'legacy-scan' (the default) allocates nothing beyond the
  * legacy path; 'checkpoint' and 'differential' preallocate their extra state
  * (checkpoint metrics, differential sample and record) once, in the
- * constructor. 'triggered-scan' runs the lag-scan kernel with a step gate in
- * front of it (see classifyInto) and allocates nothing extra. In differential
+ * constructor. 'triggered-scan' runs the watched-lag kernel
+ * (orbit-triggered.ts) after the shared analytic prologue and allocates
+ * nothing extra. In differential
  * mode both kernels run per pixel, the LEGACY answer stays the reported one,
  * and disagreements accumulate into the preallocated DifferentialStats (read
  * via differentialStats).

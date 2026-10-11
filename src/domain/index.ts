@@ -2,6 +2,7 @@ export * from './complex';
 export { computedPrefixRows, mirrorSourceOf, planConjugateMirror } from './conjugate-mirror';
 export type { ConjugateMirrorPlan } from './conjugate-mirror';
 export {
+  classifyAnalyticInto,
   classifyInto,
   classifyOrbit,
   createOrbitSample,
@@ -14,6 +15,12 @@ export {
 } from './orbit';
 export type { OrbitSample, OrbitStatusCode } from './orbit';
 export { InterleavedClassifier } from './orbit-interleaved';
+export {
+  classifyTriggeredOrbitInto,
+  TRIGGERED_MAX_FIRES,
+  TRIGGERED_SCAN_INTERVAL_FIRST,
+  TRIGGERED_SCAN_INTERVAL_MAX,
+} from './orbit-triggered';
 export {
   CHECKPOINT_CANDIDATE_BUDGET,
   CHECKPOINT_REVISION,

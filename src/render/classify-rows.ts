@@ -16,6 +16,7 @@ import {
   type ViewportTransform,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
+import { TriggeredRowKernel } from './triggered-rows';
 import { packStatusPeriod, unpackStatus } from './packed-semantic';
 import {
   createPerfCounters,
@@ -167,6 +168,22 @@ const classifyRowPairs = (
     writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
   }
 };
+
+/**
+ * The two-lane triggered row kernel: classifierMode 'triggered-scan' with
+ * `interleave`, stride 1 (the stable pass), no counters. Bit-identical to the
+ * scalar triggered kernel.
+ */
+const createTriggeredRowKernel = (
+  interleave: boolean | undefined,
+  hasCounters: boolean,
+  classifierMode: ClassifierMode | undefined,
+  stride: number,
+  orbitOptions: Partial<OrbitOptions>,
+): TriggeredRowKernel | undefined =>
+  interleave === true && !hasCounters && classifierMode === 'triggered-scan' && stride === 1
+    ? new TriggeredRowKernel(orbitOptions)
+    : undefined;
 
 /** The interleaved kernel only replaces the plain legacy scan without counters. */
 const createPairClassifier = (
@@ -380,7 +397,21 @@ export async function classifyRows(
   const point: MutableComplex = { re: 0, im: 0 };
   const pointB: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
-  const realColumns = createRealColumns(preparedCoordinates, viewportTransform, width, stride);
+  const rowKernel = createTriggeredRowKernel(
+    interleave,
+    counters !== undefined,
+    classifierMode,
+    stride,
+    orbitOptions,
+  );
+  // The row kernel reads prepared real coordinates (bit-identical to the
+  // per-pixel transform), so it implies preparedCoordinates.
+  const realColumns = createRealColumns(
+    preparedCoordinates === true || rowKernel !== undefined,
+    viewportTransform,
+    width,
+    stride,
+  );
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   // The 'timeout' arm is the paired-evidence measurement arm; it is created
   // per call because its pending set must not outlive the band.
@@ -396,7 +427,15 @@ export async function classifyRows(
     throwIfAborted(signal);
     // Mirrored rows are copied later; skipping them also skips their yield.
     if (isMirroredRow(mirrorPlan, y)) continue;
-    if (pairClassifier !== undefined) {
+    if (rowKernel !== undefined && realColumns !== undefined) {
+      rowKernel.classifyRow(
+        realColumns,
+        preparedRowImaginary(viewportTransform, request.size.height, stride, y),
+        width,
+        band,
+        (y - y0) * width,
+      );
+    } else if (pairClassifier !== undefined) {
       classifyRowPairs(
         pairClassifier,
         viewportTransform,
