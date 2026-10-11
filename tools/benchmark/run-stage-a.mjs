@@ -2,15 +2,16 @@
 /**
  * Stage A browser evidence runner (performance plan §8/§9/§10).
  *
- * Produces the release-comparable paired evidence for the legacy-scan vs
- * checkpoint classifier in the production bundle, and the baseline record for
+ * Produces the release-comparable paired evidence for the legacy-scan
+ * reference vs a candidate classifier mode (`--candidate`, default
+ * checkpoint) in the production bundle, and the baseline record for
  * the absolute latency budgets (plan §9 program-level success):
  *
  * - builds the production bundle once (`vite build`) and serves it via
  *   `vite preview` — never the dev server;
  * - drives the real application UI for every case in the frozen corpus
  *   (tools/benchmark/corpus.v1.json, shipping-1024x640 raster, the case's
- *   profile) × mode (legacy-scan, checkpoint) × paired repetitions with
+ *   profile) × mode (legacy-scan, candidate) × paired repetitions with
  *   alternating baseline/candidate order;
  * - cold/warm separation: the first repetition per case runs each arm in a
  *   fresh browser context (cold); the remaining repetitions re-navigate one
@@ -29,6 +30,13 @@
  * Usage:
  *   node tools/benchmark/run-stage-a.mjs [--engine chromium|firefox]
  *       [--reps 9] [--out-dir <evidence/phase-2/<date>-<commit>>]
+ *       [--candidate checkpoint|triggered-scan] [--baseline-mirror-off]
+ *
+ * --baseline-mirror-off renders the legacy-scan arm with
+ * `conjugateMirror=0`, i.e. the production default before conjugate
+ * mirroring became default-on, so the pair compares the old default against
+ * the new one. Mirrored output is designed to be bit-identical, so the
+ * semantic hash comparison is unaffected.
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -44,7 +52,6 @@ const { chromium, firefox } = require('@playwright/test');
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const PREVIEW_PORT = 4179;
 const SHIPPING_RASTER_ID = 'shipping-1024x640';
-const MODES = ['legacy-scan', 'checkpoint'];
 const TARGET_RASTER = { width: 1024, height: 640 };
 const NAVIGATION_TIMEOUT_MS = 10 * 60_000;
 
@@ -62,6 +69,13 @@ if (engine !== 'chromium' && engine !== 'firefox') {
   process.stderr.write(`unknown engine: ${engine} (use chromium or firefox)\n`);
   process.exit(2);
 }
+const CANDIDATE = readOption('--candidate') ?? 'checkpoint';
+if (CANDIDATE !== 'checkpoint' && CANDIDATE !== 'triggered-scan') {
+  process.stderr.write(`unknown candidate: ${CANDIDATE} (use checkpoint or triggered-scan)\n`);
+  process.exit(2);
+}
+const MODES = ['legacy-scan', CANDIDATE];
+const BASELINE_MIRROR_OFF = args.includes('--baseline-mirror-off');
 const reps = Number(readOption('--reps') ?? 9);
 if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
@@ -331,7 +345,7 @@ const measureOnce = async (page, spec) => {
 const runCase = async (caseInfo) => {
   const profileId = caseInfo.profile.toLowerCase();
   const urlFor = (mode) =>
-    `${baseUrl}/?perf=1&classifierMode=${mode}&view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}&quality=${profileId}`;
+    `${baseUrl}/?perf=1&classifierMode=${mode}${mode === 'legacy-scan' && BASELINE_MIRROR_OFF ? '&conjugateMirror=0' : ''}&view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}&quality=${profileId}`;
   const samples = [];
   for (let repetition = 0; repetition < reps; repetition += 1) {
     const armOrder = repetition % 2 === 0 ? [...MODES] : [...MODES].reverse();
@@ -468,8 +482,9 @@ const rawObservations = {
 writeFileSync(rawPath, `${JSON.stringify(rawObservations, null, 2)}\n`);
 
 // Semantic comparison: per case × rep hash equality between the two modes.
-// Checkpoint detections are oracle-certified additions (PR 4 evidence), so a
-// mismatch is a finding to enumerate, never a silent failure.
+// A mismatch is a finding to enumerate, never a silent failure (checkpoint
+// detections are oracle-certified additions, PR 4 evidence; the watched-lag
+// triggered scan is expected to match legacy exactly).
 const compare = (engineSamples) => {
   const cases = [];
   for (const caseInfo of selectedCases) {
@@ -479,16 +494,16 @@ const compare = (engineSamples) => {
       const legacy = caseSamples.find(
         (sample) => sample.mode === 'legacy-scan' && sample.repetition === repetition,
       );
-      const checkpoint = caseSamples.find(
-        (sample) => sample.mode === 'checkpoint' && sample.repetition === repetition,
+      const candidate = caseSamples.find(
+        (sample) => sample.mode === CANDIDATE && sample.repetition === repetition,
       );
-      if (legacy === undefined || checkpoint === undefined) continue;
+      if (legacy === undefined || candidate === undefined) continue;
       repsData.push({
         repetition,
         climate: legacy.climate,
         legacyHash: legacy.semanticHash.hash,
-        checkpointHash: checkpoint.semanticHash.hash,
-        equal: legacy.semanticHash.hash === checkpoint.semanticHash.hash,
+        candidateHash: candidate.semanticHash.hash,
+        equal: legacy.semanticHash.hash === candidate.semanticHash.hash,
       });
     }
     const mismatchReps = repsData.filter((rep) => !rep.equal).map((rep) => rep.repetition);
@@ -522,8 +537,12 @@ const semanticComparison = {
     scope:
       'palette-inclusive proxy: the ring exposes no per-pixel period histogram, so the hash covers the final RGBA raster (status palette, period palette, smooth values) rather than discrete per-pixel fields',
     expectation:
-      'identical hashes expected on most cases; the checkpoint schedule may detect additional oracle-certified attracting pixels (PR 4 evidence), so mismatches are enumerated findings, not failures',
+      CANDIDATE === 'checkpoint'
+        ? 'identical hashes expected on most cases; the checkpoint schedule may detect additional oracle-certified attracting pixels (PR 4 evidence), so mismatches are enumerated findings, not failures'
+        : 'identical hashes expected on every case: the watched-lag triggered scan is bit-identical to the legacy scan on the corpus (Node parity); any mismatch is a finding',
   },
+  candidateMode: CANDIDATE,
+  baselineMirrorOff: BASELINE_MIRROR_OFF,
   comparisonsByEngine,
 };
 writeFileSync(comparisonPath, `${JSON.stringify(semanticComparison, null, 2)}\n`);
@@ -541,13 +560,13 @@ const summarizeEngine = (engineSamples) =>
     const valuesFor = (mode) =>
       warm.filter((sample) => sample.mode === mode).map((sample) => sample.requestToPresentMs);
     const legacyWarm = valuesFor('legacy-scan');
-    const checkpointWarm = valuesFor('checkpoint');
+    const candidateWarm = valuesFor(CANDIDATE);
     const legacyMedian = median(legacyWarm);
-    const checkpointMedian = median(checkpointWarm);
+    const candidateMedian = median(candidateWarm);
     const delta =
-      legacyMedian === undefined || checkpointMedian === undefined
+      legacyMedian === undefined || candidateMedian === undefined
         ? undefined
-        : checkpointMedian - legacyMedian;
+        : candidateMedian - legacyMedian;
     const flag =
       delta === undefined || legacyMedian === undefined
         ? undefined
@@ -561,12 +580,12 @@ const summarizeEngine = (engineSamples) =>
       designation: caseInfo.designation,
       legacyMedianMs: legacyMedian,
       legacyMadMs: mad(legacyWarm),
-      checkpointMedianMs: checkpointMedian,
-      checkpointMadMs: mad(checkpointWarm),
+      candidateMedianMs: candidateMedian,
+      candidateMadMs: mad(candidateWarm),
       deltaMs: delta,
       regressionFlag: flag,
       coldMedianLegacyMs: coldFor('legacy-scan'),
-      coldMedianCheckpointMs: coldFor('checkpoint'),
+      coldMedianCandidateMs: coldFor(CANDIDATE),
       warmRepsPerMode: legacyWarm.length,
     };
   });
@@ -575,7 +594,7 @@ const summaryLines = [];
 summaryLines.push(`# Stage A browser evidence — ${runDate} @ ${shortCommit}`);
 summaryLines.push('');
 summaryLines.push(
-  'Paired legacy-scan vs checkpoint classifier evidence from the production bundle ' +
+  `Paired legacy-scan${BASELINE_MIRROR_OFF ? ' (conjugate mirroring off)' : ''} vs ${CANDIDATE} classifier evidence from the production bundle ` +
     '(`vite build` + `vite preview`), driven through the real application UI by ' +
     '`tools/benchmark/run-stage-a.mjs`. Medians below are **warm** samples ' +
     `(${reps - 1} pairs per case; cold rep 0 is stored raw in raw-observations.json and excluded). ` +
@@ -596,12 +615,12 @@ for (const engineKey of Object.keys(samplesByEngine).sort()) {
   summaryLines.push(`## Headline ${engineKey} (paired warm medians, ms)`);
   summaryLines.push('');
   summaryLines.push(
-    '| Case | Designation | legacy-scan median (MAD) | checkpoint median (MAD) | Δ (ckpt−legacy) | Regression flag max(5%, 20 ms) |',
+    `| Case | Designation | legacy-scan median (MAD) | ${CANDIDATE} median (MAD) | Δ (candidate−legacy) | Regression flag max(5%, 20 ms) |`,
   );
   summaryLines.push('| --- | --- | --- | --- | --- | --- |');
   for (const row of summarizeEngine(engineSamples)) {
     summaryLines.push(
-      `| ${row.caseId} | ${row.designation} | ${formatMs(row.legacyMedianMs)} (${formatMs(row.legacyMadMs)}) | ${formatMs(row.checkpointMedianMs)} (${formatMs(row.checkpointMadMs)}) | ${row.deltaMs === undefined ? '—' : `${row.deltaMs.toFixed(1)} ms`} | ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? '**flagged**' : 'no'} |`,
+      `| ${row.caseId} | ${row.designation} | ${formatMs(row.legacyMedianMs)} (${formatMs(row.legacyMadMs)}) | ${formatMs(row.candidateMedianMs)} (${formatMs(row.candidateMadMs)}) | ${row.deltaMs === undefined ? '—' : `${row.deltaMs.toFixed(1)} ms`} | ${row.regressionFlag === undefined ? '—' : row.regressionFlag ? '**flagged**' : 'no'} |`,
     );
   }
   summaryLines.push('');
@@ -616,7 +635,8 @@ summaryLines.push('');
 summaryLines.push(
   `Hash: ${semanticComparison.method.algorithm} over row-major RGBA bytes (documented byte order). ` +
     'This is a palette-inclusive proxy — the ring exposes no per-pixel period histogram. ' +
-    'Checkpoint detections are oracle-certified additions, so mismatches are enumerated findings.',
+    'Mismatches are enumerated findings. ' +
+    semanticComparison.method.expectation,
 );
 summaryLines.push('');
 for (const engineKey of Object.keys(comparisonsByEngine).sort()) {
@@ -635,10 +655,12 @@ for (const engineKey of Object.keys(comparisonsByEngine).sort()) {
   summaryLines.push(
     mismatchingCases.length === 0
       ? 'Every case × repetition hash matched between the two modes.'
-      : `Every mismatching case (${mismatchingCases.map((entry) => entry.caseId).join(', ')}) is an ` +
-          'interior/boundary-heavy view — the expected signature of the checkpoint schedule proposing ' +
-          'additional oracle-certified candidates (PR 4 evidence). The hash inequality is enumerated as ' +
-          'a finding per case and repetition above; it is not treated as a failure.',
+      : `Mismatching cases: ${mismatchingCases.map((entry) => entry.caseId).join(', ')}. ` +
+          (CANDIDATE === 'checkpoint'
+            ? 'Each is an interior/boundary-heavy view — the expected signature of the checkpoint schedule proposing ' +
+              'additional oracle-certified candidates (PR 4 evidence). '
+            : 'The triggered scan is expected to match legacy exactly; each mismatch needs investigation. ') +
+          'The hash inequality is enumerated as a finding per case and repetition above.',
   );
   summaryLines.push('');
 }

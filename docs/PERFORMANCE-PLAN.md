@@ -323,6 +323,9 @@ Stage A decisions that nothing else may preempt:
 3. Whether the `classifierMode` default may flip away from `legacy-scan`
    (plan §9 semantic-change rules; unresolved-rate increase ≤0.1 percentage
    point unless oracle-supported).
+   Proposed flip to the watched-lag `triggered-scan`:
+   [ADR 0006](decisions/0006-watched-lag-default-classifier.md) (bit-identical
+   to legacy on the corpus; awaiting the release-protocol run).
 4. The frozen absolute coarse/stable latency budgets and the declared
    user-facing hard-view budget (plan §9, program-level success).
 

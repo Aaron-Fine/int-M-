@@ -130,3 +130,23 @@ The CPU harness now includes the original rectangular cases plus full-set
 512²/1024² and rabbit 768² cases. `evidence:optimizations` reports discrepancies
 rather than masking them or claiming an equivalence pass. No transcendental
 approximation or GPU shader change is included.
+
+## Carried into the unified kernel (October 11, 2026)
+
+The phase 2 branch replaces this mainline kernel with the verifier scan and,
+from `proof/certified-acceptance`, the watched-lag triggered kernel
+([ADR 0006](../decisions/0006-watched-lag-default-classifier.md),
+[UNIFIED-KERNEL-2026-10-11.md](UNIFIED-KERNEL-2026-10-11.md)). Each change
+above is either carried, superseded, or deliberately not adopted:
+
+| PR 15 change                                       | Unified kernel                                                                                                                                               |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Borrowed raster record, no rich objects per sample | Carried: `OrbitSample` record; the two-lane row kernel writes band storage directly.                                                                         |
+| No eager stability logarithm or angle              | Logarithm: carried (kappa derived only at rich-result boundaries). Angle: still computed once per attracting pixel (the band keeps a Float64 angle channel). |
+| One `hypot` per confirmed cycle                    | Carried (verifier).                                                                                                                                          |
+| `log2(0.5 * log2(m²))` escape smoothing            | Not adopted: not bit-identical, and 0.99× in the optimization tournament.                                                                                    |
+| Modulo-free history ring                           | Superseded: power-of-two ring with mask indexing; the triggered kernel scans only on watched-lag proposals and a doubling schedule.                          |
+| Prepared per-column / per-row coordinates          | Carried, unconditional (bit-identical to the per-pixel transform).                                                                                           |
+| Upper-half classification of real-axis views       | Carried as conjugate mirroring, on by default (`?perf=1&conjugateMirror=0` disables).                                                                        |
+| Float32 multiplier-direction channels              | Not adopted: the band keeps the binary64 angle; colorization instead dropped per-pixel tuples and fmod calls (byte-identical, 1.8–2.4× faster).              |
+| Checkpoint detector behind an option               | Kept opt-in (`classifierMode: 'checkpoint'`).                                                                                                                |

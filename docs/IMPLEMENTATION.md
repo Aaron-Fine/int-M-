@@ -210,10 +210,13 @@ workstream and gate.
   (`src/domain/checkpoint.ts`, revision `src-checkpoint-1.0.0`) and any future
   catalog, chart, algebra, or Newton path — propose only.
 - The classifier mode is a versioned option (`OrbitOptions.classifierMode`):
-  `'legacy-scan'` is the shipped default, `'checkpoint'` runs the schedule,
-  and `'differential'` runs both kernels per pixel, reports the legacy answer,
-  and counts disagreements. The default changes only on Stage A browser
-  evidence per the benchmark contract.
+  `'triggered-scan'` (the watched-lag kernel, `src/domain/orbit-triggered.ts`)
+  is the default on this branch, proposed in
+  [ADR 0006](decisions/0006-watched-lag-default-classifier.md) and pending the
+  release-protocol Stage A run; `'legacy-scan'` is the reference mode (judge
+  baseline, `perfCounters` instrumentation), `'checkpoint'` runs the PR 4
+  schedule, and `'differential'` runs both kernels per pixel, reports the
+  legacy answer, and counts disagreements.
 - The period policy (`src/domain/period-policy.ts`, revision
   `period-policy-1.0.0`) separates the systematic search budget from
   opportunistic verified discoveries and stamps evidence-source origin
