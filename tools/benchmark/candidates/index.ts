@@ -4,6 +4,7 @@
  * always supplies it.
  */
 import { checkpoint } from './checkpoint';
+import { smoothLog2 } from './smooth-log2';
 import type { Candidate } from './types';
 
-export const CANDIDATES: readonly Candidate[] = [checkpoint];
+export const CANDIDATES: readonly Candidate[] = [checkpoint, smoothLog2];

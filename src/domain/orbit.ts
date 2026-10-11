@@ -29,6 +29,7 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   cycleWarmup: 24,
   classifierMode: 'legacy-scan',
   exhaustionScan: true,
+  algebraicEscapeSmoothing: false,
 });
 
 /**
@@ -180,6 +181,15 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
     );
   }
   const exhaustionScan = resolved.exhaustionScan ?? true;
+  const algebraicEscapeSmoothing = resolved.algebraicEscapeSmoothing ?? false;
+  if (typeof algebraicEscapeSmoothing !== 'boolean') {
+    throw new RangeError('algebraicEscapeSmoothing must be a boolean');
+  }
+  if (algebraicEscapeSmoothing && classifierMode !== 'legacy-scan') {
+    throw new RangeError(
+      `algebraicEscapeSmoothing is only honored by classifierMode 'legacy-scan'; got ${classifierMode}`,
+    );
+  }
   // Normalized form: the optional mode/scan fields are always set, so kernel
   // code reads plain values instead of re-applying defaults.
   // PR 5 (plan section 4): attach versioned period-policy metadata. The
@@ -192,6 +202,7 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
     ...resolved,
     classifierMode,
     exhaustionScan,
+    algebraicEscapeSmoothing,
     periodPolicy:
       periodPolicy === undefined
         ? defaultPeriodPolicyFor(resolved.maxIterations, resolved.maxPeriod)
@@ -344,6 +355,9 @@ export const classifyInto = (
   // Acceptance below is the common verifier's frozen policy and does not
   // scale with this option.
   const toleranceSquared = options.cycleTolerance * options.cycleTolerance;
+  // Escape smoothing form (candidate smooth-log2). Resolved once; the escape
+  // branch below is the only reader, so the orbit loop itself is unchanged.
+  const algebraicEscapeSmoothing = options.algebraicEscapeSmoothing === true;
 
   // The orbit loop must not contain non-inlined JS calls with the orbit
   // state live across them: a lazy-deopt frame state at such a call switches
@@ -361,7 +375,9 @@ export const classifyInto = (
     const magnitudeSquared = zRe * zRe + zIm * zIm;
 
     if (magnitudeSquared > 4) {
-      const smoothIteration = iteration + 1 - Math.log2(Math.log2(Math.sqrt(magnitudeSquared)));
+      const smoothIteration = algebraicEscapeSmoothing
+        ? iteration + 1 - Math.log2(0.5 * Math.log2(magnitudeSquared))
+        : iteration + 1 - Math.log2(Math.log2(Math.sqrt(magnitudeSquared)));
       out.status = 1;
       out.iterations = iteration;
       out.evidence = ORBIT_EVIDENCE_CODE.escapeRadius;

@@ -155,6 +155,14 @@ export interface OrbitOptions {
    * resolution attaches the derived default policy.
    */
   readonly periodPolicy?: PeriodPolicy;
+  /**
+   * EXPERIMENT (performance candidate smooth-log2), default OFF: when true the
+   * legacy-scan escape smoothing is computed as log2(0.5 * log2(|z|^2))
+   * instead of log2(log2(sqrt(|z|^2))). Algebraically equal, not bit-identical
+   * in binary64. Only the legacy-scan kernel honors it; resolveOrbitOptions
+   * rejects it for any other classifier mode.
+   */
+  readonly algebraicEscapeSmoothing?: boolean;
 }
 
 export interface RenderQuality {

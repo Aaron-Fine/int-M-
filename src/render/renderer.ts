@@ -89,6 +89,12 @@ export interface DynamicsRenderRequest {
    * src/domain/conjugate-mirror.ts.
    */
   readonly conjugateMirror?: boolean;
+  /**
+   * EXPERIMENT (performance candidate smooth-log2), default OFF: legacy-scan
+   * escape smoothing in the algebraically equal form log2(0.5 * log2(|z|^2)).
+   * Absent (or false) on the default path. See OrbitOptions.
+   */
+  readonly algebraicEscapeSmoothing?: boolean;
 }
 
 /**

@@ -170,6 +170,7 @@ export async function classifyRows(
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
     ...(classifierMode === undefined ? {} : { classifierMode }),
+    ...(request.algebraicEscapeSmoothing === true ? { algebraicEscapeSmoothing: true } : {}),
   };
   const classifier = new OrbitClassifier(
     orbitOptions,

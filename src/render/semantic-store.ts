@@ -28,6 +28,9 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     // but the flag must change the key so A/B toggling re-renders instead of
     // being served from the cache. Conditional: default key unchanged.
     ...(request.conjugateMirror === true ? ['cj:1'] : []),
+    // Escape-smoothing form changes the smoothIteration field, so it must
+    // change the key too. Conditional: default key unchanged.
+    ...(request.algebraicEscapeSmoothing === true ? ['es:1'] : []),
   ].join('|');
 };
 
