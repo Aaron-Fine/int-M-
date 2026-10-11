@@ -14,6 +14,7 @@ import {
   recordDifferentialInto,
 } from './checkpoint';
 import { classifyIntoInstrumented, type LegacyScanCounters } from './orbit-instrumented';
+import { classifyIntoRingWrap } from './orbit-ring-wrap';
 
 // Shared evidence vocabulary moved to types.ts so every classifier kernel
 // (the lag scan here and the PR 4 checkpoint schedule) writes the same
@@ -172,6 +173,9 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
     throw new RangeError(
       'iteration, period, and warmup options must be integers; tolerance must be positive',
     );
+  }
+  if (resolved.ringWrap !== undefined && typeof resolved.ringWrap !== 'boolean') {
+    throw new RangeError(`ringWrap must be a boolean when set; got ${String(resolved.ringWrap)}`);
   }
   const classifierMode = resolved.classifierMode ?? 'legacy-scan';
   if (!CLASSIFIER_MODES.includes(classifierMode)) {
@@ -332,6 +336,13 @@ export const classifyInto = (
         return;
       }
     }
+  }
+
+  // Opt-in ring-wrap kernel: one predictable branch per pixel, taken before any
+  // orbit state is live. The default loop below is the unchanged shape.
+  if (options.ringWrap === true) {
+    classifyIntoRingWrap(cRe, cIm, options, scratch, out);
+    return;
   }
 
   scratch.ensureCapacity(options.maxPeriod);

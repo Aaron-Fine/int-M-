@@ -54,6 +54,12 @@ export interface DynamicsRenderRequest {
    */
   readonly classifierMode?: ClassifierMode;
   /**
+   * EXPERIMENT (performance workstream M), default OFF: selects the ring-wrap
+   * lag-scan history indexing (src/domain/orbit.ts classifyLagScanRingWrap).
+   * Bit-identical output; absent (or false) on the default path.
+   */
+  readonly ringWrap?: boolean;
+  /**
    * Stable-band dispatch order (renderer-path detail, plan §5). Absent means
    * the default center-out order; 'legacy' is the diagnostic top-to-bottom
    * arm used by the paired evidence harness. The order affects only the

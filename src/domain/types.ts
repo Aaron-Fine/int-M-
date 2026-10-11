@@ -146,6 +146,15 @@ export interface OrbitOptions {
    */
   readonly exhaustionScan?: boolean;
   /**
+   * Ring-wrap history indexing (opt-in; absent means off). The legacy lag scan
+   * advances its write slot and lag reads with increment-and-branch wraps
+   * instead of modulo arithmetic. Bit-identical to the default scan: the same
+   * slots hold the same values, compared in the same order. classifyInto
+   * selects the ring-wrap copy once per pixel. Checkpoint and instrumented
+   * kernels ignore it.
+   */
+  readonly ringWrap?: boolean;
+  /**
    * Versioned period policy (PR 5, plan section 4) describing the search
    * this classification runs: the systematic ceiling and orbit budget it
    * declares must equal `maxPeriod`/`maxIterations` (enforced by
