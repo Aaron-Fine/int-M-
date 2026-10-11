@@ -103,6 +103,14 @@ export const parseViewParam = (value: string | null): Viewport | undefined => {
   return { center: { re: centerRe, im: centerIm }, spanY: spanYNumeric };
 };
 
+/** Boolean URL toggles that only take effect together with `?perf=1`. */
+const PERF_GATED_FLAGS = [
+  'perfCounters',
+  'conjugateMirror',
+  'interleave',
+  'preparedCoordinates',
+] as const;
+
 export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const params = new URLSearchParams(search);
   const result: {
@@ -118,21 +126,13 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
-  // Counters are a strict sub-mode of the perf diagnostics: they never turn
-  // on without ?perf=1 and add nothing to the default path.
-  if (result.perfEnabled && params.get('perfCounters') === '1') {
-    result.perfCounters = true;
-  }
-
-  // Like perfCounters, the experiment flag never turns on without ?perf=1.
-  if (result.perfEnabled && params.get('conjugateMirror') === '1') {
-    result.conjugateMirror = true;
-  }
-  if (result.perfEnabled && params.get('interleave') === '1') {
-    result.interleave = true;
-  }
-  if (result.perfEnabled && params.get('preparedCoordinates') === '1') {
-    result.preparedCoordinates = true;
+  // Counters and the experiment flags are strict sub-modes of the perf
+  // diagnostics: they never turn on without ?perf=1 and add nothing to the
+  // default path.
+  for (const flag of PERF_GATED_FLAGS) {
+    if (result.perfEnabled && params.get(flag) === '1') {
+      result[flag] = true;
+    }
   }
 
   const classifierMode = params.get('classifierMode');

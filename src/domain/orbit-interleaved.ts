@@ -23,6 +23,11 @@ import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
  * Pixels in the analytic fast-path regions (main cardioid, period-2 bulb)
  * skip the pair loop entirely and run through the scalar classifyInto.
  *
+ * Scope: this kernel mirrors the plain legacy-scan classifyInto only. It does
+ * NOT currently combine with classifierMode 'triggered-scan' (nor checkpoint
+ * or differential, nor perfCounters): classifyRows falls back to the scalar
+ * kernel for those. A combined triggered-scan pair kernel is future work.
+ *
  * Hot-loop rules from orbit.ts apply: the lockstep loop contains no JS calls
  * (all non-inlined calls happen after it exits, with the orbit state handed
  * over through a preallocated Float64Array, never as boxed arguments), and

@@ -234,6 +234,19 @@ export const prepareRealColumns = (
   }
 };
 
+/** The per-column table when preparedCoordinates is on; undefined otherwise. */
+const createRealColumns = (
+  preparedCoordinates: boolean | undefined,
+  transform: ViewportTransform,
+  width: number,
+  stride: number,
+): Float64Array | undefined => {
+  if (preparedCoordinates !== true) return undefined;
+  const columns = new Float64Array(width);
+  prepareRealColumns(transform, width, stride, columns);
+  return columns;
+};
+
 /**
  * Prepared imaginary coordinate of the sampled row for grid row y: the exact
  * pixel-center expression of pixelToComplexInto, evaluated once per row.
@@ -367,10 +380,7 @@ export async function classifyRows(
   const point: MutableComplex = { re: 0, im: 0 };
   const pointB: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
-  const realColumns = preparedCoordinates === true ? new Float64Array(width) : undefined;
-  if (realColumns !== undefined) {
-    prepareRealColumns(viewportTransform, width, stride, realColumns);
-  }
+  const realColumns = createRealColumns(preparedCoordinates, viewportTransform, width, stride);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   // The 'timeout' arm is the paired-evidence measurement arm; it is created
   // per call because its pending set must not outlive the band.
