@@ -1,0 +1,70 @@
+npm notice run mandelbrot-interiority@0.1.0 tournament
+npm notice run vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js perf --candidates baseline-clone --reps 7 --no-shipping --out /tmp/claude-1000/-home-aaron-int-M-/194707b4-a0ea-4ebd-a6f6-2cd068b79890/scratchpad/timing/canonical-baseline --include-demo
+vite v8.3.1 building ssr environment for production...
+transforming...
+✓ 43 modules transformed.
+rendering chunks...
+computing gzip size...
+.evidence-build/tournament/tournament.js  153.53 kB │ gzip: 41.12 kB
+
+✓ built in 75ms
+[tournament] candidates: baseline-clone; 13 case(s); load 3.06/2.54/2.12
+[tournament] parity mi-easy-default-full @ 256x160: baseline
+[tournament] parity mi-easy-default-full @ 256x160: baseline-clone
+[tournament] parity mi-easy-exterior-heavy @ 256x160: baseline
+[tournament] parity mi-easy-exterior-heavy @ 256x160: baseline-clone
+[tournament] parity mi-easy-main-cardioid @ 256x160: baseline
+[tournament] parity mi-easy-main-cardioid @ 256x160: baseline-clone
+[tournament] parity mi-easy-period2-bulb @ 256x160: baseline
+[tournament] parity mi-easy-period2-bulb @ 256x160: baseline-clone
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: baseline
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: baseline-clone
+[tournament] parity mi-hard-supplied-126x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-126x @ 256x160: baseline-clone
+[tournament] parity mi-hard-supplied-609x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-609x @ 256x160: baseline-clone
+[tournament] parity mi-hard-supplied-13x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-13x @ 256x160: baseline-clone
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: baseline
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: baseline-clone
+[tournament] parity mi-fallback-weak-attraction @ 256x160: baseline
+[tournament] parity mi-fallback-weak-attraction @ 256x160: baseline-clone
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: baseline
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: baseline-clone
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: baseline
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: baseline-clone
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: baseline
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: baseline-clone
+[tournament] oracle: baseline-clone
+
+=== baseline-clone  [bit-identical]  PASS
+    oracle fixtures: pass
+[tournament] timing 1 of 1 candidate(s) that passed parity
+[tournament] perf mi-easy-default-full @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.015 (baseline 175.3 ms, candidate 170.5 ms)
+[tournament] perf mi-easy-exterior-heavy @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.159 (baseline 34.8 ms, candidate 31.9 ms)
+[tournament] perf mi-easy-main-cardioid @ 512x384: baseline-clone x7
+[tournament]   median ratio 0.993 (baseline 30.0 ms, candidate 29.9 ms)
+[tournament] perf mi-easy-period2-bulb @ 512x384: baseline-clone x7
+[tournament]   median ratio 0.992 (baseline 25.0 ms, candidate 25.8 ms)
+[tournament] perf mi-hard-rabbit-boundary @ 512x384: baseline-clone x7
+[tournament]   median ratio 0.992 (baseline 1789.4 ms, candidate 1809.0 ms)
+[tournament] perf mi-hard-supplied-126x @ 512x384: baseline-clone x7
+[tournament]   median ratio 0.984 (baseline 3913.9 ms, candidate 3922.1 ms)
+[tournament] perf mi-hard-supplied-609x @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.000 (baseline 1211.0 ms, candidate 1222.9 ms)
+[tournament] perf mi-hard-supplied-13x @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.005 (baseline 2812.8 ms, candidate 2800.8 ms)
+[tournament] perf mi-fallback-unknown-high-period @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.004 (baseline 5229.7 ms, candidate 5210.7 ms)
+[tournament] perf mi-fallback-weak-attraction @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.005 (baseline 9107.4 ms, candidate 9162.8 ms)
+[tournament] perf mi-fallback-ambiguous-boundary @ 512x384: baseline-clone x7
+[tournament]   median ratio 0.957 (baseline 260.0 ms, candidate 258.0 ms)
+[tournament] perf mi-fallback-budget-exhaustion @ 512x384: baseline-clone x7
+[tournament]   median ratio 1.022 (baseline 6391.9 ms, candidate 6252.3 ms)
+[tournament] perf mi-scale-6mx-basilica-rim @ 512x384: baseline-clone x7
+[tournament]   median ratio 0.986 (baseline 5991.7 ms, candidate 5969.2 ms)
+
+=== baseline-clone: geomean speedup 1.008x  95% CI [0.981, 1.016]  worst mi-fallback-ambiguous-boundary 0.957x  cases >3% slower: 1

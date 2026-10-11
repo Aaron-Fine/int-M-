@@ -1,0 +1,70 @@
+npm notice run mandelbrot-interiority@0.1.0 tournament
+npm notice run vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js perf --candidates ring-wrap --reps 7 --no-shipping --out /tmp/claude-1000/-home-aaron-int-M-/194707b4-a0ea-4ebd-a6f6-2cd068b79890/scratchpad/timing/ring-wrap
+vite v8.3.1 building ssr environment for production...
+transforming...
+✓ 45 modules transformed.
+rendering chunks...
+computing gzip size...
+.evidence-build/tournament/tournament.js  160.69 kB │ gzip: 42.08 kB
+
+✓ built in 117ms
+[tournament] candidates: ring-wrap; 13 case(s); load 1.13/1.20/1.62
+[tournament] parity mi-easy-default-full @ 256x160: baseline
+[tournament] parity mi-easy-default-full @ 256x160: ring-wrap
+[tournament] parity mi-easy-exterior-heavy @ 256x160: baseline
+[tournament] parity mi-easy-exterior-heavy @ 256x160: ring-wrap
+[tournament] parity mi-easy-main-cardioid @ 256x160: baseline
+[tournament] parity mi-easy-main-cardioid @ 256x160: ring-wrap
+[tournament] parity mi-easy-period2-bulb @ 256x160: baseline
+[tournament] parity mi-easy-period2-bulb @ 256x160: ring-wrap
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: baseline
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: ring-wrap
+[tournament] parity mi-hard-supplied-126x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-126x @ 256x160: ring-wrap
+[tournament] parity mi-hard-supplied-609x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-609x @ 256x160: ring-wrap
+[tournament] parity mi-hard-supplied-13x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-13x @ 256x160: ring-wrap
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: baseline
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: ring-wrap
+[tournament] parity mi-fallback-weak-attraction @ 256x160: baseline
+[tournament] parity mi-fallback-weak-attraction @ 256x160: ring-wrap
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: baseline
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: ring-wrap
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: baseline
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: ring-wrap
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: baseline
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: ring-wrap
+[tournament] oracle: ring-wrap
+
+=== ring-wrap  [bit-identical]  PASS
+    oracle fixtures: pass
+[tournament] timing 1 of 1 candidate(s) that passed parity
+[tournament] perf mi-easy-default-full @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.368 (baseline 143.0 ms, candidate 104.1 ms)
+[tournament] perf mi-easy-exterior-heavy @ 512x384: ring-wrap x7
+[tournament]   median ratio 0.767 (baseline 28.6 ms, candidate 35.8 ms)
+[tournament] perf mi-easy-main-cardioid @ 512x384: ring-wrap x7
+[tournament]   median ratio 0.997 (baseline 24.7 ms, candidate 24.6 ms)
+[tournament] perf mi-easy-period2-bulb @ 512x384: ring-wrap x7
+[tournament]   median ratio 0.981 (baseline 20.1 ms, candidate 20.2 ms)
+[tournament] perf mi-hard-rabbit-boundary @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.522 (baseline 1414.1 ms, candidate 928.3 ms)
+[tournament] perf mi-hard-supplied-126x @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.489 (baseline 3108.5 ms, candidate 2077.3 ms)
+[tournament] perf mi-hard-supplied-609x @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.550 (baseline 1009.8 ms, candidate 656.0 ms)
+[tournament] perf mi-hard-supplied-13x @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.568 (baseline 2382.7 ms, candidate 1517.8 ms)
+[tournament] perf mi-fallback-unknown-high-period @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.549 (baseline 4461.5 ms, candidate 2894.8 ms)
+[tournament] perf mi-fallback-weak-attraction @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.581 (baseline 7752.3 ms, candidate 4894.5 ms)
+[tournament] perf mi-fallback-ambiguous-boundary @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.407 (baseline 198.2 ms, candidate 140.7 ms)
+[tournament] perf mi-fallback-budget-exhaustion @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.570 (baseline 5177.4 ms, candidate 3297.8 ms)
+[tournament] perf mi-scale-6mx-basilica-rim @ 512x384: ring-wrap x7
+[tournament]   median ratio 1.606 (baseline 4876.1 ms, candidate 3037.0 ms)
+
+=== ring-wrap: geomean speedup 1.349x  95% CI [1.341, 1.370]  worst mi-easy-exterior-heavy 0.767x  cases >3% slower: 1

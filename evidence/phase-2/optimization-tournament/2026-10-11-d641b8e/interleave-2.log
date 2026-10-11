@@ -1,0 +1,70 @@
+npm notice run mandelbrot-interiority@0.1.0 tournament
+npm notice run vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js perf --candidates interleave-2 --reps 7 --no-shipping --out /tmp/claude-1000/-home-aaron-int-M-/194707b4-a0ea-4ebd-a6f6-2cd068b79890/scratchpad/timing/interleave-2
+vite v8.3.1 building ssr environment for production...
+transforming...
+✓ 45 modules transformed.
+rendering chunks...
+computing gzip size...
+.evidence-build/tournament/tournament.js  167.69 kB │ gzip: 43.71 kB
+
+✓ built in 54ms
+[tournament] candidates: interleave-2; 13 case(s); load 1.14/1.15/1.23
+[tournament] parity mi-easy-default-full @ 256x160: baseline
+[tournament] parity mi-easy-default-full @ 256x160: interleave-2
+[tournament] parity mi-easy-exterior-heavy @ 256x160: baseline
+[tournament] parity mi-easy-exterior-heavy @ 256x160: interleave-2
+[tournament] parity mi-easy-main-cardioid @ 256x160: baseline
+[tournament] parity mi-easy-main-cardioid @ 256x160: interleave-2
+[tournament] parity mi-easy-period2-bulb @ 256x160: baseline
+[tournament] parity mi-easy-period2-bulb @ 256x160: interleave-2
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: baseline
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: interleave-2
+[tournament] parity mi-hard-supplied-126x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-126x @ 256x160: interleave-2
+[tournament] parity mi-hard-supplied-609x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-609x @ 256x160: interleave-2
+[tournament] parity mi-hard-supplied-13x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-13x @ 256x160: interleave-2
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: baseline
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: interleave-2
+[tournament] parity mi-fallback-weak-attraction @ 256x160: baseline
+[tournament] parity mi-fallback-weak-attraction @ 256x160: interleave-2
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: baseline
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: interleave-2
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: baseline
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: interleave-2
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: baseline
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: interleave-2
+[tournament] oracle: interleave-2
+
+=== interleave-2  [bit-identical]  PASS
+    oracle fixtures: pass
+[tournament] timing 1 of 1 candidate(s) that passed parity
+[tournament] perf mi-easy-default-full @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.199 (baseline 140.5 ms, candidate 118.1 ms)
+[tournament] perf mi-easy-exterior-heavy @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.110 (baseline 33.0 ms, candidate 31.2 ms)
+[tournament] perf mi-easy-main-cardioid @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.125 (baseline 29.1 ms, candidate 26.0 ms)
+[tournament] perf mi-easy-period2-bulb @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.495 (baseline 28.0 ms, candidate 20.1 ms)
+[tournament] perf mi-hard-rabbit-boundary @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.673 (baseline 1435.7 ms, candidate 857.7 ms)
+[tournament] perf mi-hard-supplied-126x @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.597 (baseline 3073.7 ms, candidate 1920.7 ms)
+[tournament] perf mi-hard-supplied-609x @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.510 (baseline 953.4 ms, candidate 630.2 ms)
+[tournament] perf mi-hard-supplied-13x @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.580 (baseline 2227.3 ms, candidate 1417.8 ms)
+[tournament] perf mi-fallback-unknown-high-period @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.586 (baseline 4225.4 ms, candidate 2664.9 ms)
+[tournament] perf mi-fallback-weak-attraction @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.728 (baseline 7391.7 ms, candidate 4277.0 ms)
+[tournament] perf mi-fallback-ambiguous-boundary @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.379 (baseline 189.2 ms, candidate 137.6 ms)
+[tournament] perf mi-fallback-budget-exhaustion @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.682 (baseline 4946.4 ms, candidate 2936.3 ms)
+[tournament] perf mi-scale-6mx-basilica-rim @ 512x384: interleave-2 x7
+[tournament]   median ratio 1.868 (baseline 4640.5 ms, candidate 2483.9 ms)
+
+=== interleave-2: geomean speedup 1.484x  95% CI [1.451, 1.504]  worst mi-easy-exterior-heavy 1.110x  cases >3% slower: 0

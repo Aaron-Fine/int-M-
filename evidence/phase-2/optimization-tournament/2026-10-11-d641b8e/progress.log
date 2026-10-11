@@ -1,0 +1,19 @@
+=== canonical-baseline (23:55:29)
+=== baseline-clone: geomean speedup 1.008x  95% CI [0.981, 1.016]  worst mi-fallback-ambiguous-boundary 0.957x  cases >3% slower: 1
+=== smooth-log2 (00:15:42)
+=== smooth-log2: geomean speedup 0.994x  95% CI [0.967, 1.025]  worst mi-easy-period2-bulb 0.923x  cases >3% slower: 1
+=== coordinate-prep (00:37:10)
+=== coordinate-prep: geomean speedup 1.068x  95% CI [1.058, 1.072]  worst mi-hard-supplied-126x 0.993x  cases >3% slower: 0
+=== ring-wrap (00:53:45)
+=== ring-wrap: geomean speedup 1.349x  95% CI [1.341, 1.370]  worst mi-easy-exterior-heavy 0.767x  cases >3% slower: 1
+=== triggered-scan (01:07:42)
+=== triggered-scan: geomean speedup 3.515x  95% CI [3.419, 3.577]  worst mi-easy-period2-bulb 0.981x  cases >3% slower: 0
+=== interleave-2 (01:16:58)
+=== interleave-2: geomean speedup 1.484x  95% CI [1.451, 1.504]  worst mi-easy-exterior-heavy 1.110x  cases >3% slower: 0
+=== v2-prefix-cache (01:30:02)
+=== v2-prefix-cache: geomean speedup 0.947x  95% CI [0.943, 0.950]  worst mi-fallback-weak-attraction 0.923x  cases >3% slower: 10
+=== staggered-lag (01:46:38)
+=== staggered-lag: geomean speedup 3.132x  95% CI [3.003, 3.203]  worst mi-easy-exterior-heavy 0.943x  cases >3% slower: 2
+=== early-accept (01:56:19)
+=== early-accept: geomean speedup 0.959x  95% CI [0.942, 0.989]  worst mi-easy-main-cardioid 0.645x  cases >3% slower: 8
+=== done (02:13:04)

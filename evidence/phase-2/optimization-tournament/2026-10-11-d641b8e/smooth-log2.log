@@ -1,0 +1,76 @@
+npm notice run mandelbrot-interiority@0.1.0 tournament
+npm notice run vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js perf --candidates smooth-log2 --reps 7 --no-shipping --out /tmp/claude-1000/-home-aaron-int-M-/194707b4-a0ea-4ebd-a6f6-2cd068b79890/scratchpad/timing/smooth-log2
+vite v8.3.1 building ssr environment for production...
+transforming...
+✓ 44 modules transformed.
+rendering chunks...
+computing gzip size...
+.evidence-build/tournament/tournament.js  154.64 kB │ gzip: 41.47 kB
+
+✓ built in 198ms
+[tournament] candidates: smooth-log2; 13 case(s); load 3.73/2.53/2.26
+[tournament] parity mi-easy-default-full @ 256x160: baseline
+[tournament] parity mi-easy-default-full @ 256x160: smooth-log2
+[tournament] parity mi-easy-exterior-heavy @ 256x160: baseline
+[tournament] parity mi-easy-exterior-heavy @ 256x160: smooth-log2
+[tournament] parity mi-easy-main-cardioid @ 256x160: baseline
+[tournament] parity mi-easy-main-cardioid @ 256x160: smooth-log2
+[tournament] parity mi-easy-period2-bulb @ 256x160: baseline
+[tournament] parity mi-easy-period2-bulb @ 256x160: smooth-log2
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: baseline
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: smooth-log2
+[tournament] parity mi-hard-supplied-126x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-126x @ 256x160: smooth-log2
+[tournament] parity mi-hard-supplied-609x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-609x @ 256x160: smooth-log2
+[tournament] parity mi-hard-supplied-13x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-13x @ 256x160: smooth-log2
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: baseline
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: smooth-log2
+[tournament] parity mi-fallback-weak-attraction @ 256x160: baseline
+[tournament] parity mi-fallback-weak-attraction @ 256x160: smooth-log2
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: baseline
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: smooth-log2
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: baseline
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: smooth-log2
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: baseline
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: smooth-log2
+[tournament] oracle: smooth-log2
+
+=== smooth-log2  [bit-identical]  PASS
+    tolerance smoothIteration: declared abs<=0 rel<=1e-12; max observed abs 5.68e-14 rel 5.04e-16; 18672 pixel-fields within tolerance
+    oracle fixtures: pass
+[tournament] timing 1 of 1 candidate(s) that passed parity
+[tournament] perf mi-easy-default-full @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.979 (baseline 232.0 ms, candidate 247.2 ms)
+[tournament] perf mi-easy-exterior-heavy @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.976 (baseline 60.7 ms, candidate 59.0 ms)
+[tournament] perf mi-easy-main-cardioid @ 512x384: smooth-log2 x7
+[tournament]   median ratio 1.117 (baseline 51.8 ms, candidate 44.8 ms)
+[tournament] perf mi-easy-period2-bulb @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.923 (baseline 44.1 ms, candidate 47.8 ms)
+[tournament] perf mi-hard-rabbit-boundary @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.993 (baseline 1921.4 ms, candidate 1894.0 ms)
+[tournament] perf mi-hard-supplied-126x @ 512x384: smooth-log2 x7
+[tournament]   median ratio 1.002 (baseline 4176.9 ms, candidate 4136.4 ms)
+[tournament] perf mi-hard-supplied-609x @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.993 (baseline 1234.2 ms, candidate 1243.3 ms)
+[tournament] perf mi-hard-supplied-13x @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.977 (baseline 2847.0 ms, candidate 2824.7 ms)
+[tournament] perf mi-fallback-unknown-high-period @ 512x384: smooth-log2 x7
+[tournament]   median ratio 1.002 (baseline 5577.9 ms, candidate 5558.5 ms)
+[tournament] perf mi-fallback-weak-attraction @ 512x384: smooth-log2 x7
+[tournament]   median ratio 1.004 (baseline 9643.8 ms, candidate 9423.3 ms)
+[tournament] perf mi-fallback-ambiguous-boundary @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.981 (baseline 252.0 ms, candidate 257.5 ms)
+[tournament] perf mi-fallback-budget-exhaustion @ 512x384: smooth-log2 x7
+[tournament]   median ratio 0.986 (baseline 6453.7 ms, candidate 6476.9 ms)
+[tournament] perf mi-scale-6mx-basilica-rim @ 512x384: smooth-log2 x7
+[tournament]   median ratio 1.004 (baseline 6026.2 ms, candidate 5955.0 ms)
+
+=== smooth-log2: geomean speedup 0.994x  95% CI [0.967, 1.025]  worst mi-easy-period2-bulb 0.923x  cases >3% slower: 1
+npm notice
+npm notice New minor version of npm available! 12.0.2 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

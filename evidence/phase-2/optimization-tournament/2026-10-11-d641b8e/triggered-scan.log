@@ -1,0 +1,73 @@
+npm notice run mandelbrot-interiority@0.1.0 tournament
+npm notice run vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js perf --candidates triggered-scan --reps 7 --no-shipping --out /tmp/claude-1000/-home-aaron-int-M-/194707b4-a0ea-4ebd-a6f6-2cd068b79890/scratchpad/timing/triggered-scan
+vite v8.3.1 building ssr environment for production...
+transforming...
+✓ 44 modules transformed.
+rendering chunks...
+computing gzip size...
+.evidence-build/tournament/tournament.js  156.31 kB │ gzip: 42.15 kB
+
+✓ built in 59ms
+[tournament] candidates: triggered-scan; 13 case(s); load 1.14/1.16/1.32
+[tournament] parity mi-easy-default-full @ 256x160: baseline
+[tournament] parity mi-easy-default-full @ 256x160: triggered-scan
+[tournament] parity mi-easy-exterior-heavy @ 256x160: baseline
+[tournament] parity mi-easy-exterior-heavy @ 256x160: triggered-scan
+[tournament] parity mi-easy-main-cardioid @ 256x160: baseline
+[tournament] parity mi-easy-main-cardioid @ 256x160: triggered-scan
+[tournament] parity mi-easy-period2-bulb @ 256x160: baseline
+[tournament] parity mi-easy-period2-bulb @ 256x160: triggered-scan
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: baseline
+[tournament] parity mi-hard-rabbit-boundary @ 256x160: triggered-scan
+[tournament] parity mi-hard-supplied-126x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-126x @ 256x160: triggered-scan
+[tournament] parity mi-hard-supplied-609x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-609x @ 256x160: triggered-scan
+[tournament] parity mi-hard-supplied-13x @ 256x160: baseline
+[tournament] parity mi-hard-supplied-13x @ 256x160: triggered-scan
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: baseline
+[tournament] parity mi-fallback-unknown-high-period @ 256x160: triggered-scan
+[tournament] parity mi-fallback-weak-attraction @ 256x160: baseline
+[tournament] parity mi-fallback-weak-attraction @ 256x160: triggered-scan
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: baseline
+[tournament] parity mi-fallback-ambiguous-boundary @ 256x160: triggered-scan
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: baseline
+[tournament] parity mi-fallback-budget-exhaustion @ 256x160: triggered-scan
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: baseline
+[tournament] parity mi-scale-6mx-basilica-rim @ 256x160: triggered-scan
+[tournament] oracle: triggered-scan
+
+=== triggered-scan  [semantic-revision]  PASS
+    tolerance multiplierMagnitude: declared abs<=0.0001 rel<=0; max observed abs 3.23e-5 rel 5.86e-5; 47214 pixel-fields within tolerance
+    tolerance multiplierAngle: declared abs<=0.0001 rel<=0; max observed abs 3.10e-5 rel 1.34e-4; 47212 pixel-fields within tolerance
+    unresolved->accepted conversions: 0
+    oracle fixtures: pass
+[tournament] timing 1 of 1 candidate(s) that passed parity
+[tournament] perf mi-easy-default-full @ 512x384: triggered-scan x7
+[tournament]   median ratio 2.465 (baseline 133.2 ms, candidate 53.9 ms)
+[tournament] perf mi-easy-exterior-heavy @ 512x384: triggered-scan x7
+[tournament]   median ratio 1.178 (baseline 31.2 ms, candidate 29.3 ms)
+[tournament] perf mi-easy-main-cardioid @ 512x384: triggered-scan x7
+[tournament]   median ratio 1.031 (baseline 25.1 ms, candidate 24.3 ms)
+[tournament] perf mi-easy-period2-bulb @ 512x384: triggered-scan x7
+[tournament]   median ratio 0.981 (baseline 20.2 ms, candidate 20.4 ms)
+[tournament] perf mi-hard-rabbit-boundary @ 512x384: triggered-scan x7
+[tournament]   median ratio 4.740 (baseline 1335.5 ms, candidate 280.7 ms)
+[tournament] perf mi-hard-supplied-126x @ 512x384: triggered-scan x7
+[tournament]   median ratio 7.714 (baseline 2852.6 ms, candidate 370.1 ms)
+[tournament] perf mi-hard-supplied-609x @ 512x384: triggered-scan x7
+[tournament]   median ratio 6.005 (baseline 887.6 ms, candidate 148.3 ms)
+[tournament] perf mi-hard-supplied-13x @ 512x384: triggered-scan x7
+[tournament]   median ratio 7.857 (baseline 2072.0 ms, candidate 265.5 ms)
+[tournament] perf mi-fallback-unknown-high-period @ 512x384: triggered-scan x7
+[tournament]   median ratio 6.391 (baseline 4011.7 ms, candidate 629.6 ms)
+[tournament] perf mi-fallback-weak-attraction @ 512x384: triggered-scan x7
+[tournament]   median ratio 6.756 (baseline 6942.2 ms, candidate 1030.6 ms)
+[tournament] perf mi-fallback-ambiguous-boundary @ 512x384: triggered-scan x7
+[tournament]   median ratio 2.676 (baseline 182.1 ms, candidate 68.7 ms)
+[tournament] perf mi-fallback-budget-exhaustion @ 512x384: triggered-scan x7
+[tournament]   median ratio 5.171 (baseline 4606.3 ms, candidate 890.7 ms)
+[tournament] perf mi-scale-6mx-basilica-rim @ 512x384: triggered-scan x7
+[tournament]   median ratio 4.129 (baseline 4352.6 ms, candidate 1055.3 ms)
+
+=== triggered-scan: geomean speedup 3.515x  95% CI [3.419, 3.577]  worst mi-easy-period2-bulb 0.981x  cases >3% slower: 0
