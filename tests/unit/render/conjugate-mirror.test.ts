@@ -492,8 +492,7 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
         undefined,
         undefined,
         undefined,
-        false,
-        plan,
+        { mirrorPlan: plan },
       );
       expect(classify).toHaveBeenCalledTimes(7 * Math.ceil(height / 2));
     } finally {

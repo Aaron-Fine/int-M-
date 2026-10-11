@@ -59,6 +59,19 @@ export interface TileClassifyMessage {
    * band returns. Additive optional field: absent on the default path.
    */
   readonly conjugateMirror?: true;
+  /**
+   * EXPERIMENT (tournament candidate interleave-2), default OFF: the worker
+   * classifies two pixels of a row per lockstep kernel call (legacy-scan,
+   * no counters only; otherwise scalar). Bit-identical. Additive optional
+   * field: absent on the default path.
+   */
+  readonly interleave?: true;
+  /**
+   * EXPERIMENT (tournament candidate coordinate-prep), default OFF: the
+   * worker computes per-column real and per-row imaginary coordinates once.
+   * Bit-identical. Additive optional field: absent on the default path.
+   */
+  readonly preparedCoordinates?: true;
 }
 
 export interface TileResultMessage {

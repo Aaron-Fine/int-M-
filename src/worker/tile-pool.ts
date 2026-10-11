@@ -1,4 +1,4 @@
-import { classifyRows, classifyRowsTrailingArgs } from '../render/classify-rows';
+import { classifyRows } from '../render/classify-rows';
 import { applyConjugateMirror } from '../render/conjugate-mirror';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { orderRowBandsForDispatch, splitRowBands } from '../render/row-bands';
@@ -225,7 +225,12 @@ class TilePoolImpl implements TilePool {
       classifierMode,
       request.yieldMechanism,
       undefined,
-      ...classifyRowsTrailingArgs(perfCounters, mirrorPlan),
+      {
+        perfCounters,
+        mirrorPlan,
+        interleave: request.interleave === true,
+        preparedCoordinates: request.preparedCoordinates === true,
+      },
     );
     throwIfAborted(signal);
     const semanticBand: SemanticBand = {
@@ -391,6 +396,10 @@ class TilePoolImpl implements TilePool {
       // Only in the in-place fallback; with prefix scheduling workers never
       // see a mirrored row and need no flag.
       ...(active.workersSkipMirroredRows ? { conjugateMirror: true as const } : {}),
+      ...(active.request.interleave === true ? { interleave: true as const } : {}),
+      ...(active.request.preparedCoordinates === true
+        ? { preparedCoordinates: true as const }
+        : {}),
       ...(bandOutput === undefined ? {} : { bandOutput }),
       ...(bandOutput === undefined ? {} : { outputRevision: PACKED_OUTPUT_REVISION }),
     };

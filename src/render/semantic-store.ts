@@ -30,6 +30,8 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     ...(request.conjugateMirror === true ? ['cj:1'] : []),
     // Experiment arm marker (bit-identical output; see conjugateMirror).
     ...(request.interleave === true ? ['il:1'] : []),
+    // Experiment arm marker (bit-identical output; see preparedCoordinates).
+    ...(request.preparedCoordinates === true ? ['cp:1'] : []),
   ].join('|');
 };
 

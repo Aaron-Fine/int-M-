@@ -1,5 +1,5 @@
 import { planConjugateMirror } from '../domain';
-import { classifyRows, classifyRowsTrailingArgs } from '../render/classify-rows';
+import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
 import type { DynamicsRenderRequest } from '../render';
@@ -72,7 +72,12 @@ export function createTileHandler(
                 message.bandOutput.smoothIterationOrMultiplierMagnitude,
               multiplierAngle: message.bandOutput.multiplierAngle,
             },
-        ...classifyRowsTrailingArgs(message.perfCounters === true, mirrorPlan),
+        {
+          perfCounters: message.perfCounters === true,
+          mirrorPlan,
+          interleave: message.interleave === true,
+          preparedCoordinates: message.preparedCoordinates === true,
+        },
       );
       if (signal.aborted) return;
       const result: TileResultMessage = {

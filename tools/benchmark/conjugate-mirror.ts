@@ -186,8 +186,7 @@ const runMirrored = async (
     MODE,
     undefined,
     undefined,
-    false,
-    plan,
+    { mirrorPlan: plan },
   );
   const classified = performance.now();
   if (plan !== undefined) applyConjugateMirror(plan, [band], request.size.width);

@@ -46,6 +46,8 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   ...(message.frameOutput === undefined ? {} : { frameOutput: message.frameOutput }),
   ...(message.perfCounters === undefined ? {} : { perfCounters: message.perfCounters }),
   ...(message.conjugateMirror === true ? { conjugateMirror: true } : {}),
+  ...(message.interleave === true ? { interleave: true } : {}),
+  ...(message.preparedCoordinates === true ? { preparedCoordinates: true } : {}),
 });
 
 export class RenderWorkerRuntime {

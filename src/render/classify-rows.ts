@@ -121,10 +121,36 @@ const classifyRowPairs = (
   pointB: MutableComplex,
   sample: OrbitSample,
   sampleB: OrbitSample,
+  realColumns: Float64Array | undefined,
 ): void => {
   const { width, height } = size;
   const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
   let x = 0;
+  if (realColumns !== undefined) {
+    // Prepared coordinates: per-column real parts and one imaginary value per
+    // row, computed with the same expressions as pixelToComplexInto.
+    const cIm = preparedRowImaginary(viewportTransform, height, stride, y);
+    for (; x + stride < width; x += 2 * stride) {
+      pairClassifier.classifyPairInto(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x + stride < width = realColumns.length
+        realColumns[x]!,
+        cIm,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x + stride < width = realColumns.length
+        realColumns[x + stride]!,
+        cIm,
+        sample,
+        sampleB,
+      );
+      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+      writeSampleToBand(band, width, y0, y1, x + stride, y, stride, sampleB);
+    }
+    if (x < width) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x < width = realColumns.length
+      pairClassifier.classifyInto(realColumns[x]!, cIm, sample);
+      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+    }
+    return;
+  }
   for (; x + stride < width; x += 2 * stride) {
     const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
     const sampleXB = Math.min(width - 1, x + stride + (stride - 1) / 2);
@@ -156,21 +182,71 @@ const createPairClassifier = (
     : undefined;
 
 /**
- * Trailing optional classifyRows arguments for a call site. Keeps the default
- * call shape unchanged: no perf counters and no mirror plan adds no arguments.
+ * Optional switches for classifyRows, grouped in ONE object so new experiment
+ * flags do not grow the positional parameter list. Every field defaults to
+ * off; an absent object (or absent fields) runs the default path.
  */
-export const classifyRowsTrailingArgs = (
-  perfCounters: boolean,
-  mirrorPlan: ConjugateMirrorPlan | undefined,
-  interleave = false,
-): [perfCounters?: boolean, mirrorPlan?: ConjugateMirrorPlan | undefined, interleave?: boolean] =>
-  interleave
-    ? [perfCounters, mirrorPlan, true]
-    : mirrorPlan === undefined
-      ? perfCounters
-        ? [true]
-        : []
-      : [perfCounters, mirrorPlan];
+export interface ClassifyRowsOptions {
+  /**
+   * Opt-in diagnostics counters (plan §8). Absent — never even allocated —
+   * unless the caller opted in; with it, the classifier selects the
+   * instrumented kernel variant OUTSIDE the raster loop.
+   */
+  readonly perfCounters?: boolean;
+  /**
+   * Conjugate-mirror plan (workstream M experiment): rows with a source row
+   * are left untouched here (the caller fills them with applyConjugateMirror
+   * once every band has returned). Stride-1 only.
+   */
+  readonly mirrorPlan?: ConjugateMirrorPlan | undefined;
+  /**
+   * Two-pixel interleaved kernel (experiment interleave-2): honored only for
+   * the plain legacy-scan classifier without counters; otherwise scalar.
+   * Bit-identical to the scalar kernel.
+   */
+  readonly interleave?: boolean;
+  /**
+   * Prepared coordinates (EXPERIMENT, default off): real coordinates are
+   * computed once per column and imaginary ones once per sampled row, with
+   * the canonical pixel-center formula. Bit-identical to the per-pixel path;
+   * composes with `interleave`.
+   */
+  readonly preparedCoordinates?: boolean;
+}
+
+/**
+ * Prepared real coordinates (EXPERIMENT, `preparedCoordinates`): entry x holds
+ * the real part of the sampled column for the grid column x, using the exact
+ * pixel-center expression of createViewportTransform.pixelToComplexInto with
+ * the same operation order. Only grid columns (multiples of stride) are read.
+ */
+export const prepareRealColumns = (
+  transform: ViewportTransform,
+  width: number,
+  stride: number,
+  out: Float64Array,
+): void => {
+  const { center } = transform.viewport;
+  const { unitsPerPixel } = transform;
+  for (let x = 0; x < width; x += stride) {
+    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+    out[x] = center.re + (sampleX + 0.5 - width / 2) * unitsPerPixel;
+  }
+};
+
+/**
+ * Prepared imaginary coordinate of the sampled row for grid row y: the exact
+ * pixel-center expression of pixelToComplexInto, evaluated once per row.
+ */
+export const preparedRowImaginary = (
+  transform: ViewportTransform,
+  height: number,
+  stride: number,
+  y: number,
+): number => {
+  const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
+  return transform.viewport.center.im - (sampleY + 0.5 - height / 2) * transform.unitsPerPixel;
+};
 
 const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
   if (plan !== undefined && stride !== 1) {
@@ -181,6 +257,49 @@ const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: numbe
 /** True when the plan assigns row y a source row (it is copied, not classified). */
 const isMirroredRow = (plan: ConjugateMirrorPlan | undefined, y: number): boolean =>
   plan !== undefined && mirrorSourceOf(plan, y) >= 0;
+
+interface RowLayout {
+  readonly width: number;
+  readonly height: number;
+  readonly y0: number;
+  readonly y1: number;
+  readonly y: number;
+  readonly stride: number;
+}
+
+/**
+ * Classifies one sampled row into the band. With `realColumns` (prepared
+ * coordinates) the real part comes from the per-column table and the imaginary
+ * part is computed once for the row; otherwise every pixel is mapped through
+ * the viewport transform.
+ */
+const classifyRowInto = (
+  classifier: OrbitClassifier,
+  sample: OrbitSample,
+  point: MutableComplex,
+  band: BandOutputBuffers,
+  layout: RowLayout,
+  transform: ViewportTransform,
+  realColumns: Float64Array | undefined,
+): void => {
+  const { width, height, y0, y1, y, stride } = layout;
+  if (realColumns !== undefined) {
+    const cIm = preparedRowImaginary(transform, height, stride, y);
+    for (let x = 0; x < width; x += stride) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x < width = realColumns.length
+      classifier.classifyInto(realColumns[x]!, cIm, sample);
+      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+    }
+    return;
+  }
+  for (let x = 0; x < width; x += stride) {
+    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+    const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
+    transform.pixelToComplexInto(sampleX, sampleY, point);
+    classifier.classifyInto(point.re, point.im, sample);
+    writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
+  }
+};
 
 export async function classifyRows(
   request: DynamicsRenderRequest,
@@ -199,18 +318,11 @@ export async function classifyRows(
   // Pre-sliced output buffers (zero-copy detail): when present the band is
   // classified directly into them and nothing is allocated per call.
   output?: BandOutputBuffers,
-  // Opt-in diagnostics counters (plan §8). Absent — never even allocated —
-  // unless the caller opted in; with it, the classifier selects the
-  // instrumented kernel variant OUTSIDE the raster loop below.
-  perfCounters?: boolean,
-  // Conjugate-mirror plan (workstream M experiment): rows with a source row
-  // are left untouched here (the caller fills them with applyConjugateMirror
-  // once every band has returned). Stride-1 only.
-  mirrorPlan?: ConjugateMirrorPlan,
-  // Two-pixel interleaved kernel (experiment interleave-2): honored only for
-  // the plain legacy-scan classifier without counters; otherwise scalar.
-  interleave?: boolean,
+  // Optional experiment/diagnostic switches (perfCounters, mirrorPlan,
+  // interleave, preparedCoordinates); absent = the default path.
+  options?: ClassifyRowsOptions,
 ): Promise<ClassifyRowsResult> {
+  const { perfCounters, mirrorPlan, interleave, preparedCoordinates } = options ?? {};
   assertMirrorStride(mirrorPlan, stride);
   const { width } = request.size;
   const length = (y1 - y0) * width;
@@ -255,6 +367,10 @@ export async function classifyRows(
   const point: MutableComplex = { re: 0, im: 0 };
   const pointB: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
+  const realColumns = preparedCoordinates === true ? new Float64Array(width) : undefined;
+  if (realColumns !== undefined) {
+    prepareRealColumns(viewportTransform, width, stride, realColumns);
+  }
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   // The 'timeout' arm is the paired-evidence measurement arm; it is created
   // per call because its pending set must not outlive the band.
@@ -284,15 +400,19 @@ export async function classifyRows(
         pointB,
         sample,
         sampleB,
+        realColumns,
       );
-    } else
-      for (let x = 0; x < width; x += stride) {
-        const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-        const sampleY = Math.min(request.size.height - 1, y + (stride - 1) / 2);
-        viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
-        classifier.classifyInto(point.re, point.im, sample);
-        writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-      }
+    } else {
+      classifyRowInto(
+        classifier,
+        sample,
+        point,
+        band,
+        { width, height: request.size.height, y0, y1, y, stride },
+        viewportTransform,
+        realColumns,
+      );
+    }
 
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
       const yieldStarted = nowMs();

@@ -46,6 +46,18 @@ export interface BenchmarkParams {
    * mirrors exact-conjugate pixel rows of the stable pass. Absent otherwise.
    */
   readonly conjugateMirror?: true | undefined;
+  /**
+   * `?perf=1&interleave=1` only; EXPERIMENT (tournament candidate
+   * interleave-2), default OFF: two-pixel lockstep classification
+   * (bit-identical). Absent otherwise.
+   */
+  readonly interleave?: true | undefined;
+  /**
+   * `?perf=1&preparedCoordinates=1` only; EXPERIMENT (tournament candidate
+   * coordinate-prep), default OFF: per-column/row prepared coordinates
+   * (bit-identical). Absent otherwise.
+   */
+  readonly preparedCoordinates?: true | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -97,6 +109,8 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     perfEnabled: boolean;
     perfCounters?: true;
     conjugateMirror?: true;
+    interleave?: true;
+    preparedCoordinates?: true;
     classifierMode?: ClassifierMode;
     bandOrder?: BandOrder;
     yieldMechanism?: YieldMechanism;
@@ -113,6 +127,12 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   // Like perfCounters, the experiment flag never turns on without ?perf=1.
   if (result.perfEnabled && params.get('conjugateMirror') === '1') {
     result.conjugateMirror = true;
+  }
+  if (result.perfEnabled && params.get('interleave') === '1') {
+    result.interleave = true;
+  }
+  if (result.perfEnabled && params.get('preparedCoordinates') === '1') {
+    result.preparedCoordinates = true;
   }
 
   const classifierMode = params.get('classifierMode');

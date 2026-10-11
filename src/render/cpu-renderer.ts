@@ -12,7 +12,7 @@ import {
   type Rgba,
   type SemanticView,
 } from '../domain';
-import { classifyRows, classifyRowsTrailingArgs } from './classify-rows';
+import { classifyRows } from './classify-rows';
 import { applyConjugateMirror } from './conjugate-mirror';
 import { RenderCancelledError } from './render-cancelled-error';
 import { unpackPeriod, unpackStatus } from './packed-semantic';
@@ -58,12 +58,14 @@ const classifyFull = async (
     request.classifierMode,
     request.yieldMechanism,
     undefined,
-    ...classifyRowsTrailingArgs(
-      request.perfCounters === true,
+    {
+      perfCounters: request.perfCounters === true,
       mirrorPlan,
-      request.interleave === true,
-    ),
+      interleave: request.interleave === true,
+      preparedCoordinates: request.preparedCoordinates === true,
+    },
   );
+
   throwIfAborted(signal);
   let timing = band.timing;
   const semanticBand: SemanticBand = {

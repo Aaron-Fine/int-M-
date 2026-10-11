@@ -54,6 +54,18 @@ export interface RenderMessage {
    * absent on the default path.
    */
   readonly conjugateMirror?: boolean;
+  /**
+   * EXPERIMENT (tournament candidate interleave-2), default OFF: two-pixel
+   * lockstep classification (`?perf=1&interleave=1`). Bit-identical.
+   * Additive optional field: absent on the default path.
+   */
+  readonly interleave?: boolean;
+  /**
+   * EXPERIMENT (tournament candidate coordinate-prep), default OFF: per-column
+   * and per-row prepared coordinates (`?perf=1&preparedCoordinates=1`).
+   * Bit-identical. Additive optional field: absent on the default path.
+   */
+  readonly preparedCoordinates?: boolean;
 }
 
 export interface InspectMessage {

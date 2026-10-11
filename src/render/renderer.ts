@@ -97,6 +97,14 @@ export interface DynamicsRenderRequest {
    * perfCounters or a non-legacy classifierMode is requested.
    */
   readonly interleave?: boolean;
+  /**
+   * EXPERIMENT (performance workstream), default OFF: when true the raster
+   * loop computes each real coordinate once per column and each imaginary
+   * coordinate once per sampled row, with the canonical pixel-center formula,
+   * instead of mapping every pixel through the viewport transform. Absent
+   * (or false) on the default path. Results are bit-identical either way.
+   */
+  readonly preparedCoordinates?: boolean;
 }
 
 /**

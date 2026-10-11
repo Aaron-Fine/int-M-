@@ -52,7 +52,7 @@ const classifyBand = async (
     options.classifierMode,
     undefined,
     undefined,
-    ...(options.perfCounters ? [true as const] : []),
+    options.perfCounters ? { perfCounters: true } : undefined,
   );
 
 describe('classifyRows diagnostics counters (plan §8 opt-in)', () => {
@@ -201,7 +201,7 @@ class CountersFakeTileWorker implements TileWorkerHandle {
       classify.classifierMode,
       undefined,
       undefined,
-      ...(classify.perfCounters === true ? [true as const] : []),
+      classify.perfCounters === true ? { perfCounters: true } : undefined,
     );
     const message: TileResultMessage = {
       type: 'tile-result',

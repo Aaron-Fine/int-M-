@@ -96,9 +96,7 @@ describe('interleave render option', () => {
         undefined,
         undefined,
         undefined,
-        undefined,
-        undefined,
-        true,
+        { interleave: true },
       );
       expect(Array.from(on.packedStatusPeriod)).toEqual(Array.from(off.packedStatusPeriod));
       expect(Array.from(on.smoothIterationOrMultiplierMagnitude)).toEqual(
