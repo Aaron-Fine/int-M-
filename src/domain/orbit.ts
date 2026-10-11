@@ -32,6 +32,27 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
 });
 
 /**
+ * Triggered-scan policy (ported from poc/performance/src/kernels/trigger.ts;
+ * the frozen PoC values). The gate starts at the permissive verifier proposal
+ * threshold, is scale-aware, and re-arms at a quarter threshold after each
+ * failed gate-fired scan; at most TRIGGERED_MAX_GATE_SCANS gate-fired scans
+ * run per pixel. The safety scans are not part of the PoC: they guarantee that
+ * period-p cycles (whose per-step distance does not vanish) and any cycle the
+ * gate happens to miss are still seen at the sample points below.
+ */
+const TRIGGERED_GATE_INITIAL = VERIFIER_THRESHOLDS.tauCandidate;
+const TRIGGERED_GATE_REARM_DIVISOR = 4;
+const TRIGGERED_MAX_GATE_SCANS = 8;
+const TRIGGERED_SAFETY_INTERVAL = 32;
+/**
+ * Every iteration in the last TRIGGERED_TAIL_WINDOW of the budget is scanned.
+ * Slowly attracting cycles of period > 1 can be accepted only transiently
+ * near the budget (measured on the shipping raster: legacy acceptances at
+ * iterations 473..511), so periodic sampling alone misses them.
+ */
+const TRIGGERED_TAIL_WINDOW = 64;
+
+/**
  * Reusable storage for the orbit hot path. One instance may be reused
  * sequentially across pixels; classifyInto never relies on previous contents.
  */
@@ -354,6 +375,17 @@ export const classifyInto = (
   // builtins (Math.hypot) are acceptable only because they cannot lazily
   // deopt the caller.
 
+  // Triggered-scan state (inert on the legacy path: the mode check is one
+  // predictable branch per iteration). The gate sees the step between
+  // consecutive orbit points; a fired gate runs the same lag scan the legacy
+  // path runs at that iteration, so a triggered acceptance is always a
+  // legacy acceptance at the same or an earlier iteration.
+  const triggered = options.classifierMode === 'triggered-scan';
+  let previousRe = 0;
+  let previousIm = 0;
+  let gate = TRIGGERED_GATE_INITIAL;
+  let gateScans = 0;
+
   for (let iteration = 1; iteration <= options.maxIterations; iteration += 1) {
     const nextRe = zRe * zRe - zIm * zIm + cRe;
     zIm = 2 * zRe * zIm + cIm;
@@ -374,6 +406,24 @@ export const classifyInto = (
     const currentIndex = (iteration - 1) % capacity;
     historyRe[currentIndex] = zRe;
     historyIm[currentIndex] = zIm;
+    let gateFired = false;
+    if (triggered) {
+      const stepRe = zRe - previousRe;
+      const stepIm = zIm - previousIm;
+      previousRe = zRe;
+      previousIm = zIm;
+      if (iteration >= options.cycleWarmup && gateScans < TRIGGERED_MAX_GATE_SCANS) {
+        const gateScale = Math.max(1, Math.abs(zRe), Math.abs(zIm));
+        const gateSquared = gate * gate * gateScale * gateScale;
+        gateFired = stepRe * stepRe + stepIm * stepIm <= gateSquared;
+      }
+      const safetyDue =
+        iteration % TRIGGERED_SAFETY_INTERVAL === 0 ||
+        iteration > options.maxIterations - TRIGGERED_TAIL_WINDOW;
+      if (!gateFired && !safetyDue) {
+        continue;
+      }
+    }
     if (iteration < options.cycleWarmup) {
       continue;
     }
@@ -525,6 +575,12 @@ export const classifyInto = (
       );
       return;
     }
+    if (gateFired) {
+      // Failed gate-fired scan: consume one of the per-pixel gate scans and
+      // re-arm the gate at a quarter of its previous threshold.
+      gateScans += 1;
+      gate /= TRIGGERED_GATE_REARM_DIVISOR;
+    }
   }
 
   out.status = 0;
@@ -584,9 +640,11 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
  * construction. 'legacy-scan' (the default) allocates nothing beyond the
  * legacy path; 'checkpoint' and 'differential' preallocate their extra state
  * (checkpoint metrics, differential sample and record) once, in the
- * constructor. In differential mode both kernels run per pixel, the LEGACY
- * answer stays the reported one, and disagreements accumulate into the
- * preallocated DifferentialStats (read via differentialStats).
+ * constructor. 'triggered-scan' runs the lag-scan kernel with a step gate in
+ * front of it (see classifyInto) and allocates nothing extra. In differential
+ * mode both kernels run per pixel, the LEGACY answer stays the reported one,
+ * and disagreements accumulate into the preallocated DifferentialStats (read
+ * via differentialStats).
  */
 export class OrbitClassifier {
   readonly #options: OrbitOptions;
@@ -622,16 +680,18 @@ export class OrbitClassifier {
     this.#legacyCounters = legacyCounters;
     // resolveOrbitOptions normalizes the optional mode field, so mode is a
     // concrete ClassifierMode here.
+    // 'triggered-scan' runs the lag-scan kernel itself (gated inside
+    // classifyInto), so it needs no extra state here.
     const mode = this.#options.classifierMode ?? 'legacy-scan';
     this.#extras =
-      mode === 'legacy-scan'
-        ? undefined
-        : {
+      mode === 'checkpoint' || mode === 'differential'
+        ? {
             mode,
             metrics: createCheckpointMetrics(),
             diffSample: createOrbitSample(),
             diffStats: createDifferentialStats(),
-          };
+          }
+        : undefined;
   }
 
   /** Rich-result convenience boundary for non-hot callers (inspector paths). */

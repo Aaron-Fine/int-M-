@@ -70,6 +70,9 @@ describe('parseBenchmarkParams', () => {
     expect(parseBenchmarkParams('?classifierMode=differential').classifierMode).toBe(
       'differential',
     );
+    expect(parseBenchmarkParams('?classifierMode=triggered-scan').classifierMode).toBe(
+      'triggered-scan',
+    );
     expect(parseBenchmarkParams('?classifierMode=Checkpoint').classifierMode).toBeUndefined();
     expect(parseBenchmarkParams('?classifierMode=bogus').classifierMode).toBeUndefined();
     expect(parseBenchmarkParams('?classifierMode=').classifierMode).toBeUndefined();

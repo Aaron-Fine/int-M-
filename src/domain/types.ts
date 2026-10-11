@@ -117,13 +117,19 @@ export type SemanticView = 'stability' | 'multiplier' | 'period';
  * - 'differential': both kernels run per pixel; disagreements (status,
  *   period, |lambda| bits) are counted into a preallocated differential
  *   record while the legacy answer stays the reported one.
+ * - 'triggered-scan': the legacy lag scan run only when a scale-aware step
+ *   gate fires, plus a periodic safety scan and a full scan of every iteration
+ *   in the last 64 of the budget.
+ *   Same status and period as 'legacy-scan' on accepted pixels; escapes are
+ *   bit-identical; iteration counts at acceptance may differ.
  */
-export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential';
+export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential' | 'triggered-scan';
 
 export const CLASSIFIER_MODES: readonly ClassifierMode[] = Object.freeze([
   'legacy-scan',
   'checkpoint',
   'differential',
+  'triggered-scan',
 ]);
 
 export interface OrbitOptions {
