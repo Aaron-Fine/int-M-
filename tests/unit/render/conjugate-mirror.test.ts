@@ -6,6 +6,7 @@ import {
   DEFAULT_VIEWPORT,
   OrbitClassifier,
   planConjugateMirror,
+  type ClassifierMode,
   type RenderQuality,
   type SemanticView,
   type Viewport,
@@ -21,6 +22,7 @@ import {
 } from '../../../src/render';
 import { parseBenchmarkParams } from '../../../src/ui/benchmark-params';
 import { classifyRows } from '../../../src/render/classify-rows';
+import { TriggeredRowKernel } from '../../../src/render/triggered-rows';
 import { createTileHandler } from '../../../src/worker/tile-handler';
 import { createTilePool } from '../../../src/worker/tile-pool';
 import type {
@@ -320,8 +322,8 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
         quality: BALANCED,
       };
       const renderer = new CpuRenderer();
-      const direct = await stableFrame(base, renderer);
-      const mirrored = await stableFrame({ ...base, conjugateMirror: true }, renderer);
+      const direct = await stableFrame({ ...base, conjugateMirror: false }, renderer);
+      const mirrored = await stableFrame(base, renderer);
       expectFramesIdentical(mirrored, direct);
       for (const semanticView of SEMANTIC_VIEWS) {
         const a = renderer.colorize(mirrored, semanticView).rgba;
@@ -339,8 +341,8 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
       quality: BALANCED,
       classifierMode: 'checkpoint',
     };
-    const direct = await stableFrame(base);
-    const mirrored = await stableFrame({ ...base, conjugateMirror: true });
+    const direct = await stableFrame({ ...base, conjugateMirror: false });
+    const mirrored = await stableFrame(base);
     expectFramesIdentical(mirrored, direct);
   });
 
@@ -352,8 +354,8 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
       quality: BALANCED,
       perfCounters: true,
     };
-    const direct = await stableFrame(base);
-    const mirrored = await stableFrame({ ...base, conjugateMirror: true });
+    const direct = await stableFrame({ ...base, conjugateMirror: false });
+    const mirrored = await stableFrame(base);
     expectFramesIdentical(mirrored, direct);
     const total = (frame: SemanticFrame): number =>
       frame.counters!.escaped + frame.counters!.attracting + frame.counters!.unresolved;
@@ -388,13 +390,9 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
     workerCount: number,
   ): Promise<{ workers: LoopbackTileWorker[]; frame: SemanticFrame }> => {
     const base: DynamicsRenderRequest = { viewport, size, quality: BALANCED };
-    const direct = await stableFrame(base);
+    const direct = await stableFrame({ ...base, conjugateMirror: false });
     const { pool, workers } = loopbackPool(workerCount);
-    const frame = await pool.classifyStable(
-      { ...base, conjugateMirror: true },
-      BALANCED,
-      new AbortController().signal,
-    );
+    const frame = await pool.classifyStable(base, BALANCED, new AbortController().signal);
     pool.dispose();
     expectFramesIdentical(
       { ...frame, bands: [flatten(frame, size)] },
@@ -477,25 +475,34 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
   });
 
   it.each([1, 8, 9])('classifyRows_classifiesOnlyTheUpperHalf_height%i', async (height) => {
+    // Default mode runs the two-lane row kernel (one call per computed row);
+    // the explicit legacy scan goes through OrbitClassifier per pixel.
+    const rowKernel = vi.spyOn(TriggeredRowKernel.prototype, 'classifyRow');
     const classify = vi.spyOn(OrbitClassifier.prototype, 'classifyInto');
     try {
       const size = { width: 7, height };
       const viewport = DEFAULT_VIEWPORT;
       const plan = planConjugateMirror(viewport, size);
-      await classifyRows(
-        { viewport, size, quality: BALANCED },
-        BALANCED,
-        1,
-        0,
-        height,
-        new AbortController().signal,
-        undefined,
-        undefined,
-        undefined,
-        { mirrorPlan: plan },
-      );
+      const run = (mode: ClassifierMode | undefined) =>
+        classifyRows(
+          { viewport, size, quality: BALANCED },
+          BALANCED,
+          1,
+          0,
+          height,
+          new AbortController().signal,
+          mode,
+          undefined,
+          undefined,
+          { mirrorPlan: plan },
+        );
+      await run(undefined);
+      expect(rowKernel).toHaveBeenCalledTimes(Math.ceil(height / 2));
+      expect(classify).not.toHaveBeenCalled();
+      await run('legacy-scan');
       expect(classify).toHaveBeenCalledTimes(7 * Math.ceil(height / 2));
     } finally {
+      rowKernel.mockRestore();
       classify.mockRestore();
     }
   });
@@ -511,49 +518,50 @@ describe('conjugate mirroring: signed zero in deep on-axis cardioid views', () =
     const plan = planConjugateMirror(viewport, size);
     expect(plan?.mirroredRows).toBe(500);
     const base: DynamicsRenderRequest = { viewport, size, quality: BALANCED };
-    const direct = await stableFrame(base);
-    const mirrored = await stableFrame({ ...base, conjugateMirror: true });
+    const direct = await stableFrame({ ...base, conjugateMirror: false });
+    const mirrored = await stableFrame(base);
     expectFramesIdentical(mirrored, direct);
   });
 });
 
-describe('conjugate mirroring: experiment flag defaults OFF', () => {
-  it('flagDefault_queryParserOmitsTheFlag', () => {
+describe('conjugate mirroring: on by default, conjugateMirror=false disables', () => {
+  it('flagDefault_queryParserOnlyDisablesWithPerfAndZero', () => {
     expect(parseBenchmarkParams('').conjugateMirror).toBeUndefined();
     expect(
       parseBenchmarkParams('?perf=1&classifierMode=checkpoint').conjugateMirror,
     ).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=1&conjugateMirror=1').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=1&conjugateMirror=true').conjugateMirror).toBeUndefined();
     expect(parseBenchmarkParams('?conjugateMirror=0').conjugateMirror).toBeUndefined();
-    expect(parseBenchmarkParams('?conjugateMirror=true').conjugateMirror).toBeUndefined();
-    expect(parseBenchmarkParams('?conjugateMirror=1').conjugateMirror).toBeUndefined();
-    expect(parseBenchmarkParams('?perf=0&conjugateMirror=1').conjugateMirror).toBeUndefined();
-    expect(parseBenchmarkParams('?perf=1&conjugateMirror=1').conjugateMirror).toBe(true);
+    expect(parseBenchmarkParams('?perf=0&conjugateMirror=0').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=1&conjugateMirror=0').conjugateMirror).toBe(false);
     expect(Object.keys(parseBenchmarkParams(''))).toEqual(['perfEnabled']);
   });
 
-  it('flagDefault_semanticKeyUnchangedUnlessEnabled', () => {
+  it('flagDefault_semanticKeyMarksOnlyExplicitDisable', () => {
     const base: DynamicsRenderRequest = {
       viewport: VIEWS[0]!.viewport,
       size: VIEWS[0]!.size,
       quality: BALANCED,
     };
     const key = semanticRequestKey(base);
-    expect(semanticRequestKey({ ...base, conjugateMirror: false })).toBe(key);
-    expect(semanticRequestKey({ ...base, conjugateMirror: true })).not.toBe(key);
+    expect(semanticRequestKey({ ...base, conjugateMirror: true })).toBe(key);
+    expect(semanticRequestKey({ ...base, conjugateMirror: false })).toBe(`${key}|cj:0`);
     expect(key).not.toContain('cj:');
   });
 
-  it('flagDefault_tileMessagesCarryNoMirrorFieldAndWorkersComputeEveryRow', async () => {
+  it('flagDisabled_tileMessagesCarryNoMirrorFieldAndWorkersComputeEveryRow', async () => {
     const view = VIEWS[0]!;
     const { pool, workers } = loopbackPool(2);
     const frame = await pool.classifyStable(
-      { viewport: view.viewport, size: view.size, quality: BALANCED },
+      { viewport: view.viewport, size: view.size, quality: BALANCED, conjugateMirror: false },
       BALANCED,
       new AbortController().signal,
     );
     pool.dispose();
     const posts = workers.flatMap((worker) => worker.classifyPosts);
     expect(posts.length).toBeGreaterThan(0);
+    expect(posts.reduce((sum, post) => sum + post.y1 - post.y0, 0)).toBe(view.size.height);
     for (const post of posts) expect(post).not.toHaveProperty('conjugateMirror');
     // Every pixel was classified (a zero packed word is never valid).
     for (const band of frame.bands) {
@@ -561,18 +569,18 @@ describe('conjugate mirroring: experiment flag defaults OFF', () => {
     }
   });
 
-  it('flagDefault_flagWithoutPlanSendsNoMirrorFieldEither', async () => {
+  it('flagDefault_viewWithoutAxisSendsNoMirrorFieldAndComputesEveryRow', async () => {
     const view = VIEWS[VIEWS.length - 1]!; // does not contain the axis
     const { pool, workers } = loopbackPool(2);
     await pool.classifyStable(
-      { viewport: view.viewport, size: view.size, quality: BALANCED, conjugateMirror: true },
+      { viewport: view.viewport, size: view.size, quality: BALANCED },
       BALANCED,
       new AbortController().signal,
     );
     pool.dispose();
-    for (const post of workers.flatMap((worker) => worker.classifyPosts)) {
-      expect(post).not.toHaveProperty('conjugateMirror');
-    }
+    const posts = workers.flatMap((worker) => worker.classifyPosts);
+    expect(posts.reduce((sum, post) => sum + post.y1 - post.y0, 0)).toBe(view.size.height);
+    for (const post of posts) expect(post).not.toHaveProperty('conjugateMirror');
   });
 });
 
@@ -599,7 +607,7 @@ describe('conjugate mirroring: cancellation', () => {
     let delivered = 0;
     const frame = pool
       .classifyStable(
-        { viewport: view.viewport, size: view.size, quality: BALANCED, conjugateMirror: true },
+        { viewport: view.viewport, size: view.size, quality: BALANCED },
         BALANCED,
         controller.signal,
       )

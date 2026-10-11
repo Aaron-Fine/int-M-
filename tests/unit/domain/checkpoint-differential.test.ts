@@ -365,7 +365,17 @@ describe('classifier-mode plumbing', () => {
     const request = { viewport: DEFAULT_VIEWPORT, size, quality };
     const signal = new AbortController().signal;
 
-    const legacyBand = await classifyRows(request, quality, 1, 0, size.height, signal);
+    // Differential mode reports the LEGACY answer, so the reference band is
+    // pinned to 'legacy-scan' (the default mode is now 'triggered-scan').
+    const legacyBand = await classifyRows(
+      request,
+      quality,
+      1,
+      0,
+      size.height,
+      signal,
+      'legacy-scan',
+    );
     expect(legacyBand.differential).toBeUndefined();
 
     const differentialBand = await classifyRows(

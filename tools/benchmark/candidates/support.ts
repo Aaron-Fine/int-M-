@@ -15,6 +15,17 @@ import { CpuRenderer, type DynamicsRenderRequest, type SemanticFrame } from '../
 import { unpackPeriod, unpackStatus } from '../../../src/render/packed-semantic';
 import type { Candidate, CaseRenderSpec, RenderedFrame, SemanticFields } from './types';
 
+/**
+ * Request options that reproduce the pre-flip production default: the legacy
+ * lag scan with no conjugate mirroring. The judge baseline and the candidates
+ * that are defined as a delta against it (and the demo controls) pin these so
+ * a change of production defaults does not silently move the reference.
+ */
+export const LEGACY_REFERENCE_OPTIONS: Partial<DynamicsRenderRequest> = Object.freeze({
+  classifierMode: 'legacy-scan',
+  conjugateMirror: false,
+});
+
 /** The production DynamicsRenderRequest for a spec, plus candidate-specific options. */
 export const productionRequest = (
   spec: CaseRenderSpec,

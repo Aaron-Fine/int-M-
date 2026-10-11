@@ -49,8 +49,9 @@ export interface DynamicsRenderRequest {
   readonly size: RasterSize;
   readonly quality?: Partial<RenderQuality>;
   /**
-   * Versioned classifier mode (Stage A opt-in wiring). Absent on the default
-   * path; the semantic cache key scopes cached frames by mode when present.
+   * Versioned classifier mode (Stage A opt-in wiring). Absent means the
+   * default 'triggered-scan' kernel ('legacy-scan' is the explicit reference
+   * mode); the semantic cache key scopes cached frames by mode when present.
    */
   readonly classifierMode?: ClassifierMode;
   /**
@@ -82,29 +83,14 @@ export interface DynamicsRenderRequest {
    */
   readonly perfCounters?: boolean;
   /**
-   * EXPERIMENT (performance workstream M), default OFF: when true the stable
+   * Conjugate mirroring (performance workstream M), default ON: the stable
    * pass classifies only one row of each exact conjugate pair of pixel rows
-   * and fills the other by copying with the multiplier angle negated. Absent
-   * (or false) on the default path. The coarse pass is never mirrored. See
-   * src/domain/conjugate-mirror.ts.
+   * and fills the other by copying with the multiplier angle negated. Only
+   * applies to views centered exactly on the real axis; `false` disables it
+   * (A/B measurement arm). The coarse pass is never mirrored. Output is
+   * bit-identical either way. See src/domain/conjugate-mirror.ts.
    */
   readonly conjugateMirror?: boolean;
-  /**
-   * EXPERIMENT (tournament candidate interleave-2), default OFF: when true
-   * the legacy-scan classifier handles two pixels of a row at once in one
-   * lockstep orbit loop (src/domain/orbit-interleaved.ts). Results are
-   * bit-identical to the scalar kernel. Ignored (scalar kernel) when
-   * perfCounters or a non-legacy classifierMode is requested.
-   */
-  readonly interleave?: boolean;
-  /**
-   * EXPERIMENT (performance workstream), default OFF: when true the raster
-   * loop computes each real coordinate once per column and each imaginary
-   * coordinate once per sampled row, with the canonical pixel-center formula,
-   * instead of mapping every pixel through the viewport transform. Absent
-   * (or false) on the default path. Results are bit-identical either way.
-   */
-  readonly preparedCoordinates?: boolean;
 }
 
 /**

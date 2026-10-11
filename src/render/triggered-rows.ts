@@ -123,8 +123,11 @@ export class TriggeredRowKernel {
     const scanStart = Math.max(options.cycleWarmup, 2);
 
     let nextX = 0;
-    // Lane state. A parked lane (no pixel left) sits at c = 0, z = 0 with a
-    // disarmed threshold and an unreachable due iteration: no event, ever.
+    // Lane state. A parked lane (no pixel left) holds z = NaN with a disarmed
+    // threshold and an unreachable due iteration: no event, ever. (z = 0 is
+    // not inert: the row's shared imaginary part would make the parked lane
+    // iterate c = i * cIm, which can escape.) NaN is absorbing, and every
+    // event test (|z|^2 > 4, distance <= arm) is false for NaN.
     let xA = -1;
     let cA = 0;
     let zaRe = 0;
@@ -156,8 +159,8 @@ export class TriggeredRowKernel {
         pendingA = false;
         xA = -1;
         cA = 0;
-        zaRe = 0;
-        zaIm = 0;
+        zaRe = Number.NaN;
+        zaIm = Number.NaN;
         itA = 0;
         dueA = -1;
         armA = DISARMED;
@@ -192,6 +195,8 @@ export class TriggeredRowKernel {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- x < width <= columnsRe.length
           cA = columnsRe[x]!;
           xA = x;
+          zaRe = 0;
+          zaIm = 0;
           dueA = Math.min(scanStart - 1, maxIterations);
           scheduledA = scanStart;
           intervalA = TRIGGERED_SCAN_INTERVAL_FIRST;
@@ -204,8 +209,8 @@ export class TriggeredRowKernel {
         pendingB = false;
         xB = -1;
         cB = 0;
-        zbRe = 0;
-        zbIm = 0;
+        zbRe = Number.NaN;
+        zbIm = Number.NaN;
         itB = 0;
         dueB = -1;
         armB = DISARMED;
@@ -240,6 +245,8 @@ export class TriggeredRowKernel {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- x < width <= columnsRe.length
           cB = columnsRe[x]!;
           xB = x;
+          zbRe = 0;
+          zbIm = 0;
           dueB = Math.min(scanStart - 1, maxIterations);
           scheduledB = scanStart;
           intervalB = TRIGGERED_SCAN_INTERVAL_FIRST;

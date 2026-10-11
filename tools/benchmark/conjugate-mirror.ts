@@ -1,6 +1,6 @@
 /**
  * Offline Node classifier measurement for performance workstream M
- * (conjugate-symmetry row mirroring, EXPERIMENT).
+ * (conjugate-symmetry row mirroring).
  *
  * For each selected case of tools/benchmark/corpus.v1.json (plus clearly
  * labeled derived "@im0" variants recentred on the real axis) this runs the
@@ -74,6 +74,7 @@ const argValue = (name: string): string | undefined => {
 };
 
 const REPS = Number(argValue('reps') ?? '15');
+// Pinned to the legacy scan by default so evidence runs stay comparable.
 const MODE = (argValue('mode') ?? 'legacy-scan') as ClassifierMode;
 const OUT = argValue('out');
 const ONLY = argValue('cases')?.split(',');

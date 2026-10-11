@@ -1,4 +1,4 @@
-import { productionCandidate } from './support';
+import { LEGACY_REFERENCE_OPTIONS, productionCandidate } from './support';
 import type { Candidate } from './types';
 
 /**
@@ -12,6 +12,7 @@ import type { Candidate } from './types';
 export const checkpoint: Candidate = productionCandidate({
   id: 'checkpoint',
   description: "Example: production renderer with classifierMode 'checkpoint'.",
-  requestOptions: { classifierMode: 'checkpoint' },
+  // Mirroring stays off so the only delta against baseline is the classifier.
+  requestOptions: { ...LEGACY_REFERENCE_OPTIONS, classifierMode: 'checkpoint' },
   diagnosticMode: 'checkpoint',
 });

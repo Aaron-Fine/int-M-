@@ -14,7 +14,6 @@ export {
   OrbitScratch,
 } from './orbit';
 export type { OrbitSample, OrbitStatusCode } from './orbit';
-export { InterleavedClassifier } from './orbit-interleaved';
 export {
   classifyTriggeredOrbitInto,
   TRIGGERED_MAX_FIRES,

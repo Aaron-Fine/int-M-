@@ -43,9 +43,9 @@ const classifyFull = async (
   stage: RenderStage,
   signal: AbortSignal,
 ): Promise<SemanticFrame> => {
-  // Conjugate mirroring (experiment) applies to the stride-1 stable pass only.
+  // Conjugate mirroring (default on) applies to the stride-1 stable pass only.
   const mirrorPlan =
-    request.conjugateMirror === true && stride === 1
+    request.conjugateMirror !== false && stride === 1
       ? planConjugateMirror(request.viewport, request.size)
       : undefined;
   const band = await classifyRows(
@@ -61,8 +61,6 @@ const classifyFull = async (
     {
       perfCounters: request.perfCounters === true,
       mirrorPlan,
-      interleave: request.interleave === true,
-      preparedCoordinates: request.preparedCoordinates === true,
     },
   );
 

@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { InterleavedClassifier, type RenderQuality, type Viewport } from '../../../src/domain';
+import { type RenderQuality, type Viewport } from '../../../src/domain';
 import {
   CpuRenderer,
   semanticRequestKey,
@@ -21,16 +21,17 @@ import type {
 } from '../../../src/worker/tile-protocol';
 
 /**
- * End-to-end wiring of the two bit-identical experiment flags `interleave`
- * and `preparedCoordinates`: URL toggles, worker runtime, semantic cache key,
- * CPU renderer, tile pool (in-process and tiled) and the tile handler.
+ * End-to-end wiring of the bit-identical `conjugateMirror` switch (default
+ * ON, `false` disables): URL toggle, worker runtime, semantic cache key, CPU
+ * renderer, tile pool (in-process and tiled) and the tile handler. The mirror
+ * only applies to views centered exactly on the real axis, hence the viewport.
  */
 
 const QUALITY: RenderQuality = { maxIterations: 256, maxPeriod: 32, coarseStride: 4 };
-const VIEWPORT: Viewport = { center: { re: -0.5, im: 0.1 }, spanY: 2.2 };
-const SIZE = { width: 37, height: 23 }; // odd width: trailing scalar cell
+const VIEWPORT: Viewport = { center: { re: -0.5, im: 0 }, spanY: 2.2 };
+const SIZE = { width: 37, height: 23 }; // odd width and height
 const BASE: DynamicsRenderRequest = { viewport: VIEWPORT, size: SIZE, quality: QUALITY };
-const FLAGS = { interleave: true, preparedCoordinates: true } as const;
+const MIRROR_OFF = { conjugateMirror: false } as const;
 
 const flatten = (frame: SemanticFrame) => {
   const length = SIZE.width * SIZE.height;
@@ -106,36 +107,37 @@ const loopbackPool = (workerCount: number): { pool: TilePool; workers: LoopbackT
   return { pool, workers };
 };
 
-describe('URL toggles', () => {
-  it.each(['interleave', 'preparedCoordinates'] as const)(
-    '%s is on only for the exact ?perf=1&%s=1 form',
-    (flag) => {
-      expect(parseBenchmarkParams(`?perf=1&${flag}=1`)[flag]).toBe(true);
-      expect(parseBenchmarkParams('').perfEnabled).toBe(false);
-      expect(parseBenchmarkParams('')[flag]).toBeUndefined();
-      expect(parseBenchmarkParams('?perf=1')[flag]).toBeUndefined();
-      expect(parseBenchmarkParams(`?${flag}=1`)[flag]).toBeUndefined();
-      expect(parseBenchmarkParams(`?perf=0&${flag}=1`)[flag]).toBeUndefined();
-      expect(parseBenchmarkParams(`?perf=1&${flag}=0`)[flag]).toBeUndefined();
-      expect(parseBenchmarkParams(`?perf=1&${flag}=true`)[flag]).toBeUndefined();
-    },
-  );
+describe('URL toggle', () => {
+  it('mirroring is disabled only by the exact ?perf=1&conjugateMirror=0 form', () => {
+    expect(parseBenchmarkParams('?perf=1&conjugateMirror=0').conjugateMirror).toBe(false);
+    expect(parseBenchmarkParams('').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=1').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?conjugateMirror=0').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=0&conjugateMirror=0').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=1&conjugateMirror=1').conjugateMirror).toBeUndefined();
+    expect(parseBenchmarkParams('?perf=1&conjugateMirror=false').conjugateMirror).toBeUndefined();
+  });
+
+  it('perfCounters without a classifierMode selects legacy-scan explicitly', () => {
+    expect(parseBenchmarkParams('?perf=1&perfCounters=1').classifierMode).toBe('legacy-scan');
+    expect(
+      parseBenchmarkParams('?perf=1&perfCounters=1&classifierMode=checkpoint').classifierMode,
+    ).toBe('checkpoint');
+    expect(parseBenchmarkParams('?perf=1').classifierMode).toBeUndefined();
+    expect(parseBenchmarkParams('?perfCounters=1').classifierMode).toBeUndefined();
+  });
 });
 
 describe('semantic cache key', () => {
-  it('adds a marker per flag when on and leaves the default key unchanged', () => {
+  it('marks only the explicit disable and leaves the default key unchanged', () => {
     const key = semanticRequestKey(BASE);
-    expect(semanticRequestKey({ ...BASE, interleave: false, preparedCoordinates: false })).toBe(
-      key,
-    );
-    expect(semanticRequestKey({ ...BASE, interleave: true })).toBe(`${key}|il:1`);
-    expect(semanticRequestKey({ ...BASE, preparedCoordinates: true })).toBe(`${key}|cp:1`);
-    expect(semanticRequestKey({ ...BASE, ...FLAGS })).toBe(`${key}|il:1|cp:1`);
+    expect(semanticRequestKey({ ...BASE, conjugateMirror: true })).toBe(key);
+    expect(semanticRequestKey({ ...BASE, ...MIRROR_OFF })).toBe(`${key}|cj:0`);
   });
 });
 
 describe('worker runtime', () => {
-  it('threads the flags into the dynamics request only when set', async () => {
+  it('threads conjugateMirror into the dynamics request only when given', async () => {
     const requests: DynamicsRenderRequest[] = [];
     const messages: WorkerToMainMessage[] = [];
     const length = SIZE.width * SIZE.height;
@@ -176,85 +178,54 @@ describe('worker runtime', () => {
       semanticView: 'stability' as const,
     };
     await runtime.handle({ ...base, requestId: 1 });
-    await runtime.handle({ ...base, requestId: 2, interleave: true });
-    await runtime.handle({ ...base, requestId: 3, preparedCoordinates: true });
-    await runtime.handle({ ...base, requestId: 4, ...FLAGS });
+    await runtime.handle({ ...base, requestId: 2, conjugateMirror: false });
 
-    expect(requests).toHaveLength(4);
-    expect(requests[0]).not.toHaveProperty('interleave');
-    expect(requests[0]).not.toHaveProperty('preparedCoordinates');
-    expect(requests[1]?.interleave).toBe(true);
-    expect(requests[1]).not.toHaveProperty('preparedCoordinates');
-    expect(requests[2]?.preparedCoordinates).toBe(true);
-    expect(requests[2]).not.toHaveProperty('interleave');
-    expect(requests[3]?.interleave).toBe(true);
-    expect(requests[3]?.preparedCoordinates).toBe(true);
+    expect(requests).toHaveLength(2);
+    expect(requests[0]).not.toHaveProperty('conjugateMirror');
+    expect(requests[1]?.conjugateMirror).toBe(false);
   });
 });
 
 describe('CPU renderer and tile pool', () => {
-  it('renders bit-identically with both flags on (CpuRenderer)', async () => {
-    const pairSpy = vi.spyOn(InterleavedClassifier.prototype, 'classifyPairInto');
-    try {
-      const off = await stableFrame(BASE);
-      expect(pairSpy).not.toHaveBeenCalled();
-      const on = await stableFrame({ ...BASE, ...FLAGS });
-      expect(pairSpy).toHaveBeenCalled();
-      expectFramesIdentical(on, off);
-    } finally {
-      pairSpy.mockRestore();
-    }
+  it('renders bit-identically with mirroring on (default) and off (CpuRenderer)', async () => {
+    const off = await stableFrame({ ...BASE, ...MIRROR_OFF });
+    const on = await stableFrame(BASE);
+    expectFramesIdentical(on, off);
   });
 
   it('renders bit-identically in the in-process tile pool path (1 worker)', async () => {
-    const off = await stableFrame(BASE);
+    const off = await stableFrame({ ...BASE, ...MIRROR_OFF });
     const { pool } = loopbackPool(1);
-    const pairSpy = vi.spyOn(InterleavedClassifier.prototype, 'classifyPairInto');
     try {
-      const on = await pool.classifyStable(
-        { ...BASE, ...FLAGS },
-        QUALITY,
-        new AbortController().signal,
-      );
-      expect(pairSpy).toHaveBeenCalled();
+      const on = await pool.classifyStable(BASE, QUALITY, new AbortController().signal);
       expectFramesIdentical(on, off);
     } finally {
-      pairSpy.mockRestore();
       pool.dispose();
     }
   });
 
-  it('forwards the flags to tile workers and renders bit-identically (3 workers)', async () => {
-    const off = await stableFrame(BASE);
-    const { pool: defaultPool, workers: defaultWorkers } = loopbackPool(3);
-    await defaultPool.classifyStable(BASE, QUALITY, new AbortController().signal);
-    defaultPool.dispose();
-    const defaultPosts = defaultWorkers.flatMap((worker) => worker.classifyPosts);
-    expect(defaultPosts.length).toBeGreaterThan(0);
-    for (const post of defaultPosts) {
-      expect(post).not.toHaveProperty('interleave');
-      expect(post).not.toHaveProperty('preparedCoordinates');
-    }
+  it('mirrors by default across tile workers and renders bit-identically (3 workers)', async () => {
+    const off = await stableFrame({ ...BASE, ...MIRROR_OFF });
+    const rowsDispatched = (workers: LoopbackTileWorker[]): number =>
+      workers
+        .flatMap((worker) => worker.classifyPosts)
+        .reduce((sum, post) => sum + post.y1 - post.y0, 0);
+
+    const { pool: offPool, workers: offWorkers } = loopbackPool(3);
+    const offFrame = await offPool.classifyStable(
+      { ...BASE, ...MIRROR_OFF },
+      QUALITY,
+      new AbortController().signal,
+    );
+    offPool.dispose();
+    expect(rowsDispatched(offWorkers)).toBe(SIZE.height);
+    expectFramesIdentical(offFrame, off);
 
     const { pool, workers } = loopbackPool(3);
-    const pairSpy = vi.spyOn(InterleavedClassifier.prototype, 'classifyPairInto');
-    try {
-      const on = await pool.classifyStable(
-        { ...BASE, ...FLAGS },
-        QUALITY,
-        new AbortController().signal,
-      );
-      expect(pairSpy).toHaveBeenCalled();
-      expectFramesIdentical(on, off);
-    } finally {
-      pairSpy.mockRestore();
-      pool.dispose();
-    }
-    const posts = workers.flatMap((worker) => worker.classifyPosts);
-    expect(posts.length).toBeGreaterThan(0);
-    for (const post of posts) {
-      expect(post.interleave).toBe(true);
-      expect(post.preparedCoordinates).toBe(true);
-    }
+    const on = await pool.classifyStable(BASE, QUALITY, new AbortController().signal);
+    pool.dispose();
+    // Prefix scheduling: only the ceil(height / 2) computed rows are dispatched.
+    expect(rowsDispatched(workers)).toBe(Math.ceil(SIZE.height / 2));
+    expectFramesIdentical(on, off);
   });
 });

@@ -62,8 +62,11 @@ const NAMED_PIXELS: readonly (readonly [string, number, number])[] = [
 ];
 
 describe('triggered-scan classifier mode', () => {
-  it('is off by default (resolves to legacy-scan)', () => {
-    expect(resolveOrbitOptions({}).classifierMode).toBe('legacy-scan');
+  it('is the default mode; legacy-scan stays selectable', () => {
+    expect(resolveOrbitOptions({}).classifierMode).toBe('triggered-scan');
+    expect(resolveOrbitOptions({ classifierMode: 'legacy-scan' }).classifierMode).toBe(
+      'legacy-scan',
+    );
   });
 
   it.each(NAMED_PIXELS)('matches legacy on %s', (_name, re, im) => {

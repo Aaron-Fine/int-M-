@@ -28,7 +28,7 @@ export const DEFAULT_ORBIT_OPTIONS: OrbitOptions = Object.freeze({
   // frozen policy in src/domain/verifier.ts.
   cycleTolerance: 1e-10,
   cycleWarmup: 24,
-  classifierMode: 'legacy-scan',
+  classifierMode: 'triggered-scan',
   exhaustionScan: true,
 });
 
@@ -255,7 +255,7 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
       'iteration, period, and warmup options must be integers; tolerance must be positive',
     );
   }
-  const classifierMode = resolved.classifierMode ?? 'legacy-scan';
+  const classifierMode = resolved.classifierMode ?? 'triggered-scan';
   if (!CLASSIFIER_MODES.includes(classifierMode)) {
     throw new RangeError(
       `classifierMode must be one of ${CLASSIFIER_MODES.join(', ')}; got ${classifierMode}`,
@@ -614,22 +614,20 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
  *
  * The versioned classifier-mode option (PR 4) selects the kernel per
  * instance; the mode never changes an instance's behavior after
- * construction. 'legacy-scan' (the default) allocates nothing beyond the
- * legacy path; 'checkpoint' and 'differential' preallocate their extra state
- * (checkpoint metrics, differential sample and record) once, in the
- * constructor. 'triggered-scan' runs the watched-lag kernel
+ * construction. 'triggered-scan' (the default) runs the watched-lag kernel
  * (orbit-triggered.ts) after the shared analytic prologue and allocates
- * nothing extra. In differential
- * mode both kernels run per pixel, the LEGACY answer stays the reported one,
+ * nothing extra; 'legacy-scan' (the reference kernel) allocates nothing
+ * beyond the legacy path; 'checkpoint' and 'differential' preallocate their
+ * extra state (checkpoint metrics, differential sample and record) once, in
+ * the constructor. In differential mode both kernels run per pixel, the LEGACY answer stays the reported one,
  * and disagreements accumulate into the preallocated DifferentialStats (read
  * via differentialStats).
  */
 export class OrbitClassifier {
   readonly #options: OrbitOptions;
   readonly #scratch: OrbitScratch;
-  // Null unless the mode needs it, so the default legacy path allocates
-  // nothing extra and its hot path stays the PR 2 measured shape plus one
-  // monomorphic field check.
+  // Null unless the mode needs it, so the lag-scan paths allocate
+  // nothing extra and the hot path stays one monomorphic field check.
   readonly #extras:
     | {
         readonly mode: 'checkpoint' | 'differential';
@@ -667,7 +665,7 @@ export class OrbitClassifier {
     // concrete ClassifierMode here.
     // 'triggered-scan' runs the lag-scan kernel itself (gated inside
     // classifyInto), so it needs no extra state here.
-    const mode = this.#options.classifierMode ?? 'legacy-scan';
+    const mode = this.#options.classifierMode ?? 'triggered-scan';
     this.#extras =
       mode === 'checkpoint' || mode === 'differential'
         ? {

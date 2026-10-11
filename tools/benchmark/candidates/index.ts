@@ -4,14 +4,7 @@
  * always supplies it.
  */
 import { checkpoint } from './checkpoint';
-import { coordinatePrep } from './coordinate-prep';
-import { interleave2 } from './interleave-2';
 import { triggeredScan } from './triggered-scan';
 import type { Candidate } from './types';
 
-export const CANDIDATES: readonly Candidate[] = [
-  checkpoint,
-  triggeredScan,
-  interleave2,
-  coordinatePrep,
-];
+export const CANDIDATES: readonly Candidate[] = [checkpoint, triggeredScan];

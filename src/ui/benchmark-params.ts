@@ -22,9 +22,16 @@ export interface BenchmarkParams {
    * `?perf=1&perfCounters=1` only; enables the plan §8 opt-in diagnostics
    * counters (workers accumulate per-band counters and attach them to frame
    * messages). Absent otherwise, so the default parse keeps its exact shape.
+   * The counters vocabulary is the legacy scan's, so `perfCounters=1`
+   * without an explicit `classifierMode` also sets `classifierMode` to
+   * 'legacy-scan' in the parsed result.
    */
   readonly perfCounters?: true | undefined;
-  /** Validated `?classifierMode=` value; absent when missing or invalid. */
+  /**
+   * Validated `?classifierMode=` value; absent when missing or invalid (the
+   * default 'triggered-scan' applies), except that `perfCounters=1` fills in
+   * 'legacy-scan'.
+   */
   readonly classifierMode?: ClassifierMode | undefined;
   /**
    * Validated `?bandOrder=` stable-band dispatch order; absent when missing
@@ -42,22 +49,10 @@ export interface BenchmarkParams {
    */
   readonly frameOutput?: FrameOutput | undefined;
   /**
-   * `?perf=1&conjugateMirror=1` only; EXPERIMENT (workstream M), default OFF:
-   * mirrors exact-conjugate pixel rows of the stable pass. Absent otherwise.
+   * `?perf=1&conjugateMirror=0` only: disables the default-on mirroring of
+   * exact-conjugate pixel rows of the stable pass (A/B arm). Absent otherwise.
    */
-  readonly conjugateMirror?: true | undefined;
-  /**
-   * `?perf=1&interleave=1` only; EXPERIMENT (tournament candidate
-   * interleave-2), default OFF: two-pixel lockstep classification
-   * (bit-identical). Absent otherwise.
-   */
-  readonly interleave?: true | undefined;
-  /**
-   * `?perf=1&preparedCoordinates=1` only; EXPERIMENT (tournament candidate
-   * coordinate-prep), default OFF: per-column/row prepared coordinates
-   * (bit-identical). Absent otherwise.
-   */
-  readonly preparedCoordinates?: true | undefined;
+  readonly conjugateMirror?: false | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -103,22 +98,12 @@ export const parseViewParam = (value: string | null): Viewport | undefined => {
   return { center: { re: centerRe, im: centerIm }, spanY: spanYNumeric };
 };
 
-/** Boolean URL toggles that only take effect together with `?perf=1`. */
-const PERF_GATED_FLAGS = [
-  'perfCounters',
-  'conjugateMirror',
-  'interleave',
-  'preparedCoordinates',
-] as const;
-
 export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const params = new URLSearchParams(search);
   const result: {
     perfEnabled: boolean;
     perfCounters?: true;
-    conjugateMirror?: true;
-    interleave?: true;
-    preparedCoordinates?: true;
+    conjugateMirror?: false;
     classifierMode?: ClassifierMode;
     bandOrder?: BandOrder;
     yieldMechanism?: YieldMechanism;
@@ -126,18 +111,24 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
-  // Counters and the experiment flags are strict sub-modes of the perf
-  // diagnostics: they never turn on without ?perf=1 and add nothing to the
-  // default path.
-  for (const flag of PERF_GATED_FLAGS) {
-    if (result.perfEnabled && params.get(flag) === '1') {
-      result[flag] = true;
-    }
+  // Counters and the mirror switch are strict sub-modes of the perf
+  // diagnostics: they never take effect without ?perf=1 and add nothing to
+  // the default path.
+  if (result.perfEnabled && params.get('perfCounters') === '1') {
+    result.perfCounters = true;
+  }
+  if (result.perfEnabled && params.get('conjugateMirror') === '0') {
+    result.conjugateMirror = false;
   }
 
   const classifierMode = params.get('classifierMode');
   if (classifierMode !== null && (CLASSIFIER_MODES as readonly string[]).includes(classifierMode)) {
     result.classifierMode = classifierMode as ClassifierMode;
+  }
+  // The counters vocabulary is the legacy scan's (the instrumented kernel
+  // only mirrors it), so counters without an explicit mode select it here.
+  if (result.perfCounters === true && result.classifierMode === undefined) {
+    result.classifierMode = 'legacy-scan';
   }
   const bandOrder = params.get('bandOrder');
   if (bandOrder !== null && (BAND_ORDERS as readonly string[]).includes(bandOrder)) {

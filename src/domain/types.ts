@@ -107,17 +107,17 @@ export type SemanticView = 'stability' | 'multiplier' | 'period';
 /**
  * Versioned classifier-mode option (PR 4, plan section 11: the checkpoint
  * schedule lands "behind a legacy differential flag"). The vocabulary is
- * frozen; 'legacy-scan' remains the default until Stage A browser evidence
- * says otherwise (plan section 9).
+ * frozen; 'triggered-scan' is the default, and 'legacy-scan' stays available
+ * as the explicit reference kernel.
  *
  * - 'legacy-scan': the post-PR-3 lag scan (src/domain/orbit.ts classifyInto),
- *   unchanged.
+ *   unchanged; the reference kernel.
  * - 'checkpoint': the PR 4 power-of-two checkpoint schedule
  *   (src/domain/checkpoint.ts), candidate-only toward the common verifier.
  * - 'differential': both kernels run per pixel; disagreements (status,
  *   period, |lambda| bits) are counted into a preallocated differential
  *   record while the legacy answer stays the reported one.
- * - 'triggered-scan': the legacy lag scan run only when a scale-aware step
+ * - 'triggered-scan' (default): the legacy lag scan run only when a scale-aware step
  *   gate fires, plus a periodic safety scan and a full scan of every iteration
  *   in the last max(64, 2 * maxPeriod) of the budget. Not combinable with
  *   perfCounters (the instrumented kernel only mirrors the legacy scan).
@@ -143,7 +143,7 @@ export interface OrbitOptions {
    */
   readonly cycleTolerance: number;
   readonly cycleWarmup: number;
-  /** Versioned classifier mode; default 'legacy-scan' (see ClassifierMode). */
+  /** Versioned classifier mode; default 'triggered-scan' (see ClassifierMode). */
   readonly classifierMode?: ClassifierMode;
   /**
    * Checkpoint-schedule exhaustion scan (plan section 4): one final full lag

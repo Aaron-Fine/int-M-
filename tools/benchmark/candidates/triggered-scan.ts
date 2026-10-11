@@ -1,4 +1,4 @@
-import { productionCandidate } from './support';
+import { LEGACY_REFERENCE_OPTIONS, productionCandidate } from './support';
 import type { Candidate } from './types';
 
 /**
@@ -14,7 +14,8 @@ export const triggeredScan: Candidate = {
     id: 'triggered-scan',
     description:
       "Production renderer with classifierMode 'triggered-scan': lag scan gated on the orbit step size, with safety scans.",
-    requestOptions: { classifierMode: 'triggered-scan' },
+    // Mirroring stays off so the only delta against baseline is the classifier.
+    requestOptions: { ...LEGACY_REFERENCE_OPTIONS, classifierMode: 'triggered-scan' },
     diagnosticMode: 'triggered-scan',
   }),
   parityPolicy: 'semantic-revision',

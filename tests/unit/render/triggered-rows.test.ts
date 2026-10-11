@@ -95,6 +95,39 @@ describe('TriggeredRowKernel', () => {
     }
   });
 
+  it('never writes outside its row when a parked lane would escape (offset > 0)', () => {
+    // A lane parked at z = 0 would iterate c = i * cIm (the shared row
+    // imaginary part); for these rows that orbit escapes. Rows are written at
+    // a nonzero offset with sentinels on both sides.
+    for (const cIm of [0.7652, -0.7652, 0.687, 1.3]) {
+      for (const width of [1, 2, 3, 37]) {
+        const kernel = new TriggeredRowKernel({ maxIterations: 256, maxPeriod: 32 });
+        const columns = new Float64Array(width);
+        for (let x = 0; x < width; x += 1) columns[x] = -0.5 + 0.01 * x;
+        const length = width + 2;
+        const packed = new Uint32Array(length).fill(0xdeadbeef);
+        const primary = new Float64Array(length).fill(-7);
+        const angle = new Float64Array(length).fill(-7);
+        kernel.classifyRow(
+          columns,
+          cIm,
+          width,
+          {
+            packedStatusPeriod: packed,
+            smoothIterationOrMultiplierMagnitude: primary,
+            multiplierAngle: angle,
+          },
+          1,
+        );
+        for (const sentinel of [0, length - 1]) {
+          expect(packed[sentinel]).toBe(0xdeadbeef);
+          expect(primary[sentinel]).toBe(-7);
+          expect(angle[sentinel]).toBe(-7);
+        }
+      }
+    }
+  });
+
   it('handles single-pixel and two-pixel rows', () => {
     for (const view of VIEWS) {
       expect(compareRow(view, { maxIterations: 512, maxPeriod: 32 }, 1, 3)).toBe(0);

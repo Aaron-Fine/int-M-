@@ -142,22 +142,33 @@ function sourceVerifier(kind: 'inline' | 'reference'): (c: Complex) => SourceTra
     candidateAssignment,
     `trace.closureSteps.push({ value: { re: ${state}Re, im: ${state}Im }, multiplier: { re: ${derivative}Re, im: ${derivative}Im } });`,
   );
-  block = insertAfter(
-    block,
-    'walkRe = nextWalkRe;',
-    'trace.divisorSteps.push({ value: { re: walkRe, im: walkIm }, multiplier: { re: walkDerivativeRe, im: walkDerivativeIm } });',
-  );
   const squareName = kind === 'inline' ? 'closureSquared' : 'residualSquared';
   block = insertAfter(
     block,
     new RegExp(`const ${squareName} =[^;]+;`),
     `trace.closureSquared = ${squareName};`,
   );
-  block = insertAfter(
-    block,
-    /const divisorResidualSquared =[^;]+;/,
-    'trace.divisorSquared = divisorResidualSquared;',
-  );
+  if (kind === 'inline') {
+    block = insertAfter(
+      block,
+      'walkRe = nextWalkRe;',
+      'trace.divisorSteps.push({ value: { re: walkRe, im: walkIm }, multiplier: { re: walkDerivativeRe, im: walkDerivativeIm } });',
+    );
+    block = insertAfter(
+      block,
+      /const divisorResidualSquared =[^;]+;/,
+      'trace.divisorSquared = divisorResidualSquared;',
+    );
+  } else {
+    // The reference verifier reads each proper divisor's frame off the prefix
+    // of its forward walk (the divisor walk is that prefix), so the divisor
+    // trace is the walk state where the prefix residual is evaluated.
+    block = insertAfter(
+      block,
+      /const prefixSquared =[^;]+;/,
+      'trace.divisorSquared = prefixSquared; trace.divisorSteps.push({ value: { re: zRe, im: zIm }, multiplier: { re: derivativeRe, im: derivativeIm } });',
+    );
+  }
   const program = `
     return function(c) {
       const cRe = c.re, cIm = c.im, zRe = 0, zIm = 0;

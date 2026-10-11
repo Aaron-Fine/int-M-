@@ -1,17 +1,15 @@
 import {
   createOrbitSample,
   createViewportTransform,
-  InterleavedClassifier,
   OrbitClassifier,
   OrbitScratch,
+  resolveOrbitOptions,
   type ClassifierMode,
   type ConjugateMirrorPlan,
   mirrorSourceOf,
   type DifferentialStats,
-  type MutableComplex,
   type OrbitOptions,
   type OrbitSample,
-  type RasterSize,
   type RenderQuality,
   type ViewportTransform,
 } from '../domain';
@@ -104,98 +102,18 @@ const writeSampleToBand = (
 };
 
 /**
- * Interleaved variant of the row loop (experiment interleave-2): classifies
- * pairs of horizontally adjacent sample cells through one lockstep kernel,
- * plus a scalar trailing cell for odd counts. Same sample points and band
- * writes as the scalar loop in classifyRows.
- */
-const classifyRowPairs = (
-  pairClassifier: InterleavedClassifier,
-  viewportTransform: ViewportTransform,
-  band: BandOutputBuffers,
-  size: RasterSize,
-  y0: number,
-  y1: number,
-  y: number,
-  stride: number,
-  point: MutableComplex,
-  pointB: MutableComplex,
-  sample: OrbitSample,
-  sampleB: OrbitSample,
-  realColumns: Float64Array | undefined,
-): void => {
-  const { width, height } = size;
-  const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
-  let x = 0;
-  if (realColumns !== undefined) {
-    // Prepared coordinates: per-column real parts and one imaginary value per
-    // row, computed with the same expressions as pixelToComplexInto.
-    const cIm = preparedRowImaginary(viewportTransform, height, stride, y);
-    for (; x + stride < width; x += 2 * stride) {
-      pairClassifier.classifyPairInto(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x + stride < width = realColumns.length
-        realColumns[x]!,
-        cIm,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x + stride < width = realColumns.length
-        realColumns[x + stride]!,
-        cIm,
-        sample,
-        sampleB,
-      );
-      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-      writeSampleToBand(band, width, y0, y1, x + stride, y, stride, sampleB);
-    }
-    if (x < width) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x < width = realColumns.length
-      pairClassifier.classifyInto(realColumns[x]!, cIm, sample);
-      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-    }
-    return;
-  }
-  for (; x + stride < width; x += 2 * stride) {
-    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-    const sampleXB = Math.min(width - 1, x + stride + (stride - 1) / 2);
-    viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
-    viewportTransform.pixelToComplexInto(sampleXB, sampleY, pointB);
-    pairClassifier.classifyPairInto(point.re, point.im, pointB.re, pointB.im, sample, sampleB);
-    writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-    writeSampleToBand(band, width, y0, y1, x + stride, y, stride, sampleB);
-  }
-  if (x < width) {
-    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-    viewportTransform.pixelToComplexInto(sampleX, sampleY, point);
-    pairClassifier.classifyInto(point.re, point.im, sample);
-    writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-  }
-};
-
-/**
- * The two-lane triggered row kernel: classifierMode 'triggered-scan' with
- * `interleave`, stride 1 (the stable pass), no counters. Bit-identical to the
- * scalar triggered kernel.
+ * The two-lane triggered row kernel: the default classifier mode
+ * ('triggered-scan', explicit or by default) at stride 1 (the stable pass)
+ * without counters. Bit-identical to the scalar triggered kernel.
  */
 const createTriggeredRowKernel = (
-  interleave: boolean | undefined,
   hasCounters: boolean,
   classifierMode: ClassifierMode | undefined,
   stride: number,
   orbitOptions: Partial<OrbitOptions>,
 ): TriggeredRowKernel | undefined =>
-  interleave === true && !hasCounters && classifierMode === 'triggered-scan' && stride === 1
+  !hasCounters && classifierMode === 'triggered-scan' && stride === 1
     ? new TriggeredRowKernel(orbitOptions)
-    : undefined;
-
-/** The interleaved kernel only replaces the plain legacy scan without counters. */
-const createPairClassifier = (
-  interleave: boolean | undefined,
-  hasCounters: boolean,
-  classifierMode: ClassifierMode | undefined,
-  orbitOptions: Partial<OrbitOptions>,
-): InterleavedClassifier | undefined =>
-  interleave === true &&
-  !hasCounters &&
-  (classifierMode === undefined || classifierMode === 'legacy-scan')
-    ? new InterleavedClassifier(orbitOptions)
     : undefined;
 
 /**
@@ -216,23 +134,10 @@ export interface ClassifyRowsOptions {
    * once every band has returned). Stride-1 only.
    */
   readonly mirrorPlan?: ConjugateMirrorPlan | undefined;
-  /**
-   * Two-pixel interleaved kernel (experiment interleave-2): honored only for
-   * the plain legacy-scan classifier without counters; otherwise scalar.
-   * Bit-identical to the scalar kernel.
-   */
-  readonly interleave?: boolean;
-  /**
-   * Prepared coordinates (EXPERIMENT, default off): real coordinates are
-   * computed once per column and imaginary ones once per sampled row, with
-   * the canonical pixel-center formula. Bit-identical to the per-pixel path;
-   * composes with `interleave`.
-   */
-  readonly preparedCoordinates?: boolean;
 }
 
 /**
- * Prepared real coordinates (EXPERIMENT, `preparedCoordinates`): entry x holds
+ * Prepared real coordinates: entry x holds
  * the real part of the sampled column for the grid column x, using the exact
  * pixel-center expression of createViewportTransform.pixelToComplexInto with
  * the same operation order. Only grid columns (multiples of stride) are read.
@@ -251,19 +156,6 @@ export const prepareRealColumns = (
   }
 };
 
-/** The per-column table when preparedCoordinates is on; undefined otherwise. */
-const createRealColumns = (
-  preparedCoordinates: boolean | undefined,
-  transform: ViewportTransform,
-  width: number,
-  stride: number,
-): Float64Array | undefined => {
-  if (preparedCoordinates !== true) return undefined;
-  const columns = new Float64Array(width);
-  prepareRealColumns(transform, width, stride, columns);
-  return columns;
-};
-
 /**
  * Prepared imaginary coordinate of the sampled row for grid row y: the exact
  * pixel-center expression of pixelToComplexInto, evaluated once per row.
@@ -277,6 +169,19 @@ export const preparedRowImaginary = (
   const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
   return transform.viewport.center.im - (sampleY + 0.5 - height / 2) * transform.unitsPerPixel;
 };
+
+/**
+ * The classifier mode to hand to OrbitClassifier; undefined = the default
+ * ('triggered-scan'). The counters vocabulary is the legacy scan's (the
+ * instrumented kernel only mirrors it), so counters with no explicit mode
+ * select 'legacy-scan' here instead of the triggered default. This is not
+ * silent: it is the mode the counters describe. An explicit 'triggered-scan'
+ * with counters still throws in OrbitClassifier.
+ */
+const requestedClassifierMode = (
+  classifierMode: ClassifierMode | undefined,
+  hasCounters: boolean,
+): ClassifierMode | undefined => classifierMode ?? (hasCounters ? 'legacy-scan' : undefined);
 
 const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
   if (plan !== undefined && stride !== 1) {
@@ -298,35 +203,23 @@ interface RowLayout {
 }
 
 /**
- * Classifies one sampled row into the band. With `realColumns` (prepared
- * coordinates) the real part comes from the per-column table and the imaginary
- * part is computed once for the row; otherwise every pixel is mapped through
- * the viewport transform.
+ * Classifies one sampled row into the band with the scalar classifier: the
+ * real part comes from the prepared per-column table and the imaginary part
+ * is computed once for the row.
  */
 const classifyRowInto = (
   classifier: OrbitClassifier,
   sample: OrbitSample,
-  point: MutableComplex,
   band: BandOutputBuffers,
   layout: RowLayout,
   transform: ViewportTransform,
-  realColumns: Float64Array | undefined,
+  realColumns: Float64Array,
 ): void => {
   const { width, height, y0, y1, y, stride } = layout;
-  if (realColumns !== undefined) {
-    const cIm = preparedRowImaginary(transform, height, stride, y);
-    for (let x = 0; x < width; x += stride) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x < width = realColumns.length
-      classifier.classifyInto(realColumns[x]!, cIm, sample);
-      writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
-    }
-    return;
-  }
+  const cIm = preparedRowImaginary(transform, height, stride, y);
   for (let x = 0; x < width; x += stride) {
-    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-    const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
-    transform.pixelToComplexInto(sampleX, sampleY, point);
-    classifier.classifyInto(point.re, point.im, sample);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x < width = realColumns.length
+    classifier.classifyInto(realColumns[x]!, cIm, sample);
     writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
   }
 };
@@ -338,8 +231,9 @@ export async function classifyRows(
   y0: number,
   y1: number,
   signal: AbortSignal,
-  // Versioned classifier mode (PR 4). Optional: every existing call site
-  // keeps its exact behavior with the 'legacy-scan' default.
+  // Versioned classifier mode (PR 4). Optional: absent means the
+  // DEFAULT_ORBIT_OPTIONS mode ('triggered-scan'), except with perfCounters,
+  // where it means 'legacy-scan' (see below).
   classifierMode?: ClassifierMode,
   // Yield mechanism (renderer-path detail): 'message-channel' replaces the
   // nested setTimeout(0) row yields whose budget was largely the 4 ms
@@ -348,11 +242,11 @@ export async function classifyRows(
   // Pre-sliced output buffers (zero-copy detail): when present the band is
   // classified directly into them and nothing is allocated per call.
   output?: BandOutputBuffers,
-  // Optional experiment/diagnostic switches (perfCounters, mirrorPlan,
-  // interleave, preparedCoordinates); absent = the default path.
+  // Optional experiment/diagnostic switches (perfCounters, mirrorPlan);
+  // absent = the default path.
   options?: ClassifyRowsOptions,
 ): Promise<ClassifyRowsResult> {
-  const { perfCounters, mirrorPlan, interleave, preparedCoordinates } = options ?? {};
+  const { perfCounters, mirrorPlan } = options ?? {};
   assertMirrorStride(mirrorPlan, stride);
   const { width } = request.size;
   const length = (y1 - y0) * width;
@@ -374,44 +268,33 @@ export async function classifyRows(
   // kernel's own metrics below.
   const counters: MutablePerfCounters | undefined =
     perfCounters === true ? createPerfCounters() : undefined;
+  const requestedMode = requestedClassifierMode(classifierMode, counters !== undefined);
   const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
-    ...(classifierMode === undefined ? {} : { classifierMode }),
+    ...(requestedMode === undefined ? {} : { classifierMode: requestedMode }),
   };
+  // Concrete mode after defaults (undefined requestedMode = the default).
+  const resolvedMode = resolveOrbitOptions(orbitOptions).classifierMode;
   const classifier = new OrbitClassifier(
     orbitOptions,
     new OrbitScratch(quality.maxPeriod),
     ...(counters === undefined ? [] : [counters]),
   );
-  const pairClassifier = createPairClassifier(
-    interleave,
-    counters !== undefined,
-    classifierMode,
-    orbitOptions,
-  );
   // Per-band working state: the classification loop below allocates nothing
   // per pixel (plan workstream B) — scalars in, band channels out.
   const sample = createOrbitSample();
-  const sampleB = createOrbitSample();
-  const point: MutableComplex = { re: 0, im: 0 };
-  const pointB: MutableComplex = { re: 0, im: 0 };
   const viewportTransform = createViewportTransform(request.viewport, request.size);
   const rowKernel = createTriggeredRowKernel(
-    interleave,
     counters !== undefined,
-    classifierMode,
+    resolvedMode,
     stride,
     orbitOptions,
   );
-  // The row kernel reads prepared real coordinates (bit-identical to the
-  // per-pixel transform), so it implies preparedCoordinates.
-  const realColumns = createRealColumns(
-    preparedCoordinates === true || rowKernel !== undefined,
-    viewportTransform,
-    width,
-    stride,
-  );
+  // Prepared coordinates: real parts once per column, one imaginary value per
+  // sampled row (bit-identical to the per-pixel viewport transform).
+  const realColumns = new Float64Array(width);
+  prepareRealColumns(viewportTransform, width, stride, realColumns);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
   // The 'timeout' arm is the paired-evidence measurement arm; it is created
   // per call because its pending set must not outlive the band.
@@ -427,7 +310,7 @@ export async function classifyRows(
     throwIfAborted(signal);
     // Mirrored rows are copied later; skipping them also skips their yield.
     if (isMirroredRow(mirrorPlan, y)) continue;
-    if (rowKernel !== undefined && realColumns !== undefined) {
+    if (rowKernel !== undefined) {
       rowKernel.classifyRow(
         realColumns,
         preparedRowImaginary(viewportTransform, request.size.height, stride, y),
@@ -435,27 +318,10 @@ export async function classifyRows(
         band,
         (y - y0) * width,
       );
-    } else if (pairClassifier !== undefined) {
-      classifyRowPairs(
-        pairClassifier,
-        viewportTransform,
-        band,
-        request.size,
-        y0,
-        y1,
-        y,
-        stride,
-        point,
-        pointB,
-        sample,
-        sampleB,
-        realColumns,
-      );
     } else {
       classifyRowInto(
         classifier,
         sample,
-        point,
         band,
         { width, height: request.size.height, y0, y1, y, stride },
         viewportTransform,

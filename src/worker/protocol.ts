@@ -24,7 +24,7 @@ export interface RenderMessage {
   /**
    * Versioned classifier mode (Stage A opt-in wiring). Additive optional
    * field: absent on the default path, so default messages are byte-identical
-   * and workers keep the 'legacy-scan' default.
+   * and workers use the default 'triggered-scan' kernel.
    */
   readonly classifierMode?: ClassifierMode;
   /**
@@ -49,23 +49,11 @@ export interface RenderMessage {
    */
   readonly perfCounters?: boolean;
   /**
-   * EXPERIMENT (workstream M), default OFF: conjugate-symmetry row mirroring
-   * of the stable pass (`?conjugateMirror=1`). Additive optional field:
+   * Conjugate-symmetry row mirroring of the stable pass, default ON; `false`
+   * disables it (`?perf=1&conjugateMirror=0`). Additive optional field:
    * absent on the default path.
    */
   readonly conjugateMirror?: boolean;
-  /**
-   * EXPERIMENT (tournament candidate interleave-2), default OFF: two-pixel
-   * lockstep classification (`?perf=1&interleave=1`). Bit-identical.
-   * Additive optional field: absent on the default path.
-   */
-  readonly interleave?: boolean;
-  /**
-   * EXPERIMENT (tournament candidate coordinate-prep), default OFF: per-column
-   * and per-row prepared coordinates (`?perf=1&preparedCoordinates=1`).
-   * Bit-identical. Additive optional field: absent on the default path.
-   */
-  readonly preparedCoordinates?: boolean;
 }
 
 export interface InspectMessage {

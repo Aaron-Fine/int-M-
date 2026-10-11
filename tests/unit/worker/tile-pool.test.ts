@@ -27,10 +27,14 @@ import type { SemanticFrame as SemanticFrameLike } from '../../../src/render';
 const BALANCED: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 const SMALL_QUALITY: RenderQuality = { maxIterations: 32, maxPeriod: 4, coarseStride: 8 };
 
+// DEFAULT_VIEWPORT is centered on the real axis, so mirroring (default on)
+// would halve the dispatched bands; these tests pin the unmirrored band
+// schedule (mirrored scheduling is covered in conjugate-mirror.test.ts).
 const requestOf = (width: number, height: number, bandOrder?: 'legacy') => ({
   viewport: DEFAULT_VIEWPORT,
   size: { width, height },
   quality: BALANCED,
+  conjugateMirror: false,
   ...(bandOrder === undefined ? {} : { bandOrder }),
 });
 

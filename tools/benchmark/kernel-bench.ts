@@ -14,14 +14,10 @@ interface Variant {
 }
 
 const VARIANTS: readonly Variant[] = [
-  { id: 'legacy', options: {} },
-  { id: 'triggered', mode: 'triggered-scan', options: {} },
-  { id: 'legacy-il-cp', options: { interleave: true, preparedCoordinates: true } },
-  {
-    id: 'triggered-il-cp',
-    mode: 'triggered-scan',
-    options: { interleave: true, preparedCoordinates: true },
-  },
+  // The reference scan, scalar row path.
+  { id: 'legacy', mode: 'legacy-scan', options: {} },
+  // The production default path (triggered scan + two-lane row kernel).
+  { id: 'triggered', options: {} },
 ];
 
 const args = process.argv.slice(2);

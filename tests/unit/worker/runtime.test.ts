@@ -179,7 +179,7 @@ describe('RenderWorkerRuntime', () => {
     expect(requests[0]).not.toHaveProperty('classifierMode');
   });
 
-  it('threads the conjugateMirror experiment flag only when set, defaulting to absent', async () => {
+  it('threads conjugateMirror only when given, defaulting to absent (mirroring on)', async () => {
     const requests: DynamicsRenderRequest[] = [];
     const renderer: Renderer = {
       inspect: () => ({
@@ -202,11 +202,11 @@ describe('RenderWorkerRuntime', () => {
     };
 
     await runtime.handle({ ...base, requestId: 1 });
-    await runtime.handle({ ...base, requestId: 2, conjugateMirror: true });
+    await runtime.handle({ ...base, requestId: 2, conjugateMirror: false });
 
     expect(requests).toHaveLength(2);
     expect(requests[0]).not.toHaveProperty('conjugateMirror');
-    expect(requests[1]?.conjugateMirror).toBe(true);
+    expect(requests[1]?.conjugateMirror).toBe(false);
   });
 
   it('returns structured inspection evidence', async () => {

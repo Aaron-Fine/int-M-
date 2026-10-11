@@ -2,7 +2,8 @@ import type { RenderQuality } from '../domain';
 import type { DynamicsRenderRequest, SemanticFrame } from './renderer';
 import { resolveRenderQuality } from './renderer';
 
-const SEMANTIC_ALGORITHM_VERSION = 1;
+// v2: the default kernel changed to the watched-lag triggered scan.
+const SEMANTIC_ALGORITHM_VERSION = 2;
 
 const qualityKey = (quality: RenderQuality): string =>
   `${quality.maxIterations}:${quality.maxPeriod}:${quality.coarseStride}`;
@@ -24,14 +25,10 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     // frame must not be served to a counters-less request or vice versa).
     // Conditional so the default key stays byte-identical.
     ...(request.perfCounters === true ? ['pc:1'] : []),
-    // Experiment arm marker: mirrored output is designed to be bit-identical,
-    // but the flag must change the key so A/B toggling re-renders instead of
-    // being served from the cache. Conditional: default key unchanged.
-    ...(request.conjugateMirror === true ? ['cj:1'] : []),
-    // Experiment arm marker (bit-identical output; see conjugateMirror).
-    ...(request.interleave === true ? ['il:1'] : []),
-    // Experiment arm marker (bit-identical output; see preparedCoordinates).
-    ...(request.preparedCoordinates === true ? ['cp:1'] : []),
+    // Mirroring is on by default and its output is designed to be
+    // bit-identical; the explicit-off marker only keeps A/B toggling from
+    // being served from the cache. Conditional: default key has no marker.
+    ...(request.conjugateMirror === false ? ['cj:0'] : []),
   ].join('|');
 };
 

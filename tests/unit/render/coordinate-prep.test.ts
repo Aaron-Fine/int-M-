@@ -4,13 +4,9 @@ import {
   createViewportTransform,
   DEFAULT_VIEWPORT,
   type RasterSize,
-  type RenderQuality,
   type Viewport,
 } from '../../../src/domain';
 import { prepareRealColumns, preparedRowImaginary } from '../../../src/render/classify-rows';
-import { CpuRenderer, type DynamicsRenderRequest, type SemanticFrame } from '../../../src/render';
-
-const QUALITY: RenderQuality = { maxIterations: 128, maxPeriod: 16, coarseStride: 4 };
 
 const VIEWPORTS: readonly Viewport[] = [
   DEFAULT_VIEWPORT,
@@ -26,6 +22,8 @@ const SIZES: readonly RasterSize[] = [
 
 const STRIDES: readonly number[] = [1, 2, 3, 5];
 
+// Prepared coordinates are the production row path; they must equal the
+// canonical per-pixel transform bit for bit.
 describe('prepared coordinates', () => {
   it('coordinatePrep_realColumnsMatchPerPixelTransform', () => {
     for (const viewport of VIEWPORTS) {
@@ -58,32 +56,6 @@ describe('prepared coordinates', () => {
             expect(Object.is(prepared, point.im)).toBe(true);
           }
         }
-      }
-    }
-  });
-
-  it('coordinatePrep_stableFrameUnchangedWhenEnabled', async () => {
-    const renderer = new CpuRenderer();
-    const stableFor = async (request: DynamicsRenderRequest): Promise<SemanticFrame> => {
-      let stable: SemanticFrame | undefined;
-      await renderer.render(request, new AbortController().signal, (frame) => {
-        if (frame.stage === 'stable') stable = frame;
-      });
-      if (stable === undefined) throw new Error('no stable frame');
-      return stable;
-    };
-    for (const viewport of VIEWPORTS) {
-      const base = { viewport, size: { width: 19, height: 11 }, quality: QUALITY };
-      const off = await stableFor(base);
-      const on = await stableFor({ ...base, preparedCoordinates: true });
-      for (let index = 0; index < off.bands.length; index += 1) {
-        const offBand = off.bands[index];
-        const onBand = on.bands[index];
-        expect(onBand?.packedStatusPeriod).toEqual(offBand?.packedStatusPeriod);
-        expect(onBand?.smoothIterationOrMultiplierMagnitude).toEqual(
-          offBand?.smoothIterationOrMultiplierMagnitude,
-        );
-        expect(onBand?.multiplierAngle).toEqual(offBand?.multiplierAngle);
       }
     }
   });

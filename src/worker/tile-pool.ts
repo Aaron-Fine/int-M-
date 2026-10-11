@@ -212,7 +212,7 @@ class TilePoolImpl implements TilePool {
     perfCounters = false,
   ): Promise<SemanticFrame> {
     const mirrorPlan =
-      request.conjugateMirror === true
+      request.conjugateMirror !== false
         ? planConjugateMirror(request.viewport, request.size)
         : undefined;
     const band = await classifyRows(
@@ -228,8 +228,6 @@ class TilePoolImpl implements TilePool {
       {
         perfCounters,
         mirrorPlan,
-        interleave: request.interleave === true,
-        preparedCoordinates: request.preparedCoordinates === true,
       },
     );
     throwIfAborted(signal);
@@ -266,7 +264,7 @@ class TilePoolImpl implements TilePool {
     perfCounters = false,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
-    // Conjugate mirroring (experiment, workstream M). When the computed rows
+    // Conjugate mirroring (workstream M, default on). When the computed rows
     // are a leading prefix [0, R) (always true for center.im === 0, where
     // R = ceil(height / 2); the PR #15 / 138a31b scheduling design), bands
     // are dispatched over those R rows only and one undispatched tail band
@@ -274,7 +272,7 @@ class TilePoolImpl implements TilePool {
     // exact-pair view with unpaired rows at the bottom) every band is
     // dispatched and workers skip their mirrored rows in place.
     const mirrorPlan =
-      request.conjugateMirror === true
+      request.conjugateMirror !== false
         ? planConjugateMirror(request.viewport, request.size)
         : undefined;
     const computedRows = mirrorPlan === undefined ? undefined : computedPrefixRows(mirrorPlan);
@@ -396,10 +394,6 @@ class TilePoolImpl implements TilePool {
       // Only in the in-place fallback; with prefix scheduling workers never
       // see a mirrored row and need no flag.
       ...(active.workersSkipMirroredRows ? { conjugateMirror: true as const } : {}),
-      ...(active.request.interleave === true ? { interleave: true as const } : {}),
-      ...(active.request.preparedCoordinates === true
-        ? { preparedCoordinates: true as const }
-        : {}),
       ...(bandOutput === undefined ? {} : { bandOutput }),
       ...(bandOutput === undefined ? {} : { outputRevision: PACKED_OUTPUT_REVISION }),
     };

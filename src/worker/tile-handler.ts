@@ -75,8 +75,6 @@ export function createTileHandler(
         {
           perfCounters: message.perfCounters === true,
           mirrorPlan,
-          interleave: message.interleave === true,
-          preparedCoordinates: message.preparedCoordinates === true,
         },
       );
       if (signal.aborted) return;
