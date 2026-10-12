@@ -325,7 +325,9 @@ Stage A decisions that nothing else may preempt:
    point unless oracle-supported).
    Proposed flip to the watched-lag `triggered-scan`:
    [ADR 0006](decisions/0006-watched-lag-default-classifier.md) (bit-identical
-   to legacy on the corpus; awaiting the release-protocol run).
+   to legacy on the corpus). Release protocol: the branded-Chrome half
+   passed ([evidence](../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md));
+   the branded-Firefox half is pending.
 4. The frozen absolute coarse/stable latency budgets and the declared
    user-facing hard-view budget (plan §9, program-level success).
 

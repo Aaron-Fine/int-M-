@@ -132,6 +132,16 @@ latency budgets, not release-gate evidence. Release-gate evidence still needs
 the declared target hardware, branded stable Chrome and Firefox, headed runs,
 and ≥ 21 paired repetitions with BCa paired intervals.
 
+`--release` runs that protocol on the machine that launches it: branded
+stable Google Chrome (launched as an ordinary process with a fresh profile and
+attached over CDP; default `flatpak run com.google.Chrome`) and branded
+Firefox (driven over WebDriver BiDi; default `/usr/bin/firefox`), both
+headed, at ≥ 22 repetitions per case (rep 0 cold, so ≥ 21 warm pairs).
+Every summary row carries 95% BCa paired intervals (`tools/benchmark/bca.ts`,
+seed recorded in `raw-observations.json`): the speed ratio as the median
+paired log-ratio and the regression cap as the median paired difference. The
+power source and ACPI platform profile are read from sysfs.
+
 ## Raw-sample discipline
 
 1. Every repetition of every case is stored individually, including outliers

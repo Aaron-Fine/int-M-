@@ -1,7 +1,8 @@
 # ADR 0006: Watched-lag triggered scan as the default classifier
 
 - Status: Proposed — default flipped on `proof/certified-acceptance`; acceptance
-  waits on the release-protocol Stage A run (plan §9)
+  waits on the release-protocol Stage A run (plan §9), whose Chrome half has
+  passed and whose Firefox half is pending
 - Date: 2026-10-11
 
 ## Context
@@ -65,3 +66,11 @@ the semantic cache version advanced to 2.
   repetitions, branded stable browsers, headed, declared target hardware). The
   directional screening run (headless Playwright engines) is recorded with
   the PR.
+- Release-protocol run, Chrome half
+  (`evidence/phase-2/2026-10-11-59926c5-watched-lag-release/`): branded
+  Chrome 155, headed, on the target laptop (AC, balanced profile), 21 warm
+  pairs per case with 95% BCa paired intervals. Release-gate cases are
+  1.67×–16.45× faster (lower bounds 1.61×–13.56×), easy cases 1.01×–1.58×, no
+  regression flag, and all 286 stable-canvas hash pairs match. The Firefox
+  half was stopped by host memory pressure before it stored samples; it is
+  the remaining condition for acceptance.
