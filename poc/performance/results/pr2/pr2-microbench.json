@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "label": "directional — Node/V8 evidence, not release evidence",
+  "description": "PR 2 microbench: allocation-free scalar classification pipeline versus the legacy allocating pipeline over fixed hard-view raster slices.",
+  "planReference": "docs/plans/int-m-performance-plan.html section 5, workstream B",
+  "measuredAt": "2026-09-02T07:14:43.516Z",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "platformRelease": "7.1.10-200.fc44.x86_64",
+    "logicalCpuCount": 8,
+    "cpuModel": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "totalMemoryBytes": 16465719296,
+    "note": "Node single process; run via npm run poc:bench:pr2 (vite SSR build + node --expose-gc)."
+  },
+  "harness": {
+    "corpusSeed": 5065040,
+    "warmupPasses": 2,
+    "timedPasses": 15,
+    "profile": {
+      "maxIterations": 256,
+      "maxPeriod": 16,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    },
+    "comparisonBasis": "PoC control kernel (faithful port of the pre-PR2 classifier) is the legacy comparator; the scalar core is the production classifyInto. Band channels are preallocated before measurement in both variants.",
+    "parityGate": "Before timing, each case runs both variants once over the full raster and compares status, escape iteration, and smooth iteration on every pixel with exact equality; attracting pixels are compared on period and multiplier magnitude/angle except for the documented PR 3 period reductions (legacy non-primitive multiples that the common verifier reduces, counted in the report); any other mismatch aborts the run with a non-zero exit code and no results are written.",
+    "allocationMetric": "GC performance entries (scavenges and mark-compact) during one dedicated pass with a settle drain. A scavenge count of N for a young generation of capacity S bounds per-pass churn at ~N x S bytes (reported per pixel); short-lived per-pixel garbage is invisible to gc()-based heap deltas and to the V8 sampling heap profiler, which records only surviving allocations. Per-pixel object counts are additionally reported by construction."
+  },
+  "cases": [
+    {
+      "anchor": {
+        "re": -1.94130973,
+        "im": -0.0000974722949,
+        "zoom": 609
+      },
+      "id": "hard-slice-anchor-2",
+      "viewport": {
+        "center": {
+          "re": -1.94130973,
+          "im": -0.0000974722949
+        },
+        "spanY": 0.004105090311986864
+      },
+      "size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "pixelCount": 1048576,
+      "parity": {
+        "pixels": 1048576,
+        "statusMismatches": 0,
+        "escapeIterationMismatches": 0,
+        "smoothIterationMismatches": 0,
+        "attractingMismatches": 0,
+        "periodReductions": 10118,
+        "ok": true,
+        "note": "all status, escape/smooth iteration, period, and multiplier bits identical (10118 documented period reductions)"
+      },
+      "variants": {
+        "legacy-allocating": {
+          "description": "Pre-PR2 pipeline shape: allocating pixelToComplex, PoC control kernel (legacy port) with a per-pixel result record retained briefly, status-mapping writes. The control kernel omits smooth escape iteration, so the wrapper recomputes it from the escape record the way the pre-PR2 production classifier did.",
+          "samplesMs": [
+            1280.389, 1250.064, 1254.224, 1271.054, 1265.973, 1312.538, 1256.918, 1324.122,
+            1290.487, 1265.478, 1301.501, 1293.294, 1284.099, 1288.743, 1269.257
+          ],
+          "medianMs": 1280.389,
+          "madMs": 14.416,
+          "stdevMs": 20.881,
+          "minMs": 1250.064,
+          "maxMs": 1324.122,
+          "allocation": {
+            "pass": {
+              "gcEvents": 10,
+              "scavengeEvents": 8,
+              "markCompactEvents": 0,
+              "gcPauseMs": 6.623,
+              "kindsHistogram": {
+                "1": 8,
+                "4": 2
+              }
+            },
+            "objectsPerPixelByConstruction": 3,
+            "objectsPerPixelNote": "Lower bound by construction: one Complex at the allocating pixelToComplex boundary, one metrics record, and one result record per pixel; each verifier call allocates a further multiplier record.",
+            "youngGenCapacityBytes": 67108864,
+            "churnBoundBytes": 536870912,
+            "churnBoundBytesPerPixel": 512
+          }
+        },
+        "scalar-core": {
+          "description": "Production scalar pipeline shape: pixelToComplexInto, classifyInto into a preallocated OrbitSample, direct channel writes. No per-pixel object is created.",
+          "samplesMs": [
+            1270.271, 1246.392, 1284.292, 1249.173, 1245.049, 1248.595, 1289.369, 1307.741,
+            1287.918, 1282.091, 1284.269, 1251.774, 1276.921, 1267.589, 1308.279
+          ],
+          "medianMs": 1276.921,
+          "madMs": 12.448,
+          "stdevMs": 20.709,
+          "minMs": 1245.049,
+          "maxMs": 1308.279,
+          "allocation": {
+            "pass": {
+              "gcEvents": 2,
+              "scavengeEvents": 0,
+              "markCompactEvents": 0,
+              "gcPauseMs": 3.555,
+              "kindsHistogram": {
+                "4": 2
+              }
+            },
+            "objectsPerPixelByConstruction": 0,
+            "objectsPerPixelNote": "By construction: no object is created per pixel; residual scavenges stem from boxed double arguments at the non-inlined classifyInto call boundary and from Math.hypot (a C++ builtin) on cycle detection.",
+            "youngGenCapacityBytes": 67108864,
+            "churnBoundBytes": 0,
+            "churnBoundBytesPerPixel": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "full-set-slice",
+      "viewport": {
+        "center": {
+          "re": -0.75,
+          "im": 0
+        },
+        "spanY": 2.5
+      },
+      "size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "pixelCount": 1048576,
+      "parity": {
+        "pixels": 1048576,
+        "statusMismatches": 0,
+        "escapeIterationMismatches": 0,
+        "smoothIterationMismatches": 0,
+        "attractingMismatches": 0,
+        "periodReductions": 960,
+        "ok": true,
+        "note": "all status, escape/smooth iteration, period, and multiplier bits identical (960 documented period reductions)"
+      },
+      "variants": {
+        "legacy-allocating": {
+          "description": "Pre-PR2 pipeline shape: allocating pixelToComplex, PoC control kernel (legacy port) with a per-pixel result record retained briefly, status-mapping writes. The control kernel omits smooth escape iteration, so the wrapper recomputes it from the escape record the way the pre-PR2 production classifier did.",
+          "samplesMs": [
+            406.255, 423.059, 404.584, 417.134, 416.277, 404.468, 403.681, 411.727, 418.746,
+            414.646, 416.607, 400.477, 403.756, 431.208, 404.445
+          ],
+          "medianMs": 411.727,
+          "madMs": 7.143,
+          "stdevMs": 8.489,
+          "minMs": 400.477,
+          "maxMs": 431.208,
+          "allocation": {
+            "pass": {
+              "gcEvents": 6,
+              "scavengeEvents": 4,
+              "markCompactEvents": 0,
+              "gcPauseMs": 5.279,
+              "kindsHistogram": {
+                "1": 4,
+                "4": 2
+              }
+            },
+            "objectsPerPixelByConstruction": 3,
+            "objectsPerPixelNote": "Lower bound by construction: one Complex at the allocating pixelToComplex boundary, one metrics record, and one result record per pixel; each verifier call allocates a further multiplier record.",
+            "youngGenCapacityBytes": 134217728,
+            "churnBoundBytes": 536870912,
+            "churnBoundBytesPerPixel": 512
+          }
+        },
+        "scalar-core": {
+          "description": "Production scalar pipeline shape: pixelToComplexInto, classifyInto into a preallocated OrbitSample, direct channel writes. No per-pixel object is created.",
+          "samplesMs": [
+            394.341, 406.54, 398.282, 394.286, 387.146, 386.27, 388.818, 390.371, 391.18, 392.544,
+            387.724, 387.784, 386.924, 413.168, 413.746
+          ],
+          "medianMs": 391.18,
+          "madMs": 3.456,
+          "stdevMs": 8.991,
+          "minMs": 386.27,
+          "maxMs": 413.746,
+          "allocation": {
+            "pass": {
+              "gcEvents": 3,
+              "scavengeEvents": 1,
+              "markCompactEvents": 0,
+              "gcPauseMs": 7.625,
+              "kindsHistogram": {
+                "1": 1,
+                "4": 2
+              }
+            },
+            "objectsPerPixelByConstruction": 0,
+            "objectsPerPixelNote": "By construction: no object is created per pixel; residual scavenges stem from boxed double arguments at the non-inlined classifyInto call boundary and from Math.hypot (a C++ builtin) on cycle detection.",
+            "youngGenCapacityBytes": 134217728,
+            "churnBoundBytes": 134217728,
+            "churnBoundBytesPerPixel": 128
+          }
+        }
+      }
+    }
+  ],
+  "varianceClaim": [
+    {
+      "case": "hard-slice-anchor-2",
+      "madLegacyMs": 14.416,
+      "madScalarMs": 12.448,
+      "relativeSpreadLegacy": 0.011259078295736687,
+      "relativeSpreadScalar": 0.009748449590851744,
+      "tightened": "yes",
+      "note": "Allocation removal tightens classifyMs spread when the scalar MAD (absolute and relative) is below the legacy MAD. Directional judgment over the timed reps of one machine."
+    },
+    {
+      "case": "full-set-slice",
+      "madLegacyMs": 7.143,
+      "madScalarMs": 3.456,
+      "relativeSpreadLegacy": 0.017348874375496384,
+      "relativeSpreadScalar": 0.00883480750549619,
+      "tightened": "yes",
+      "note": "Allocation removal tightens classifyMs spread when the scalar MAD (absolute and relative) is below the legacy MAD. Directional judgment over the timed reps of one machine."
+    }
+  ]
+}

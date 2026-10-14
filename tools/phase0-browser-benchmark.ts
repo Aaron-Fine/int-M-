@@ -1,3 +1,4 @@
+import { unpackPeriod, unpackStatus } from '../src/render/packed-semantic';
 import { CpuRenderer, type SemanticFrame } from '../src/render';
 import type { RasterSize, RenderQuality, Viewport } from '../src/domain';
 import type { FrameMessage, WorkerToMainMessage } from '../src/worker/protocol';
@@ -564,6 +565,36 @@ const percentile = (sorted: readonly number[], fraction: number): number => {
   return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fraction))] ?? Number.NaN;
 };
 
+// Flattens the band-composite frame into per-pixel decoded semantic fields
+// (packed status+period, poc-packed-1.0.0) for the GPU comparison pass.
+const flattenSemanticFrame = (
+  frame: SemanticFrame,
+): {
+  status: Uint8Array;
+  period: Uint32Array;
+  smooth: Float64Array;
+  angle: Float64Array;
+} => {
+  const pixels = frame.size.width * frame.size.height;
+  const status = new Uint8Array(pixels);
+  const period = new Uint32Array(pixels);
+  const smooth = new Float64Array(pixels);
+  const angle = new Float64Array(pixels);
+  for (const band of frame.bands) {
+    for (let index = 0; index < band.packedStatusPeriod.length; index += 1) {
+      const word = band.packedStatusPeriod[index] ?? 0;
+      const pixel =
+        (band.y0 + Math.floor(index / frame.size.width)) * frame.size.width +
+        (index % frame.size.width);
+      status[pixel] = unpackStatus(word);
+      period[pixel] = unpackPeriod(word);
+      smooth[pixel] = band.smoothIterationOrMultiplierMagnitude[index] ?? 0;
+      angle[pixel] = band.multiplierAngle[index] ?? 0;
+    }
+  }
+  return { status, period, smooth, angle };
+};
+
 // eslint-disable-next-line complexity -- each branch records a distinct disagreement field in one raster pass.
 const compareFrames = (cpu: SemanticFrame, gpu: Float32Array) => {
   let statusMismatch = 0;
@@ -572,21 +603,22 @@ const compareFrames = (cpu: SemanticFrame, gpu: Float32Array) => {
   let gpuUnresolved = 0;
   const multiplierErrors: number[] = [];
   const stabilityErrors: number[] = [];
-  for (let pixel = 0; pixel < cpu.status.length; pixel += 1) {
+  const flat = flattenSemanticFrame(cpu);
+  for (let pixel = 0; pixel < flat.status.length; pixel += 1) {
     const base = pixel * 4;
     const gpuStatus = gpu[base] ?? Number.NaN;
-    const cpuStatus = cpu.status[pixel] ?? 0;
+    const cpuStatus = flat.status[pixel] ?? 0;
     if (gpuStatus === 0) gpuUnresolved += 1;
     if (gpuStatus !== cpuStatus) statusMismatch += 1;
     if (gpuStatus === 2 && cpuStatus === 2) {
       const gpuPeriod = gpu[base + 1] ?? 0;
-      const cpuPeriod = cpu.period[pixel] ?? 0;
+      const cpuPeriod = flat.period[pixel] ?? 0;
       if (gpuPeriod !== cpuPeriod) {
         periodMismatch += 1;
       } else {
         comparableCycles += 1;
         const gpuMagnitude = gpu[base + 2] ?? Number.NaN;
-        const cpuMagnitude = cpu.smoothIterationOrMultiplierMagnitude[pixel] ?? Number.NaN;
+        const cpuMagnitude = flat.smooth[pixel] ?? Number.NaN;
         const magnitudeError = Math.abs(gpuMagnitude - cpuMagnitude);
         multiplierErrors.push(magnitudeError);
         const gpuStability = gpuMagnitude === 0 ? Infinity : -Math.log(gpuMagnitude) / gpuPeriod;
@@ -599,7 +631,7 @@ const compareFrames = (cpu: SemanticFrame, gpu: Float32Array) => {
   }
   multiplierErrors.sort((a, b) => a - b);
   stabilityErrors.sort((a, b) => a - b);
-  const pixels = cpu.status.length;
+  const pixels = flat.status.length;
   return {
     statusMismatchFraction: statusMismatch / pixels,
     periodMismatchFraction: periodMismatch / pixels,

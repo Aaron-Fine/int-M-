@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "measurement": "smoke",
+  "capturedAt": "2026-09-02T04:02:26.623Z",
+  "environment": {
+    "schemaVersion": 1,
+    "capturedAt": "2026-09-02T04:02:26.623Z",
+    "browser": {
+      "build": "151.0.7922.34",
+      "engine": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
+      "headed": false,
+      "powerMode": null,
+      "devicePixelRatio": 1,
+      "viewport": { "width": 1280, "height": 720 }
+    },
+    "cpu": { "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz", "cores": 8 },
+    "memoryTotalBytes": 16465719296,
+    "os": { "platform": "Linux linux", "kernel": "7.1.10-200.fc44.x86_64" },
+    "revisions": {
+      "build": "46644dd7885224eb03659891cca0a2d4998407c1",
+      "algorithm": "46644dd7885224eb03659891cca0a2d4998407c1",
+      "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+      "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+    },
+    "render": { "workerCount": null, "backend": "microbench-page" },
+    "harness": {
+      "command": "node /tmp/opencode/worktrees/int-M-wt-poc/tools/benchmark/capture-environment.mjs",
+      "version": "0.1.0",
+      "node": "v24.19.0"
+    },
+    "hardwareConcurrency": 8,
+    "notes": [
+      "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+      "Headless Chromium via Playwright; directional PoC evidence, not Stage A release evidence (plan §9 runs stable branded Chrome/Firefox on the declared target class).",
+      "Power mode is not detectable from the page; browser.powerMode stays null."
+    ]
+  },
+  "samples": [
+    {
+      "hardwareConcurrency": 8,
+      "devicePixelRatio": 1,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
+      "echoWorkerRoundtripMs": 6.9000000059604645
+    },
+    {
+      "hardwareConcurrency": 8,
+      "devicePixelRatio": 1,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
+      "echoWorkerRoundtripMs": 8.600000008940697
+    },
+    {
+      "hardwareConcurrency": 8,
+      "devicePixelRatio": 1,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36",
+      "echoWorkerRoundtripMs": 6.600000008940697
+    }
+  ],
+  "summary": {
+    "runnerNames": [
+      "environment",
+      "pool-sizing",
+      "yield-ab",
+      "zero-copy",
+      "band-order",
+      "conjugate-mirror",
+      "coarse-cost"
+    ],
+    "samplesRecorded": 3,
+    "medianEchoWorkerRoundtripMs": 6.9000000059604645
+  },
+  "notes": [
+    "Smoke milestone (M1): proves the production bundle boots and the microbench page + worker mechanics load.",
+    "Echo roundtrip includes one cold worker spawn; it is a sanity probe, not a benchmark sample."
+  ]
+}

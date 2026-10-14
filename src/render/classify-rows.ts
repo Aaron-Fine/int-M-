@@ -1,52 +1,226 @@
 import {
+  createOrbitSample,
   createViewportTransform,
   OrbitClassifier,
-  type RasterOrbitSample,
+  OrbitScratch,
+  resolveOrbitOptions,
+  type ClassifierMode,
+  type ConjugateMirrorPlan,
+  mirrorSourceOf,
+  type DifferentialStats,
+  type OrbitOptions,
+  type OrbitSample,
   type RenderQuality,
+  type ViewportTransform,
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
-import type { DynamicsRenderRequest, SemanticStageTiming } from './renderer';
-import { copyConjugateRow, type BandArrays } from './row-bands';
+import { TriggeredRowKernel } from './triggered-rows';
+import { packStatusPeriod, unpackStatus } from './packed-semantic';
+import {
+  createPerfCounters,
+  perfCountersFromCheckpointMetrics,
+  type MutablePerfCounters,
+  type PerfCounters,
+} from './perf-counters';
+import type { DynamicsRenderRequest, SemanticBand, SemanticStageTiming } from './renderer';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
+import {
+  createYieldScheduler,
+  defaultRowYieldScheduler,
+  type YieldMechanism,
+} from './yield-scheduler';
 
 const throwIfAborted = (signal: AbortSignal): void => {
-  if (signal.aborted) throw new RenderCancelledError();
+  if (signal.aborted) {
+    throw new RenderCancelledError();
+  }
 };
 
-const yieldToWorkerEventLoop = async (): Promise<void> => {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
-};
+const nowMs = (): number => performance.now();
 
-export interface ClassifyRowsResult extends BandArrays {
-  readonly timing: SemanticStageTiming;
+/**
+ * Pre-sliced output buffers a caller (tile worker via the supervisor's
+ * zero-copy band views) can hand to classifyRows, eliminating the per-band
+ * output allocations. Lengths must match the band exactly.
+ */
+export interface BandOutputBuffers {
+  readonly packedStatusPeriod: Uint32Array<ArrayBuffer>;
+  readonly smoothIterationOrMultiplierMagnitude: Float64Array<ArrayBuffer>;
+  readonly multiplierAngle: Float64Array<ArrayBuffer>;
 }
 
-const writeSample = (
-  band: BandArrays,
+export interface ClassifyRowsResult extends SemanticBand {
+  readonly timing: SemanticStageTiming;
+  /**
+   * Differential-mode disagreement record (classifierMode 'differential'
+   * only): both kernels ran per pixel, the legacy answer filled the band
+   * channels, and the divergences were counted here. Undefined otherwise.
+   */
+  readonly differential?: DifferentialStats;
+  /**
+   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` only):
+   * one preallocated record per band. Undefined — and never allocated —
+   * unless the caller opted in.
+   */
+  readonly counters?: PerfCounters;
+}
+
+/**
+ * Writes one primitive classification record into the band storage. The
+ * channel encoding is packed (poc-packed-1.0.0): status and primitive period
+ * share one Uint32; the smooth escape iteration or multiplier magnitude and
+ * the multiplier angle keep their Float64 channels; period/angle are zero
+ * for non-attracting statuses.
+ */
+const writeSampleToBand = (
+  band: BandOutputBuffers,
   width: number,
   y0: number,
   y1: number,
   x: number,
   y: number,
   stride: number,
-  sample: Readonly<RasterOrbitSample>,
-  conjugate: boolean,
+  sample: Readonly<OrbitSample>,
 ): void => {
+  const status = sample.status;
+  const period = status === 2 ? sample.period : 0;
+  const primary =
+    status === 1 ? sample.smoothIteration : status === 2 ? sample.multiplierMagnitude : 0;
+  const secondary = status === 2 ? sample.multiplierAngle : 0;
+  const word = packStatusPeriod(status, period);
+
   const limitY = Math.min(y1, y + stride);
   const limitX = Math.min(width, x + stride);
   for (let writeY = y; writeY < limitY; writeY += 1) {
     for (let writeX = x; writeX < limitX; writeX += 1) {
       const offset = (writeY - y0) * width + writeX;
-      band.status[offset] = sample.status;
-      band.period[offset] = sample.period;
-      band.smoothIterationOrMultiplierMagnitude[offset] =
-        sample.smoothIterationOrMultiplierMagnitude;
-      band.multiplierUnitRe[offset] = sample.multiplierUnitRe;
-      const im = conjugate ? -sample.multiplierUnitIm : sample.multiplierUnitIm;
-      band.multiplierUnitIm[offset] = im === 0 ? 0 : im;
+      band.packedStatusPeriod[offset] = word;
+      band.smoothIterationOrMultiplierMagnitude[offset] = primary;
+      band.multiplierAngle[offset] = secondary;
     }
+  }
+};
+
+/**
+ * The two-lane triggered row kernel: the default classifier mode
+ * ('triggered-scan', explicit or by default) at stride 1 (the stable pass)
+ * without counters. Bit-identical to the scalar triggered kernel.
+ */
+const createTriggeredRowKernel = (
+  hasCounters: boolean,
+  classifierMode: ClassifierMode | undefined,
+  stride: number,
+  orbitOptions: Partial<OrbitOptions>,
+): TriggeredRowKernel | undefined =>
+  !hasCounters && classifierMode === 'triggered-scan' && stride === 1
+    ? new TriggeredRowKernel(orbitOptions)
+    : undefined;
+
+/**
+ * Optional switches for classifyRows, grouped in ONE object so new experiment
+ * flags do not grow the positional parameter list. Every field defaults to
+ * off; an absent object (or absent fields) runs the default path.
+ */
+export interface ClassifyRowsOptions {
+  /**
+   * Opt-in diagnostics counters (plan §8). Absent — never even allocated —
+   * unless the caller opted in; with it, the classifier selects the
+   * instrumented kernel variant OUTSIDE the raster loop.
+   */
+  readonly perfCounters?: boolean;
+  /**
+   * Conjugate-mirror plan (workstream M experiment): rows with a source row
+   * are left untouched here (the caller fills them with applyConjugateMirror
+   * once every band has returned). Stride-1 only.
+   */
+  readonly mirrorPlan?: ConjugateMirrorPlan | undefined;
+}
+
+/**
+ * Prepared real coordinates: entry x holds
+ * the real part of the sampled column for the grid column x, using the exact
+ * pixel-center expression of createViewportTransform.pixelToComplexInto with
+ * the same operation order. Only grid columns (multiples of stride) are read.
+ */
+export const prepareRealColumns = (
+  transform: ViewportTransform,
+  width: number,
+  stride: number,
+  out: Float64Array,
+): void => {
+  const { center } = transform.viewport;
+  const { unitsPerPixel } = transform;
+  for (let x = 0; x < width; x += stride) {
+    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
+    out[x] = center.re + (sampleX + 0.5 - width / 2) * unitsPerPixel;
+  }
+};
+
+/**
+ * Prepared imaginary coordinate of the sampled row for grid row y: the exact
+ * pixel-center expression of pixelToComplexInto, evaluated once per row.
+ */
+export const preparedRowImaginary = (
+  transform: ViewportTransform,
+  height: number,
+  stride: number,
+  y: number,
+): number => {
+  const sampleY = Math.min(height - 1, y + (stride - 1) / 2);
+  return transform.viewport.center.im - (sampleY + 0.5 - height / 2) * transform.unitsPerPixel;
+};
+
+/**
+ * The classifier mode to hand to OrbitClassifier; undefined = the default
+ * ('triggered-scan'). The counters vocabulary is the legacy scan's (the
+ * instrumented kernel only mirrors it), so counters with no explicit mode
+ * select 'legacy-scan' here instead of the triggered default. This is not
+ * silent: it is the mode the counters describe. An explicit 'triggered-scan'
+ * with counters still throws in OrbitClassifier.
+ */
+const requestedClassifierMode = (
+  classifierMode: ClassifierMode | undefined,
+  hasCounters: boolean,
+): ClassifierMode | undefined => classifierMode ?? (hasCounters ? 'legacy-scan' : undefined);
+
+const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
+  if (plan !== undefined && stride !== 1) {
+    throw new RangeError('conjugate mirroring requires stride 1');
+  }
+};
+
+/** True when the plan assigns row y a source row (it is copied, not classified). */
+const isMirroredRow = (plan: ConjugateMirrorPlan | undefined, y: number): boolean =>
+  plan !== undefined && mirrorSourceOf(plan, y) >= 0;
+
+interface RowLayout {
+  readonly width: number;
+  readonly height: number;
+  readonly y0: number;
+  readonly y1: number;
+  readonly y: number;
+  readonly stride: number;
+}
+
+/**
+ * Classifies one sampled row into the band with the scalar classifier: the
+ * real part comes from the prepared per-column table and the imaginary part
+ * is computed once for the row.
+ */
+const classifyRowInto = (
+  classifier: OrbitClassifier,
+  sample: OrbitSample,
+  band: BandOutputBuffers,
+  layout: RowLayout,
+  transform: ViewportTransform,
+  realColumns: Float64Array,
+): void => {
+  const { width, height, y0, y1, y, stride } = layout;
+  const cIm = preparedRowImaginary(transform, height, stride, y);
+  for (let x = 0; x < width; x += stride) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- in-bounds: x < width = realColumns.length
+    classifier.classifyInto(realColumns[x]!, cIm, sample);
+    writeSampleToBand(band, width, y0, y1, x, y, stride, sample);
   }
 };
 
@@ -57,68 +231,201 @@ export async function classifyRows(
   y0: number,
   y1: number,
   signal: AbortSignal,
+  // Versioned classifier mode (PR 4). Optional: absent means the
+  // DEFAULT_ORBIT_OPTIONS mode ('triggered-scan'), except with perfCounters,
+  // where it means 'legacy-scan' (see below).
+  classifierMode?: ClassifierMode,
+  // Yield mechanism (renderer-path detail): 'message-channel' replaces the
+  // nested setTimeout(0) row yields whose budget was largely the 4 ms
+  // nested-timer clamp; 'timeout' is the paired-evidence measurement arm.
+  yieldMechanism?: YieldMechanism,
+  // Pre-sliced output buffers (zero-copy detail): when present the band is
+  // classified directly into them and nothing is allocated per call.
+  output?: BandOutputBuffers,
+  // Optional experiment/diagnostic switches (perfCounters, mirrorPlan);
+  // absent = the default path.
+  options?: ClassifyRowsOptions,
 ): Promise<ClassifyRowsResult> {
-  const { width, height } = request.size;
+  const { perfCounters, mirrorPlan } = options ?? {};
+  assertMirrorStride(mirrorPlan, stride);
+  const { width } = request.size;
   const length = (y1 - y0) * width;
-  const band: BandArrays = {
-    status: new Uint8Array(length),
-    period: new Uint32Array(length),
+  const band: BandOutputBuffers = output ?? {
+    packedStatusPeriod: new Uint32Array(length),
     smoothIterationOrMultiplierMagnitude: new Float64Array(length),
-    multiplierUnitRe: new Float32Array(length),
-    multiplierUnitIm: new Float32Array(length),
+    multiplierAngle: new Float64Array(length),
   };
-  const classifier = new OrbitClassifier({
+  if (
+    band.packedStatusPeriod.length !== length ||
+    band.smoothIterationOrMultiplierMagnitude.length !== length ||
+    band.multiplierAngle.length !== length
+  ) {
+    throw new RangeError('band output buffers must match the band size');
+  }
+  // One preallocated counters record per band, created only on opt-in; the
+  // legacy/differential kernels write their fields into it directly (it is a
+  // structural superset of the kernel sink), while checkpoint mode reads the
+  // kernel's own metrics below.
+  const counters: MutablePerfCounters | undefined =
+    perfCounters === true ? createPerfCounters() : undefined;
+  const requestedMode = requestedClassifierMode(classifierMode, counters !== undefined);
+  const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
-    cycleDetection: quality.cycleDetection ?? 'scan',
-  });
-  const { viewport, unitsPerPixel } = createViewportTransform(request.viewport, request.size);
-  const symmetric = stride === 1 && viewport.center.im === 0;
-  // Preserve the canonical formula, avoiding cumulative addition drift at deep zoom.
-  const realCoordinates = new Float64Array(width);
-  for (let x = 0; x < width; x += stride) {
-    const sampleX = Math.min(width - 1, x + (stride - 1) / 2);
-    realCoordinates[x] = viewport.center.re + (sampleX + 0.5 - width / 2) * unitsPerPixel;
-  }
+    ...(requestedMode === undefined ? {} : { classifierMode: requestedMode }),
+  };
+  // Concrete mode after defaults (undefined requestedMode = the default).
+  const resolvedMode = resolveOrbitOptions(orbitOptions).classifierMode;
+  const classifier = new OrbitClassifier(
+    orbitOptions,
+    new OrbitScratch(quality.maxPeriod),
+    ...(counters === undefined ? [] : [counters]),
+  );
+  // Per-band working state: the classification loop below allocates nothing
+  // per pixel (plan workstream B) — scalars in, band channels out.
+  const sample = createOrbitSample();
+  const viewportTransform = createViewportTransform(request.viewport, request.size);
+  const rowKernel = createTriggeredRowKernel(
+    counters !== undefined,
+    resolvedMode,
+    stride,
+    orbitOptions,
+  );
+  // Prepared coordinates: real parts once per column, one imaginary value per
+  // sampled row (bit-identical to the per-pixel viewport transform).
+  const realColumns = new Float64Array(width);
+  prepareRealColumns(viewportTransform, width, stride, realColumns);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
-  const wallStarted = performance.now();
+  // The 'timeout' arm is the paired-evidence measurement arm; it is created
+  // per call because its pending set must not outlive the band.
+  const rowYields =
+    yieldMechanism === 'timeout'
+      ? createYieldScheduler({ mechanism: 'timeout' })
+      : defaultRowYieldScheduler();
+  const wallStarted = nowMs();
   let yieldWaitMs = 0;
   let yieldCount = 0;
 
   for (let y = y0; y < y1; y += stride) {
     throwIfAborted(signal);
-    const mirrorY = height - 1 - y;
-    if (symmetric && mirrorY >= y0 && mirrorY < y) {
-      copyConjugateRow(band, (mirrorY - y0) * width, (y - y0) * width, width);
+    // Mirrored rows are copied later; skipping them also skips their yield.
+    if (isMirroredRow(mirrorPlan, y)) continue;
+    if (rowKernel !== undefined) {
+      rowKernel.classifyRow(
+        realColumns,
+        preparedRowImaginary(viewportTransform, request.size.height, stride, y),
+        width,
+        band,
+        (y - y0) * width,
+      );
     } else {
-      // Canonical upper-half sampling makes arbitrary band slices bit-identical
-      // to a full symmetric frame, even when its paired row is in another band.
-      const sampleY = symmetric ? Math.min(y, mirrorY) : Math.min(height - 1, y + (stride - 1) / 2);
-      const cIm = viewport.center.im - (sampleY + 0.5 - height / 2) * unitsPerPixel;
-      for (let x = 0; x < width; x += stride) {
-        writeSample(
-          band,
-          width,
-          y0,
-          y1,
-          x,
-          y,
-          stride,
-          classifier.classifyRaster(realCoordinates[x] ?? Number.NaN, cIm),
-          symmetric && y > mirrorY,
-        );
-      }
+      classifyRowInto(
+        classifier,
+        sample,
+        band,
+        { width, height: request.size.height, y0, y1, y, stride },
+        viewportTransform,
+        realColumns,
+      );
     }
+
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
-      const yieldStarted = performance.now();
-      await yieldToWorkerEventLoop();
-      yieldWaitMs += performance.now() - yieldStarted;
+      const yieldStarted = nowMs();
+      // MessageChannel port yield by default: no 4 ms nested-timer clamp, so
+      // cancellation preempts between kernels on the same (or sooner)
+      // schedule as the previous setTimeout(0) yields.
+      await rowYields.yieldToEventLoop();
+      yieldWaitMs += nowMs() - yieldStarted;
       yieldCount += 1;
     }
   }
+
   throwIfAborted(signal);
+  // exactOptionalPropertyTypes: build the optional fields via narrowed
+  // conditional spreads so keys are absent (not undefined) in the default.
+  const differentialStats = classifierMode === 'differential' ? classifier.differentialStats : null;
+  const countersResult =
+    counters === undefined
+      ? undefined
+      : assembleCounters(
+          counters,
+          classifier,
+          classifierMode,
+          band,
+          width,
+          stride,
+          y0,
+          y1,
+          mirrorPlan,
+        );
   return {
-    ...band,
-    timing: { classifyMs: performance.now() - wallStarted - yieldWaitMs, yieldWaitMs, yieldCount },
+    y0,
+    y1,
+    packedStatusPeriod: band.packedStatusPeriod,
+    smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
+    multiplierAngle: band.multiplierAngle,
+    timing: {
+      classifyMs: nowMs() - wallStarted - yieldWaitMs,
+      yieldWaitMs,
+      yieldCount,
+    },
+    ...(differentialStats === null ? {} : { differential: differentialStats }),
+    ...(countersResult === undefined ? {} : { counters: countersResult }),
   };
 }
+
+/**
+ * Opt-in counters assembly (plan §8), run once per band after classification.
+ * With a mirror plan, the counters and differential-mode stats count only the
+ * computed (non-mirrored) rows: mirrored rows are copied after classification
+ * and are never classified, so they add nothing here.
+ * Status totals come from one pass over the band's written cells; the
+ * reported kernel's counters were either written into the sink directly
+ * (legacy/differential instrumented scan) or live in the checkpoint kernel's
+ * own preallocated record.
+ */
+const assembleCounters = (
+  counters: MutablePerfCounters,
+  classifier: OrbitClassifier,
+  classifierMode: ClassifierMode | undefined,
+  band: BandOutputBuffers,
+  width: number,
+  stride: number,
+  y0: number,
+  y1: number,
+  mirrorPlan: ConjugateMirrorPlan | undefined,
+): PerfCounters => {
+  // Status totals over the classified cells: block origins of the sampled
+  // grid (stride-folded cells on the coarse pass, every pixel at stride 1).
+  // Unwritten words are never read (a zero word is not a valid status).
+  const packed = band.packedStatusPeriod;
+  // Mirrored rows are not classified here (their words are still unwritten
+  // zeros), so the status totals and kernel counters cover computed pixels.
+  for (let y = y0; y < y1; y += stride) {
+    if (isMirroredRow(mirrorPlan, y)) continue;
+    const rowOffset = (y - y0) * width;
+    for (let x = 0; x < width; x += stride) {
+      const word = packed[rowOffset + x];
+      if (word === undefined) continue;
+      const status = unpackStatus(word);
+      if (status === 1) counters.escaped += 1;
+      else if (status === 2) counters.attracting += 1;
+      else counters.unresolved += 1;
+    }
+  }
+  const checkpointMetrics = classifier.checkpointMetrics;
+  if (classifierMode === 'checkpoint' && checkpointMetrics !== null) {
+    // Checkpoint mode: the schedule's counters live in its own record (the
+    // legacy sink above is untouched); map them into the flat vocabulary.
+    const mapped = perfCountersFromCheckpointMetrics(checkpointMetrics);
+    mapped.escaped = counters.escaped;
+    mapped.attracting = counters.attracting;
+    mapped.unresolved = counters.unresolved;
+    return mapped;
+  }
+  // Legacy-scan / differential: the instrumented scan wrote the reported
+  // kernel's counters straight into the sink. Checkpoint-side metrics
+  // accumulated by the differential's second kernel are intentionally
+  // NOT merged (they would mix the two kernels' comparison totals).
+  return counters;
+};

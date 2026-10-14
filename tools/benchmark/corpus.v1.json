@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "description": "Frozen benchmark corpus v1 for Phase 2 performance evidence. Viewport geometry follows the application model: center plus authoritative spanY; spanX = spanY * width / height for the chosen raster. Magnification is 2.5 / spanY (the default viewport span). All coordinates are exact decimal strings and must never be round-tripped through binary64 inside this manifest; the harness parses them once at run time.",
+  "magnificationBaseline": "2.5",
+  "rasters": [
+    { "id": "shipping-1024x640", "width": 1024, "height": 640, "role": "shipping" },
+    { "id": "diagnostic-768", "width": 768, "height": 768, "role": "diagnostic" },
+    { "id": "diagnostic-1024", "width": 1024, "height": 1024, "role": "diagnostic" }
+  ],
+  "cases": [
+    {
+      "id": "mi-easy-default-full",
+      "class": "Easy",
+      "center": { "re": "-0.75", "im": "0" },
+      "spanY": "2.5",
+      "profile": "Balanced",
+      "designation": "screening",
+      "strata": [
+        "exterior",
+        "period-1-4",
+        "period-5-8",
+        "period-9-12",
+        "boundary",
+        "simd-divergent"
+      ],
+      "rationale": "The application's default startup viewport. Protects first use and common navigation; a balanced mix of cheap exterior, catalog periods 1-4, higher periods, and boundary filaments."
+    },
+    {
+      "id": "mi-easy-exterior-heavy",
+      "class": "Easy",
+      "center": { "re": "2.5", "im": "1" },
+      "spanY": "2",
+      "profile": "Balanced",
+      "designation": "screening",
+      "strata": ["exterior"],
+      "rationale": "Far-field rect entirely outside the set (every sampled pixel escapes within a few iterations). Keeps exterior-heavy regression visible and cheap."
+    },
+    {
+      "id": "mi-easy-main-cardioid",
+      "class": "Easy",
+      "center": { "re": "0.1", "im": "0.05" },
+      "spanY": "0.2",
+      "profile": "Balanced",
+      "designation": "screening",
+      "strata": ["period-1-4"],
+      "rationale": "Rect fully inside the main cardioid (verified analytically and with the classifier: 100% analytic period-1 samples). Protects the analytic fast path."
+    },
+    {
+      "id": "mi-easy-period2-bulb",
+      "class": "Easy",
+      "center": { "re": "-1.05", "im": "0.05" },
+      "spanY": "0.15",
+      "profile": "Balanced",
+      "designation": "screening",
+      "strata": ["period-1-4"],
+      "rationale": "Rect fully inside the period-2 disk {|c+1| < 1/4} (verified: 100% analytic period-2 samples). Protects the second analytic fast path."
+    },
+    {
+      "id": "mi-hard-rabbit-boundary",
+      "class": "Hard known",
+      "center": { "re": "-0.1225611668766535", "im": "0.7448617666197435" },
+      "spanY": "0.3",
+      "profile": "Balanced",
+      "designation": "release-gate",
+      "strata": ["period-1-4", "period-5-8", "period-9-12", "boundary", "simd-divergent"],
+      "rationale": "Catalog mi-p3-rabbit center widened until the view contains the rabbit interior plus its boundary filaments and surrounding exterior (measured: ~64% escaped, ~29% attracting with periods 1-27, ~6% unresolved). Exercises long-lived interior orbits and the current complaint surface."
+    },
+    {
+      "id": "mi-hard-supplied-126x",
+      "class": "Hard known",
+      "center": { "re": "-0.158902249", "im": "-1.034028" },
+      "spanY": "0.019841269841269841269",
+      "profile": "Detailed",
+      "designation": "release-gate",
+      "strata": [
+        "period-1-4",
+        "period-5-8",
+        "period-9-12",
+        "uncataloged-higher-period",
+        "high-unresolved",
+        "boundary",
+        "simd-divergent"
+      ],
+      "rationale": "Supplied hard view near catalog mi-p4-03 at ~126x (spanY = 2.5/126 truncated to 20 significant digits). Measured mix: ~84% escaped, ~11% attracting dominated by period 4 with a period-doubling tower p8-p28, ~5% unresolved. Screenshot-derived seeds recorded as exact center+span records per plan section 9."
+    },
+    {
+      "id": "mi-hard-supplied-609x",
+      "class": "Hard known",
+      "center": { "re": "-1.94130973", "im": "-0.0000974722949" },
+      "spanY": "0.0041050903119868637110",
+      "profile": "Detailed",
+      "designation": "release-gate",
+      "strata": [
+        "period-1-4",
+        "period-5-8",
+        "period-9-12",
+        "uncataloged-higher-period",
+        "boundary",
+        "simd-divergent"
+      ],
+      "rationale": "Supplied hard view near catalog mi-p4-01 at ~609x (spanY = 2.5/609 truncated to 20 significant digits). Measured mix: ~95% escaped with slow near-boundary pixels, ~4% attracting p4-p20, ~2% unresolved."
+    },
+    {
+      "id": "mi-hard-supplied-13x",
+      "class": "Hard known",
+      "center": { "re": "0.305376533", "im": "0.552677981" },
+      "spanY": "0.19230769230769230769",
+      "profile": "Detailed",
+      "designation": "release-gate",
+      "strata": [
+        "period-1-4",
+        "period-5-8",
+        "period-9-12",
+        "uncataloged-higher-period",
+        "weak-attraction",
+        "boundary",
+        "simd-divergent"
+      ],
+      "rationale": "Supplied hard view near catalog mi-p4-06 at ~13x (spanY = 2.5/13 truncated to 20 significant digits). Measured mix: ~72% escaped, ~24% attracting (p1, p4, p8, p12 and higher), ~4% unresolved, with near-parabolic pixels whose accepted multiplier magnitude reaches 1.0 at sample precision."
+    },
+    {
+      "id": "mi-fallback-unknown-high-period",
+      "class": "Fallback",
+      "center": { "re": "-0.7436438870371587", "im": "0.1318259042053119" },
+      "spanY": "0.00001",
+      "profile": "Balanced",
+      "designation": "release-gate",
+      "strata": ["uncataloged-higher-period", "high-unresolved", "boundary", "simd-divergent"],
+      "rationale": "Seahorse Valley at 250,000x, far beyond any cataloged component: no detected attracting cycles; ~91% escaped with slow near-boundary pixels and ~9% unresolved at the Balanced budget. Ensures heuristics fail safely and cheaply in uncataloged high-period territory."
+    },
+    {
+      "id": "mi-fallback-weak-attraction",
+      "class": "Fallback",
+      "center": { "re": "-0.1205", "im": "0.8268" },
+      "spanY": "0.005",
+      "profile": "Balanced",
+      "designation": "release-gate",
+      "strata": ["weak-attraction", "period-5-8", "boundary"],
+      "rationale": "Interior of the period-6 satellite capping the Douady rabbit's far internal ray (along the catalog rabbit center away from its cardioid root): ~97% attracting period-6 with accepted multiplier magnitudes up to ~0.81, plus a near-boundary unresolved band. Orbits with |lambda| approaching 1 correctly remain unresolved, which is the fallback behavior under test."
+    },
+    {
+      "id": "mi-fallback-ambiguous-boundary",
+      "class": "Fallback",
+      "center": { "re": "0.3", "im": "0.008" },
+      "spanY": "0.02",
+      "profile": "Balanced",
+      "designation": "release-gate",
+      "strata": ["boundary", "uncataloged-higher-period", "simd-divergent"],
+      "rationale": "Elephant Valley filament comb: ~96% escaped with a slow tail (up to the 512-iteration budget), ~3% attracting on filaments at periods 15-32, ~1% unresolved. Status flips between neighboring pixels, so lanes diverge and heuristics must stay cheap."
+    },
+    {
+      "id": "mi-fallback-budget-exhaustion",
+      "class": "Fallback",
+      "center": { "re": "-1.401155189092", "im": "0" },
+      "spanY": "0.001",
+      "profile": "Balanced",
+      "designation": "release-gate",
+      "strata": ["high-unresolved", "uncataloged-higher-period", "boundary", "simd-divergent"],
+      "rationale": "Neighborhood of the Feigenbaum period-doubling accumulation point on the real axis: ~30% of pixels exhaust the Balanced budget (unresolved), ~67% escape slowly, and the only detected cycles sit at the period-32 cap. Ensures exhaustion stays unresolved rather than guessed."
+    },
+    {
+      "id": "mi-scale-6mx-basilica-rim",
+      "class": "Scale",
+      "center": { "re": "-1.25", "im": "0" },
+      "spanY": "0.00000041666666666666667",
+      "profile": "Balanced",
+      "designation": "release-gate",
+      "strata": ["period-1-4", "weak-attraction", "boundary", "high-unresolved"],
+      "rationale": "The declared product zoom envelope: spanY is the decimal rounding of 1/2,400,000, i.e. exactly 6,000,000x against the 2.5 default span. Centered on the basilica disk's 1/2-parabolic point (-5/4, 0), an exact rational coordinate; the disk boundary is locally vertical there, splitting the shipping raster deterministically into ~50% analytic period-2 interior and ~50% near-parabolic exterior that exhausts the budget."
+    }
+  ]
+}

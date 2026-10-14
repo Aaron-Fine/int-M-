@@ -1,0 +1,1887 @@
+{
+  "schemaVersion": 1,
+  "method": {
+    "algorithm": "sha-256",
+    "byteOrder": "row-major RGBA, 4 bytes per pixel, read via getImageData(0, 0, width, height) from canvas.explorer__canvas after the computed stable frame is presented",
+    "scope": "palette-inclusive proxy: the ring exposes no per-pixel period histogram, so the hash covers the final RGBA raster (status palette, period palette, smooth values) rather than discrete per-pixel fields",
+    "expectation": "identical hashes expected on most cases; the checkpoint schedule may detect additional oracle-certified attracting pixels (PR 4 evidence), so mismatches are enumerated findings, not failures"
+  },
+  "comparisonsByEngine": {
+    "chromium": [
+      {
+        "caseId": "mi-easy-default-full",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-easy-exterior-heavy",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-easy-main-cardioid",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-easy-period2-bulb",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-rabbit-boundary",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-supplied-126x",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-supplied-609x",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-supplied-13x",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-unknown-high-period",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-weak-attraction",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-ambiguous-boundary",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-budget-exhaustion",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-scale-6mx-basilica-rim",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          }
+        ]
+      }
+    ],
+    "firefox": [
+      {
+        "caseId": "mi-easy-default-full",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c",
+            "checkpointHash": "fae0f52253c9a8c552c9cdde8ff848765fda6e4b7b8033a31828d529e5a4f20a",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-easy-exterior-heavy",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "checkpointHash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-easy-main-cardioid",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "checkpointHash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-easy-period2-bulb",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "checkpointHash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-rabbit-boundary",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758",
+            "checkpointHash": "8ef7cd8e1eaf2a9b235f05a9e9aaaee8594f9f51a71a6a4eb645c591150223c8",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-supplied-126x",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1",
+            "checkpointHash": "a5073ebc670c0fa5a848553069dad8410602484ba1dd98c2ed291432ce337727",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-supplied-609x",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5",
+            "checkpointHash": "4d66335a0f028fe12c55c2809f8cf92e6b295bbd75196fad1b9125cd571389dc",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-hard-supplied-13x",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292",
+            "checkpointHash": "dd4ceb05619068e0354758373077f1da82f19f9515f6320603431f01619b66ed",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-unknown-high-period",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "checkpointHash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29",
+            "equal": true
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-weak-attraction",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28",
+            "checkpointHash": "2a80ec43379b02e7708362f44ac3b529069b0d98f0a254c3dfff07bd572ccc52",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-ambiguous-boundary",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed",
+            "checkpointHash": "4967a6ed8a2be6a22b2d152e62281ec78e51717298047af4c6fda88d91be611c",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-fallback-budget-exhaustion",
+        "hashAlgorithm": "sha-256",
+        "matches": 0,
+        "mismatches": 9,
+        "mismatchRepetitions": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5",
+            "checkpointHash": "c8243c5d3c373afe313efff79fb72554b2f309b1e26bfe01d3a636420f8ab234",
+            "equal": false
+          }
+        ]
+      },
+      {
+        "caseId": "mi-scale-6mx-basilica-rim",
+        "hashAlgorithm": "sha-256",
+        "matches": 9,
+        "mismatches": 0,
+        "mismatchRepetitions": [],
+        "reps": [
+          {
+            "repetition": 0,
+            "climate": "cold",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 1,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 2,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 3,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 4,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 5,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 6,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 7,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          },
+          {
+            "repetition": 8,
+            "climate": "warm",
+            "legacyHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "checkpointHash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745",
+            "equal": true
+          }
+        ]
+      }
+    ]
+  }
+}

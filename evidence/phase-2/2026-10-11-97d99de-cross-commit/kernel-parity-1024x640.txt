@@ -1,0 +1,14 @@
+mi-easy-default-full             status 0 (lost 0, gained 0) period 0 | att 96012 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-easy-exterior-heavy           status 0 (lost 0, gained 0) period 0 | att 0 lambda-identical 0.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-easy-main-cardioid            status 0 (lost 0, gained 0) period 0 | att 655194 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-easy-period2-bulb             status 0 (lost 0, gained 0) period 0 | att 655360 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-hard-rabbit-boundary          status 0 (lost 0, gained 0) period 0 | att 195409 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-hard-supplied-126x            status 0 (lost 0, gained 0) period 0 | att 88155 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-hard-supplied-609x            status 0 (lost 0, gained 0) period 0 | att 30027 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-hard-supplied-13x             status 0 (lost 0, gained 0) period 0 | att 167628 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-fallback-unknown-high-period  status 0 (lost 0, gained 0) period 0 | att 0 lambda-identical 0.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-fallback-weak-attraction      status 0 (lost 0, gained 0) period 0 | att 638540 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-fallback-ambiguous-boundary   status 0 (lost 0, gained 0) period 0 | att 15172 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-fallback-budget-exhaustion    status 0 (lost 0, gained 0) period 0 | att 21984 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+mi-scale-6mx-basilica-rim        status 0 (lost 0, gained 0) period 0 | att 327680 lambda-identical 100.0% max|dλ| 0.00e+0 later 0 earlier 0 
+TOTAL status+period mismatches: 0

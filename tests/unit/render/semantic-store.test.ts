@@ -16,11 +16,15 @@ const frame = (stage: SemanticFrame['stage']): SemanticFrame => ({
   stage,
   size: request.size,
   sampleStride: stage === 'coarse' ? 4 : 1,
-  status: new Uint8Array(48),
-  period: new Uint32Array(48),
-  smoothIterationOrMultiplierMagnitude: new Float64Array(48),
-  multiplierUnitRe: new Float32Array(48),
-  multiplierUnitIm: new Float32Array(48),
+  bands: [
+    {
+      y0: 0,
+      y1: 6,
+      packedStatusPeriod: new Uint32Array(48),
+      smoothIterationOrMultiplierMagnitude: new Float64Array(48),
+      multiplierAngle: new Float64Array(48),
+    },
+  ],
   progress: stage === 'coarse' ? 0.2 : 1,
 });
 
@@ -56,13 +60,22 @@ describe('SemanticFrameStore', () => {
     ).not.toBe(key);
   });
 
-  it('separates experimental detection from the default cache entry', () => {
-    expect(semanticRequestKey({ ...request, quality: { cycleDetection: 'scan' } })).toBe(
-      semanticRequestKey(request),
+  it('keeps the default key byte-identical and scopes it by classifier mode when present', () => {
+    const defaultKey = semanticRequestKey(request);
+    expect(defaultKey).not.toContain('cm:');
+
+    const checkpointKey = semanticRequestKey({ ...request, classifierMode: 'checkpoint' });
+    expect(checkpointKey).not.toBe(defaultKey);
+    expect(checkpointKey).toBe(semanticRequestKey({ ...request, classifierMode: 'checkpoint' }));
+    expect(semanticRequestKey({ ...request, classifierMode: 'differential' })).not.toBe(
+      checkpointKey,
     );
-    expect(semanticRequestKey({ ...request, quality: { cycleDetection: 'checkpoint' } })).not.toBe(
-      semanticRequestKey(request),
-    );
+
+    const store = new SemanticFrameStore();
+    const stable = frame('stable');
+    store.put({ ...request, classifierMode: 'checkpoint' }, stable);
+    expect(store.get(request)).toBeUndefined();
+    expect(store.get({ ...request, classifierMode: 'checkpoint' })).toBe(stable);
   });
 
   it('retains only stable semantic evidence', () => {

@@ -1,4 +1,4 @@
-import type { Complex, RasterSize, Viewport } from './types';
+import type { Complex, MutableComplex, RasterSize, Viewport } from './types';
 
 export const DEFAULT_VIEWPORT: Viewport = Object.freeze({
   center: Object.freeze({ re: -0.75, im: 0 }),
@@ -47,6 +47,8 @@ export interface ViewportTransform {
   readonly size: RasterSize;
   readonly unitsPerPixel: number;
   pixelToComplex(pixelX: number, pixelY: number): Complex;
+  /** Writes the same mapping as pixelToComplex into a reused holder. */
+  pixelToComplexInto(pixelX: number, pixelY: number, out: MutableComplex): void;
 }
 
 /** Validates and prepares the canonical mapping once for raster hot paths. */
@@ -65,6 +67,10 @@ export const createViewportTransform = (
       re: bounded.center.re + (pixelX + 0.5 - size.width / 2) * unitsPerPixel,
       im: bounded.center.im - (pixelY + 0.5 - size.height / 2) * unitsPerPixel,
     }),
+    pixelToComplexInto: (pixelX, pixelY, out) => {
+      out.re = bounded.center.re + (pixelX + 0.5 - size.width / 2) * unitsPerPixel;
+      out.im = bounded.center.im - (pixelY + 0.5 - size.height / 2) * unitsPerPixel;
+    },
   };
 };
 

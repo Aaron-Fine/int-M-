@@ -36,10 +36,17 @@ const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage 
   message: error instanceof Error ? error.message : 'unknown rendering error',
 });
 
-const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest =>
-  message.quality === undefined
-    ? { viewport: message.viewport, size: message.size }
-    : { viewport: message.viewport, size: message.size, quality: message.quality };
+const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
+  viewport: message.viewport,
+  size: message.size,
+  ...(message.quality === undefined ? {} : { quality: message.quality }),
+  ...(message.classifierMode === undefined ? {} : { classifierMode: message.classifierMode }),
+  ...(message.bandOrder === undefined ? {} : { bandOrder: message.bandOrder }),
+  ...(message.yieldMechanism === undefined ? {} : { yieldMechanism: message.yieldMechanism }),
+  ...(message.frameOutput === undefined ? {} : { frameOutput: message.frameOutput }),
+  ...(message.perfCounters === undefined ? {} : { perfCounters: message.perfCounters }),
+  ...(message.conjugateMirror === undefined ? {} : { conjugateMirror: message.conjugateMirror }),
+});
 
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;
@@ -86,6 +93,10 @@ export class RenderWorkerRuntime {
       colorizeMs: performance.now() - colorizeStarted,
       yieldWaitMs: frame.timing?.yieldWaitMs ?? 0,
       yieldCount: frame.timing?.yieldCount ?? 0,
+      ...(frame.timing?.bandsElapsedMs === undefined
+        ? {}
+        : { bandsElapsedMs: frame.timing.bandsElapsedMs }),
+      ...(frame.timing?.mergeCpuMs === undefined ? {} : { mergeCpuMs: frame.timing.mergeCpuMs }),
     };
     const response: WorkerToMainMessage = {
       type: 'frame',
@@ -96,6 +107,8 @@ export class RenderWorkerRuntime {
       rgba: raster.rgba,
       progress: raster.progress,
       workerTiming,
+      ...(frame.counters === undefined ? {} : { counters: frame.counters }),
+      ...(frame.differential === undefined ? {} : { differential: frame.differential }),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }

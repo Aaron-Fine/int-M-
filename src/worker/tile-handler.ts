@@ -1,9 +1,12 @@
+import { planConjugateMirror } from '../domain';
 import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
+import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
 import type { DynamicsRenderRequest } from '../render';
 import type {
   SupervisorToTileMessage,
   TileClassifyMessage,
+  TileResultMessage,
   TileToSupervisorMessage,
 } from './tile-protocol';
 
@@ -23,14 +26,14 @@ const requestFromClassify = (message: TileClassifyMessage): DynamicsRenderReques
   quality: message.quality,
 });
 
-const transferOf = (
-  message: Extract<TileToSupervisorMessage, { type: 'tile-result' }>,
-): ArrayBuffer[] => [
-  message.status.buffer,
-  message.period.buffer,
-  message.smoothIterationOrMultiplierMagnitude.buffer,
-  message.multiplierUnitRe.buffer,
-  message.multiplierUnitIm.buffer,
+/**
+ * Buffers to transfer with a result. After postMessage these are detached in
+ * the worker — the handler never touches the result again once posted.
+ */
+const transferOf = (result: TileResultMessage): ArrayBuffer[] => [
+  result.packedStatusPeriod.buffer,
+  result.smoothIterationOrMultiplierMagnitude.buffer,
+  result.multiplierAngle.buffer,
 ];
 
 export function createTileHandler(
@@ -45,6 +48,11 @@ export function createTileHandler(
 
   const runClassify = async (message: TileClassifyMessage, signal: AbortSignal): Promise<void> => {
     try {
+      // Pure function of viewport+size, identical to the supervisor's plan.
+      const mirrorPlan =
+        message.conjugateMirror === true
+          ? planConjugateMirror(message.viewport, message.size)
+          : undefined;
       const band = await classify(
         requestFromClassify(message),
         message.quality,
@@ -52,23 +60,41 @@ export function createTileHandler(
         message.y0,
         message.y1,
         signal,
+        message.classifierMode,
+        message.yieldMechanism,
+        // Zero-copy: classify directly into the supervisor's band views.
+        // Absent on the legacy-merge arm, where classifyRows allocates.
+        message.bandOutput === undefined
+          ? undefined
+          : {
+              packedStatusPeriod: message.bandOutput.packedStatusPeriod,
+              smoothIterationOrMultiplierMagnitude:
+                message.bandOutput.smoothIterationOrMultiplierMagnitude,
+              multiplierAngle: message.bandOutput.multiplierAngle,
+            },
+        {
+          perfCounters: message.perfCounters === true,
+          mirrorPlan,
+        },
       );
       if (signal.aborted) return;
-      const result = {
-        type: 'tile-result' as const,
+      const result: TileResultMessage = {
+        type: 'tile-result',
         generation: message.generation,
         jobId: message.jobId,
         y0: message.y0,
         y1: message.y1,
-        status: band.status as Uint8Array<ArrayBuffer>,
-        period: band.period as Uint32Array<ArrayBuffer>,
-        smoothIterationOrMultiplierMagnitude:
-          band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
-        multiplierUnitRe: band.multiplierUnitRe as Float32Array<ArrayBuffer>,
-        multiplierUnitIm: band.multiplierUnitIm as Float32Array<ArrayBuffer>,
+        packedStatusPeriod: band.packedStatusPeriod,
+        smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
+        multiplierAngle: band.multiplierAngle,
+        outputRevision: PACKED_OUTPUT_REVISION,
         yieldWaitMs: band.timing.yieldWaitMs,
         yieldCount: band.timing.yieldCount,
+        ...(band.differential === undefined ? {} : { differential: band.differential }),
+        ...(band.counters === undefined ? {} : { counters: band.counters }),
       };
+      // Transfers ownership back to the supervisor; the views are detached
+      // in this worker afterwards and are never read here again.
       host.postMessage(result, transferOf(result));
     } catch (error: unknown) {
       if (error instanceof RenderCancelledError || signal.aborted) return;

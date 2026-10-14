@@ -1,0 +1,176 @@
+{
+  "harnessRevision": "poc-harness-1.0.0",
+  "nodeVersion": "v24.19.0",
+  "platform": "linux x64",
+  "corpusSeed": 5065040,
+  "corpusSize": 228,
+  "verifier": {
+    "revision": "poc-verifier-1.0.0",
+    "thresholds": {
+      "tauAccept": 1e-10,
+      "closureRelaxation": 100,
+      "tauCandidate": 1e-8,
+      "tauExclude": 0.000001,
+      "attractMargin": 1e-12
+    }
+  },
+  "candidateRejectionBudget": 64,
+  "schedulePolicies": {
+    "checkpoint": {
+      "revision": "poc-checkpoint-1.0.1"
+    },
+    "trigger": {
+      "revision": "poc-trigger-1.0.0",
+      "thresholds": {
+        "initialGate": 1e-8,
+        "gateReArmDivisor": 4,
+        "maxScansPerPixel": 8
+      }
+    },
+    "staggered": {
+      "revision": "poc-staggered-1.0.0"
+    },
+    "deGuess": {
+      "revision": "poc-de-guess-1.0.0",
+      "thresholds": {
+        "disarmExteriorB": 100000000,
+        "rearmInteriorB": 1000000
+      },
+      "opportunisticCeiling": 96
+    },
+    "neighbor": {
+      "revision": "poc-neighbor-1.0.0",
+      "fallbackTrigger": "frozen trigger thresholds"
+    },
+    "transplant": {
+      "revision": "poc-transplant-1.0.0",
+      "thresholds": {
+        "guardDisplacement": 0.01,
+        "newtonSteps": 3,
+        "newtonDenominatorMin": 1e-12
+      },
+      "guardFormula": "|B_cycle| * |dc| / |1 - lambda| (plan section 6 conditioning guard)"
+    },
+    "trap": {
+      "revision": "poc-trap-1.0.0",
+      "thresholds": {
+        "minLambda": 0.8,
+        "diskFactor": 4,
+        "reproduceInterval": 8,
+        "maxProposals": 8,
+        "newtonSteps": 4,
+        "polishTolerance": 0.000001,
+        "denominatorMin": 1e-12
+      },
+      "oracleGate": "any false attracting or wrong primitive period fails the run (workstream L kill gate)"
+    },
+    "packedOutput": {
+      "revision": "poc-packed-1.0.0"
+    }
+  },
+  "ddOracle": {
+    "options": {
+      "maxIterations": 4096,
+      "maxPeriod": 96,
+      "warmup": 16,
+      "candidateTolerance": 1e-14,
+      "acceptanceTolerance": 1e-26,
+      "exclusionTolerance": 1e-20,
+      "newtonSteps": 8,
+      "candidateVerifyBudget": 64
+    }
+  },
+  "gate": {
+    "zeroToleranceFor": "schedule variants",
+    "gateFailures": 0,
+    "legacyBaselineWrongPrimitivePeriod": 8,
+    "gridGateFailures": 0
+  },
+  "profiles": [
+    {
+      "name": "quick",
+      "maxIterations": 256,
+      "maxPeriod": 16,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    },
+    {
+      "name": "balanced",
+      "maxIterations": 512,
+      "maxPeriod": 32,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    },
+    {
+      "name": "detailed",
+      "maxIterations": 1024,
+      "maxPeriod": 64,
+      "cycleTolerance": 1e-10,
+      "cycleWarmup": 24
+    }
+  ],
+  "wallTime": {
+    "note": "directional — Node/V8 evidence, not release evidence",
+    "warmupPasses": 2,
+    "timedPasses": 5,
+    "medianClassifyMs": {
+      "quick": {
+        "checkpoint.exhaustion-on": 0.304645,
+        "control": 0.795379,
+        "checkpoint.exhaustion-off": 0.213108,
+        "trigger.exhaustion-on": 0.418537,
+        "trigger.exhaustion-off": 0.225174,
+        "staggered.exhaustion-on": 0.736199,
+        "staggered.exhaustion-off": 0.465935,
+        "de-guess.exhaustion-on": 0.158172,
+        "de-guess.exhaustion-off": 0.170808,
+        "de-guess.opportunistic.exhaustion-on": 0.157654,
+        "de-guess.opportunistic.exhaustion-off": 0.142464,
+        "neighbor.exhaustion-on": 0.245287,
+        "neighbor.exhaustion-off": 0.208895,
+        "transplant.exhaustion-on": 0.293982,
+        "transplant.exhaustion-off": 0.178826,
+        "trap.exhaustion-on": 0.148731,
+        "trap.exhaustion-off": 0.254751
+      },
+      "balanced": {
+        "checkpoint.exhaustion-on": 0.171214,
+        "control": 1.739375,
+        "checkpoint.exhaustion-off": 0.168366,
+        "trigger.exhaustion-on": 0.243738,
+        "trigger.exhaustion-off": 0.21265,
+        "staggered.exhaustion-on": 1.50222,
+        "staggered.exhaustion-off": 1.467535,
+        "de-guess.exhaustion-on": 0.232268,
+        "de-guess.exhaustion-off": 0.213766,
+        "de-guess.opportunistic.exhaustion-on": 0.25833,
+        "de-guess.opportunistic.exhaustion-off": 0.223761,
+        "neighbor.exhaustion-on": 0.440538,
+        "neighbor.exhaustion-off": 0.412477,
+        "transplant.exhaustion-on": 0.205088,
+        "transplant.exhaustion-off": 0.3411,
+        "trap.exhaustion-on": 0.192377,
+        "trap.exhaustion-off": 0.183375
+      },
+      "detailed": {
+        "checkpoint.exhaustion-on": 0.249672,
+        "control": 5.30342,
+        "checkpoint.exhaustion-off": 0.231582,
+        "trigger.exhaustion-on": 0.38819,
+        "trigger.exhaustion-off": 0.393934,
+        "staggered.exhaustion-on": 4.432714,
+        "staggered.exhaustion-off": 4.319059,
+        "de-guess.exhaustion-on": 0.332441,
+        "de-guess.exhaustion-off": 0.344801,
+        "de-guess.opportunistic.exhaustion-on": 0.346555,
+        "de-guess.opportunistic.exhaustion-off": 0.32442,
+        "neighbor.exhaustion-on": 0.777477,
+        "neighbor.exhaustion-off": 0.747616,
+        "transplant.exhaustion-on": 0.503846,
+        "transplant.exhaustion-off": 0.279642,
+        "trap.exhaustion-on": 0.268589,
+        "trap.exhaustion-off": 0.26509
+      }
+    }
+  }
+}

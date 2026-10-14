@@ -1,4 +1,4 @@
-import { OrbitClassifier, createViewportTransform } from '../src/domain';
+import { OrbitClassifier, createOrbitSample, createViewportTransform } from '../src/domain';
 
 const cases = [
   { id: 'full-set', center: { re: -0.75, im: 0 }, spanY: 2.5 },
@@ -9,12 +9,18 @@ const cases = [
 const reports = [];
 for (const viewport of cases) {
   for (const maxIterations of [48, 128, 512]) {
-    const scan = new OrbitClassifier({ maxIterations, maxPeriod: 32, cycleDetection: 'scan' });
+    const scan = new OrbitClassifier({
+      maxIterations,
+      maxPeriod: 32,
+      classifierMode: 'legacy-scan',
+    });
     const checkpoint = new OrbitClassifier({
       maxIterations,
       maxPeriod: 32,
-      cycleDetection: 'checkpoint',
+      classifierMode: 'checkpoint',
     });
+    const scanSample = createOrbitSample();
+    const checkpointSample = createOrbitSample();
     const transform = createViewportTransform(viewport, { width: 160, height: 120 });
     let statusDifferences = 0;
     let periodDifferences = 0;
@@ -32,36 +38,35 @@ for (const viewport of cases) {
     for (let y = 0; y < 120; y += 1) {
       for (let x = 0; x < 160; x += 1) {
         const point = transform.pixelToComplex(x, y);
-        const a = scan.classifyRaster(point.re, point.im);
-        const b = checkpoint.classifyRaster(point.re, point.im);
-        if (firstDifference === undefined && (a.status !== b.status || a.period !== b.period)) {
+        scan.classifyInto(point.re, point.im, scanSample);
+        checkpoint.classifyInto(point.re, point.im, checkpointSample);
+        if (
+          firstDifference === undefined &&
+          (scanSample.status !== checkpointSample.status ||
+            scanSample.period !== checkpointSample.period)
+        ) {
           firstDifference = {
             point,
-            scanStatus: a.status,
-            checkpointStatus: b.status,
-            scanPeriod: a.period,
-            checkpointPeriod: b.period,
+            scanStatus: scanSample.status,
+            checkpointStatus: checkpointSample.status,
+            scanPeriod: scanSample.period,
+            checkpointPeriod: checkpointSample.period,
           };
         }
-        if (a.status !== b.status) statusDifferences += 1;
-        if (a.period !== b.period) periodDifferences += 1;
-        if (a.status === 2 && b.status === 2) {
+        if (scanSample.status !== checkpointSample.status) statusDifferences += 1;
+        if (scanSample.period !== checkpointSample.period) periodDifferences += 1;
+        if (scanSample.status === 2 && checkpointSample.status === 2) {
           maxMagnitudeDifference = Math.max(
             maxMagnitudeDifference,
-            Math.abs(
-              a.smoothIterationOrMultiplierMagnitude - b.smoothIterationOrMultiplierMagnitude,
-            ),
+            Math.abs(scanSample.multiplierMagnitude - checkpointSample.multiplierMagnitude),
           );
           if (
-            a.smoothIterationOrMultiplierMagnitude > 1e-6 &&
-            b.smoothIterationOrMultiplierMagnitude > 1e-6
+            scanSample.multiplierMagnitude > 1e-6 &&
+            checkpointSample.multiplierMagnitude > 1e-6
           ) {
             maxDirectionDifference = Math.max(
               maxDirectionDifference,
-              Math.hypot(
-                a.multiplierUnitRe - b.multiplierUnitRe,
-                a.multiplierUnitIm - b.multiplierUnitIm,
-              ),
+              Math.abs(scanSample.multiplierAngle - checkpointSample.multiplierAngle),
             );
           }
         }

@@ -1,10 +1,11 @@
-import type { Complex } from '../domain';
+import type { Complex, DifferentialStats, EvidenceSource } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
   MainToWorkerMessage,
   WorkerToMainMessage,
 } from '../worker/protocol';
+import type { PerfCounters } from '../render/perf-counters';
 import {
   complexToPixel,
   panViewport,
@@ -16,6 +17,7 @@ import { COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components'
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { createSemanticLegend } from './semantic-legend';
+import { parseBenchmarkParams } from './benchmark-params';
 import {
   DEFAULT_VIEWPORT,
   DEFAULT_QUALITY_PROFILE_ID,
@@ -28,6 +30,7 @@ import {
   MIN_SCALE,
   QUALITY_PROFILES,
   SEMANTIC_VIEWS,
+  describePeriodPolicy,
   type QualityProfile,
   type QualityProfileId,
   type SemanticView,
@@ -35,7 +38,12 @@ import {
   ZOOM_FACTOR,
 } from './view-state';
 import { RendererWorkerClient } from './renderer-worker-client';
-import { recordWorkerTimingMarks } from './worker-timing-marks';
+import {
+  createRenderTraceRing,
+  expectedWorkerCount,
+  viewKeyHash,
+  type RenderTrace,
+} from './worker-timing-marks';
 
 interface ApplicationState {
   viewport: Viewport;
@@ -50,6 +58,9 @@ interface ApplicationState {
   qualityProfile: QualityProfileId;
   selectedPoint?: Complex;
   selectedCatalogId?: string;
+  requestStartedAtMs: number;
+  cancelRequestedAtMs: number;
+  cancelRequestedRequestId: number;
 }
 
 interface CanvasPoint {
@@ -67,14 +78,43 @@ declare global {
     __MI_PHASE1_TEST__?: {
       failRenderer(): void;
     };
+    /**
+     * Opt-in (?perf=1) render-trace diagnostic boundary, performance plan §8.
+     * Absent unless requested; exposes the bounded ring's snapshot, the most
+     * recently completed trace, the live viewport, and (with
+     * `?perf=1&perfCounters=1`) the last stable frame's diagnostics counters
+     * for the Stage A evidence harness.
+     */
+    __miRenderTrace?: {
+      readonly snapshot: () => readonly RenderTrace[];
+      readonly viewport: () => Viewport;
+      lastTrace: RenderTrace | undefined;
+      lastCounters: PerfCounters | undefined;
+      lastDifferential: DifferentialStats | undefined;
+    };
   }
 }
 
 export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
+  // Opt-in benchmark parameters (plan §8/§9): validated query parameters for
+  // the Stage A evidence harness. Absent parameters leave every default —
+  // viewport, quality profile, classifier mode, trace hook — untouched.
+  const benchmark = parseBenchmarkParams(window.location.search);
+  let perfHook: NonNullable<Window['__miRenderTrace']> | undefined;
+  const renderTraces = createRenderTraceRing({
+    ...(benchmark.perfEnabled
+      ? {
+          onTraceCompleted: (trace: RenderTrace) => {
+            if (perfHook !== undefined) perfHook.lastTrace = trace;
+          },
+        }
+      : {}),
+  });
   const longTaskObserver = PerformanceObserver.supportedEntryTypes.includes('longtask')
     ? new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
+          renderTraces.noteMainThreadLongTask(entry.duration);
           performance.mark('mi:long-task', {
             detail: { startTime: entry.startTime, duration: entry.duration },
           });
@@ -83,7 +123,7 @@ export function mountApplication(host: HTMLElement): () => void {
     : undefined;
   longTaskObserver?.observe({ type: 'longtask', buffered: true });
   const state: ApplicationState = {
-    viewport: { ...DEFAULT_VIEWPORT },
+    viewport: benchmark.viewport ? { ...benchmark.viewport } : { ...DEFAULT_VIEWPORT },
     semanticView: 'stability',
     catalogVisible: true,
     requestId: 0,
@@ -92,8 +132,21 @@ export function mountApplication(host: HTMLElement): () => void {
     frameStage: 'none',
     dragging: false,
     interactionMode: 'pan',
-    qualityProfile: DEFAULT_QUALITY_PROFILE_ID,
+    qualityProfile: benchmark.qualityProfile ?? DEFAULT_QUALITY_PROFILE_ID,
+    requestStartedAtMs: 0,
+    cancelRequestedAtMs: 0,
+    cancelRequestedRequestId: 0,
   };
+  if (benchmark.perfEnabled) {
+    perfHook = {
+      snapshot: () => renderTraces.snapshot(),
+      viewport: () => ({ ...state.viewport }),
+      lastTrace: undefined,
+      lastCounters: undefined,
+      lastDifferential: undefined,
+    };
+    window.__miRenderTrace = perfHook;
+  }
 
   const renderCanvas = element('canvas', {
     className: 'explorer__canvas',
@@ -463,6 +516,8 @@ export function mountApplication(host: HTMLElement): () => void {
   function scheduleRender(immediate = false): void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (state.activeRequestId > 0 && state.frameStage !== 'stable') {
+      state.cancelRequestedAtMs = performance.now();
+      state.cancelRequestedRequestId = state.activeRequestId;
       performance.mark('mi:cancellation-requested', {
         detail: { requestId: state.activeRequestId },
       });
@@ -491,6 +546,8 @@ export function mountApplication(host: HTMLElement): () => void {
     state.frameStage = 'none';
     canvasShell.dataset['renderStage'] = 'requested';
     canvasShell.dataset['renderRequestId'] = String(state.activeRequestId);
+    const quality = currentQualityProfile();
+    state.requestStartedAtMs = performance.now();
     performance.mark('mi:render-request', {
       detail: { requestId: state.activeRequestId },
     });
@@ -500,14 +557,33 @@ export function mountApplication(host: HTMLElement): () => void {
       viewport: state.viewport,
       size,
       semanticView: state.semanticView,
-      quality: currentQualityProfile().quality,
+      quality: quality.quality,
+      ...(benchmark.classifierMode === undefined
+        ? {}
+        : { classifierMode: benchmark.classifierMode }),
+      ...(benchmark.bandOrder === undefined ? {} : { bandOrder: benchmark.bandOrder }),
+      ...(benchmark.yieldMechanism === undefined
+        ? {}
+        : { yieldMechanism: benchmark.yieldMechanism }),
+      ...(benchmark.perfCounters ? { perfCounters: true } : {}),
+      ...(benchmark.conjugateMirror === false ? { conjugateMirror: false } : {}),
     } satisfies MainToWorkerMessage);
+    renderTraces.beginRequest({
+      requestId: state.activeRequestId,
+      viewKeyHash: viewKeyHash(state.viewport, state.semanticView, quality.quality),
+      width: size.width,
+      height: size.height,
+      profile: quality.id,
+      backend: 'cpu',
+      workerCount: expectedWorkerCount(
+        typeof navigator === 'undefined' ? undefined : navigator.hardwareConcurrency,
+      ),
+    });
   }
 
   function presentFrame(frame: FrameMessage): void {
     if (frame.requestId !== state.activeRequestId) return;
 
-    recordWorkerTimingMarks(frame);
     const pixels = new ImageData(frame.rgba, frame.width, frame.height);
     renderCanvas.width = frame.width;
     renderCanvas.height = frame.height;
@@ -524,6 +600,23 @@ export function mountApplication(host: HTMLElement): () => void {
       performance.mark(`mi:${frame.stage}-presented`, {
         detail: { requestId: frame.requestId },
       });
+      renderTraces.recordFrame(frame, {
+        requestToPresentMs: performance.now() - state.requestStartedAtMs,
+        colorizeMs: frame.workerTiming?.colorizeMs,
+        bandsElapsedMs: frame.workerTiming?.bandsElapsedMs,
+        mergeCpuMs: frame.workerTiming?.mergeCpuMs,
+        yieldWaitMs: frame.workerTiming?.yieldWaitMs,
+        yieldCount: frame.workerTiming?.yieldCount,
+        counters: frame.counters,
+        differential: frame.differential,
+      });
+      // Last stable frame's diagnostics counters (plan §8): surfaced through
+      // the __miRenderTrace hook for the Stage A evidence harness. Undefined
+      // unless the request opted in via ?perf=1&perfCounters=1.
+      if (frame.stage === 'stable' && perfHook !== undefined) {
+        perfHook.lastCounters = frame.counters;
+        perfHook.lastDifferential = frame.differential;
+      }
     });
 
     if (frame.stage === 'coarse') {
@@ -760,9 +853,10 @@ export function mountApplication(host: HTMLElement): () => void {
     state.qualityProfile = qualitySelect.value as QualityProfileId;
     const profile = currentQualityProfile();
     qualityDescription.textContent = profile.description;
-    showFeedback(
-      `${profile.label} quality selected · ${profile.quality.maxIterations} iterations · periods through ${profile.quality.maxPeriod}.`,
-    );
+    // Plan §4 recommended framing, driven by the profile's period policy
+    // (never a hardcoded period/iteration count): the guaranteed systematic
+    // budget plus the honest opportunistic caveat.
+    showFeedback(`${profile.label} quality selected · ${describePeriodPolicy(profile.policy)}`);
     scheduleRender(true);
     if (state.selectedPoint) {
       inspectPoint(
@@ -971,6 +1065,14 @@ export function mountApplication(host: HTMLElement): () => void {
         performance.mark('mi:cancellation-acknowledged', {
           detail: { requestId: message.requestId },
         });
+        if (message.requestId === state.cancelRequestedRequestId && state.cancelRequestedAtMs > 0) {
+          renderTraces.recordCancellation(
+            message.requestId,
+            performance.now() - state.cancelRequestedAtMs,
+          );
+          state.cancelRequestedAtMs = 0;
+          state.cancelRequestedRequestId = 0;
+        }
         break;
       case 'error':
         break;
@@ -986,11 +1088,13 @@ export function mountApplication(host: HTMLElement): () => void {
     {
       onMessage: handleWorkerMessage,
       onRecovering: () => {
+        renderTraces.failOpenRequests();
         status.className = 'status status--working';
         statusText.textContent = 'Renderer interrupted. Recovering automatically…';
         retryRendererButton.hidden = true;
       },
       onPersistentFailure: () => {
+        renderTraces.failOpenRequests();
         clearPresentationPreview();
         status.className = 'status status--error';
         statusText.textContent = 'Renderer could not recover. Controls remain available.';
@@ -1022,6 +1126,8 @@ export function mountApplication(host: HTMLElement): () => void {
     document.removeEventListener('keydown', onDocumentKeydown);
     workerClient.dispose();
     if (import.meta.env.DEV) delete window.__MI_PHASE1_TEST__;
+    delete window.__miRenderTrace;
+    perfHook = undefined;
     host.replaceChildren();
   };
 }
@@ -1141,7 +1247,7 @@ function createInspector(): {
     ],
     [
       'Quality',
-      'The numerical search budget. Higher quality checks more iterations and periods, but unresolved still means no claim within that budget.',
+      'The numerical search budget. Quality systematically checks through the profile’s period ceiling within its iteration budget; higher periods may appear when independently found and verified, but unresolved still means no claim within that budget.',
     ],
   ] as const) {
     definitions.append(element('dt', { text: term }), element('dd', { text: description }));
@@ -1227,10 +1333,7 @@ function createInspector(): {
       }
     }
     addFact('Iterations', String(orbit.iterations));
-    addFact(
-      'Quality',
-      `${quality.label} · up to ${quality.quality.maxIterations} iterations / period ${quality.quality.maxPeriod}`,
-    );
+    addFact('Quality', `${quality.label} · ${describePeriodPolicy(quality.policy)}`);
     if (orbit.status === 'escaped') {
       addFact('Escape iteration', String(orbit.escapeIteration));
       addFact('Final magnitude', Math.sqrt(orbit.magnitudeSquared).toPrecision(7));
@@ -1243,6 +1346,13 @@ function createInspector(): {
         'Stability exponent κ',
         Number.isFinite(orbit.stabilityExponent) ? orbit.stabilityExponent.toPrecision(7) : '∞',
       );
+      // Origin metadata (plan invariant 8): independently found higher
+      // periods may be displayed only after verification and with their
+      // origin. evidenceSource never changes acceptance or the quality
+      // barrier — it names how the candidate was proposed.
+      if (orbit.evidenceSource !== undefined) {
+        addFact('Evidence source', formatEvidenceSource(orbit.evidenceSource));
+      }
     }
     addFact(
       'Evidence',
@@ -1276,4 +1386,23 @@ function formatEvidence(evidence: string): string {
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+/**
+ * Human labels for the evidenceSource vocabulary (src/domain/period-policy.ts).
+ * The 'fallback' label names the systematic orbit scan honestly — it is what
+ * ran — without suggesting a degraded or less trustworthy result: acceptance
+ * was identical (the common verifier) regardless of origin.
+ */
+const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.freeze({
+  analytic: 'Analytic closed form',
+  checkpoint: 'Checkpoint schedule',
+  catalog: 'Catalog seed',
+  chart: 'Local chart prediction',
+  algebraic: 'Algebraic relation',
+  fallback: 'Systematic orbit scan',
+});
+
+function formatEvidenceSource(source: EvidenceSource): string {
+  return EVIDENCE_SOURCE_LABELS[source];
 }

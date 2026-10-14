@@ -1,17 +1,15 @@
 import {
   classifyOrbit,
-  colorForAttracting,
-  colorForEscaped,
-  colorForUnresolved,
-  modulateForMultiplierDirection,
+  planConjugateMirror,
   validateRasterSize,
   type Complex,
   type OrbitResult,
   type RenderQuality,
-  type Rgba,
   type SemanticView,
 } from '../domain';
 import { classifyRows } from './classify-rows';
+import { colorizeFrame } from './colorize';
+import { applyConjugateMirror } from './conjugate-mirror';
 import { RenderCancelledError } from './render-cancelled-error';
 import {
   resolveRenderQuality,
@@ -19,6 +17,7 @@ import {
   type RasterFrame,
   type Renderer,
   type RenderStage,
+  type SemanticBand,
   type SemanticFrame,
   type SemanticFrameConsumer,
   type TilePool,
@@ -39,60 +38,51 @@ const classifyFull = async (
   stage: RenderStage,
   signal: AbortSignal,
 ): Promise<SemanticFrame> => {
-  const band = await classifyRows(request, quality, stride, 0, request.size.height, signal);
+  // Conjugate mirroring (default on) applies to the stride-1 stable pass only.
+  const mirrorPlan =
+    request.conjugateMirror !== false && stride === 1
+      ? planConjugateMirror(request.viewport, request.size)
+      : undefined;
+  const band = await classifyRows(
+    request,
+    quality,
+    stride,
+    0,
+    request.size.height,
+    signal,
+    request.classifierMode,
+    request.yieldMechanism,
+    undefined,
+    {
+      perfCounters: request.perfCounters === true,
+      mirrorPlan,
+    },
+  );
+
   throwIfAborted(signal);
+  let timing = band.timing;
+  const semanticBand: SemanticBand = {
+    y0: 0,
+    y1: request.size.height,
+    packedStatusPeriod: band.packedStatusPeriod,
+    smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
+    multiplierAngle: band.multiplierAngle,
+  };
+  if (mirrorPlan !== undefined) {
+    const mirrorStarted = performance.now();
+    applyConjugateMirror(mirrorPlan, [semanticBand], request.size.width);
+    timing = { ...timing, classifyMs: timing.classifyMs + (performance.now() - mirrorStarted) };
+  }
   return {
     stage,
     size: request.size,
     sampleStride: stride,
-    status: band.status as Uint8Array<ArrayBuffer>,
-    period: band.period as Uint32Array<ArrayBuffer>,
-    smoothIterationOrMultiplierMagnitude:
-      band.smoothIterationOrMultiplierMagnitude as Float64Array<ArrayBuffer>,
-    multiplierUnitRe: band.multiplierUnitRe as Float32Array<ArrayBuffer>,
-    multiplierUnitIm: band.multiplierUnitIm as Float32Array<ArrayBuffer>,
+    bands: [semanticBand],
     progress: stage === 'coarse' ? 0.2 : 1,
-    timing: band.timing,
+    timing,
+    ...(band.differential === undefined ? {} : { differential: band.differential }),
+    ...(band.counters === undefined ? {} : { counters: band.counters }),
   };
-};
-
-const textureUnresolved = (color: Rgba, x: number, y: number, stride: number): Rgba => {
-  const cellSize = stride === 1 ? 4 : stride;
-  const alternate = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0;
-  const offset = alternate ? -12 : 12;
-  return [color[0] + offset, color[1] + offset, color[2] + offset, color[3]];
-};
-
-const colorForSemanticPixel = (frame: SemanticFrame, offset: number, view: SemanticView): Rgba => {
-  switch (frame.status[offset]) {
-    case 1:
-      return colorForEscaped(frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0, view);
-    case 2: {
-      const color = colorForAttracting(
-        frame.period[offset] ?? 0,
-        frame.smoothIterationOrMultiplierMagnitude[offset] ?? 0,
-        view === 'multiplier'
-          ? Math.atan2(frame.multiplierUnitIm[offset] ?? 0, frame.multiplierUnitRe[offset] ?? 1)
-          : 0,
-        view,
-      );
-      if (view !== 'multiplier') return color;
-      const x = offset % frame.size.width;
-      const y = Math.floor(offset / frame.size.width);
-      return modulateForMultiplierDirection(
-        color,
-        x,
-        y,
-        frame.multiplierUnitRe[offset] ?? 1,
-        frame.multiplierUnitIm[offset] ?? 0,
-      );
-    }
-    default: {
-      const x = offset % frame.size.width;
-      const y = Math.floor(offset / frame.size.width);
-      return textureUnresolved(colorForUnresolved(), x, y, frame.sampleStride);
-    }
-  }
 };
 
 export class CpuRenderer implements Renderer {
@@ -110,7 +100,6 @@ export class CpuRenderer implements Renderer {
       maxIterations: Math.min(quality.maxIterations, 256),
       maxPeriod: Math.min(quality.maxPeriod, 16),
       coarseStride,
-      ...(quality.cycleDetection === undefined ? {} : { cycleDetection: quality.cycleDetection }),
     };
 
     const coarse = await classifyFull(request, coarseQuality, coarseStride, 'coarse', signal);
@@ -121,7 +110,13 @@ export class CpuRenderer implements Renderer {
     const pool = this.tilePool;
     const stable =
       pool !== undefined && pool.size > 1
-        ? await pool.classifyStable(request, quality, signal)
+        ? await pool.classifyStable(
+            request,
+            quality,
+            signal,
+            request.classifierMode,
+            request.perfCounters === true,
+          )
         : await classifyFull(request, quality, 1, 'stable', signal);
     throwIfAborted(signal);
     await onFrame(stable);
@@ -132,20 +127,11 @@ export class CpuRenderer implements Renderer {
     return classifyOrbit(point, {
       maxIterations: resolved.maxIterations,
       maxPeriod: resolved.maxPeriod,
-      cycleDetection: resolved.cycleDetection ?? 'scan',
     });
   }
 
   public colorize(frame: SemanticFrame, view: SemanticView): RasterFrame {
-    const rgba = new Uint8ClampedArray(frame.size.width * frame.size.height * 4);
-    for (let pixel = 0; pixel < frame.status.length; pixel += 1) {
-      const color = colorForSemanticPixel(frame, pixel, view);
-      const offset = pixel * 4;
-      rgba[offset] = color[0];
-      rgba[offset + 1] = color[1];
-      rgba[offset + 2] = color[2];
-      rgba[offset + 3] = color[3];
-    }
+    const rgba = colorizeFrame(frame, view);
     return {
       stage: frame.stage,
       size: frame.size,

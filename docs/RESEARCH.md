@@ -361,3 +361,18 @@ The current decisions are:
 - Keep the zoom bounded and derive the bound from numerical and interaction budgets.
 
 These choices deliberately concentrate the project on a legible mathematical idea rather than a broad fractal-viewer feature set.
+
+## 17. Phase 2 performance mathematics
+
+The Phase 2 performance work adds a numerical acceptance layer under the same
+honesty rules as the rest of this document. For a proposed period `p`, a
+single common verifier decides closure, primitive period (proper-divisor
+reduction), and attraction (`|λ| < 1 − margin`); approximate methods —
+Brent-inspired checkpoint schedules, catalog or chart proximity, Newton and
+transplantation seeds — may only propose candidates to it. The tolerance
+values are versioned policy with recorded provenance, superattracting points
+compare by identity rather than by arithmetic on infinities, and the claim
+taxonomy distinguishes theorems, floating validated results, heuristic
+candidates, and experiments. The formulas, policy tables, and taxonomy are
+specified in [PERFORMANCE-MATHEMATICS.md](PERFORMANCE-MATHEMATICS.md), and the
+workstream gates and status in [PERFORMANCE-PLAN.md](PERFORMANCE-PLAN.md).

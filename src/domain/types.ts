@@ -1,6 +1,14 @@
+import type { EvidenceSource, PeriodPolicy } from './period-policy';
+
 export interface Complex {
   readonly re: number;
   readonly im: number;
+}
+
+/** Mutable complex holder for allocation-free hot paths. */
+export interface MutableComplex {
+  re: number;
+  im: number;
 }
 
 /**
@@ -26,6 +34,29 @@ export type EvidenceFlag =
   | 'converged-cycle'
   | 'iteration-limit';
 
+/**
+ * Evidence flags encoded as small integers in the primitive record;
+ * materializeOrbitResult maps them back to EvidenceFlag strings at the rich
+ * result boundary. Shared vocabulary of every classifier kernel (the lag
+ * scan and the PR 4 checkpoint schedule write the same codes), so the codes
+ * live beside the types rather than in one kernel.
+ */
+export const ORBIT_EVIDENCE_CODE = Object.freeze({
+  escapeRadius: 0,
+  analyticMainCardioid: 1,
+  analyticPeriod2Bulb: 2,
+  convergedCycle: 3,
+  iterationLimit: 4,
+} as const);
+
+export const EVIDENCE_BY_CODE: readonly EvidenceFlag[] = Object.freeze([
+  'escape-radius',
+  'analytic-main-cardioid',
+  'analytic-period-2-bulb',
+  'converged-cycle',
+  'iteration-limit',
+]);
+
 interface OrbitResultBase {
   readonly status: OrbitStatus;
   readonly iterations: number;
@@ -48,6 +79,21 @@ export interface AttractingCycleOrbitResult extends OrbitResultBase {
   readonly multiplierAngle: number;
   /** Intrinsic stability kappa = -log(|lambda|) / period. */
   readonly stabilityExponent: number;
+  /**
+   * Revision of the common numerical verifier (frozen acceptance policy)
+   * that accepted this result. Always set by materializeOrbitResult;
+   * optional in the type so older wire payloads stay valid.
+   */
+  readonly verifierRevision?: string;
+  /**
+   * How the attracting candidate was PROPOSED (plan section 4
+   * evidenceSource vocabulary; see src/domain/period-policy.ts for the
+   * documented mapping). Pure origin metadata: acceptance is the common
+   * verifier's alone and the quality barrier never depends on this field.
+   * Always set by materializeOrbitResult; optional in the type so older
+   * wire payloads stay valid.
+   */
+  readonly evidenceSource?: EvidenceSource;
 }
 
 export interface UnresolvedOrbitResult extends OrbitResultBase {
@@ -58,18 +104,67 @@ export type OrbitResult = EscapedOrbitResult | AttractingCycleOrbitResult | Unre
 
 export type SemanticView = 'stability' | 'multiplier' | 'period';
 
+/**
+ * Versioned classifier-mode option (PR 4, plan section 11: the checkpoint
+ * schedule lands "behind a legacy differential flag"). The vocabulary is
+ * frozen; 'triggered-scan' is the default, and 'legacy-scan' stays available
+ * as the explicit reference kernel.
+ *
+ * - 'legacy-scan': the post-PR-3 lag scan (src/domain/orbit.ts classifyInto),
+ *   unchanged; the reference kernel.
+ * - 'checkpoint': the PR 4 power-of-two checkpoint schedule
+ *   (src/domain/checkpoint.ts), candidate-only toward the common verifier.
+ * - 'differential': both kernels run per pixel; disagreements (status,
+ *   period, |lambda| bits) are counted into a preallocated differential
+ *   record while the legacy answer stays the reported one.
+ * - 'triggered-scan' (default): the legacy lag scan run only when a scale-aware step
+ *   gate fires, plus a periodic safety scan and a full scan of every iteration
+ *   in the last max(64, 2 * maxPeriod) of the budget. Not combinable with
+ *   perfCounters (the instrumented kernel only mirrors the legacy scan).
+ *   Same status and period as 'legacy-scan' on accepted pixels; escapes are
+ *   bit-identical; iteration counts at acceptance may differ.
+ */
+export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential' | 'triggered-scan';
+
+export const CLASSIFIER_MODES: readonly ClassifierMode[] = Object.freeze([
+  'legacy-scan',
+  'checkpoint',
+  'differential',
+  'triggered-scan',
+]);
+
 export interface OrbitOptions {
-  /** Checkpoints propose candidates; both modes require recurrence and closure. */
-  readonly cycleDetection?: 'scan' | 'checkpoint';
   readonly maxIterations: number;
   readonly maxPeriod: number;
+  /**
+   * Candidate proposal gate for the lag scan. Acceptance is the frozen
+   * common-verifier policy (src/domain/verifier.ts), not this option: with
+   * the default 1e-10 the effective bounds match the legacy classifier.
+   */
   readonly cycleTolerance: number;
   readonly cycleWarmup: number;
+  /** Versioned classifier mode; default 'triggered-scan' (see ClassifierMode). */
+  readonly classifierMode?: ClassifierMode;
+  /**
+   * Checkpoint-schedule exhaustion scan (plan section 4): one final full lag
+   * scan from the final state when the orbit budget ends unresolved,
+   * verifier-gated like every candidate path. Default on; read only by the
+   * checkpoint kernel (the legacy scan is unaffected).
+   */
+  readonly exhaustionScan?: boolean;
+  /**
+   * Versioned period policy (PR 5, plan section 4) describing the search
+   * this classification runs: the systematic ceiling and orbit budget it
+   * declares must equal `maxPeriod`/`maxIterations` (enforced by
+   * resolveOrbitOptions), and `opportunisticMaxPeriod` is reserved for PR 4+
+   * candidate sources — nothing in the current classifier reads it, so
+   * raising it cannot change any classification outcome. When omitted,
+   * resolution attaches the derived default policy.
+   */
+  readonly periodPolicy?: PeriodPolicy;
 }
 
 export interface RenderQuality {
-  /** Experimental detector; scan remains the production default. */
-  readonly cycleDetection?: 'scan' | 'checkpoint';
   readonly maxIterations: number;
   readonly maxPeriod: number;
   readonly coarseStride: number;

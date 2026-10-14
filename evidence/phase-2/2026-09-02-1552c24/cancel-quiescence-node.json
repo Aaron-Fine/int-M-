@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "measurement": "cancel-to-child-quiescence-yield-mechanism",
+  "label": "directional Node run of the production tile handler + classifyRows; Node lacks the browser 4 ms nested-timer clamp, browser magnitudes are in poc/performance/browser/results/yield-ab.json",
+  "quality": {
+    "maxIterations": 512,
+    "maxPeriod": 32,
+    "coarseStride": 8
+  },
+  "view": {
+    "center": {
+      "re": -0.158902249,
+      "im": -1.034028
+    },
+    "spanY": 0.01984126984126984
+  },
+  "band": {
+    "y0": 0,
+    "y1": 64,
+    "width": 256
+  },
+  "runMsBeforeCancel": 60,
+  "reps": 15,
+  "samples": [
+    {
+      "arm": "message-channel",
+      "repetition": 0,
+      "cancelToCancelledMs": 1.3318350000000123,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 1,
+      "cancelToCancelledMs": 1.7272010000000364,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 2,
+      "cancelToCancelledMs": 0.29624999999998636,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 3,
+      "cancelToCancelledMs": 1.2845609999999397,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 4,
+      "cancelToCancelledMs": 1.246949000000086,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 5,
+      "cancelToCancelledMs": 1.4592569999999796,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 6,
+      "cancelToCancelledMs": 1.2395109999999931,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 7,
+      "cancelToCancelledMs": 1.1608390000001236,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 8,
+      "cancelToCancelledMs": 1.387264999999843,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 9,
+      "cancelToCancelledMs": 1.1702089999998861,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 10,
+      "cancelToCancelledMs": 3.0693609999998444,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 11,
+      "cancelToCancelledMs": 1.3356509999998707,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 12,
+      "cancelToCancelledMs": 1.8184839999998985,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 13,
+      "cancelToCancelledMs": 1.1493410000002768,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "message-channel",
+      "repetition": 14,
+      "cancelToCancelledMs": 1.3789529999999104,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 0,
+      "cancelToCancelledMs": 1.3164449999999306,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 1,
+      "cancelToCancelledMs": 1.2279590000002827,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 2,
+      "cancelToCancelledMs": 1.2441139999996267,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 3,
+      "cancelToCancelledMs": 1.1806409999999232,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 4,
+      "cancelToCancelledMs": 1.234096000000136,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 5,
+      "cancelToCancelledMs": 1.1989159999998265,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 6,
+      "cancelToCancelledMs": 1.2134769999997843,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 7,
+      "cancelToCancelledMs": 1.2683170000000246,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 8,
+      "cancelToCancelledMs": 1.2231289999999717,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 9,
+      "cancelToCancelledMs": 1.2259789999998247,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 10,
+      "cancelToCancelledMs": 1.2057599999998274,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 11,
+      "cancelToCancelledMs": 1.1852810000000318,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 12,
+      "cancelToCancelledMs": 1.2379009999999653,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 13,
+      "cancelToCancelledMs": 1.2560530000000654,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    },
+    {
+      "arm": "timeout",
+      "repetition": 14,
+      "cancelToCancelledMs": 1.2976199999998244,
+      "cancelledSeen": true,
+      "lateResultSeen": false
+    }
+  ],
+  "summary": [
+    {
+      "arm": "message-channel",
+      "reps": 15,
+      "medianCancelToCancelledMs": 1.3318350000000123,
+      "maxCancelToCancelledMs": 3.0693609999998444,
+      "allCancelled": true,
+      "anyLateResult": false
+    },
+    {
+      "arm": "timeout",
+      "reps": 15,
+      "medianCancelToCancelledMs": 1.2279590000002827,
+      "maxCancelToCancelledMs": 1.3164449999999306,
+      "allCancelled": true,
+      "anyLateResult": false
+    }
+  ]
+}

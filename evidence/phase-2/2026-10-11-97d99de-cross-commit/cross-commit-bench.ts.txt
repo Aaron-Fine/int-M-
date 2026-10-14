@@ -1,0 +1,100 @@
+/**
+ * Cross-commit timing: the commit's own production CpuRenderer (serial, Node),
+ * default options, stable pass. Copied into each worktree's tools/ and built
+ * with that worktree's sources. Usage: node xb.js <caseId> <reps> <statusOut>
+ */
+import { writeFileSync } from 'node:fs';
+import { CpuRenderer } from '../src/render';
+
+interface Case {
+  id: string;
+  center: { re: number; im: number };
+  spanY: number;
+  width: number;
+  height: number;
+  maxIterations: number;
+  maxPeriod: number;
+}
+const B = { maxIterations: 512, maxPeriod: 32 };
+const D = { maxIterations: 1024, maxPeriod: 64 };
+const W = 1024;
+const H = 640;
+const CASES: Case[] = [
+  // PR 15's own measurement cases (docs/verification/ORBIT-RASTER-OPTIMIZATIONS.md).
+  { id: 'pr15-full-set-512', center: { re: -0.5, im: 0 }, spanY: 2.5, width: 512, height: 384, ...B },
+  { id: 'pr15-period-three-768', center: { re: -0.12, im: 0.74 }, spanY: 0.35, width: 768, height: 512, ...B },
+  { id: 'pr15-full-set-square-1024', center: { re: -0.5, im: 0 }, spanY: 2.5, width: 1024, height: 1024, ...B },
+  { id: 'pr15-rabbit-square-768', center: { re: -0.12, im: 0.74 }, spanY: 0.35, width: 768, height: 768, ...B },
+  // Frozen performance corpus (tools/benchmark/corpus.v1.json) at the shipping raster.
+  { id: 'mi-easy-default-full', center: { re: -0.75, im: 0 }, spanY: 2.5, width: W, height: H, ...B },
+  { id: 'mi-easy-exterior-heavy', center: { re: 2.5, im: 1 }, spanY: 2, width: W, height: H, ...B },
+  { id: 'mi-easy-main-cardioid', center: { re: 0.1, im: 0.05 }, spanY: 0.2, width: W, height: H, ...B },
+  { id: 'mi-easy-period2-bulb', center: { re: -1.05, im: 0.05 }, spanY: 0.15, width: W, height: H, ...B },
+  { id: 'mi-hard-rabbit-boundary', center: { re: -0.1225611668766535, im: 0.7448617666197435 }, spanY: 0.3, width: W, height: H, ...B },
+  { id: 'mi-hard-supplied-126x', center: { re: -0.158902249, im: -1.034028 }, spanY: Number('0.019841269841269841269'), width: W, height: H, ...D },
+  { id: 'mi-hard-supplied-609x', center: { re: -1.94130973, im: -0.0000974722949 }, spanY: Number('0.0041050903119868637110'), width: W, height: H, ...D },
+  { id: 'mi-hard-supplied-13x', center: { re: 0.305376533, im: 0.552677981 }, spanY: Number('0.19230769230769230769'), width: W, height: H, ...D },
+  { id: 'mi-fallback-unknown-high-period', center: { re: -0.7436438870371587, im: 0.1318259042053119 }, spanY: 0.00001, width: W, height: H, ...B },
+  { id: 'mi-fallback-weak-attraction', center: { re: -0.1205, im: 0.8268 }, spanY: 0.005, width: W, height: H, ...B },
+  { id: 'mi-fallback-ambiguous-boundary', center: { re: 0.3, im: 0.008 }, spanY: 0.02, width: W, height: H, ...B },
+  { id: 'mi-fallback-budget-exhaustion', center: { re: -1.401155189092, im: 0 }, spanY: 0.001, width: W, height: H, ...B },
+  { id: 'mi-scale-6mx-basilica-rim', center: { re: -1.25, im: 0 }, spanY: Number('0.00000041666666666666667'), width: W, height: H, ...B },
+];
+
+const [caseId, repsText, statusOut] = process.argv.slice(2);
+const spec = CASES.find((c) => c.id === caseId);
+if (spec === undefined) {
+  process.stdout.write(`${JSON.stringify(CASES.map((c) => c.id))}\n`);
+  process.exit(0);
+}
+const reps = Number(repsText ?? '3');
+const request = {
+  viewport: { center: spec.center, spanY: spec.spanY },
+  size: { width: spec.width, height: spec.height },
+  quality: { maxIterations: spec.maxIterations, maxPeriod: spec.maxPeriod, coarseStride: 8 },
+};
+
+// Status of the stable frame, whatever the commit's frame layout is.
+const statusOf = (frame: unknown): Uint8Array => {
+  const f = frame as {
+    status?: Uint8Array;
+    bands?: { y0: number; packedStatusPeriod: Uint32Array }[];
+  };
+  if (f.status !== undefined) return f.status;
+  const out = new Uint8Array(spec.width * spec.height);
+  for (const band of f.bands ?? []) {
+    const base = band.y0 * spec.width;
+    for (let i = 0; i < band.packedStatusPeriod.length; i += 1) {
+      const code = (band.packedStatusPeriod[i] ?? 0) >>> 24;
+      out[base + i] = code === 3 ? 0 : code;
+    }
+  }
+  return out;
+};
+
+const renderer = new CpuRenderer();
+const stable: number[] = [];
+const total: number[] = [];
+let status: Uint8Array | undefined;
+for (let rep = 0; rep <= reps; rep += 1) {
+  const started = performance.now();
+  let coarseAt = started;
+  let stableAt = started;
+  await renderer.render(request as never, new AbortController().signal, (frame: { stage: string }) => {
+    if (frame.stage === 'coarse') coarseAt = performance.now();
+    if (frame.stage === 'stable') {
+      stableAt = performance.now();
+      if (rep === 0) status = statusOf(frame);
+    }
+  });
+  if (rep > 0) {
+    stable.push(stableAt - coarseAt);
+    total.push(stableAt - started);
+  }
+}
+if (statusOut !== undefined && status !== undefined) writeFileSync(statusOut, status);
+const median = (xs: number[]): number => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? NaN;
+process.stdout.write(
+  `${JSON.stringify({ id: spec.id, stableMs: median(stable), totalMs: median(total), stable, total })}\n`,
+);
+process.exit(0);

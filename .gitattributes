@@ -1,0 +1,8 @@
+# Raw benchmark observations are immutable generated evidence. Keep them in
+# Git at the current project scale, but keep bulk payloads out of normal code
+# review statistics; summaries, environments, semantic comparisons, and
+# manifests remain ordinary diffable text.
+/evidence/phase-2/**/raw-observations.json -diff linguist-generated=true
+/poc/performance/results/raw.*.json -diff linguist-generated=true
+/poc/performance/results/summary.json -diff linguist-generated=true
+/poc/performance/browser/results/*.json -diff linguist-generated=true
