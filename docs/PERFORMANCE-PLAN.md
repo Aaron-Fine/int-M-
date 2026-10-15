@@ -22,7 +22,7 @@ evidence links. It is a status document, not a marketing document:
 | Sequence item (plan §11)                                       | Workstream        | Status                                                                                                                                                                                   | Evidence                                                                                                                  |
 | -------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Step 0 — PoC harness                                           | —                 | **Landed**                                                                                                                                                                               | [poc/performance/](../poc/performance/README.md)                                                                          |
-| PR 1 — Corpus, timing, bounded observability                   | A                 | **Partially landed**: corpus, recorder, and trace schema are present; production provenance/timing propagation and cancellation quiescence are incomplete, so the A gate remains open    | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                |
+| PR 1 — Corpus, timing, bounded observability                   | A                 | **Landed** (2026-10-15): provenance, compute identity, worker/band timing, and two-event cancellation are wired end to end; the A gate waits on the release-browser operational suite    | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                |
 | PR 2 — Allocation-free scalar kernel                           | B                 | **Landed**; speed gate open (not measurable from the current Stage A paired arms; see [gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                            | pr2 microbench (directional)                                                                                              |
 | PR 3 — Common verifier and semantic oracle                     | C (part)          | **Landed**                                                                                                                                                                               | src/domain/verifier.ts, verifier/adjudication tests                                                                       |
 | PR 4 — Checkpoint candidates                                   | C                 | **Landed** behind the `legacy-scan` default; directional-pass-pending on the first Stage A run ([gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                  | src/domain/checkpoint.ts, pr4 bench (directional), [first Stage A run](../evidence/phase-2/2026-09-02-6f49f19/summary.md) |
@@ -114,7 +114,7 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
 - Transplantation and trap pass the oracle gate with large savings where they
   fire; both keep their conditional/research standing (below).
 
-### PR 1 — Corpus, timing, and bounded observability (workstream A; partially landed)
+### PR 1 — Corpus, timing, and bounded observability (workstream A; landed)
 
 - Frozen corpus v1: [tools/benchmark/corpus.v1.json](../tools/benchmark/corpus.v1.json)
   with validator (`validate-corpus.ts`, CI-run), environment capture
@@ -130,15 +130,35 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
   defines the normative run directory layout.
 
 Workstream A gate (plan §5, quoted): `Reproducible runs in stable Chrome and Firefox; cache/replay/cancel sources distinguishable`. The corpus and evidence
-tooling are landed, but the production observability path is not complete:
-`FrameDelivery` defines the intended metadata while `FrameMessage` and
-`presentFrame` do not carry or supply it. The first Stage A run exists
+tooling are landed, and the production observability path is complete as of
+2026-10-15 (the completion plan below, steps 1–6): every `FrameMessage`
+carries a required provenance set where the delivery is made, and the
+application maps it to the ring through the single `frameDelivery` adapter. The first Stage A run exists
 ([2026-09-02-6f49f19](../evidence/phase-2/2026-09-02-6f49f19/summary.md),
 screening protocol, automation-bundled engines — directional), and the
 release-protocol runs on stable branded browsers (including the
 cache/replay/cancel suite, out of scope for the first pass) remain.
 
 #### Observability integration completion plan
+
+**Status (2026-10-15): implemented.** Steps 1–5 are in
+`src/worker/protocol.ts` (`FrameProvenance`, `cancel-ack`/`cancelled`),
+`src/worker/runtime.ts` (monotonic `computeId`, source set per delivery
+branch, quiescence after `Renderer.quiesce`), `src/worker/tile-pool.ts`
+(`quiesce`: child drain, pool reset at the deadline), and
+`src/ui/worker-timing-marks.ts` (bounded cancelling set, `frameDelivery`).
+Every delivery colorizes in this architecture, so `colorizeMs` is recorded
+on every source; classification timing (`classifyMs`, `workerWallMs`, band
+fields) only on computed frames. Step 6 tests: `tests/unit/worker/runtime.test.ts`
+(provenance per path, ack-then-quiescence), `tests/unit/worker/tile-pool.test.ts`
+(quiescence waits for every child), `src/ui/worker-timing-marks.test.ts`
+(lifecycle, bounds, invariants, adapter), and the browser test
+`render traces carry delivery provenance and two-event cancellation timing`
+(both engines). The release-browser distributions come from
+`tools/benchmark/run-operational.mjs`; the overhead pair from
+`tools/benchmark/run-overhead.mjs --release`.
+
+The plan as written:
 
 Treat provenance as part of the worker protocol, not as a UI inference. The
 implementation sequence is:
