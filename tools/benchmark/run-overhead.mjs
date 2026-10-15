@@ -386,8 +386,11 @@ log(
 // ---------------------------------------------------------------------------
 // Paired measurement.
 // ---------------------------------------------------------------------------
+// Both arms pin the reference kernel: `perfCounters=1` selects legacy-scan
+// (the counters vocabulary is its own), so leaving the absent arm on the
+// default kernel would measure a kernel difference, not diagnostics overhead.
 const urlFor = (caseInfo, perf) =>
-  `${baseUrl}/${perf ? '?perf=1&perfCounters=1&' : '?'}view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
+  `${baseUrl}/?${perf ? 'perf=1&perfCounters=1&' : ''}classifierMode=legacy-scan&view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
   `&quality=${caseInfo.profile.toLowerCase()}`;
 
 const measureOnce = async (page, spec) => {
@@ -501,16 +504,22 @@ log(`collected ${allSamples.length} samples`);
 // ---------------------------------------------------------------------------
 const fillRingByRerequest = async (page, count) => {
   for (let index = 0; index < count; index += 1) {
-    const completedBefore = await page.evaluate(() => globalThis.__miRenderTrace.snapshot().length);
+    // Compare the newest traced request, not the ring length: the ring is
+    // bounded at 32, and startup can already hold an extra cancelled trace.
+    const newestBefore = await page.evaluate(() =>
+      Math.max(0, ...globalThis.__miRenderTrace.snapshot().map((trace) => Number(trace.requestId))),
+    );
     // Alternate real UI values so every iteration dispatches a change. Once
     // both semantic views exist for this viewport, subsequent requests hit
     // the semantic cache while still producing completed request traces.
     await page.getByLabel('Interior view').selectOption(index % 2 === 0 ? 'period' : 'stability');
     await page.waitForFunction(
-      (previous) => globalThis.__miRenderTrace.snapshot().length > previous,
-      completedBefore,
+      (previous) =>
+        globalThis.__miRenderTrace.snapshot().some((trace) => Number(trace.requestId) > previous),
+      newestBefore,
       { timeout: NAVIGATION_TIMEOUT_MS, polling: 50 },
     );
+    if ((index + 1) % 8 === 0) log(`ring fill: ${index + 1}/${count} rerequests`);
   }
 };
 const retentionFill = async (caseInfo, pansFirst) => {
@@ -814,7 +823,7 @@ environment.render = {
 };
 environment.protocol = {
   buildMode: 'vite build (production bundle) served by vite preview; dev server never used',
-  design: `paired ?perf=1&perfCounters=1 present vs absent, ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
+  design: `paired ?perf=1&perfCounters=1 present vs absent, both arms pinned to classifierMode=legacy-scan (the counters' kernel), ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
   wallMetric:
     'in-page User Timing marks: last mi:stable-presented startTime minus mi:app-mount startTime (both marks are emitted unconditionally, so the metric exists in both arms without the diagnostic hook)',
   alwaysOnBudget:
