@@ -20,6 +20,13 @@
  * semantic comparison. Labels are honest: automation-bundled headless
  * engines are directional evidence, not the release protocol of plan §9.
  *
+ * `--release` runs branded stable browsers, headed (release-browser.mjs), with
+ * at least 22 repetitions, and adds 95% BCa paired intervals on the
+ * baseline/candidate ratio of the stable wall and of the stable-frame
+ * classifier time (`classifyMs`) to summary.md. `--classifier-mode <mode>`
+ * pins the classifier for every arm; `default` omits the parameter so the
+ * production default kernel runs (the historical default is legacy-scan).
+ *
  * Usage:
  *   node tools/benchmark/run-renderer-path.mjs --detail m1-center-out \
  *     --arms "centerOut=bandOrder=center-out,legacy=bandOrder=legacy" \
@@ -30,19 +37,28 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import { build, preview } from 'vite';
-
-const require = createRequire(import.meta.url);
-const { chromium, firefox } = require('@playwright/test');
+import { bcaInterval } from './bca.ts';
+import {
+  automationLabel,
+  DIRECTIONAL_LABEL,
+  launchEvidenceBrowser,
+  readPowerMode,
+  RELEASE_LABEL,
+  sessionLocked,
+} from './release-browser.mjs';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const BASE_PORT = 4181;
 const SHIPPING_RASTER_ID = 'shipping-1024x640';
 const TARGET_RASTER = { width: 1024, height: 640 };
 const NAVIGATION_TIMEOUT_MS = 10 * 60_000;
+
+const CDP_PORT = 9336;
+const BOOTSTRAP_REPS = 10_000;
+const BOOTSTRAP_SEED = 20_261_015;
 
 const log = (message) => {
   process.stderr.write(`[renderer-path] ${message}\n`);
@@ -58,11 +74,25 @@ if (engine !== 'chromium' && engine !== 'firefox') {
   process.stderr.write(`unknown engine: ${engine} (use chromium or firefox)\n`);
   process.exit(2);
 }
-const reps = Number(readOption('--reps') ?? 9);
+const RELEASE = args.includes('--release');
+const reps = Number(readOption('--reps') ?? (RELEASE ? 22 : 9));
 if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
   process.exit(2);
 }
+if (RELEASE && reps < 22) {
+  process.stderr.write(
+    '--release needs --reps >= 22 (rep 0 is cold; plan §9 asks for >= 21 pairs)\n',
+  );
+  process.exit(2);
+}
+if (RELEASE && sessionLocked() === true) {
+  process.stderr.write('the session is locked: a headed release run stalls; unlock it first\n');
+  process.exit(2);
+}
+const classifierModeOption = readOption('--classifier-mode') ?? 'legacy-scan';
+const classifierParam =
+  classifierModeOption === 'default' ? '' : `&classifierMode=${classifierModeOption}`;
 const detail = readOption('--detail');
 if (detail === undefined) {
   process.stderr.write('--detail <name> is required (e.g. m1-center-out)\n');
@@ -263,10 +293,19 @@ for (const dist of dists) {
   log(`vite preview serving ${dist.label} at ${baseUrls[dist.label]}`);
 }
 
-const launcher = engine === 'chromium' ? chromium : firefox;
-const playwrightVersion = require('@playwright/test/package.json').version;
-const browser = await launcher.launch({ headless: true });
-log(`${engine} ${browser.version()} launched (headless, automation-bundled)`);
+const {
+  browser,
+  close: closeBrowser,
+  launchedBy,
+} = await launchEvidenceBrowser({
+  engine,
+  release: RELEASE,
+  executablePath: readOption('--executable'),
+  cdpPort: CDP_PORT,
+});
+log(
+  `${engine} ${browser.version()} launched (${RELEASE ? `branded, headed: ${launchedBy}` : 'headless, automation-bundled'})`,
+);
 
 const viewportSize = { width: 1600, height: 900 };
 const newContext = () => browser.newContext({ viewport: viewportSize, deviceScaleFactor: 1 });
@@ -359,6 +398,7 @@ const measureOnce = async (page, spec) => {
     t50RowsMs: t50RowsMsOf(stableFrame, trace.height),
     bandsElapsedMs: stableFrame.bandsElapsedMs ?? null,
     colorizeMs: stableFrame.colorizeMs ?? null,
+    classifyMs: stableFrame.classifyMs ?? null,
     mergeCpuMs: stableFrame.mergeCpuMs ?? null,
     yieldWaitMs: stableFrame.yieldWaitMs ?? null,
     yieldCount: stableFrame.yieldCount ?? null,
@@ -376,7 +416,7 @@ const allSamples = [];
 for (const caseInfo of selectedCases) {
   const profileId = caseInfo.profile.toLowerCase();
   const urlFor = (dist, armParam) =>
-    `${baseUrls[dist]}/?perf=1&classifierMode=legacy-scan&view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}&quality=${profileId}${armParam === '' ? '' : `&${armParam}`}`;
+    `${baseUrls[dist]}/?perf=1${classifierParam}&view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}&quality=${profileId}${armParam === '' ? '' : `&${armParam}`}`;
   for (let repetition = 0; repetition < reps; repetition += 1) {
     const order = repetition % 2 === 0 ? [...arms] : [...arms].reverse();
     const cold = repetition === 0;
@@ -451,13 +491,12 @@ environment.browsers = {
   [engine]: {
     build: browser.version(),
     engine: userAgent,
-    headed: false,
-    powerMode: null,
+    headed: RELEASE,
+    powerMode: RELEASE ? readPowerMode() : null,
     devicePixelRatio: 1,
     viewport: viewportSize,
-    automation: `Playwright ${playwrightVersion} automation-bundled ${engine}, headless`,
-    label:
-      'automation-bundled headless engine — directional only, not release evidence per plan §9',
+    automation: automationLabel({ engine, release: RELEASE, launchedBy }),
+    label: RELEASE ? RELEASE_LABEL : DIRECTIONAL_LABEL,
     workerCount: [...new Set(allSamples.map((sample) => sample.workerCount))].sort((a, b) => a - b),
     backend: 'cpu',
     samples: allSamples.length,
@@ -478,13 +517,17 @@ environment.protocol = {
     'cancellation interactions and cache/replay/recolor distributions are out of scope for renderer-path paired runs',
   raster: SHIPPING_RASTER_ID,
   classifierMode:
-    'fixed to legacy-scan for every arm: renderer-path arms isolate scheduling/transfer/layout, not classifier-mode variance',
+    classifierModeOption === 'default'
+      ? 'production default for every arm (no classifierMode parameter): arms isolate the toggled detail, not classifier-mode variance'
+      : `fixed to ${classifierModeOption} for every arm: arms isolate the toggled detail, not classifier-mode variance`,
+  pairedIntervals: `95% BCa bootstrap on warm pairs, ${BOOTSTRAP_REPS} resamples, seed ${BOOTSTRAP_SEED} (tools/benchmark/bca.ts): median log-ratio ln(baseline/candidate) for stable wall and classifyMs`,
   wallMetric:
     'requestToPresentMs of the computed stable frame (plan §8); t50RowsMs derived from bandsElapsedMs (band-completion observability)',
   hashByteOrder:
     'SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas',
-  engineLabels:
-    'chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol',
+  engineLabels: RELEASE
+    ? 'branded stable browsers, headed with DevTools closed, on the declared target hardware (the machine running this harness)'
+    : 'chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol',
 };
 environment.notes.push(
   `Renderer-path detail '${detail}' run (${engine}): arms ${arms.map((arm) => arm.label).join(', ')}; dists ${dists.map((dist) => dist.label).join(', ')}.`,
@@ -646,12 +689,55 @@ for (const caseInfo of selectedCases) {
     delta === undefined || secondMedian === undefined
       ? undefined
       : delta > Math.max(0.05 * secondMedian, 20);
+  const pairedRatio = (metric) => {
+    const values = [];
+    for (const candidate of candidateSamples) {
+      const baseline = baselineSamples.find((sample) => sample.repetition === candidate.repetition);
+      const a = baseline?.[metric];
+      const b = candidate[metric];
+      if (typeof a === 'number' && typeof b === 'number' && a > 0 && b > 0) {
+        values.push(Math.log(a / b));
+      }
+    }
+    if (values.length < 2) return undefined;
+    const interval = bcaInterval({ values, resamples: BOOTSTRAP_REPS, seed: BOOTSTRAP_SEED });
+    return {
+      pairs: values.length,
+      ratio: Math.exp(interval.estimate),
+      interval: [Math.exp(interval.interval[0]), Math.exp(interval.interval[1])],
+    };
+  };
+  const pairedDifference = () => {
+    const values = [];
+    for (const candidate of candidateSamples) {
+      const baseline = baselineSamples.find((sample) => sample.repetition === candidate.repetition);
+      if (baseline !== undefined) {
+        values.push(candidate.requestToPresentMs - baseline.requestToPresentMs);
+      }
+    }
+    return values.length < 2
+      ? undefined
+      : bcaInterval({ values, resamples: BOOTSTRAP_REPS, seed: BOOTSTRAP_SEED });
+  };
   const t50Median = (samples) =>
     median(samples.map((sample) => sample.t50RowsMs).filter((value) => value !== null));
   const yieldMedian = (samples) =>
     median(samples.map((sample) => sample.yieldWaitMs).filter((value) => value !== null));
+  const difference = pairedDifference();
   summaryRows.push({
     caseId: caseInfo.id,
+    wallRatioBca: pairedRatio('requestToPresentMs'),
+    classifyRatioBca: pairedRatio('classifyMs'),
+    firstClassifyMs: median(
+      candidateSamples.map((sample) => sample.classifyMs).filter((value) => value !== null),
+    ),
+    secondClassifyMs: median(
+      baselineSamples.map((sample) => sample.classifyMs).filter((value) => value !== null),
+    ),
+    pairedRegressionFlag:
+      difference === undefined || secondMedian === undefined
+        ? undefined
+        : difference.estimate > Math.max(0.05 * secondMedian, 20) && difference.interval[0] > 0,
     candidateLabel,
     baselineLabel,
     firstMedianMs: firstMedian,
@@ -685,7 +771,38 @@ process.stderr.write(
     '\n',
 );
 
+// summary.md section for this detail × engine (release runs carry BCa).
+const formatRatio = (bca) =>
+  bca === undefined
+    ? '—'
+    : `${bca.ratio.toFixed(2)}× [${bca.interval[0].toFixed(2)}×, ${bca.interval[1].toFixed(2)}×]`;
+const sectionLines = [
+  `## ${detail} — ${engine}`,
+  '',
+  `Label: ${RELEASE ? RELEASE_LABEL : DIRECTIONAL_LABEL}. Browser: ${automationLabel({ engine, release: RELEASE, launchedBy })} ${browser.version()}. Classifier: ${classifierModeOption}. ${reps} repetitions (rep 0 cold, excluded).`,
+  '',
+  `Ratios are ${baselineLabel}/${candidateLabel} (>1 means ${candidateLabel} is faster): exp of the median paired log-ratio with a 95% BCa interval (${BOOTSTRAP_REPS} resamples, seed ${BOOTSTRAP_SEED}). Regression flag: plan §9 paired median difference > max(5%, 20 ms) with its interval excluding zero.`,
+  '',
+  `| Case | ${candidateLabel} wall | ${baselineLabel} wall | wall ratio [95% BCa] | ${candidateLabel} classifyMs | ${baselineLabel} classifyMs | classifier ratio [95% BCa] | regression flag |`,
+  '| --- | --- | --- | --- | --- | --- | --- | --- |',
+  ...summaryRows.map(
+    (row) =>
+      `| ${row.caseId} | ${formatMs(row.firstMedianMs)} | ${formatMs(row.secondMedianMs)} | ${formatRatio(row.wallRatioBca)} | ${formatMs(row.firstClassifyMs)} | ${formatMs(row.secondClassifyMs)} | ${formatRatio(row.classifyRatioBca)} | ${row.pairedRegressionFlag === undefined ? '—' : row.pairedRegressionFlag ? '**flagged**' : 'no'} |`,
+  ),
+  '',
+  `Semantic hash mismatches: ${mismatches.length}.`,
+  '',
+];
+const summaryPath = path.join(outDir, 'summary.md');
+const sectionKey = `## ${detail} — ${engine}`;
+const previousSections = existsSync(summaryPath)
+  ? readFileSync(summaryPath, 'utf8')
+      .split(/(?=^## )/m)
+      .filter((section) => !section.startsWith(sectionKey))
+  : ['# Renderer-path paired evidence\n\n'];
+writeFileSync(summaryPath, `${[...previousSections, sectionLines.join('\n')].join('')}\n`);
+
 log(`evidence directory: ${path.relative(repoRoot, outDir)} (manifest emitted at closeout)`);
-await browser.close();
+await closeBrowser();
 for (const server of servers) await server.close();
 process.exit(0);

@@ -13,3 +13,4 @@ model/
 package-lock.json
 proof/lake-manifest.json
 proof/.lake/
+.remember/

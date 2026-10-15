@@ -37,6 +37,11 @@
  *   parallelism and scheduling sit inside it. Single-threaded classifier
  *   evidence remains the Node pr2 microbench artifact.
  *
+ * `--release` runs the plan §9 release protocol on the machine it is launched
+ * on: branded stable browsers, headed (tools/benchmark/release-browser.mjs),
+ * at least 22 repetitions (rep 0 cold, so ≥21 warm pairs), and 95% BCa paired
+ * intervals on the per-pair improvement (log-ratio) and regression delta.
+ *
  * Labels are honest: an automation-bundled engine under xvfb (headed or
  * headless, as recorded) is directional evidence, not the release protocol of
  * plan §9 (branded stable browsers, declared target hardware).
@@ -45,7 +50,7 @@
  *   node tools/benchmark/run-b-gate.mjs [--engine chromium|firefox]
  *     --dist "baseline=<pre-pr2-worktree>/dist,current=dist"
  *     [--reps 11] [--cases <id,id,...>] [--out-dir <evidence/phase-2/...>]
- *     [--headed] [--max-steps 64]
+ *     [--headed] [--max-steps 64] [--release] [--executable <branded browser>]
  *
  * The baseline checkout is deliberately explicit: create a disposable
  * detached worktree at commit a6e1838, build it, pass its dist path here, and
@@ -55,14 +60,18 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import { build, preview } from 'vite';
+import { bcaInterval } from './bca.ts';
+import {
+  launchEvidenceBrowser,
+  playwrightVersion,
+  readPowerMode,
+  RELEASE_LABEL,
+  sessionLocked,
+} from './release-browser.mjs';
 import { planRegionChain } from './view-chain.mjs';
-
-const require = createRequire(import.meta.url);
-const { chromium, firefox } = require('@playwright/test');
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const BASE_PORT = 4183;
@@ -70,6 +79,9 @@ const SHIPPING_RASTER_ID = 'shipping-1024x640';
 const TARGET_RASTER = { width: 1024, height: 640 };
 const NAVIGATION_TIMEOUT_MS = 10 * 60_000;
 const SETTLE_MS = 40;
+const CDP_PORT = 9334;
+const BOOTSTRAP_REPS = 10_000;
+const BOOTSTRAP_SEED = 20_261_015;
 
 const log = (message) => {
   process.stderr.write(`[b-gate] ${message}\n`);
@@ -90,7 +102,19 @@ if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
   process.exit(2);
 }
-const headed = args.includes('--headed');
+const RELEASE = args.includes('--release');
+const headed = RELEASE || args.includes('--headed');
+if (RELEASE && reps < 22) {
+  process.stderr.write(
+    '--release needs --reps >= 22 (rep 0 is cold; plan §9 asks for >= 21 pairs)\n',
+  );
+  process.exit(2);
+}
+if (RELEASE && sessionLocked() === true) {
+  process.stderr.write('the session is locked: a headed release run stalls; unlock it first\n');
+  process.exit(2);
+}
+const displayLabel = RELEASE ? 'headed, branded stable' : headed ? 'headed under xvfb' : 'headless';
 const maxSteps = Number(readOption('--max-steps') ?? 64);
 
 const distOption = readOption('--dist');
@@ -455,11 +479,19 @@ for (const dist of dists) {
   log(`vite preview serving ${dist.label} at ${baseUrls[dist.label]}`);
 }
 
-const launcher = engine === 'chromium' ? chromium : firefox;
-const playwrightVersion = require('@playwright/test/package.json').version;
-const browser = await launcher.launch({ headless: !headed });
+const {
+  browser,
+  close: closeBrowser,
+  launchedBy,
+} = await launchEvidenceBrowser({
+  engine,
+  release: RELEASE,
+  headed,
+  executablePath: readOption('--executable'),
+  cdpPort: CDP_PORT,
+});
 log(
-  `${engine} ${browser.version()} launched (${headed ? 'headed under xvfb' : 'headless'}, automation-bundled)`,
+  `${engine} ${browser.version()} launched (${displayLabel}${RELEASE ? `: ${launchedBy}` : ', automation-bundled'})`,
 );
 
 let viewportSize = { width: 1600, height: 900 };
@@ -831,13 +863,20 @@ environment.browsers = {
     build: browser.version(),
     engine: userAgent,
     headed,
-    powerMode: null,
+    powerMode: RELEASE ? readPowerMode() : null,
     devicePixelRatio: 1,
     viewport: viewportSize,
-    display: headed ? 'xvfb-run virtual display (headed)' : 'headless',
-    automation: `Playwright ${playwrightVersion} automation-bundled ${engine}, ${headed ? 'headed under xvfb' : 'headless'}`,
-    label:
-      'automation-bundled engine — directional only, not release evidence per plan §9 (branded stable browsers, declared target hardware)',
+    display: RELEASE
+      ? 'session display (headed)'
+      : headed
+        ? 'xvfb-run virtual display (headed)'
+        : 'headless',
+    automation: RELEASE
+      ? `Playwright ${playwrightVersion} driving branded stable ${engine === 'chromium' ? 'Google Chrome' : 'Firefox'}, headed: ${launchedBy}`
+      : `Playwright ${playwrightVersion} automation-bundled ${engine}, ${displayLabel}`,
+    label: RELEASE
+      ? RELEASE_LABEL
+      : 'automation-bundled engine — directional only, not release evidence per plan §9 (branded stable browsers, declared target hardware)',
     workerCount: [...new Set(allSamples.map((sample) => sample.workerCount).filter(Boolean))].sort(
       (a, b) => a - b,
     ),
@@ -889,8 +928,10 @@ environment.comparison = {
       'planned region-select chains (plus a pan step where the target center is unreachable by region selection alone); expectations replay the application viewport math and are unit-tested against src/domain/viewport.ts; achieved viewport verified per sample (exact hook readback on the current arm, 9-digit coordinate readout on the baseline arm)',
     hashByteOrder:
       'SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas',
-    engineLabels:
-      'chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol',
+    engineLabels: RELEASE
+      ? 'chromium = branded stable Google Chrome, firefox = branded stable Firefox, both headed with DevTools closed, on the declared target hardware (the machine running this harness)'
+      : 'chromium/firefox here are Playwright automation builds; branded stable browsers on declared target hardware remain the release protocol',
+    pairedIntervals: `95% BCa bootstrap on warm pairs, ${BOOTSTRAP_REPS} resamples, seed ${BOOTSTRAP_SEED} (tools/benchmark/bca.ts): median log-ratio ln(baseline/current) for the improvement, median current−baseline difference for the regression cap`,
     outOfScope:
       'cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope',
   },
@@ -902,7 +943,7 @@ writeFileSync(environmentPath, `${JSON.stringify(environment, null, 2)}\n`);
 
 const rawPath = path.join(outDir, 'raw-observations.json');
 const existingRaw = existsSync(rawPath) ? JSON.parse(readFileSync(rawPath, 'utf8')) : undefined;
-const engineKey = `${engine}${headed ? '-headed-xvfb' : '-headless'}`;
+const engineKey = `${engine}${RELEASE ? '-release' : headed ? '-headed-xvfb' : '-headless'}`;
 const runsByEngine = {
   ...(existingRaw?.runsByEngine ?? {}),
   [engineKey]: {
@@ -1022,6 +1063,47 @@ const summarize = () =>
       );
       row[`${label}WarmReps`] = samples.length;
     }
+    // Pairs are matched by repetition (both arms ran adjacently).
+    const pairsOf = (metric) => {
+      const pairs = [];
+      for (const baseline of warm.filter((sample) => sample.arm === 'baseline')) {
+        const current = warm.find(
+          (sample) => sample.arm === 'current' && sample.repetition === baseline.repetition,
+        );
+        const b = baseline[metric];
+        const c = current?.[metric];
+        if (typeof b === 'number' && typeof c === 'number' && b > 0 && c > 0) {
+          pairs.push({ baseline: b, current: c });
+        }
+      }
+      return pairs;
+    };
+    const intervalOf = (values) =>
+      values.length < 2
+        ? undefined
+        : bcaInterval({ values, resamples: BOOTSTRAP_REPS, seed: BOOTSTRAP_SEED });
+    for (const [metric, label] of [
+      ['markWallMs', 'wall'],
+      ['stableClassifyMs', 'classify'],
+    ]) {
+      const pairs = pairsOf(metric);
+      const ratio = intervalOf(pairs.map((pair) => Math.log(pair.baseline / pair.current)));
+      const difference = intervalOf(pairs.map((pair) => pair.current - pair.baseline));
+      row[`${label}Pairs`] = pairs.length;
+      // Improvement as a fraction of baseline time: 1 - current/baseline.
+      row[`${label}ImprovementBca`] =
+        ratio === undefined
+          ? undefined
+          : {
+              estimatePct: (1 - Math.exp(-ratio.estimate)) * 100,
+              intervalPct: [
+                (1 - Math.exp(-ratio.interval[0])) * 100,
+                (1 - Math.exp(-ratio.interval[1])) * 100,
+              ],
+              degenerate: ratio.degenerate,
+            };
+      row[`${label}DifferenceBca`] = difference;
+    }
     row.wallDeltaMs =
       row.currentWallMedianMs === undefined || row.baselineWallMedianMs === undefined
         ? undefined
@@ -1030,10 +1112,20 @@ const summarize = () =>
       row.baselineWallMedianMs === undefined || row.currentWallMedianMs === undefined
         ? undefined
         : ((row.baselineWallMedianMs - row.currentWallMedianMs) / row.baselineWallMedianMs) * 100;
-    row.wallRegressionFlag =
-      row.wallDeltaMs === undefined || row.baselineWallMedianMs === undefined
+    // Plan §9 cap: paired median difference > max(5%, 20 ms) AND its paired
+    // interval excludes zero (median part only without an interval).
+    const capFlag = (difference, delta, baselineMedian) => {
+      const paired = difference === undefined ? delta : difference.estimate;
+      return paired === undefined || baselineMedian === undefined
         ? undefined
-        : row.wallDeltaMs > Math.max(0.05 * row.baselineWallMedianMs, 20);
+        : paired > Math.max(0.05 * baselineMedian, 20) &&
+            (difference === undefined || difference.interval[0] > 0);
+    };
+    row.wallRegressionFlag = capFlag(
+      row.wallDifferenceBca,
+      row.wallDeltaMs,
+      row.baselineWallMedianMs,
+    );
     row.classifyDeltaMs =
       row.currentClassifyMedianMs === undefined || row.baselineClassifyMedianMs === undefined
         ? undefined
@@ -1044,12 +1136,18 @@ const summarize = () =>
         : ((row.baselineClassifyMedianMs - row.currentClassifyMedianMs) /
             row.baselineClassifyMedianMs) *
           100;
-    row.classifyRegressionFlag =
-      row.classifyDeltaMs === undefined || row.baselineClassifyMedianMs === undefined
-        ? undefined
-        : row.classifyDeltaMs > Math.max(0.05 * row.baselineClassifyMedianMs, 20);
+    row.classifyRegressionFlag = capFlag(
+      row.classifyDifferenceBca,
+      row.classifyDeltaMs,
+      row.baselineClassifyMedianMs,
+    );
     return row;
   });
+
+const formatBca = (bca) =>
+  bca === undefined
+    ? '—'
+    : `${bca.estimatePct.toFixed(1)}% [${bca.intervalPct[0].toFixed(1)}%, ${bca.intervalPct[1].toFixed(1)}%]`;
 
 const summaryLines = [];
 summaryLines.push(`# Workstream B release gate — ${runDate} @ ${shortCommit}`);
@@ -1068,9 +1166,12 @@ summaryLines.push(
 );
 summaryLines.push('');
 summaryLines.push(
-  `**Label (${engine}):** Playwright ${playwrightVersion} automation-bundled ${engine} ` +
-    `${browser.version()}, ${headed ? 'headed under xvfb-run' : 'headless'} — directional only, ` +
-    'not release evidence per plan §9.',
+  RELEASE
+    ? `**Label (${engine}):** Playwright ${playwrightVersion} driving branded stable ` +
+        `${engine === 'chromium' ? 'Google Chrome' : 'Firefox'} ${browser.version()}, headed ` +
+        `(${launchedBy}) — ${RELEASE_LABEL}.`
+    : `**Label (${engine}):** Playwright ${playwrightVersion} automation-bundled ${engine} ` +
+        `${browser.version()}, ${displayLabel} — directional only, not release evidence per plan §9.`,
 );
 summaryLines.push('');
 summaryLines.push('## Headline (paired warm medians) — end-to-end wall');
@@ -1082,12 +1183,12 @@ summaryLines.push(
 );
 summaryLines.push('');
 summaryLines.push(
-  '| Case | Designation | baseline wall median (MAD) | current wall median (MAD) | Δ (cur−base) | improvement | regression flag |',
+  '| Case | Designation | baseline wall median (MAD) | current wall median (MAD) | Δ (cur−base) | improvement | paired improvement [95% BCa] | regression flag |',
 );
-summaryLines.push('| --- | --- | --- | --- | --- | --- | --- |');
+summaryLines.push('| --- | --- | --- | --- | --- | --- | --- | --- |');
 for (const row of summarize()) {
   summaryLines.push(
-    `| ${row.caseId} | ${row.designation} | ${formatMs(row.baselineWallMedianMs)} (${formatMs(row.baselineWallMadMs)}) | ${formatMs(row.currentWallMedianMs)} (${formatMs(row.currentWallMadMs)}) | ${row.wallDeltaMs === undefined ? '—' : `${row.wallDeltaMs.toFixed(1)} ms`} | ${row.wallImprovementPct === undefined ? '—' : `${row.wallImprovementPct.toFixed(1)}%`} | ${row.wallRegressionFlag === undefined ? '—' : row.wallRegressionFlag ? '**flagged**' : 'no'} |`,
+    `| ${row.caseId} | ${row.designation} | ${formatMs(row.baselineWallMedianMs)} (${formatMs(row.baselineWallMadMs)}) | ${formatMs(row.currentWallMedianMs)} (${formatMs(row.currentWallMadMs)}) | ${row.wallDeltaMs === undefined ? '—' : `${row.wallDeltaMs.toFixed(1)} ms`} | ${row.wallImprovementPct === undefined ? '—' : `${row.wallImprovementPct.toFixed(1)}%`} | ${formatBca(row.wallImprovementBca)} | ${row.wallRegressionFlag === undefined ? '—' : row.wallRegressionFlag ? '**flagged**' : 'no'} |`,
   );
 }
 summaryLines.push('');
@@ -1102,12 +1203,12 @@ summaryLines.push(
 );
 summaryLines.push('');
 summaryLines.push(
-  '| Case | baseline classify median (MAD) | current classify median (MAD) | Δ (cur−base) | classify improvement |',
+  '| Case | baseline classify median (MAD) | current classify median (MAD) | Δ (cur−base) | classify improvement | paired improvement [95% BCa] | regression flag |',
 );
-summaryLines.push('| --- | --- | --- | --- | --- |');
+summaryLines.push('| --- | --- | --- | --- | --- | --- | --- |');
 for (const row of summarize()) {
   summaryLines.push(
-    `| ${row.caseId} | ${formatMs(row.baselineClassifyMedianMs)} (${formatMs(row.baselineClassifyMadMs)}) | ${formatMs(row.currentClassifyMedianMs)} (${formatMs(row.currentClassifyMadMs)}) | ${row.classifyDeltaMs === undefined ? '—' : `${row.classifyDeltaMs.toFixed(1)} ms`} | ${row.classifyImprovementPct === undefined ? '—' : `${row.classifyImprovementPct.toFixed(1)}%`} |`,
+    `| ${row.caseId} | ${formatMs(row.baselineClassifyMedianMs)} (${formatMs(row.baselineClassifyMadMs)}) | ${formatMs(row.currentClassifyMedianMs)} (${formatMs(row.currentClassifyMadMs)}) | ${row.classifyDeltaMs === undefined ? '—' : `${row.classifyDeltaMs.toFixed(1)} ms`} | ${row.classifyImprovementPct === undefined ? '—' : `${row.classifyImprovementPct.toFixed(1)}%`} | ${formatBca(row.classifyImprovementBca)} | ${row.classifyRegressionFlag === undefined ? '—' : row.classifyRegressionFlag ? '**flagged**' : 'no'} |`,
   );
 }
 summaryLines.push('');
@@ -1129,7 +1230,9 @@ for (const note of [
   'Cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope for this pass.',
   'markWallMs ends at the same rAF callback as the trace requestToPresentMs; it is not proof of physical paint (plan §8).',
   'The RGBA hash is a palette-inclusive proxy; cross-build hash mismatches are expected on interior/boundary-heavy views (PR 3 verifier reductions + PR 5 period-policy display landed between the arms) and are enumerated in semantic-comparison.json.',
-  `${reps} paired repetitions = screening-protocol scale (plan §9 allows 9-11); release-gate cases need 21+ reps, BCa paired intervals, branded stable browsers, and declared target hardware.`,
+  RELEASE
+    ? `${reps} repetitions (${reps - 1} warm pairs) in branded stable browsers, headed, on the declared target hardware: the plan §9 release protocol, with 95% BCa paired intervals (${BOOTSTRAP_REPS} resamples, seed ${BOOTSTRAP_SEED}).`
+    : `${reps} paired repetitions = screening-protocol scale (plan §9 allows 9-11); release-gate cases need 21+ reps, BCa paired intervals, branded stable browsers, and declared target hardware.`,
 ]) {
   summaryLines.push(`- ${note}`);
 }
@@ -1146,6 +1249,6 @@ if (manifest.status !== 0) {
 }
 log(`evidence directory: ${path.relative(repoRoot, outDir)}`);
 
-await browser.close();
+await closeBrowser();
 for (const server of servers) await server.close();
 process.exit(0);

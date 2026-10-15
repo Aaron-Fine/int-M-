@@ -13,6 +13,7 @@ export default tseslint.config(
       'playwright-report/',
       'test-results/',
       'proof/.lake/',
+      '.remember/',
     ],
   },
   eslint.configs.recommended,

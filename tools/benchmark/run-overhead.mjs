@@ -29,20 +29,25 @@
  * Usage:
  *   node tools/benchmark/run-overhead.mjs [--engine firefox|chromium]
  *       [--headless] [--reps 11] [--cases <id,id>]
+ *       [--release] [--executable <branded browser>] (plan §9 release protocol:
+ *       branded stable browser, headed on the session display, ≥22 reps)
  *       [--out-dir <evidence/phase-2/<date>-<commit>>]
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import { build, preview } from 'vite';
 
 import { bcaInterval } from './bca.ts';
-
-const require = createRequire(import.meta.url);
-const { chromium, firefox } = require('@playwright/test');
+import {
+  automationLabel,
+  launchEvidenceBrowser,
+  readPowerMode,
+  RELEASE_LABEL,
+  sessionLocked,
+} from './release-browser.mjs';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const PREVIEW_PORT = 4181;
@@ -78,15 +83,27 @@ if (engine !== 'chromium' && engine !== 'firefox') {
   process.stderr.write(`unknown engine: ${engine} (use chromium or firefox)\n`);
   process.exit(2);
 }
-const reps = Number(readOption('--reps') ?? 11);
+const RELEASE = args.includes('--release');
+const reps = Number(readOption('--reps') ?? (RELEASE ? 22 : 11));
 if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
+  process.exit(2);
+}
+if (RELEASE && reps < 22) {
+  process.stderr.write(
+    '--release needs --reps >= 22 (rep 0 is cold; plan §9 asks for >= 21 pairs)\n',
+  );
+  process.exit(2);
+}
+if (RELEASE && sessionLocked() === true) {
+  process.stderr.write('the session is locked: a headed release run stalls; unlock it first\n');
   process.exit(2);
 }
 
 // Self-wrap under xvfb-run so the harness is one reproducible command.
 if (
   engine === 'firefox' &&
+  !RELEASE &&
   !args.includes('--headless') &&
   process.env['MI_XVFB_WRAPPED'] !== '1' &&
   !process.env['DISPLAY'] &&
@@ -103,14 +120,16 @@ if (
 const xvfbWrapped = process.env['MI_XVFB_WRAPPED'] === '1';
 const displayAvailable = Boolean(process.env['DISPLAY']);
 const forcedHeadless = args.includes('--headless');
-const headed = displayAvailable && !forcedHeadless;
-const executionMode = headed
-  ? xvfbWrapped
-    ? 'headed under Xvfb (xvfb-run -a)'
-    : 'headed under an existing display server'
-  : forcedHeadless
-    ? 'headless (explicit --headless)'
-    : 'headless (no xvfb-run/display — fallback recorded honestly)';
+const headed = RELEASE || (displayAvailable && !forcedHeadless);
+const executionMode = RELEASE
+  ? 'headed, branded stable browser on the session display'
+  : headed
+    ? xvfbWrapped
+      ? 'headed under Xvfb (xvfb-run -a)'
+      : 'headed under an existing display server'
+    : forcedHeadless
+      ? 'headless (explicit --headless)'
+      : 'headless (no xvfb-run/display — fallback recorded honestly)';
 
 const corpusPath = path.join(repoRoot, 'tools/benchmark/corpus.v1.json');
 const corpusRaw = readFileSync(corpusPath, 'utf8');
@@ -293,12 +312,19 @@ const server = await preview({
 const baseUrl = `http://127.0.0.1:${PREVIEW_PORT}`;
 log(`vite preview serving dist/ at ${baseUrl}`);
 
-const launcher = engine === 'chromium' ? chromium : firefox;
-const playwrightVersion = require('@playwright/test/package.json').version;
-const browser = await launcher.launch({ headless: !headed });
+const {
+  browser,
+  close: closeBrowser,
+  launchedBy,
+} = await launchEvidenceBrowser({
+  engine,
+  release: RELEASE,
+  headed,
+  executablePath: readOption('--executable'),
+  cdpPort: 9337,
+});
 log(
-  `${engine} ${browser.version()} launched (${headed ? 'headed' : 'headless'}, ` +
-    `automation-bundled)`,
+  `${engine} ${browser.version()} launched (${executionMode}${RELEASE ? `: ${launchedBy}` : ''})`,
 );
 
 const viewportSize = { width: 1280, height: 905 };
@@ -601,7 +627,7 @@ const recorderRun = spawnSync('npm', ['run', '--silent', 'bench:recorder'], {
 if (recorderRun.status !== 0) {
   process.stderr.write(recorderRun.stderr);
   process.stderr.write('recorder-cost microbenchmark failed\n');
-  await browser.close();
+  await closeBrowser();
   await server.close();
   process.exit(recorderRun.status ?? 1);
 }
@@ -764,12 +790,13 @@ const engineFacts = {
   engine: userAgent,
   headed,
   executionMode,
-  powerMode: null,
+  powerMode: RELEASE ? readPowerMode() : null,
   devicePixelRatio: 1,
   viewport: { ...viewportSize },
-  automation: `Playwright ${playwrightVersion} automation-bundled ${engine}`,
-  label:
-    'automation-bundled engine — directional only, not release evidence per plan §9 (branded stable Firefox, declared target hardware, 21+ reps remain release-gate work)',
+  automation: automationLabel({ engine, release: RELEASE, headed, launchedBy }),
+  label: RELEASE
+    ? RELEASE_LABEL
+    : 'automation-bundled engine — directional only, not release evidence per plan §9 (branded stable Firefox, declared target hardware, 21+ reps remain release-gate work)',
   workerCount: [
     ...new Set(
       allSamples
@@ -805,10 +832,13 @@ environment.protocol = {
     'Node microbenchmark of the production ring (npm run bench:recorder), stored as recorder-cost-node.json; directional',
   hashByteOrder:
     'SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas',
-  engineLabels:
-    'automation-bundled engines are directional; branded stable browsers on declared target hardware remain the release protocol',
+  engineLabels: RELEASE
+    ? 'branded stable browser, headed with DevTools closed, on the declared target hardware (the machine running this harness)'
+    : 'automation-bundled engines are directional; branded stable browsers on declared target hardware remain the release protocol',
   executionMode,
-  powerMode: 'unknown in the automation environment; recorded as null',
+  powerMode: RELEASE
+    ? `${readPowerMode() ?? 'not exposed by sysfs'} (read from /sys at the end of the run)`
+    : 'unknown in the automation environment; recorded as null',
 };
 environment.notes.push(`Browser facts filled by tools/benchmark/run-overhead.mjs (${engine} run).`);
 writeFileSync(environmentPath, `${JSON.stringify(environment, null, 2)}\n`);
@@ -880,8 +910,10 @@ summaryLines.push(
 );
 summaryLines.push('');
 summaryLines.push(
-  `**Label (${engine}):** Playwright automation-bundled ${engine}, ${executionMode} — ` +
-    'directional only, not release evidence per plan §9 (branded stable Firefox, headed on declared target hardware, 21+ reps).',
+  RELEASE
+    ? `**Label (${engine}):** ${automationLabel({ engine, release: RELEASE, launchedBy })} ${browser.version()} — ${RELEASE_LABEL}.`
+    : `**Label (${engine}):** Playwright automation-bundled ${engine}, ${executionMode} — ` +
+        'directional only, not release evidence per plan §9 (branded stable Firefox, headed on declared target hardware, 21+ reps).',
 );
 summaryLines.push('');
 summaryLines.push('## Paired end-to-end opt-in diagnostics overhead');
@@ -970,6 +1002,6 @@ if (manifest.status !== 0) {
 }
 log(`evidence directory: ${path.relative(repoRoot, outDir)}`);
 
-await browser.close();
+await closeBrowser();
 await server.close();
 process.exit(0);
