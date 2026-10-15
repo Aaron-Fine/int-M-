@@ -15,7 +15,8 @@
  *   using region-select chains planned by tools/benchmark/view-chain.mjs (the
  *   planner replays the application's own viewport math and is unit-pinned by
  *   tests/unit/benchmark/view-chain.test.ts). The current arm additionally
- *   pins `?perf=1&classifierMode=legacy-scan&quality=<profile>`; the baseline
+ *   pins `?perf=1&classifierMode=legacy-scan&conjugateMirror=0&quality=<profile>`
+ *   (mirroring, default-on since workstream M, is off as in the baseline); the baseline
  *   arm switches `#render-quality` through the UI. No arm uses `?view=`, so
  *   both arms run the identical pointer-driven viewport pipeline and the
  *   achieved viewport is verified per sample;
@@ -722,7 +723,7 @@ let sampleSeq = 0;
 const measureOnce = async (page, spec) => {
   const url =
     spec.arm === 'current'
-      ? `${baseUrls[spec.dist]}/?perf=1&classifierMode=legacy-scan&quality=${spec.profileId}`
+      ? `${baseUrls[spec.dist]}/?perf=1&classifierMode=legacy-scan&conjugateMirror=0&quality=${spec.profileId}`
       : `${baseUrls[spec.dist]}/`;
   await page.goto(url, { timeout: NAVIGATION_TIMEOUT_MS });
   await page.waitForSelector('#explorer', { timeout: NAVIGATION_TIMEOUT_MS });
@@ -903,7 +904,8 @@ environment.comparison = {
       role: 'candidate (current build; contains PR 2 + PR 4 default-legacy + renderer-path bundle)',
       commit: currentCommit,
       distDir: dists[1].dir,
-      classifierMode: 'legacy-scan (pinned via ?classifierMode=legacy-scan to isolate B from C)',
+      classifierMode:
+        'legacy-scan (pinned via ?classifierMode=legacy-scan to isolate B from C), conjugate mirroring off (?conjugateMirror=0, isolating B from M)',
       viewDriving: 'real pointer UI: identical chains (no ?view=, matching the baseline arm)',
       profileSelection: '?quality= query parameter',
     },
