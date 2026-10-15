@@ -760,3 +760,194 @@ describe('RenderWorkerRuntime', () => {
     expect(defaultFrame).not.toHaveProperty('counters');
   });
 });
+
+describe('RenderWorkerRuntime delivery provenance and cancellation lifecycle', () => {
+  type FrameOut = Extract<WorkerToMainMessage, { type: 'frame' }>;
+  const framesOf = (messages: readonly WorkerToMainMessage[]): FrameOut[] =>
+    messages.filter((message): message is FrameOut => message.type === 'frame');
+  const inspect = (): OrbitResult => ({
+    status: 'unresolved',
+    iterations: 1,
+    evidence: ['iteration-limit'],
+  });
+  const dynamics = {
+    viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+    size: { width: 2, height: 2 },
+  };
+
+  it('freshFrames_shareOneComputeIdAndCarryWorkerWallAndClassifyTiming', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const renderer: Renderer = {
+      inspect,
+      render: async (request, _signal, onFrame) => {
+        await onFrame({
+          ...semanticFrame(request.size, 'coarse'),
+          timing: { classifyMs: 3, yieldWaitMs: 0, yieldCount: 0 },
+        });
+        await onFrame({
+          ...semanticFrame(request.size),
+          timing: { classifyMs: 9, yieldWaitMs: 1, yieldCount: 2 },
+        });
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer);
+
+    await runtime.handle({ type: 'render', requestId: 1, semanticView: 'period', ...dynamics });
+    await runtime.handle({
+      type: 'render',
+      requestId: 2,
+      semanticView: 'period',
+      ...dynamics,
+      viewport: { ...dynamics.viewport, spanY: 2 },
+    });
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'computed',
+      'computed',
+      'computed',
+    ]);
+    const ids = frames.map((frame) =>
+      frame.provenance.source === 'computed' ? frame.provenance.computeId : undefined,
+    );
+    expect(ids[0]).toEqual(ids[1]);
+    expect(ids[2]).toEqual(ids[3]);
+    expect(ids[2]).toBeGreaterThan(ids[0] ?? Number.POSITIVE_INFINITY);
+    for (const frame of frames) {
+      expect(frame.provenance).toHaveProperty('workerWallMs');
+      expect(frame.provenance).not.toHaveProperty('originComputeId');
+      expect(frame.workerTiming?.classifyMs).toBeDefined();
+    }
+  });
+
+  it('cacheHits_areSemanticCacheInTheSameViewAndRecolorInAnotherWithoutComputeTiming', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const renderer: Renderer = {
+      inspect,
+      render: async (request, _signal, onFrame) => {
+        await onFrame({
+          ...semanticFrame(request.size),
+          timing: { classifyMs: 9, yieldWaitMs: 1, yieldCount: 2 },
+        });
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer);
+
+    await runtime.handle({ type: 'render', requestId: 1, semanticView: 'period', ...dynamics });
+    await runtime.handle({ type: 'render', requestId: 2, semanticView: 'period', ...dynamics });
+    await runtime.handle({ type: 'render', requestId: 3, semanticView: 'multiplier', ...dynamics });
+    await runtime.handle({ type: 'render', requestId: 4, semanticView: 'multiplier', ...dynamics });
+
+    const frames = framesOf(messages);
+    const computed = frames[0]?.provenance;
+    expect(computed?.source).toEqual('computed');
+    const computeId = computed?.source === 'computed' ? computed.computeId : -1;
+    expect(frames.slice(1).map((frame) => frame.provenance)).toEqual([
+      { source: 'semantic-cache', originComputeId: computeId },
+      { source: 'recolor', originComputeId: computeId },
+      { source: 'semantic-cache', originComputeId: computeId },
+    ]);
+    for (const frame of frames.slice(1)) {
+      // Colorization ran; classification did not, and is absent, not zero.
+      expect(frame.workerTiming?.colorizeMs).toBeGreaterThanOrEqual(0);
+      expect(frame.workerTiming).not.toHaveProperty('classifyMs');
+      expect(frame.workerTiming).not.toHaveProperty('yieldWaitMs');
+    }
+  });
+
+  it('inflightReplay_reusesTheActiveComputationAndLaterFramesKeepItsComputeId', async () => {
+    let onFrame: SemanticFrameConsumer | undefined;
+    let finish: () => void = () => undefined;
+    const renderer: Renderer = {
+      inspect,
+      render: async (request, _signal, consumer) => {
+        await consumer(semanticFrame(request.size, 'coarse'));
+        onFrame = consumer;
+        await new Promise<void>((resolve) => {
+          finish = resolve;
+        });
+      },
+      colorize,
+    };
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer);
+
+    const first = runtime.handle({
+      type: 'render',
+      requestId: 'a',
+      semanticView: 'period',
+      ...dynamics,
+    });
+    await runtime.handle({ type: 'render', requestId: 'b', semanticView: 'period', ...dynamics });
+    await onFrame?.(semanticFrame(dynamics.size));
+    finish();
+    await first;
+
+    const frames = framesOf(messages);
+    const original = frames[0]?.provenance;
+    const computeId = original?.source === 'computed' ? original.computeId : -1;
+    expect(frames.map((frame) => [frame.requestId, frame.stage, frame.provenance])).toEqual([
+      ['a', 'coarse', expect.objectContaining({ source: 'computed', computeId })],
+      ['b', 'coarse', { source: 'inflight-replay', originComputeId: computeId }],
+      ['b', 'stable', expect.objectContaining({ source: 'computed', computeId })],
+    ]);
+  });
+
+  it('explicitCancel_postsAckImmediatelyAndQuiescenceOnlyAfterTheRendererQuiesces', async () => {
+    const pending = createPendingPool();
+    let releaseChildren: () => void = () => undefined;
+    const quiesce = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseChildren = resolve;
+        }),
+    );
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      new CpuRenderer({ ...pending.pool, quiesce }),
+    );
+
+    const renderHandle = runtime.handle({
+      type: 'render',
+      requestId: 'slow',
+      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+      size: { width: 4, height: 2 },
+      quality: STABLE_QUALITY,
+      semanticView: 'period',
+    });
+    await waitFor(pending.started, 'classifyStable');
+    await runtime.handle({ type: 'cancel', requestId: 'slow' });
+
+    expect(messages).toContainEqual({ type: 'cancel-ack', requestId: 'slow' });
+    await vi.waitFor(() => {
+      expect(quiesce).toHaveBeenCalledOnce();
+    });
+    expect(messages).not.toContainEqual({ type: 'cancelled', requestId: 'slow' });
+
+    releaseChildren();
+    await renderHandle;
+    const lifecycle = messages
+      .filter((message) => message.type === 'cancel-ack' || message.type === 'cancelled')
+      .map((message) => message.type);
+    expect(lifecycle).toEqual(['cancel-ack', 'cancelled']);
+  });
+
+  it('cancelForWorkNotRunning_acknowledgesAndReportsQuiescenceAtOnce', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      { inspect, render: () => Promise.resolve(), colorize },
+    );
+
+    await runtime.handle({ type: 'cancel', requestId: 'finished' });
+
+    expect(messages).toEqual([
+      { type: 'cancel-ack', requestId: 'finished' },
+      { type: 'cancelled', requestId: 'finished' },
+    ]);
+  });
+});

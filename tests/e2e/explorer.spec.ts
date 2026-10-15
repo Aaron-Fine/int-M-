@@ -91,6 +91,63 @@ const expectNoHorizontalOverflow = async (page: Page, context: string): Promise<
   );
 };
 
+interface TraceView {
+  readonly requestId: number | string;
+  readonly computeId?: number | undefined;
+  readonly outcome: string;
+  readonly cancelAckMs?: number | undefined;
+  readonly childQuiescenceMs?: number | undefined;
+  readonly frames: readonly {
+    readonly stage: string;
+    readonly source: string;
+    readonly originComputeId?: number | undefined;
+    readonly workerWallMs?: number | undefined;
+    readonly colorizeMs?: number | undefined;
+  }[];
+}
+
+/** The ?perf=1 render-trace ring, reduced to the provenance and timing fields. */
+const renderTraces = (page: Page): Promise<TraceView[]> =>
+  page.evaluate((): TraceView[] => {
+    const hook = (
+      globalThis as typeof globalThis & {
+        __miRenderTrace?: { snapshot(): readonly TraceView[] };
+      }
+    ).__miRenderTrace;
+    return (hook?.snapshot() ?? []).map((trace) => ({
+      requestId: trace.requestId,
+      computeId: trace.computeId,
+      outcome: trace.outcome,
+      cancelAckMs: trace.cancelAckMs,
+      childQuiescenceMs: trace.childQuiescenceMs,
+      frames: trace.frames.map((frame) => ({
+        stage: frame.stage,
+        source: frame.source,
+        originComputeId: frame.originComputeId,
+        workerWallMs: frame.workerWallMs,
+        colorizeMs: frame.colorizeMs,
+      })),
+    }));
+  });
+
+const tracesWith = async (page: Page, outcome: string): Promise<TraceView | undefined> =>
+  (await renderTraces(page)).find((trace) => trace.outcome === outcome);
+
+/** The latest trace is a one-frame recolor of `originComputeId`, with no compute fields. */
+const expectRecolorOf = async (page: Page, originComputeId: number | undefined): Promise<void> => {
+  await expect
+    .poll(async () => (await renderTraces(page)).at(-1)?.frames[0]?.source, { timeout: 10_000 })
+    .toBe('recolor');
+  const recolorTrace = (await renderTraces(page)).at(-1);
+  expect(recolorTrace?.outcome).toBe('completed');
+  expect(recolorTrace?.computeId).toBeUndefined();
+  expect(recolorTrace?.frames).toHaveLength(1);
+  const [frame] = recolorTrace?.frames ?? [];
+  expect(frame?.originComputeId).toBe(originComputeId);
+  expect(frame?.workerWallMs).toBeUndefined();
+  expect(frame?.colorizeMs).toBeGreaterThanOrEqual(0);
+};
+
 test.describe('Mandelbrot Interiority explorer', () => {
   test('starts with a useful, explained semantic view', async ({ page }) => {
     await page.goto('/');
@@ -434,6 +491,49 @@ test.describe('Mandelbrot Interiority explorer', () => {
       .filter((mark) => mark.name !== 'mi:interaction-feedback')
       .map((mark) => mark.requestId);
     expect(new Set(requestIds)).toEqual(new Set([Number(coarseRequestId)]));
+  });
+
+  test('render traces carry delivery provenance and two-event cancellation timing', async ({
+    page,
+  }) => {
+    // A slow reference-mode hard view keeps the first render in flight long
+    // enough to cancel it after its coarse frame.
+    await page.goto(
+      '/?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed&classifierMode=legacy-scan',
+    );
+    const explorer = page.locator('#explorer');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', { timeout: 30_000 });
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    await canvas.focus();
+    await canvas.press('+');
+
+    await expect
+      .poll(() => tracesWith(page, 'cancelled'), {
+        timeout: 30_000,
+      })
+      .toBeDefined();
+    const cancelledTrace = await tracesWith(page, 'cancelled');
+    expect(cancelledTrace?.cancelAckMs).toBeGreaterThanOrEqual(0);
+    expect(cancelledTrace?.childQuiescenceMs).toBeGreaterThanOrEqual(
+      cancelledTrace?.cancelAckMs ?? Number.POSITIVE_INFINITY,
+    );
+
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 60_000 });
+    await expect
+      .poll(() => tracesWith(page, 'completed'), {
+        timeout: 10_000,
+      })
+      .toBeDefined();
+    const computedTrace = await tracesWith(page, 'completed');
+    expect(computedTrace?.computeId).toBeGreaterThan(0);
+    for (const frame of computedTrace?.frames ?? []) {
+      expect(frame.source).toBe('computed');
+      expect(frame.originComputeId).toBeUndefined();
+      expect(frame.workerWallMs).toBeGreaterThan(0);
+    }
+
+    await page.getByLabel('Interior view').selectOption('multiplier');
+    await expectRecolorOf(page, computedTrace?.computeId);
   });
 
   test('explains evidence terms and exposes bounded quality profiles', async ({ page }) => {

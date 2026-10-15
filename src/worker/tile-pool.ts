@@ -198,6 +198,10 @@ class TilePoolImpl implements TilePool {
       : this.#classifyTiled(request, quality, signal, classifierMode, perfCounters === true);
   }
 
+  public async quiesce(): Promise<void> {
+    await this.#awaitChildDrain();
+  }
+
   public dispose(): void {
     this.#cancelActive();
     this.#resetWorkers();

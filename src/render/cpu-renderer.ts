@@ -122,6 +122,10 @@ export class CpuRenderer implements Renderer {
     await onFrame(stable);
   }
 
+  public async quiesce(): Promise<void> {
+    await this.tilePool?.quiesce?.();
+  }
+
   public inspect(point: Complex, quality?: Partial<RenderQuality>): OrbitResult {
     const resolved = resolveRenderQuality(quality);
     return classifyOrbit(point, {

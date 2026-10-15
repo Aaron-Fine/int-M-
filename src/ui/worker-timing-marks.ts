@@ -1,5 +1,5 @@
 import type { DifferentialStats, RenderQuality, SemanticView, Viewport } from '../domain';
-import type { FrameMessage } from '../worker/protocol';
+import type { FrameMessage, FrameSource } from '../worker/protocol';
 import type { PerfCounters } from '../render/perf-counters';
 
 /**
@@ -15,7 +15,7 @@ import type { PerfCounters } from '../render/perf-counters';
 export const RENDER_TRACE_RING_CAPACITY = 32;
 
 export type FrameStage = 'coarse' | 'stable' | 'refined';
-export type FrameSource = 'computed' | 'semantic-cache' | 'inflight-replay' | 'recolor';
+export type { FrameSource } from '../worker/protocol';
 export type RenderOutcome = 'completed' | 'cancelled' | 'failed' | 'superseded';
 
 export interface FrameTrace {
@@ -31,7 +31,16 @@ export interface FrameTrace {
   readonly requestToPresentMs: number;
   /** Compute fields. Absent — never zero, never copied — on non-computed frames. */
   readonly workerWallMs?: number | undefined;
-  /** Colorization cost; fresh work for computed and recolor frames only. */
+  /**
+   * The worker's classification wall for this frame (tiled stable pass:
+   * dispatch to last band with row yields subtracted, mirror fill included).
+   */
+  readonly classifyMs?: number | undefined;
+  /**
+   * Colorization cost of this delivery. Every delivery colorizes in the
+   * current architecture (cache, replay, and recolor included), so it is
+   * fresh work on every source.
+   */
   readonly colorizeMs?: number | undefined;
   readonly maxBandElapsedMs?: number | undefined;
   readonly imbalanceRatio?: number | undefined;
@@ -92,10 +101,14 @@ export interface RenderRequestSummary {
 }
 
 export interface FrameDelivery {
-  readonly source?: FrameSource | undefined;
+  /** Required: an absent source is a protocol failure, never `computed`. */
+  readonly source: FrameSource;
+  /** The computation that produced a `computed` frame. */
+  readonly computeId?: number | undefined;
   readonly originComputeId?: number | undefined;
   readonly requestToPresentMs: number;
   readonly workerWallMs?: number | undefined;
+  readonly classifyMs?: number | undefined;
   readonly colorizeMs?: number | undefined;
   readonly maxBandElapsedMs?: number | undefined;
   readonly imbalanceRatio?: number | undefined;
@@ -115,21 +128,42 @@ export interface RenderTraceRingOptions {
 
 interface OpenRequest {
   readonly summary: RenderRequestSummary;
+  computeId: number | undefined;
   readonly frames: FrameTrace[];
   mainLongTaskCount: number;
   maxMainLongTaskMs: number;
 }
+
+interface CancellingRequest {
+  readonly request: OpenRequest;
+  readonly requestedAtMs: number;
+  cancelAckMs: number | undefined;
+}
+
+/**
+ * Cancelled requests awaiting quiescence. A new request does not supersede
+ * them; the oldest is closed without quiescence timing when this overflows.
+ */
+export const RENDER_TRACE_CANCELLING_CAPACITY = 4;
 
 export interface RenderTraceRing {
   readonly capacity: number;
   /** Begins a request summary. Any request it displaces is recorded as superseded. */
   beginRequest(summary: RenderRequestSummary): void;
   recordFrame(frame: FrameMessage, delivery: FrameDelivery): void;
-  recordCancellation(
-    requestId: number | string,
-    cancelAckMs: number,
-    childQuiescenceMs?: number,
-  ): void;
+  /**
+   * The UI asked the worker to cancel an open request (main-thread clock).
+   * The request leaves the open set and waits for acknowledgment and
+   * quiescence; duplicate calls are ignored.
+   */
+  requestCancellation(requestId: number | string, requestedAtMs: number): void;
+  /** The worker accepted the cancel. Idempotent; late or unknown IDs are ignored. */
+  recordCancellationAck(requestId: number | string, atMs: number): void;
+  /**
+   * The cancelled work and every child have stopped. Closes the trace as
+   * `cancelled`. Idempotent; late or unknown IDs are ignored.
+   */
+  recordCancellationQuiesced(requestId: number | string, atMs: number): void;
   failOpenRequests(): void;
   noteMainThreadLongTask(durationMs: number): void;
   snapshot(): readonly RenderTrace[];
@@ -137,17 +171,16 @@ export interface RenderTraceRing {
 
 /** Computes the frame trace, dropping compute fields for non-computed sources. */
 const toFrameTrace = (frame: FrameMessage, delivery: FrameDelivery): FrameTrace => {
-  const source = delivery.source ?? 'computed';
+  const source = delivery.source;
   const computed = source === 'computed';
-  const colorized = computed || source === 'recolor';
-  const originComputeId = delivery.originComputeId;
   return {
     stage: frame.stage,
     source,
-    originComputeId,
+    originComputeId: computed ? undefined : delivery.originComputeId,
     requestToPresentMs: delivery.requestToPresentMs,
     workerWallMs: computed ? delivery.workerWallMs : undefined,
-    colorizeMs: colorized ? delivery.colorizeMs : undefined,
+    classifyMs: computed ? delivery.classifyMs : undefined,
+    colorizeMs: delivery.colorizeMs,
     maxBandElapsedMs: computed ? delivery.maxBandElapsedMs : undefined,
     imbalanceRatio: computed ? delivery.imbalanceRatio : undefined,
     mergeCpuMs: computed ? delivery.mergeCpuMs : undefined,
@@ -163,6 +196,7 @@ export const createRenderTraceRing = (options: RenderTraceRingOptions = {}): Ren
   const capacity = options.capacity ?? RENDER_TRACE_RING_CAPACITY;
   const completed: RenderTrace[] = [];
   const open = new Map<number | string, OpenRequest>();
+  const cancelling = new Map<number | string, CancellingRequest>();
 
   const finalize = (
     request: OpenRequest,
@@ -173,8 +207,10 @@ export const createRenderTraceRing = (options: RenderTraceRingOptions = {}): Ren
     } = {},
   ): void => {
     open.delete(request.summary.requestId);
+    cancelling.delete(request.summary.requestId);
     const trace: RenderTrace = Object.freeze({
       ...request.summary,
+      computeId: request.computeId,
       outcome,
       frames: Object.freeze([...request.frames]),
       cancelAckMs: cancellation.cancelAckMs,
@@ -195,28 +231,51 @@ export const createRenderTraceRing = (options: RenderTraceRingOptions = {}): Ren
       for (const pending of [...open.values()]) finalize(pending, 'superseded');
       open.set(summary.requestId, {
         summary,
+        computeId: summary.computeId,
         frames: [],
         mainLongTaskCount: 0,
         maxMainLongTaskMs: 0,
       });
     },
     recordFrame(frame: FrameMessage, delivery: FrameDelivery): void {
-      const request = open.get(frame.requestId);
+      // A stable frame that raced ahead of its cancel completes the request;
+      // the late acknowledgment and quiescence are then ignored.
+      const request = open.get(frame.requestId) ?? cancelling.get(frame.requestId)?.request;
       if (request === undefined) return;
+      if (delivery.source === 'computed' && delivery.computeId !== undefined) {
+        request.computeId ??= delivery.computeId;
+      }
       request.frames.push(toFrameTrace(frame, delivery));
       if (frame.stage === 'stable') finalize(request, 'completed');
     },
-    recordCancellation(
-      requestId: number | string,
-      cancelAckMs: number,
-      childQuiescenceMs?: number,
-    ): void {
+    requestCancellation(requestId: number | string, requestedAtMs: number): void {
       const request = open.get(requestId);
       if (request === undefined) return;
-      finalize(request, 'cancelled', { cancelAckMs, childQuiescenceMs });
+      open.delete(requestId);
+      cancelling.set(requestId, { request, requestedAtMs, cancelAckMs: undefined });
+      if (cancelling.size > RENDER_TRACE_CANCELLING_CAPACITY) {
+        const [oldest] = cancelling.values();
+        if (oldest !== undefined) {
+          finalize(oldest.request, 'cancelled', { cancelAckMs: oldest.cancelAckMs });
+        }
+      }
+    },
+    recordCancellationAck(requestId: number | string, atMs: number): void {
+      const entry = cancelling.get(requestId);
+      if (entry === undefined || entry.cancelAckMs !== undefined) return;
+      entry.cancelAckMs = atMs - entry.requestedAtMs;
+    },
+    recordCancellationQuiesced(requestId: number | string, atMs: number): void {
+      const entry = cancelling.get(requestId);
+      if (entry === undefined) return;
+      finalize(entry.request, 'cancelled', {
+        cancelAckMs: entry.cancelAckMs,
+        childQuiescenceMs: atMs - entry.requestedAtMs,
+      });
     },
     failOpenRequests(): void {
       for (const request of [...open.values()]) finalize(request, 'failed');
+      for (const entry of [...cancelling.values()]) finalize(entry.request, 'failed');
     },
     noteMainThreadLongTask(durationMs: number): void {
       const request = open.values().next().value;
@@ -227,6 +286,41 @@ export const createRenderTraceRing = (options: RenderTraceRingOptions = {}): Ren
     snapshot(): readonly RenderTrace[] {
       return completed.map((trace) => Object.freeze({ ...trace, frames: [...trace.frames] }));
     },
+  };
+};
+
+/**
+ * The single protocol-to-trace mapping (plan §8): provenance and worker
+ * metrics pass through unchanged; only `requestToPresentMs` is measured on the
+ * main thread. Band imbalance derives from the frame's own band snapshot and
+ * is absent when there are no finite band timings.
+ */
+export const frameDelivery = (frame: FrameMessage, requestToPresentMs: number): FrameDelivery => {
+  const provenance = frame.provenance;
+  const timing = frame.workerTiming;
+  const bands = timing?.bandsElapsedMs?.filter((value) => Number.isFinite(value)) ?? [];
+  const maxBandElapsedMs = bands.length === 0 ? undefined : Math.max(...bands);
+  const meanBandElapsedMs =
+    bands.length === 0 ? 0 : bands.reduce((sum, value) => sum + value, 0) / bands.length;
+  return {
+    source: provenance.source,
+    ...(provenance.source === 'computed'
+      ? { computeId: provenance.computeId, workerWallMs: provenance.workerWallMs }
+      : { originComputeId: provenance.originComputeId }),
+    requestToPresentMs,
+    classifyMs: timing?.classifyMs,
+    colorizeMs: timing?.colorizeMs,
+    maxBandElapsedMs,
+    imbalanceRatio:
+      maxBandElapsedMs === undefined || meanBandElapsedMs <= 0
+        ? undefined
+        : maxBandElapsedMs / meanBandElapsedMs,
+    mergeCpuMs: timing?.mergeCpuMs,
+    bandsElapsedMs: timing?.bandsElapsedMs,
+    yieldWaitMs: timing?.yieldWaitMs,
+    yieldCount: timing?.yieldCount,
+    counters: frame.counters,
+    differential: frame.differential,
   };
 };
 

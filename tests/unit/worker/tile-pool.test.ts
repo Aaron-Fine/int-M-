@@ -562,6 +562,40 @@ describe('createTilePool', () => {
     await second;
   });
 
+  it('quiesce_resolvesOnlyAfterEveryCancelledChildSettles', async () => {
+    const workers: FakeTileWorker[] = [];
+    const factory = vi.fn(() => {
+      const worker = new FakeTileWorker();
+      workers.push(worker);
+      return worker;
+    });
+    const pool = createTilePool({ workerCount: 2, factory });
+    const controller = new AbortController();
+    const job = pool.classifyStable(requestOf(4, 6), BALANCED, controller.signal);
+    const outstanding = workers.map((worker) => classifyPosts(worker)[0]!);
+    controller.abort();
+    await expect(job).rejects.toBeInstanceOf(RenderCancelledError);
+
+    let quiesced = false;
+    const quiescence = pool.quiesce?.().then(() => {
+      quiesced = true;
+    });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 20);
+    });
+    expect(quiesced).toBe(false);
+
+    workers[0]!.emit(cancelled(outstanding[0]!));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(quiesced).toBe(false);
+    workers[1]!.emit(cancelled(outstanding[1]!));
+    await quiescence;
+    expect(quiesced).toBe(true);
+    expect(workers.every((worker) => !worker.terminated)).toBe(true);
+  });
+
   it('aggregates child yield timing onto the merged frame', async () => {
     const workers: FakeTileWorker[] = [];
     const factory = vi.fn(() => {

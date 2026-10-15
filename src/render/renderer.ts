@@ -182,6 +182,13 @@ export interface Renderer {
   inspect(point: Complex, quality?: Partial<RenderQuality>): OrbitResult;
 
   colorize(frame: SemanticFrame, view: SemanticView): RasterFrame;
+
+  /**
+   * Resolves once no work of a cancelled render is still running anywhere,
+   * nested tile workers included (or the pool has been reset). Optional: a
+   * renderer without nested workers is quiescent once `render` settles.
+   */
+  quiesce?(): Promise<void>;
 }
 
 /**
@@ -197,5 +204,10 @@ export interface TilePool {
     classifierMode?: ClassifierMode,
     perfCounters?: boolean,
   ): Promise<SemanticFrame>;
+  /**
+   * Resolves once every child of a cancelled job has stopped, resetting the
+   * pool when children miss the drain deadline.
+   */
+  quiesce?(): Promise<void>;
   dispose(): void;
 }

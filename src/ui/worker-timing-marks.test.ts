@@ -4,6 +4,8 @@ import type { FrameMessage } from '../worker/protocol';
 import {
   createRenderTraceRing,
   expectedWorkerCount,
+  frameDelivery,
+  RENDER_TRACE_CANCELLING_CAPACITY,
   RENDER_TRACE_RING_CAPACITY,
   viewKeyHash,
   type FrameDelivery,
@@ -14,6 +16,7 @@ const frame = (requestId: number, stage: FrameMessage['stage']): FrameMessage =>
   type: 'frame',
   requestId,
   stage,
+  provenance: { source: 'computed', computeId: 1, workerWallMs: 15 },
   width: 64,
   height: 40,
   rgba: new Uint8ClampedArray([0, 0, 0, 255]),
@@ -38,6 +41,7 @@ const request = (requestId: number, computeId?: number): RenderRequestSummary =>
 });
 
 const delivery = (overrides: Partial<FrameDelivery> = {}): FrameDelivery => ({
+  source: 'computed',
   requestToPresentMs: 12.5,
   colorizeMs: 2,
   ...overrides,
@@ -61,7 +65,8 @@ describe('createRenderTraceRing', () => {
     const ring = createRenderTraceRing();
     ring.beginRequest(request(7, 41));
     // Adversarial delivery: a caller must not be able to smuggle compute
-    // timing into a cache hit, and delivery timing stays fresh.
+    // timing into a cache hit, and delivery timing stays fresh. Colorization
+    // is fresh work on every delivery, so its timing is kept.
     ring.recordFrame(
       frame(7, 'coarse'),
       delivery({
@@ -89,7 +94,8 @@ describe('createRenderTraceRing', () => {
       originComputeId: 41,
       requestToPresentMs: 3,
       workerWallMs: undefined,
-      colorizeMs: undefined,
+      classifyMs: undefined,
+      colorizeMs: 99,
       maxBandElapsedMs: undefined,
       imbalanceRatio: undefined,
       mergeCpuMs: undefined,
@@ -165,17 +171,93 @@ describe('createRenderTraceRing', () => {
     expect(trace?.frames[0]?.maxBandElapsedMs).toBeUndefined();
   });
 
-  it('cancellation_recordsAckLatencyAndOutcome', () => {
+  it('cancellation_recordsAckThenQuiescenceFromTheRequestTime', () => {
     const ring = createRenderTraceRing();
     ring.beginRequest(request(11));
     ring.recordFrame(frame(11, 'coarse'), delivery());
-    ring.recordCancellation(11, 4.5);
+    ring.requestCancellation(11, 100);
+    ring.recordCancellationAck(11, 104.5);
+    // Duplicate and late events are idempotent.
+    ring.recordCancellationAck(11, 150);
+    ring.recordCancellationQuiesced(11, 112);
+    ring.recordCancellationQuiesced(11, 190);
+
+    const traces = ring.snapshot();
+    expect(traces).toHaveLength(1);
+    expect(traces[0]?.outcome).toEqual('cancelled');
+    expect(traces[0]?.cancelAckMs).toEqual(4.5);
+    expect(traces[0]?.childQuiescenceMs).toEqual(12);
+    expect(traces[0]?.frames).toHaveLength(1);
+  });
+
+  it('cancellation_survivesTheNextRequestAndIsAttributedToTheOriginal', () => {
+    const ring = createRenderTraceRing();
+    ring.beginRequest(request(1));
+    ring.requestCancellation(1, 10);
+    ring.beginRequest(request(2));
+    ring.recordCancellationAck(1, 11);
+    ring.recordFrame(frame(2, 'coarse'), delivery());
+    ring.recordCancellationQuiesced(1, 30);
+    ring.recordFrame(frame(2, 'stable'), delivery());
+
+    const traces = ring.snapshot();
+    expect(traces.map((trace) => [trace.requestId, trace.outcome])).toEqual([
+      [1, 'cancelled'],
+      [2, 'completed'],
+    ]);
+    expect(traces[0]?.cancelAckMs).toEqual(1);
+    expect(traces[0]?.childQuiescenceMs).toEqual(20);
+  });
+
+  it('cancellation_aStableFrameThatRacedTheCancelCompletesTheRequest', () => {
+    const ring = createRenderTraceRing();
+    ring.beginRequest(request(3));
+    ring.requestCancellation(3, 10);
+    ring.recordFrame(frame(3, 'stable'), delivery());
+    ring.recordCancellationAck(3, 12);
+    ring.recordCancellationQuiesced(3, 12);
+
+    const traces = ring.snapshot();
+    expect(traces).toHaveLength(1);
+    expect(traces[0]?.outcome).toEqual('completed');
+    expect(traces[0]?.cancelAckMs).toBeUndefined();
+  });
+
+  it('cancellation_pendingSetIsBoundedAndOverflowClosesTheOldestWithoutQuiescence', () => {
+    const ring = createRenderTraceRing();
+    for (let requestId = 1; requestId <= RENDER_TRACE_CANCELLING_CAPACITY + 1; requestId += 1) {
+      ring.beginRequest(request(requestId));
+      ring.requestCancellation(requestId, requestId);
+      ring.recordCancellationAck(requestId, requestId + 0.5);
+    }
+
+    const [oldest] = ring.snapshot();
+    expect(ring.snapshot()).toHaveLength(1);
+    expect(oldest?.requestId).toEqual(1);
+    expect(oldest?.outcome).toEqual('cancelled');
+    expect(oldest?.cancelAckMs).toEqual(0.5);
+    expect(oldest?.childQuiescenceMs).toBeUndefined();
+  });
+
+  it('cancellation_workerRecoveryFailsPendingCancellations', () => {
+    const ring = createRenderTraceRing();
+    ring.beginRequest(request(1));
+    ring.requestCancellation(1, 0);
+    ring.failOpenRequests();
+
+    expect(ring.snapshot()[0]?.outcome).toEqual('failed');
+  });
+
+  it('computeId_comesFromTheFirstComputedDeliveryWhenTheSummaryHasNone', () => {
+    const ring = createRenderTraceRing();
+    ring.beginRequest(request(4));
+    ring.recordFrame(frame(4, 'coarse'), delivery({ computeId: 17, originComputeId: 3 }));
+    ring.recordFrame(frame(4, 'stable'), delivery({ computeId: 17 }));
 
     const [trace] = ring.snapshot();
-    expect(trace?.outcome).toEqual('cancelled');
-    expect(trace?.cancelAckMs).toEqual(4.5);
-    expect(trace?.childQuiescenceMs).toBeUndefined();
-    expect(trace?.frames).toHaveLength(1);
+    expect(trace?.computeId).toEqual(17);
+    // A computed frame reuses nothing, so an origin is never recorded on it.
+    expect(trace?.frames[0]?.originComputeId).toBeUndefined();
   });
 
   it('supersededRequests_closeWhenANewRequestBegins', () => {
@@ -221,7 +303,9 @@ describe('createRenderTraceRing', () => {
     const ring = createRenderTraceRing();
     ring.beginRequest(request(1));
     ring.recordFrame(frame(99, 'coarse'), delivery());
-    ring.recordCancellation(99, 1);
+    ring.requestCancellation(99, 1);
+    ring.recordCancellationAck(99, 2);
+    ring.recordCancellationQuiesced(99, 3);
 
     expect(ring.snapshot()).toHaveLength(0);
   });
@@ -243,13 +327,71 @@ describe('createRenderTraceRing', () => {
     const ring = createRenderTraceRing();
     ring.beginRequest(request(1));
     ring.recordFrame(frame(1, 'coarse'), delivery());
-    ring.recordCancellation(1, 1);
+    ring.requestCancellation(1, 1);
+    ring.recordCancellationAck(1, 2);
+    ring.recordCancellationQuiesced(1, 3);
     ring.beginRequest(request(2));
     ring.recordFrame(frame(2, 'stable'), delivery());
     ring.snapshot();
 
     expect(mark).not.toHaveBeenCalled();
     mark.mockRestore();
+  });
+
+  it('frameDelivery_mapsComputedProvenanceAndDerivesBandImbalance', () => {
+    const message: FrameMessage = {
+      ...frame(5, 'stable'),
+      provenance: { source: 'computed', computeId: 9, workerWallMs: 120 },
+      workerTiming: {
+        classifyMs: 100,
+        colorizeMs: 4,
+        yieldWaitMs: 1,
+        yieldCount: 3,
+        bandsElapsedMs: [40, 80, Number.NaN, 60],
+        mergeCpuMs: 2,
+      },
+    };
+
+    const mapped = frameDelivery(message, 130);
+    expect(mapped).toMatchObject({
+      source: 'computed',
+      computeId: 9,
+      workerWallMs: 120,
+      requestToPresentMs: 130,
+      classifyMs: 100,
+      colorizeMs: 4,
+      maxBandElapsedMs: 80,
+      mergeCpuMs: 2,
+      yieldWaitMs: 1,
+      yieldCount: 3,
+    });
+    expect(mapped.imbalanceRatio).toBeCloseTo(80 / 60, 12);
+    expect(mapped.originComputeId).toBeUndefined();
+  });
+
+  it('frameDelivery_leavesComputeFieldsAbsentOnReusedFrames', () => {
+    const message: FrameMessage = {
+      ...frame(6, 'stable'),
+      provenance: { source: 'recolor', originComputeId: 9 },
+      workerTiming: { colorizeMs: 3 },
+    };
+
+    const mapped = frameDelivery(message, 7);
+    expect(mapped).toEqual({
+      source: 'recolor',
+      originComputeId: 9,
+      requestToPresentMs: 7,
+      classifyMs: undefined,
+      colorizeMs: 3,
+      maxBandElapsedMs: undefined,
+      imbalanceRatio: undefined,
+      mergeCpuMs: undefined,
+      bandsElapsedMs: undefined,
+      yieldWaitMs: undefined,
+      yieldCount: undefined,
+      counters: undefined,
+      differential: undefined,
+    });
   });
 
   it('viewKeyHash_isStableAcrossEqualViewsAndSensitiveToComponents', () => {
