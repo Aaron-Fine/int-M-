@@ -60,14 +60,15 @@ worker's next row yield, so it lands with quiescence.
 Overhead (plan §8: opt-in diagnostics ≤5%; the always-on recorder ≤0.2 ms
 per frame and ≤64 KiB retained), paired BCa on the pooled median log-ratio:
 
-| Opt-in mode                                                                                                                                          | Chrome pooled Δ [95% BCa]                                                                                                     | Firefox pooled Δ [95% BCa]                                                                                                                                    |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `?perf=1` hook on the production kernel, 88 pairs per case ([Chrome](../../evidence/phase-2/2026-10-15-9e70551-overhead-hook88-chromium/summary.md)) | −0.71% [−4.83%, +4.32%]: **within 5%**                                                                                        | 22 pairs per case only ([evidence](../../evidence/phase-2/2026-10-15-9e70551-overhead-hook-firefox/summary.md)): −1.80% [−4.76%, +5.52%], not yet established |
-| `?perf=1&perfCounters=1` (instrumented legacy-scan kernel in both arms)                                                                              | −6.00% [−7.92%, −4.71%] ([evidence](../../evidence/phase-2/2026-10-15-9e70551-overhead-counters-chromium/summary.md)): within | +9.45% [+3.02%, +13.18%] ([evidence](../../evidence/phase-2/2026-10-15-9e70551-overhead-counters-firefox/summary.md)): **exceeds 5%**                         |
+| Opt-in mode                                                                                                                                          | Chrome pooled Δ [95% BCa]                                                                                                     | Firefox pooled Δ [95% BCa]                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `?perf=1` hook on the production kernel, 88 pairs per case ([Chrome](../../evidence/phase-2/2026-10-15-9e70551-overhead-hook88-chromium/summary.md)) | −0.71% [−4.83%, +4.32%]: **within 5%**                                                                                        | 21 pairs per case, 273 pooled ([release session](../../evidence/phase-2/2026-10-16-8b9d091-release/summary.md)): plain/hook 0.987 [0.961, 1.000], so the hook costs at most 4.1%: **within 5%** |
+| `?perf=1&perfCounters=1` (instrumented legacy-scan kernel in both arms)                                                                              | −6.00% [−7.92%, −4.71%] ([evidence](../../evidence/phase-2/2026-10-15-9e70551-overhead-counters-chromium/summary.md)): within | +9.45% [+3.02%, +13.18%] ([evidence](../../evidence/phase-2/2026-10-15-9e70551-overhead-counters-firefox/summary.md)): **exceeds 5%**                                                           |
 
-The hook shows no measurable cost in either browser; the Firefox interval
-needs the 88-pair run that the Chrome one got (the attempt was refused on a
-locked session). The counters mode cost about 10% in Firefox, so under plan
+The hook shows no measurable cost in either browser. The Firefox interval
+comes from the 2026-10-16 release session's 273 pooled pairs, which replace
+the 88-pair run that was refused on a locked session. The release session's
+Chrome pooled result agrees: plain/hook 0.996 [0.981, 1.007]. The counters mode cost about 10% in Firefox, so under plan
 §8 ("If a metric exceeds the budget, move it to an offline experiment") it
 is now **offline only** (owner decision, 2026-10-16): the browser has no
 `perfCounters` parameter and no counters on the worker protocol, and the
@@ -223,6 +224,21 @@ waiting for.
   production kernel that lasts about 0.3–0.6 s; under the legacy reference
   mode it lasted the whole multi-second pass. Progressive stable bands or a
   depth-aware coarse budget would address it; neither is in Phase 2 scope.
+
+- **Release session harness.** One command, `npm run evidence:release`,
+  now produces the release evidence: budgets, hook overhead, hook/plain
+  parity, and the interaction distributions, from one render of each corpus
+  view per arm. Its acceptance session (headed branded Chrome and Firefox,
+  21 warm pairs per case,
+  [evidence](../../evidence/phase-2/2026-10-16-8b9d091-release/summary.md))
+  took 18 minutes and passed every gate. Every budget passed in both
+  browsers. There were 0 hash mismatches and 0 provenance violations, and the
+  hook overhead was within 5% in both browsers. One Firefox stall recovered on
+  retry. 25 of the 26 stable medians are within ±20% of the 2026-10-15
+  Stage A candidate medians. The exception is Firefox
+  `mi-fallback-budget-exhaustion`, at 398 ms against 616 ms. The earlier
+  sample had a MAD of 161 ms, so the difference is within its noise. The
+  interaction medians are within the MADs of the 2026-10-15 operational run.
 
 ## What this record does not establish
 

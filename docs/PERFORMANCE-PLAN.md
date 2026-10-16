@@ -338,6 +338,12 @@ branded Chrome 155 (2026-10-11) and Firefox 157 (2026-10-15), headed, on the
 target laptop, 21 warm pairs per case with 95% BCa paired intervals, the
 previous default against the watched-lag default. The decisions below are
 recorded in [PHASE-2-CLOSEOUT.md](verification/PHASE-2-CLOSEOUT.md).
+Release sessions now run as one command, `npm run evidence:release`
+(`tools/benchmark/run-release.ts`). It renders each corpus view once per arm and
+takes the budgets, hook overhead, parity, and interaction distributions from
+that one session. Old-build or mirroring-off arms run only with `--compare`.
+The first such session took 18 minutes on the target laptop
+([evidence/phase-2/2026-10-16-8b9d091-release/](../evidence/phase-2/2026-10-16-8b9d091-release/summary.md)).
 
 Stage A decisions that nothing else may preempt:
 
