@@ -39,6 +39,7 @@
     "tournament": "vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js",
     "evidence:optimizations": "vite build --ssr tools/compare_orbit_optimizations.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/compare_orbit_optimizations.js",
     "bench:lag-comparisons": "vite build --ssr tools/benchmark/lag-comparisons.ts --outDir .evidence-build/lag-comparisons --emptyOutDir --logLevel warn && node .evidence-build/lag-comparisons/lag-comparisons.js",
+    "fixtures:kernel-golden": "vite build --ssr tools/generate_kernel_golden.ts --outDir .evidence-build/kernel-golden --emptyOutDir --logLevel warn && node .evidence-build/kernel-golden/generate_kernel_golden.js",
     "kernel-bench": "vite build --ssr tools/benchmark/kernel-bench.ts --outDir .evidence-build/kernel-bench --emptyOutDir --logLevel warn && node .evidence-build/kernel-bench/kernel-bench.js"
   },
   "devDependencies": {

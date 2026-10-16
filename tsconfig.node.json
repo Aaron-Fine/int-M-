@@ -34,6 +34,7 @@
     "tools/benchmark/lag-comparisons.ts",
     "tools/compare_orbit_optimizations.ts",
     "tools/benchmark/harness/**/*.ts",
-    "tools/benchmark/run-release.ts"
+    "tools/benchmark/run-release.ts",
+    "tools/generate_kernel_golden.ts"
   ]
 }
