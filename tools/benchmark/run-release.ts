@@ -19,6 +19,8 @@ import { BUDGETS } from './harness/budgets.ts';
 import { writeEvidence } from './harness/evidence.ts';
 import { startSession, type Session } from './harness/session.ts';
 import {
+  HOOK_OVERHEAD_MAX,
+  hookOverheadVerdict,
   pooledHookOverhead,
   runCorpusPass,
   summarizeCase,
@@ -37,7 +39,6 @@ import {
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 const SEED = 11;
-const HOOK_OVERHEAD_LIMIT = 1.05;
 const RING_LIMIT_BYTES = 65_536;
 const RING_RECOLORS = 32;
 const STEP_TIMEOUT_MS = 2 * 60_000;
@@ -195,7 +196,12 @@ const runEngine = async (engine: Engine, ctx: RunContext): Promise<EngineRun> =>
 const pooledOverhead = (samples: CorpusSample[]) => pooledHookOverhead(samples, SEED);
 
 /** Returns one message per failed gate: budgets, hash parity, hook overhead, ring retention, provenance. */
-const gateFailures = (engine: Engine, run: EngineRun, summaries: CaseSummary[]): string[] => {
+const gateFailures = (
+  engine: Engine,
+  run: EngineRun,
+  summaries: CaseSummary[],
+  release: boolean,
+): string[] => {
   const failures: string[] = [];
   if (run.ringBytes > RING_LIMIT_BYTES) {
     failures.push(`${engine}: ring retention ${run.ringBytes} bytes > ${RING_LIMIT_BYTES}`);
@@ -211,10 +217,11 @@ const gateFailures = (engine: Engine, run: EngineRun, summaries: CaseSummary[]):
       failures.push(`${label}: ${summary.hashMismatches} hash mismatch(es)`);
     }
   }
-  const upper = pooledOverhead(run.samples)?.interval[1];
-  if (upper !== undefined && upper > HOOK_OVERHEAD_LIMIT) {
+  const pooled = pooledOverhead(run.samples);
+  if (hookOverheadVerdict(pooled, release) === 'fail') {
+    const lower = pooled?.interval[0];
     failures.push(
-      `${engine}: pooled hook overhead upper bound ${num(upper, 3)} > ${HOOK_OVERHEAD_LIMIT}`,
+      `${engine}: hook overhead may exceed 5% (pooled plain/hook lower bound ${num(lower, 3)} < ${num(1 / HOOK_OVERHEAD_MAX, 3)})`,
     );
   }
   if (run.interactionResults !== undefined) {
@@ -249,7 +256,12 @@ const budgetSection = (engine: Engine, summaries: CaseSummary[]): string =>
     ]),
   )}`;
 
-const overheadSection = (engine: Engine, run: EngineRun, summaries: CaseSummary[]): string => {
+const overheadSection = (
+  engine: Engine,
+  run: EngineRun,
+  summaries: CaseSummary[],
+  release: boolean,
+): string => {
   const pooled = pooledOverhead(run.samples);
   const row = (label: string, overhead: ReturnType<typeof pooledOverhead>) => [
     label,
@@ -260,7 +272,7 @@ const overheadSection = (engine: Engine, run: EngineRun, summaries: CaseSummary[
   return `## ${engine} — hook overhead\n\n${table(
     ['Case', 'pairs', 'plain/hook ratio', 'interval'],
     [
-      row('pooled (gated)', pooled),
+      row(release ? 'pooled (gated)' : 'pooled (not gated: not a release run)', pooled),
       ...summaries.map((summary) => row(summary.caseId, summary.hookOverhead)),
     ],
   )}`;
@@ -335,7 +347,7 @@ const writeEngineEvidence = (
     },
     summarySections: [
       budgetSection(engine, summaries),
-      overheadSection(engine, run, summaries),
+      overheadSection(engine, run, summaries, ctx.release),
       paritySection(engine, summaries),
       interactionSection(engine, run),
       ...ctx.compares.map((compare) => compareSection(engine, compare, summaries)),
@@ -415,7 +427,7 @@ const main = async (): Promise<void> => {
   for (const engine of engines as Engine[]) {
     const run = await runEngine(engine, ctx);
     const summaries = selected.map((caseInfo) => summarizeCase(caseInfo, run.samples, arms, SEED));
-    failures.push(...gateFailures(engine, run, summaries));
+    failures.push(...gateFailures(engine, run, summaries, ctx.release));
     // Remove the partial before writing: the manifest hashes every file in outDir.
     rmSync(partialPath(outDir, engine), { force: true });
     writeEngineEvidence(ctx, engine, run, summaries);

@@ -168,6 +168,25 @@ export const pooledHookOverhead = (samples: readonly CorpusSample[], seed: numbe
   return pairedRatio(plainAll, hookAll, seed);
 };
 
+/** Hook may be at most this much slower than plain (non-inferiority bound, release runs only). */
+export const HOOK_OVERHEAD_MAX = 1.05;
+
+export type HookOverheadVerdict = 'pass' | 'fail' | 'not-gated';
+
+/**
+ * Non-inferiority gate on the pooled plain/hook interval (< 1 means the hook is slower).
+ * Fails when the lower bound shows the hook could be more than 5% slower.
+ * Binds only release runs; other runs report the row without gating it.
+ */
+export const hookOverheadVerdict = (
+  pooled: { interval: readonly [number, number] } | undefined,
+  release: boolean,
+): HookOverheadVerdict => {
+  if (!release) return 'not-gated';
+  if (pooled === undefined) return 'fail';
+  return pooled.interval[0] < 1 / HOOK_OVERHEAD_MAX ? 'fail' : 'pass';
+};
+
 interface Frame {
   stage: string;
   source: string;

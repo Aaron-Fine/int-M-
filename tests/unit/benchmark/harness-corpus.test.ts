@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   assertViewport,
+  hookOverheadVerdict,
   summarizeCase,
   urlFor,
 } from '../../../tools/benchmark/harness/passes/corpus.ts';
@@ -121,5 +122,19 @@ describe('corpus pass', () => {
         'hook',
       ),
     ).not.toThrow();
+  });
+});
+
+describe('hook overhead gate', () => {
+  it('fails a release run when the pooled lower bound admits a hook more than 5% slower', () => {
+    expect(hookOverheadVerdict({ interval: [0.94, 1.01] }, true)).toBe('fail');
+  });
+
+  it('passes a release run when the pooled lower bound is within the 5% bound', () => {
+    expect(hookOverheadVerdict({ interval: [0.96, 1.02] }, true)).toBe('pass');
+  });
+
+  it('never gates a non-release run', () => {
+    expect(hookOverheadVerdict({ interval: [0.86, 0.97] }, false)).toBe('not-gated');
   });
 });
