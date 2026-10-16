@@ -596,6 +596,46 @@ describe('createTilePool', () => {
     expect(workers.every((worker) => !worker.terminated)).toBe(true);
   });
 
+  it('quiesce_afterTheNextJobStarted_neitherWaitsOnNorResetsTheRunningJob', async () => {
+    const workers: FakeTileWorker[] = [];
+    const factory = vi.fn(() => {
+      const worker = new FakeTileWorker();
+      workers.push(worker);
+      return worker;
+    });
+    const pool = createTilePool({ workerCount: 2, factory });
+    const first = new AbortController();
+    const firstJob = pool.classifyStable(requestOf(4, 6), BALANCED, first.signal);
+    const firstPosts = workers.map((worker) => classifyPosts(worker)[0]!);
+    first.abort();
+    await expect(firstJob).rejects.toBeInstanceOf(RenderCancelledError);
+    for (const classify of firstPosts) {
+      workers[classify.jobId % workers.length]!.emit(cancelled(classify));
+    }
+    const second = pool.classifyStable(requestOf(4, 6), BALANCED, new AbortController().signal);
+    await vi.waitFor(() => {
+      expect(classifyPosts(workers[0]!)).toHaveLength(2);
+    });
+
+    // The cancelled job's children have all stopped; quiescence must not
+    // wait for, or reset the pool under, the job that is now running.
+    let quiesced = false;
+    const quiescence = pool.quiesce?.().then(() => {
+      quiesced = true;
+    });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(quiesced).toBe(true);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 300);
+    });
+    expect(workers.every((worker) => !worker.terminated)).toBe(true);
+    replyAll(workers, 1);
+    await expect(second).resolves.toBeDefined();
+    await quiescence;
+  });
+
   it('aggregates child yield timing onto the merged frame', async () => {
     const workers: FakeTileWorker[] = [];
     const factory = vi.fn(() => {

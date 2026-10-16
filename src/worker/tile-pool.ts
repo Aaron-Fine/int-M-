@@ -199,6 +199,12 @@ class TilePoolImpl implements TilePool {
   }
 
   public async quiesce(): Promise<void> {
+    // A running job's drain is not a cancelled job's: a new job starts only
+    // after the previous drain settled (or the pool reset), so when the
+    // current drain belongs to the active job there is nothing left to wait
+    // for, and waiting would reset the pool under the running job.
+    const drain = this.#drain;
+    if (drain === undefined || drain.generation === this.#active?.generation) return;
     await this.#awaitChildDrain();
   }
 
