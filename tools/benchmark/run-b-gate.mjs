@@ -79,6 +79,9 @@ const BASE_PORT = 4183;
 const SHIPPING_RASTER_ID = 'shipping-1024x640';
 const TARGET_RASTER = { width: 1024, height: 640 };
 const NAVIGATION_TIMEOUT_MS = 10 * 60_000;
+// The slowest legacy-scan sample is ~25 s; a stall far beyond that is retried
+// once in a fresh context instead of discarding the whole engine run.
+const STABLE_TIMEOUT_MS = 3 * 60_000;
 const SETTLE_MS = 40;
 const CDP_PORT = 9334;
 const BOOTSTRAP_REPS = 10_000;
@@ -500,7 +503,7 @@ const newContext = () => browser.newContext({ viewport: viewportSize, deviceScal
 
 const waitForStable = (page) =>
   page.waitForFunction(stableReady, undefined, {
-    timeout: NAVIGATION_TIMEOUT_MS,
+    timeout: STABLE_TIMEOUT_MS,
     polling: 200,
   });
 
@@ -768,7 +771,16 @@ const userAgent = await (async () => {
  * Measures one (case, repetition, arm) cell. Cold repetitions open a fresh
  * context per arm; warm repetitions share one context and page across arms.
  */
-const runArmSample = async (caseInfo, spec, repetition, order, dist, cold, warmPage) => {
+const runArmSample = async (
+  caseInfo,
+  spec,
+  repetition,
+  order,
+  dist,
+  cold,
+  warmPage,
+  retriedAfterStall = false,
+) => {
   const arm = dist === baselineLabel ? 'baseline' : 'current';
   let contextHandle;
   let page;
@@ -789,6 +801,7 @@ const runArmSample = async (caseInfo, spec, repetition, order, dist, cold, warmP
       armOrder: order.map((entry) => (entry === baselineLabel ? 'baseline' : 'current')).join('|'),
       climate: cold ? 'cold' : 'warm',
     });
+    if (retriedAfterStall) sample.retriedAfterStall = true;
     allSamples.push(sample);
     log(
       `${caseInfo.id} rep ${repetition} ${arm} (${sample.climate}): wall ` +
@@ -808,6 +821,7 @@ const runArmSample = async (caseInfo, spec, repetition, order, dist, cold, warmP
 // ---------------------------------------------------------------------------
 log(`running ${selectedCases.length} cases × 2 build arms × ${reps} paired repetitions…`);
 const allSamples = [];
+const stalls = [];
 for (const caseInfo of selectedCases) {
   const chain = chainByCase.get(caseInfo.id);
   const spec = {
@@ -832,7 +846,21 @@ for (const caseInfo of selectedCases) {
     }
     try {
       for (const dist of order) {
-        await runArmSample(caseInfo, spec, repetition, order, dist, cold, warmPage);
+        try {
+          await runArmSample(caseInfo, spec, repetition, order, dist, cold, warmPage);
+        } catch (error) {
+          if (!(error instanceof Error) || error.name !== 'TimeoutError') throw error;
+          // One retry in a fresh context, recorded on the sample and counted.
+          stalls.push({ caseId: caseInfo.id, repetition, dist });
+          log(`${caseInfo.id} rep ${repetition} ${dist}: stable frame stalled; retrying once`);
+          if (warmContext !== undefined) {
+            await warmContext.close();
+            warmContext = await newContext();
+            await warmContext.addInitScript(initScript);
+            warmPage = await warmContext.newPage();
+          }
+          await runArmSample(caseInfo, spec, repetition, order, dist, cold, warmPage, true);
+        }
       }
     } finally {
       if (warmContext !== undefined) await warmContext.close();
@@ -940,6 +968,7 @@ environment.comparison = {
 };
 environment.notes.push(
   `Workstream B gate run (${engine}): baseline dist from commit ${baselineCommit} (worktree fixture), candidate from ${currentCommit}.`,
+  `Stable-frame stalls retried once in a fresh context (${engine}): ${stalls.length === 0 ? 'none' : JSON.stringify(stalls)}.`,
 );
 writeFileSync(environmentPath, `${JSON.stringify(environment, null, 2)}\n`);
 
@@ -1229,6 +1258,7 @@ summaryLines.push('## Scope and honesty notes');
 summaryLines.push('');
 for (const note of [
   'Cold/warm: repetition 0 is cold (fresh browser context per arm; the browser process is shared, so process-level code caches are not cold). Repetitions 1+ re-navigate one persistent page (warm).',
+  `Stalls: a sample whose stable frame did not arrive within ${STABLE_TIMEOUT_MS / 60_000} min was retried once in a fresh context and marked \`retriedAfterStall\` (${engine}: ${stalls.length} retried).`,
   'Cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope for this pass.',
   'markWallMs ends at the same rAF callback as the trace requestToPresentMs; it is not proof of physical paint (plan §8).',
   'The RGBA hash is a palette-inclusive proxy; cross-build hash mismatches are expected on interior/boundary-heavy views (PR 3 verifier reductions + PR 5 period-policy display landed between the arms) and are enumerated in semantic-comparison.json.',

@@ -30,6 +30,7 @@
     "tools/benchmark/cancel-quiescence.ts",
     "tools/benchmark/conjugate-mirror.ts",
     "tools/benchmark/recorder-cost.ts",
+    "tools/benchmark/lag-comparisons.ts",
     "tools/compare_orbit_optimizations.ts"
   ]
 }

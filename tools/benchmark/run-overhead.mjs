@@ -31,6 +31,10 @@
  *       [--headless] [--reps 11] [--cases <id,id>]
  *       [--release] [--executable <branded browser>] (plan §9 release protocol:
  *       branded stable browser, headed on the session display, ≥22 reps)
+ *       [--diagnostics counters|hook] (counters, the default: the diagnostic
+ *       arm adds `perfCounters=1` and both arms pin its legacy-scan kernel;
+ *       hook: the diagnostic arm is `?perf=1` alone and both arms run the
+ *       production default kernel)
  *       [--out-dir <evidence/phase-2/<date>-<commit>>]
  */
 import { spawnSync } from 'node:child_process';
@@ -84,6 +88,12 @@ if (engine !== 'chromium' && engine !== 'firefox') {
   process.exit(2);
 }
 const RELEASE = args.includes('--release');
+const DIAGNOSTICS = readOption('--diagnostics') ?? 'counters';
+if (DIAGNOSTICS !== 'counters' && DIAGNOSTICS !== 'hook') {
+  process.stderr.write(`unknown --diagnostics: ${DIAGNOSTICS} (use counters or hook)\n`);
+  process.exit(2);
+}
+const DIAGNOSTIC_QUERY = DIAGNOSTICS === 'counters' ? 'perf=1&perfCounters=1' : 'perf=1';
 const reps = Number(readOption('--reps') ?? (RELEASE ? 22 : 11));
 if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
@@ -227,32 +237,39 @@ const marksWallMetric = () => {
   };
 };
 
+// The slowest sample is ~25 s; a headed-browser stall far beyond that is
+// retried once in a fresh context (recorded) instead of losing the run.
+const STABLE_TIMEOUT_MS = 3 * 60_000;
+const stalls = [];
 const waitForStablePresented = (page) =>
   page.waitForFunction(
     () => performance.getEntriesByType('mark').some((mark) => mark.name === 'mi:stable-presented'),
     undefined,
-    { timeout: NAVIGATION_TIMEOUT_MS, polling: 100 },
+    { timeout: STABLE_TIMEOUT_MS, polling: 100 },
   );
 
 const capturePageState = async (page, perf) => {
   const metric = await page.evaluate(marksWallMetric);
   if (metric.wallMs === null) throw new Error('stable-presented mark missing');
-  const canvas = await page.evaluate(() => {
+  // Hash in the page (byte order documented above): shipping the RGBA bytes
+  // to Node as a JSON array cost seconds and a large Node heap per sample.
+  const canvas = await page.evaluate(async () => {
     const element = globalThis.document.querySelector('canvas.explorer__canvas');
     if (!(element instanceof globalThis.HTMLCanvasElement)) return null;
+    const image = element
+      .getContext('2d', { alpha: false })
+      .getImageData(0, 0, element.width, element.height);
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', image.data);
     return {
       width: element.width,
       height: element.height,
-      data: Array.from(
-        element.getContext('2d', { alpha: false }).getImageData(0, 0, element.width, element.height)
-          .data,
-      ),
+      hash: [...new globalThis.Uint8Array(digest)]
+        .map((byte) => byte.toString(16).padStart(2, '0'))
+        .join(''),
     };
   });
   if (canvas === null) throw new Error('render canvas not found');
-  // Hash in Node (byte order documented above); Uint8ClampedArray is 0-255
-  // clamped, so the plain Array round-trip is byte-exact.
-  const hash = createHash('sha256').update(new Uint8Array(canvas.data)).digest('hex');
+  const hash = canvas.hash;
   const base = {
     wallMetric: metric,
     raster: { width: canvas.width, height: canvas.height },
@@ -386,11 +403,13 @@ log(
 // ---------------------------------------------------------------------------
 // Paired measurement.
 // ---------------------------------------------------------------------------
-// Both arms pin the reference kernel: `perfCounters=1` selects legacy-scan
-// (the counters vocabulary is its own), so leaving the absent arm on the
-// default kernel would measure a kernel difference, not diagnostics overhead.
+// Counters mode pins the reference kernel in both arms: `perfCounters=1`
+// selects legacy-scan (the counters vocabulary is its own), so leaving the
+// absent arm on the default kernel would measure a kernel difference, not
+// diagnostics overhead. Hook mode runs the production default in both arms.
+const kernelQuery = DIAGNOSTICS === 'counters' ? 'classifierMode=legacy-scan&' : '';
 const urlFor = (caseInfo, perf) =>
-  `${baseUrl}/?${perf ? 'perf=1&perfCounters=1&' : ''}classifierMode=legacy-scan&view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
+  `${baseUrl}/?${perf ? `${DIAGNOSTIC_QUERY}&` : ''}${kernelQuery}view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
   `&quality=${caseInfo.profile.toLowerCase()}`;
 
 const measureOnce = async (page, spec) => {
@@ -463,17 +482,34 @@ const runCase = async (caseInfo) => {
     }
     try {
       for (const arm of armOrder) {
-        const contextHandle = cold ? await newContext() : warmContext;
-        const page = cold ? await contextHandle.newPage() : warmPage;
+        let contextHandle = cold ? await newContext() : warmContext;
+        let page = cold ? await contextHandle.newPage() : warmPage;
+        const spec = {
+          url: urlFor(caseInfo, arm.perf),
+          caseInfo,
+          perf: arm.perf,
+          repetition,
+          armOrder,
+          climate: cold ? 'cold' : 'warm',
+        };
         try {
-          const sample = await measureOnce(page, {
-            url: urlFor(caseInfo, arm.perf),
-            caseInfo,
-            perf: arm.perf,
-            repetition,
-            armOrder,
-            climate: cold ? 'cold' : 'warm',
-          });
+          let sample;
+          try {
+            sample = await measureOnce(page, spec);
+          } catch (error) {
+            if (!(error instanceof Error) || error.name !== 'TimeoutError') throw error;
+            stalls.push({ caseId: caseInfo.id, repetition, arm: arm.id });
+            log(`${caseInfo.id} rep ${repetition} ${arm.id}: stable frame stalled; retrying once`);
+            await contextHandle.close();
+            contextHandle = await newContext();
+            page = await contextHandle.newPage();
+            if (!cold) {
+              warmContext = contextHandle;
+              warmPage = page;
+            }
+            sample = await measureOnce(page, spec);
+            sample.retriedAfterStall = true;
+          }
           samples.push(sample);
           log(
             `${caseInfo.id} rep ${repetition} ${arm.id} (${sample.climate}): ` +
@@ -823,7 +859,7 @@ environment.render = {
 };
 environment.protocol = {
   buildMode: 'vite build (production bundle) served by vite preview; dev server never used',
-  design: `paired ?perf=1&perfCounters=1 present vs absent, both arms pinned to classifierMode=legacy-scan (the counters' kernel), ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
+  design: `paired ?${DIAGNOSTIC_QUERY} present vs absent, ${DIAGNOSTICS === 'counters' ? "both arms pinned to classifierMode=legacy-scan (the counters' kernel)" : 'both arms on the production default kernel'}, ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
   wallMetric:
     'in-page User Timing marks: last mi:stable-presented startTime minus mi:app-mount startTime (both marks are emitted unconditionally, so the metric exists in both arms without the diagnostic hook)',
   alwaysOnBudget:
@@ -849,7 +885,10 @@ environment.protocol = {
     ? `${readPowerMode() ?? 'not exposed by sysfs'} (read from /sys at the end of the run)`
     : 'unknown in the automation environment; recorded as null',
 };
-environment.notes.push(`Browser facts filled by tools/benchmark/run-overhead.mjs (${engine} run).`);
+environment.notes.push(
+  `Browser facts filled by tools/benchmark/run-overhead.mjs (${engine} run).`,
+  `Stable-frame stalls retried once in a fresh context (${engine}): ${stalls.length === 0 ? 'none' : JSON.stringify(stalls)}.`,
+);
 writeFileSync(environmentPath, `${JSON.stringify(environment, null, 2)}\n`);
 
 const rawPath = path.join(outDir, 'raw-observations.json');
@@ -869,7 +908,7 @@ const rawObservations = {
   },
   raster: SHIPPING_RASTER,
   repetitions: reps,
-  arms: ['perf1 (?perf=1&perfCounters=1 present)', 'perf0 (diagnostics absent)'],
+  arms: [`perf1 (?${DIAGNOSTIC_QUERY} present)`, 'perf0 (diagnostics absent)'],
   retention,
   recorderCostNode: recorderCost,
   samplesByEngine,
@@ -891,8 +930,7 @@ const semanticComparison = {
     algorithm: 'sha-256',
     byteOrder:
       'row-major RGBA, 4 bytes per pixel, read via getImageData(0, 0, width, height) from canvas.explorer__canvas after the computed stable frame is presented',
-    scope:
-      'overhead-run comparison: the perf=1&perfCounters=1 arm (opt-in diagnostics) against the perf0 arm must render byte-identical rasters',
+    scope: `overhead-run comparison: the ${DIAGNOSTIC_QUERY} arm (opt-in diagnostics) against the perf0 arm must render byte-identical rasters`,
     expectation: 'identical hashes on every case × repetition; mismatches are findings',
   },
   comparisonsByEngine: {
@@ -909,7 +947,7 @@ const summaryLines = [];
 summaryLines.push(`# MI-PERF-007 overhead benchmark — ${runDate} @ ${shortCommit}`);
 summaryLines.push('');
 summaryLines.push(
-  'Paired `?perf=1&perfCounters=1` present vs diagnostics-absent evidence from the production bundle ' +
+  `Paired \`?${DIAGNOSTIC_QUERY}\` present vs diagnostics-absent evidence from the production bundle ` +
     '(`vite build` + `vite preview`), driven through the real application UI by ' +
     '`tools/benchmark/run-overhead.mjs`. ' +
     `Wall metric: in-page marks (last \`mi:stable-presented\` − \`mi:app-mount\`), available in both arms. ` +
@@ -991,7 +1029,10 @@ summaryLines.push('');
 for (const note of [
   `Execution: ${executionMode}. Automation-bundled engines are directional; the release protocol (plan §9) needs branded stable Firefox, declared target hardware, 21+ paired repetitions with BCa intervals.`,
   'The wall metric is mark-based (mi:app-mount → last mi:stable-presented) rather than the ring’s requestToPresentMs, so it exists identically in the perf0 arm; requestToPresentMs of the perf arm is stored raw for cross-reference.',
-  'The perf=1&perfCounters=1 arm carries the full opt-in diagnostics (hook, trace retention, and per-band counters); the always-on ring is present in BOTH arms, so the paired delta isolates opt-in overhead on top of the always-on recorder.',
+  `Stalls: a sample whose stable frame did not arrive within ${STABLE_TIMEOUT_MS / 60_000} min was retried once in a fresh context and marked \`retriedAfterStall\` (${stalls.length} retried).`,
+  DIAGNOSTICS === 'counters'
+    ? 'The perf=1&perfCounters=1 arm carries the full opt-in diagnostics (hook, trace retention, and per-band counters from the instrumented legacy-scan kernel); both arms run that kernel, and the always-on ring is present in BOTH arms, so the paired delta isolates opt-in overhead on top of the always-on recorder.'
+    : 'The perf=1 arm carries the opt-in diagnostic hook (trace snapshot exposure) on the production kernel; the always-on ring is present in BOTH arms, so the paired delta isolates the hook on top of the always-on recorder.',
   'Rep 0 (cold) is included in the paired intervals (worker/module compile noise is paired and largely cancels); warm-only views are derivable from raw-observations.json.',
   'Retention fills use the ring capacity (32): the hard case alternates semantic-view requests and waits for every trace to complete; the easy case first performs 22 distinct pan renders, then completes the ring through semantic-view requests. The single-trace × 32 extrapolation bounds the all-worst-shape case.',
   'recorder-cost-node.json is a Node/V8 microbenchmark — directional only. The separate 2% end-to-end always-on budget still needs an instrumented-build vs recorder-free-build comparison; this harness cannot establish it because both arms include the ring.',

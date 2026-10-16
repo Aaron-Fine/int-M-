@@ -37,6 +37,7 @@
     "evidence:early-accept": "vite build --ssr tools/measure_early_accept.ts --outDir .evidence-build --emptyOutDir && node --max-old-space-size=1536 .evidence-build/measure_early_accept.js",
     "tournament": "vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js",
     "evidence:optimizations": "vite build --ssr tools/compare_orbit_optimizations.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/compare_orbit_optimizations.js",
+    "bench:lag-comparisons": "vite build --ssr tools/benchmark/lag-comparisons.ts --outDir .evidence-build/lag-comparisons --emptyOutDir --logLevel warn && node .evidence-build/lag-comparisons/lag-comparisons.js",
     "kernel-bench": "vite build --ssr tools/benchmark/kernel-bench.ts --outDir .evidence-build/kernel-bench --emptyOutDir --logLevel warn && node .evidence-build/kernel-bench/kernel-bench.js"
   },
   "devDependencies": {

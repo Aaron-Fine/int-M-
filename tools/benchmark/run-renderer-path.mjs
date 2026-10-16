@@ -427,8 +427,12 @@ for (const caseInfo of selectedCases) {
       warmPage = await warmContext.newPage();
     }
     try {
+      // Build order alternates too: in headed browsers the first navigation of
+      // a repetition's fresh context also pays window start-up, so a fixed
+      // build order biases whole-build comparisons against the first build.
+      const distOrder = repetition % 2 === 0 ? dists : [...dists].reverse();
       for (const arm of order) {
-        for (const dist of dists) {
+        for (const dist of distOrder) {
           const contextHandle = cold ? await newContext() : warmContext;
           const page = cold ? await contextHandle.newPage() : warmPage;
           try {
@@ -440,7 +444,7 @@ for (const caseInfo of selectedCases) {
               caseClass: caseInfo.class,
               profile: caseInfo.profile,
               repetition,
-              armOrder: order.map((entry) => entry.label).join('|'),
+              armOrder: `${order.map((entry) => entry.label).join('|')}/${distOrder.map((entry) => entry.label).join('|')}`,
               climate: cold ? 'cold' : 'warm',
             });
             allSamples.push(sample);
