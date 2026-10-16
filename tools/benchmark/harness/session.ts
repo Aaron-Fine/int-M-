@@ -251,46 +251,48 @@ export const startSession = async (options: {
     logLevel: 'warn',
   });
   const servers: PreviewServer[] = [];
-  const baseUrls: Record<string, string> = {};
-  const serve = async (root: string, port: number): Promise<string> => {
-    servers.push(
-      await preview({
-        root,
-        configFile: path.join(root, 'vite.config.ts'),
-        preview: { host: '127.0.0.1', port, strictPort: true },
-      }),
-    );
-    return `http://127.0.0.1:${port}`;
-  };
-  const currentUrl = await serve(repoRoot, PREVIEW_PORT);
-  baseUrls['current'] = currentUrl;
-  for (const [index, compare] of options.compareDists.entries()) {
-    baseUrls[compare.name] = await serve(path.dirname(compare.dir), PREVIEW_PORT + 1 + index);
-  }
-
-  const launch = await launchEvidenceBrowser(
-    options.engine,
-    options.release,
-    options.executablePath,
-  );
+  let launch: LaunchedBrowser | undefined;
   try {
-    const viewport = await calibrateViewport(launch.browser, currentUrl);
-    const userAgent = await readUserAgent(launch.browser);
+    const baseUrls: Record<string, string> = {};
+    const serve = async (root: string, port: number): Promise<string> => {
+      servers.push(
+        await preview({
+          root,
+          configFile: path.join(root, 'vite.config.ts'),
+          preview: { host: '127.0.0.1', port, strictPort: true },
+        }),
+      );
+      return `http://127.0.0.1:${port}`;
+    };
+    const currentUrl = await serve(repoRoot, PREVIEW_PORT);
+    baseUrls['current'] = currentUrl;
+    for (const [index, compare] of options.compareDists.entries()) {
+      baseUrls[compare.name] = await serve(path.dirname(compare.dir), PREVIEW_PORT + 1 + index);
+    }
+
+    const launched = await launchEvidenceBrowser(
+      options.engine,
+      options.release,
+      options.executablePath,
+    );
+    launch = launched;
+    const viewport = await calibrateViewport(launched.browser, currentUrl);
+    const userAgent = await readUserAgent(launched.browser);
     return {
-      browser: launch.browser,
+      browser: launched.browser,
       baseUrls,
       viewport,
-      launchedBy: launch.launchedBy,
-      version: launch.browser.version(),
+      launchedBy: launched.launchedBy,
+      version: launched.browser.version(),
       userAgent,
       close: async () => {
-        await launch.close();
+        await launched.close();
         await Promise.all(servers.map((server) => server.close()));
       },
     };
   } catch (error) {
-    await launch.close().catch(() => undefined);
-    await Promise.all(servers.map((server) => server.close()));
+    await launch?.close().catch(() => undefined);
+    await Promise.all(servers.map((server) => server.close().catch(() => undefined)));
     throw error;
   }
 };

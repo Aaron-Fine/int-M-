@@ -19,7 +19,7 @@ export const writeEvidence = (
   const existing = existsSync(environmentPath)
     ? (JSON.parse(readFileSync(environmentPath, 'utf8')) as Record<string, unknown>)
     : undefined;
-  spawnSync(
+  const capture = spawnSync(
     'node',
     [
       path.join(repoRoot, 'tools/benchmark/capture-environment.mjs'),
@@ -30,6 +30,7 @@ export const writeEvidence = (
     ],
     { cwd: repoRoot, stdio: 'inherit' },
   );
+  if (capture.status !== 0) throw new Error('capture-environment.mjs failed');
   const captured = JSON.parse(readFileSync(environmentPath, 'utf8')) as Record<string, unknown>;
   const browsers = {
     ...((existing?.['browsers'] as object | undefined) ?? {}),
@@ -54,7 +55,13 @@ export const writeEvidence = (
     : ['# Release evidence session\n\n'];
   writeFileSync(summaryPath, `${[...kept, ...parts.summarySections].join('\n')}\n`);
 
-  spawnSync('npx', ['prettier', '--write', outDir], { cwd: repoRoot, stdio: 'ignore' });
+  const formatted = spawnSync('npx', ['prettier', '--write', outDir], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+  if (formatted.status !== 0) {
+    throw new Error(`npx prettier --write failed: ${formatted.stderr}`);
+  }
   const manifest = spawnSync(
     'node',
     [path.join(repoRoot, 'tools/benchmark/manifest.mjs'), outDir],
