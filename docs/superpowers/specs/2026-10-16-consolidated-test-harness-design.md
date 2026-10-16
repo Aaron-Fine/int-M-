@@ -1,9 +1,10 @@
 # Consolidated browser evidence harness and e2e suite — design
 
 - Date: 2026-10-16
-- Status: approved in conversation; written spec awaiting review
-- Scope: the release evidence runners under `tools/benchmark/` and the
-  Playwright suite under `tests/e2e/`
+- Status: approved 2026-10-16 (owner: implement, browser-only renderer, update dependencies)
+- Scope: the release evidence runners under `tools/benchmark/`, the
+  Playwright suite under `tests/e2e/`, the browser's renderer modes, and the
+  npm dependencies
 
 ## Intent
 
@@ -12,15 +13,19 @@ and stop spending browser time on the slow reference kernel.
 
 - **What the owner asked for:** "so many integration tests that are different
   tests all rendering the same thing is a waste of time"; "use the new fast
-  renderer"; both the evidence runners and the e2e suite.
+  renderer"; both the evidence runners and the e2e suite; "now that testing
+  is done, we should just be using the new renderer" (scoped by the owner to
+  the browser: old kernels stay only as Node-side references); "update
+  dependencies while you are working on this implementation".
 - **Success criteria:**
   - One release evidence session covers both browsers in **≤ 30 minutes** on
     the target laptop (owner choice), replacing the five runners used for
     Phase 2 closeout (about 10 hours on 2026-10-15).
   - Every render taken in a session yields every metric that render can
     give; no metric requires re-rendering a view in another runner.
-  - The production default kernel is used throughout. Reference-kernel,
-    old-build, or flag-off arms run only on request (`--compare`).
+  - The browser runs only the production renderer: no URL parameter or
+    message field can select another classifier or renderer-path variant.
+    Old-build or mirroring-off arms run only on request (`--compare`).
   - A stall or a locked session costs at most one case, never the session.
   - The e2e suite runs against the production bundle, has no test that
     depends on the slow reference kernel, and loads the default view fewer
@@ -30,6 +35,30 @@ and stop spending browser time on the slow reference kernel.
   evidence (lag comparisons, tournament judge, Lean work) is out of scope;
   past evidence directories stay as recorded, reproducible from their
   commits.
+
+## Production renderer only (browser)
+
+The shipped app can run only the production path: the watched-lag
+triggered kernel, two-lane row kernel, center-out bands, MessageChannel
+yields, zero-copy output, and conjugate mirroring (its default-on status is
+still an open owner decision; `?perf=1&conjugateMirror=0` stays as the one
+diagnostic toggle until it is decided).
+
+- **Removed from the browser:** the `?classifierMode=`, `?bandOrder=`,
+  `?yieldMechanism=`, and `?frameOutput=` parameters; the matching
+  `RenderMessage` and tile-protocol fields; the differential-stats plumbing
+  through the worker, tile pool, and perf hook. The render worker and tile
+  workers call the production kernel directly.
+- **Kept, Node-side only:** `legacy-scan` (judge baseline, offline lag
+  counts, parity and oracle tests), `checkpoint` and `differential` (their
+  unit tests and the tournament), and the renderer-path variants Node tools
+  need. They stay in `src/domain` and `src/render` but are unreachable from
+  the browser entry points.
+- **Acceptance:** a build check (script run by `npm run check`) fails if the
+  production source map for any bundle lists `src/domain/checkpoint.ts` or
+  `src/domain/orbit-instrumented.ts`; the inspector still classifies with
+  the production kernel; the default view's stable-canvas hash and the
+  corpus parity test are unchanged.
 
 ## Evidence harness
 
@@ -76,8 +105,7 @@ Per engine, per corpus case (13), per repetition (22; rep 0 cold):
 - **Arms:** `hook` (`?perf=1&view=…&quality=…`, full trace) and `plain`
   (`?view=…&quality=…`, mark wall and hash only), both on the production
   default kernel. Each `--compare name=…` adds one arm: a query toggle on the
-  same build (`conjugateMirror=0`, `classifierMode=legacy-scan`) or a whole
-  other build (`dist:<dir>`, served from its own preview server, hook on).
+  same build (only `conjugateMirror=0` remains) or a whole other build (`dist:<dir>`, served from its own preview server, hook on).
 - **Order:** arm order rotates per repetition (all arms, all positions), and
   every repetition uses a fresh browser context, so headed new-window cost
   is spread evenly (the 2026-10-16 fixed-order bias is not repeatable).
@@ -172,6 +200,24 @@ provenance and two-event cancellation timing` drops
   arbitrary points, coarse/stable ordering, pan/Escape.
 - Acceptance: the suite passes in both engines with the same assertions,
   with three fewer default-view loads per engine and no test above 10 s.
+
+## Dependency update
+
+Update every npm dependency to its latest release, one package group at a
+time, each followed by `npm run check` and the browser suite:
+
+- minor and patch: `@axe-core/playwright`, `@playwright/test` (download the
+  matching browsers), `eslint`, `globals`, `prettier` (reformat if its
+  output changes), `typescript-eslint`, `vite`, `vitest`;
+- `npm audit fix` for the high-severity `source-map-js` advisory
+  (GHSA-68fv-2mgg-jv7q, a dev dependency);
+- **TypeScript 6 to 7** (major, native compiler): adopt only if
+  `typescript-eslint` supports it and every project typechecks; otherwise
+  stay on the latest 6.x and record why;
+- **`@types/node`**: latest 24.x, matching the Node 24 runtime the
+  toolchain runs on (26.x describes APIs the runtime lacks).
+
+The lockfile is regenerated with the pinned npm major (`packageManager`).
 
 ## Out of scope
 
