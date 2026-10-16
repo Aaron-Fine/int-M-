@@ -122,63 +122,6 @@ class InspectOnlyRenderer implements Renderer {
 }
 
 describe('RenderWorkerRuntime', () => {
-  it('threads an explicit classifierMode from the render message into the dynamics request', async () => {
-    const requests: DynamicsRenderRequest[] = [];
-    const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
-
-    await runtime.handle({
-      type: 'render',
-      requestId: 1,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-      classifierMode: 'checkpoint',
-    });
-
-    expect(requests).toHaveLength(1);
-    expect(requests[0]?.classifierMode).toBe('checkpoint');
-  });
-
-  it('keeps the default render message free of any classifierMode field', async () => {
-    const requests: DynamicsRenderRequest[] = [];
-    const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
-
-    await runtime.handle({
-      type: 'render',
-      requestId: 1,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-    });
-
-    expect(requests).toHaveLength(1);
-    expect(requests[0]).not.toHaveProperty('classifierMode');
-  });
-
   it('threads conjugateMirror only when given, defaulting to absent (mirroring on)', async () => {
     const requests: DynamicsRenderRequest[] = [];
     const renderer: Renderer = {
@@ -588,7 +531,6 @@ describe('RenderWorkerRuntime', () => {
       expect.objectContaining({ quality: STABLE_QUALITY }),
       STABLE_QUALITY,
       expect.any(AbortSignal),
-      undefined,
     );
     expect(messages.filter((message) => message.type === 'frame')).toEqual([
       expect.objectContaining({ type: 'frame', requestId: 'first', stage: 'coarse' }),
@@ -663,69 +605,6 @@ describe('RenderWorkerRuntime', () => {
     expect(messages).not.toContainEqual(
       expect.objectContaining({ type: 'frame', stage: 'stable' }),
     );
-  });
-
-  it('never transports counters to the UI: counters are offline only', async () => {
-    const countersFrame = (size: RasterSize): SemanticFrame => ({
-      ...semanticFrame(size),
-      counters: {
-        lagComparisons: 7,
-        proposals: 3,
-        analyticPathHits: 0,
-        rejectsNoClosure: 1,
-        rejectsNotAttracting: 0,
-        rejectsNonFinite: 0,
-        rejectsAmbiguous: 0,
-        checkpointRolls: 2,
-        reArms: 1,
-        systematic1to4: 4,
-        systematic5to8: 0,
-        systematic9to12: 0,
-        systematic13Plus: 0,
-        opportunistic1to4: 0,
-        opportunistic5to8: 0,
-        opportunistic9to12: 0,
-        opportunistic13Plus: 0,
-        escaped: 0,
-        attracting: size.width * size.height,
-        unresolved: 0,
-      },
-    });
-    const requests: DynamicsRenderRequest[] = [];
-    const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(countersFrame(request.size));
-      },
-      colorize,
-    };
-    const messages: WorkerToMainMessage[] = [];
-    const runtime = new RenderWorkerRuntime(
-      { postMessage: (message) => messages.push(message) },
-      renderer,
-    );
-
-    await runtime.handle({
-      type: 'render',
-      requestId: 1,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-    });
-    expect(requests).toHaveLength(1);
-    expect(requests[0]).not.toHaveProperty('perfCounters');
-    // Even a renderer that attaches counters cannot put them on the wire.
-    const frameMessage = messages.find(
-      (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
-        message.type === 'frame',
-    );
-    expect(frameMessage).toBeDefined();
-    expect(frameMessage).not.toHaveProperty('counters');
   });
 });
 

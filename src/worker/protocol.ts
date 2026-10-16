@@ -1,15 +1,12 @@
 import type {
-  ClassifierMode,
   Complex,
-  DifferentialStats,
   OrbitResult,
   RasterSize,
   RenderQuality,
   SemanticView,
   Viewport,
 } from '../domain';
-import type { BandOrder, FrameOutput, RenderStage } from '../render';
-import type { YieldMechanism } from '../render/yield-scheduler';
+import type { RenderStage } from '../render';
 
 export type RequestId = string | number;
 
@@ -20,27 +17,6 @@ export interface RenderMessage {
   readonly size: RasterSize;
   readonly semanticView: SemanticView;
   readonly quality?: Partial<RenderQuality>;
-  /**
-   * Versioned classifier mode (Stage A opt-in wiring). Additive optional
-   * field: absent on the default path, so default messages are byte-identical
-   * and workers use the default 'triggered-scan' kernel.
-   */
-  readonly classifierMode?: ClassifierMode;
-  /**
-   * Diagnostic stable-band dispatch order (renderer-path detail evidence).
-   * Additive optional field: absent on the default path (center-out order).
-   */
-  readonly bandOrder?: BandOrder;
-  /**
-   * Diagnostic stable-frame output path (renderer-path detail evidence).
-   * Additive optional field: absent on the default path (zero-copy).
-   */
-  readonly frameOutput?: FrameOutput;
-  /**
-   * Diagnostic row-yield mechanism (renderer-path detail evidence).
-   * Additive optional field: absent on the default path (MessageChannel).
-   */
-  readonly yieldMechanism?: YieldMechanism;
   /**
    * Conjugate-symmetry row mirroring of the stable pass, default ON; `false`
    * disables it (`?perf=1&conjugateMirror=0`). Additive optional field:
@@ -120,11 +96,6 @@ export interface FrameMessage {
   readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   readonly progress: number;
   readonly workerTiming?: WorkerFrameTiming;
-  /**
-   * Differential-mode disagreement record (classifierMode 'differential'):
-   * per-band stats summed once. Additive optional field; absent otherwise.
-   */
-  readonly differential?: DifferentialStats;
 }
 
 export interface InspectionResult {

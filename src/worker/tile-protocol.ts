@@ -1,11 +1,4 @@
-import type {
-  ClassifierMode,
-  DifferentialStats,
-  RasterSize,
-  RenderQuality,
-  Viewport,
-} from '../domain';
-import type { YieldMechanism } from '../render/yield-scheduler';
+import type { RasterSize, RenderQuality, Viewport } from '../domain';
 import type { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
 
 /**
@@ -31,21 +24,13 @@ export interface TileClassifyMessage {
   readonly y0: number;
   readonly y1: number;
   readonly quality: RenderQuality;
-  /** Additive optional classifier mode; absent on the default path. */
-  readonly classifierMode?: ClassifierMode;
   /**
-   * Additive optional row-yield mechanism (renderer-path detail); absent =
-   * the default MessageChannel scheduler.
+   * Supervisor-allocated band views the worker classifies into and transfers
+   * back. Always present on the tile path.
    */
-  readonly yieldMechanism?: YieldMechanism;
-  /**
-   * Additive optional zero-copy band views (renderer-path detail); absent on
-   * the legacy-merge measurement arm, where the worker allocates its output.
-   * Carries the packed-output revision it was allocated against.
-   */
-  readonly bandOutput?: TileBandOutput;
-  /** Frozen packed status+period encoding of any bandOutput views. */
-  readonly outputRevision?: typeof PACKED_OUTPUT_REVISION;
+  readonly bandOutput: TileBandOutput;
+  /** Frozen packed status+period encoding of the bandOutput views. */
+  readonly outputRevision: typeof PACKED_OUTPUT_REVISION;
   /**
    * Conjugate mirroring is in effect for this job (the supervisor sends it
    * only when workers must skip mirrored rows in place): the worker derives
@@ -70,11 +55,6 @@ export interface TileResultMessage {
   readonly outputRevision: typeof PACKED_OUTPUT_REVISION;
   readonly yieldWaitMs: number;
   readonly yieldCount: number;
-  /**
-   * Differential-mode disagreement record for this band
-   * (classifierMode 'differential'). Additive optional field.
-   */
-  readonly differential?: DifferentialStats;
 }
 
 export interface TileCancelMessage {

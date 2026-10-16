@@ -30,12 +30,11 @@ const SMALL_QUALITY: RenderQuality = { maxIterations: 32, maxPeriod: 4, coarseSt
 // DEFAULT_VIEWPORT is centered on the real axis, so mirroring (default on)
 // would halve the dispatched bands; these tests pin the unmirrored band
 // schedule (mirrored scheduling is covered in conjugate-mirror.test.ts).
-const requestOf = (width: number, height: number, bandOrder?: 'legacy') => ({
+const requestOf = (width: number, height: number) => ({
   viewport: DEFAULT_VIEWPORT,
   size: { width, height },
   quality: BALANCED,
   conjugateMirror: false,
-  ...(bandOrder === undefined ? {} : { bandOrder }),
 });
 
 class FakeTileWorker implements TileWorkerHandle {
@@ -243,32 +242,6 @@ describe('createTilePool', () => {
     expect([...frameWords(frame)].every((word) => unpackStatus(word) === 1)).toBe(true);
   });
 
-  it('dispatches top-to-bottom when the legacy diagnostic order is requested', async () => {
-    const workers: FakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new FakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const pending = pool.classifyStable(
-      requestOf(4, 6, 'legacy'),
-      BALANCED,
-      new AbortController().signal,
-    );
-
-    expect(classifyPosts(workers[0]!).map((post) => post.jobId)).toEqual([0]);
-    expect(classifyPosts(workers[1]!).map((post) => post.jobId)).toEqual([1]);
-    for (const jobId of [0, 1, 2, 3, 4, 5]) {
-      answerJobId(workers, jobId, 1);
-    }
-    await pending;
-    expect(classifyPosts(workers[0]!).map((post) => post.jobId)).toEqual([0, 2, 4]);
-    expect(classifyPosts(workers[1]!).map((post) => post.jobId)).toEqual([1, 3, 5]);
-  });
-
   it('reports per-band completion elapsed on the merged frame timing', async () => {
     const workers: FakeTileWorker[] = [];
     const pool = createTilePool({
@@ -286,58 +259,6 @@ describe('createTilePool', () => {
     for (const elapsed of frame.timing?.bandsElapsedMs ?? []) {
       expect(elapsed).toBeGreaterThanOrEqual(0);
       expect(Number.isFinite(elapsed)).toBe(true);
-    }
-  });
-
-  it('createTilePool_tiled_threadsClassifierModeIntoTileMessages', async () => {
-    const workers: FakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new FakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const request = requestOf(6, 4);
-
-    const settled = pool
-      .classifyStable(request, SMALL_QUALITY, new AbortController().signal, 'checkpoint')
-      .then(() => undefined);
-    await Promise.resolve();
-    replyAll(workers, 1);
-    await settled;
-
-    const withMode = workers.flatMap((worker) => classifyPosts(worker));
-    expect(withMode.length).toBeGreaterThan(0);
-    for (const message of withMode) {
-      expect(message.classifierMode).toBe('checkpoint');
-    }
-  });
-
-  it('createTilePool_tiled_omitsClassifierModeByDefault', async () => {
-    const workers: FakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new FakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const request = requestOf(6, 4);
-
-    const settled = pool
-      .classifyStable(request, SMALL_QUALITY, new AbortController().signal)
-      .then(() => undefined);
-    await Promise.resolve();
-    replyAll(workers, 1);
-    await settled;
-
-    const messages = workers.flatMap((worker) => classifyPosts(worker));
-    expect(messages.length).toBeGreaterThan(0);
-    for (const message of messages) {
-      expect(message).not.toHaveProperty('classifierMode');
     }
   });
 

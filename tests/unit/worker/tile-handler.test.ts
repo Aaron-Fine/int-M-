@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_VIEWPORT, type ClassifierMode, type RenderQuality } from '../../../src/domain';
+import { DEFAULT_VIEWPORT, type RenderQuality } from '../../../src/domain';
 import { classifyRows } from '../../../src/render/classify-rows';
 import { RenderCancelledError } from '../../../src/render';
 import { packStatusPeriod } from '../../../src/render/packed-semantic';
@@ -13,6 +13,14 @@ import type {
 
 const BALANCED: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 
+const bandViews = (y0: number, y1: number, width: number) => ({
+  y0,
+  y1,
+  packedStatusPeriod: new Uint32Array((y1 - y0) * width),
+  smoothIterationOrMultiplierMagnitude: new Float64Array((y1 - y0) * width),
+  multiplierAngle: new Float64Array((y1 - y0) * width),
+});
+
 const classifyMessage = (overrides: Partial<TileClassifyMessage> = {}): TileClassifyMessage => ({
   type: 'tile-classify',
   generation: 3,
@@ -22,6 +30,8 @@ const classifyMessage = (overrides: Partial<TileClassifyMessage> = {}): TileClas
   y0: 3,
   y1: 7,
   quality: BALANCED,
+  bandOutput: bandViews(3, 7, 8),
+  outputRevision: 'poc-packed-1.0.0',
   ...overrides,
 });
 
@@ -44,38 +54,42 @@ const recordingHost = (): {
 };
 
 describe('tile-handler', () => {
-  it('handleTileClassify_forwardsClassifierModeToClassifyRows', async () => {
+  it('handleTileClassify_passesRequestMirrorPlanAndBandViewsInPositionalOrder', async () => {
     const host = recordingHost();
-    const seenModes: (ClassifierMode | undefined)[] = [];
+    const calls: unknown[][] = [];
     const handle = createTileHandler(host, {
-      classifyRows: (
-        _request,
-        _quality,
-        _stride,
-        _y0,
-        _y1,
-        _signal,
-        classifierMode,
-        _yieldMechanism,
-        output,
-      ) => {
-        seenModes.push(classifierMode);
+      classifyRows: (...args) => {
+        calls.push(args);
+        const output = args[6] as ReturnType<typeof bandViews>;
         return Promise.resolve({
           y0: 3,
           y1: 7,
-          packedStatusPeriod: output?.packedStatusPeriod ?? new Uint32Array(4 * 8),
-          smoothIterationOrMultiplierMagnitude:
-            output?.smoothIterationOrMultiplierMagnitude ?? new Float64Array(4 * 8),
-          multiplierAngle: output?.multiplierAngle ?? new Float64Array(4 * 8),
+          packedStatusPeriod: output.packedStatusPeriod,
+          smoothIterationOrMultiplierMagnitude: output.smoothIterationOrMultiplierMagnitude,
+          multiplierAngle: output.multiplierAngle,
           timing: { classifyMs: 1, yieldWaitMs: 0, yieldCount: 0 },
         });
       },
     });
+    const message = classifyMessage({ conjugateMirror: true });
 
-    await handle(classifyMessage({ classifierMode: 'checkpoint' }));
-    await handle(classifyMessage({ generation: 4, jobId: 2 }));
+    await handle(message);
 
-    expect(seenModes).toEqual(['checkpoint', undefined]);
+    expect(calls).toHaveLength(1);
+    const [request, quality, stride, y0, y1, , output, mirrorPlan] = calls[0]!;
+    expect(request).toEqual({ viewport: message.viewport, size: message.size, quality: BALANCED });
+    expect(quality).toBe(BALANCED);
+    expect(stride).toBe(1);
+    expect(y0).toBe(3);
+    expect(y1).toBe(7);
+    expect(output).toEqual({
+      y0: undefined,
+      y1: undefined,
+      packedStatusPeriod: message.bandOutput.packedStatusPeriod,
+      smoothIterationOrMultiplierMagnitude: message.bandOutput.smoothIterationOrMultiplierMagnitude,
+      multiplierAngle: message.bandOutput.multiplierAngle,
+    });
+    expect(mirrorPlan).toBeDefined();
   });
 
   it('handleTileClassify_postsTransferredBandForAbsoluteRows', async () => {

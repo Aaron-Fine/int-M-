@@ -60,19 +60,14 @@ export function createTileHandler(
         message.y0,
         message.y1,
         signal,
-        message.classifierMode,
-        message.yieldMechanism,
-        // Zero-copy: classify directly into the supervisor's band views.
-        // Absent on the legacy-merge arm, where classifyRows allocates.
-        message.bandOutput === undefined
-          ? undefined
-          : {
-              packedStatusPeriod: message.bandOutput.packedStatusPeriod,
-              smoothIterationOrMultiplierMagnitude:
-                message.bandOutput.smoothIterationOrMultiplierMagnitude,
-              multiplierAngle: message.bandOutput.multiplierAngle,
-            },
-        { mirrorPlan },
+        // Classify directly into the supervisor's band views.
+        {
+          packedStatusPeriod: message.bandOutput.packedStatusPeriod,
+          smoothIterationOrMultiplierMagnitude:
+            message.bandOutput.smoothIterationOrMultiplierMagnitude,
+          multiplierAngle: message.bandOutput.multiplierAngle,
+        },
+        mirrorPlan,
       );
       if (signal.aborted) return;
       const result: TileResultMessage = {
@@ -87,7 +82,6 @@ export function createTileHandler(
         outputRevision: PACKED_OUTPUT_REVISION,
         yieldWaitMs: band.timing.yieldWaitMs,
         yieldCount: band.timing.yieldCount,
-        ...(band.differential === undefined ? {} : { differential: band.differential }),
       };
       // Transfers ownership back to the supervisor; the views are detached
       // in this worker afterwards and are never read here again.
