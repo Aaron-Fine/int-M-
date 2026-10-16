@@ -1,13 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { auditPeriodTwoVerifier } from '../../poc/performance/src/numerics/period-two-verifier';
 
-// The research module under /poc is served only by the dev server, so this audit
-// runs in test:browser:dev and is skipped on the production preview build.
-test.skip(
-  !process.env['PLAYWRIGHT_DEV_SERVER'],
-  'needs the dev server to serve the /poc research module',
-);
-
 test('audits the bounded verifier pilot in the browser', async ({ page }) => {
   await page.goto('/');
   const outcomes = await page.evaluate(async () => {
