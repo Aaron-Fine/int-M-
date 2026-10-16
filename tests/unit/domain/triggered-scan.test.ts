@@ -49,6 +49,25 @@ describe('triggered kernel on named pixels', () => {
   });
 });
 
+describe('triggered kernel at large maxPeriod', () => {
+  it('accepts cycles inside the end-of-budget window at large maxPeriod', () => {
+    // Pixels (maxIterations 1024, maxPeriod 128) whose acceptable lag scan lies
+    // more than 64 iterations before the budget end, so a fixed 64-iteration
+    // tail window alone would miss them.
+    const options: Partial<OrbitOptions> = { maxIterations: 1024, maxPeriod: 128 };
+    const pixels: readonly (readonly [number, number, number])[] = [
+      [0.0582386729470506, 0.6199566293493743, 94],
+      [0.3716336745978876, -0.2877599674776909, 128],
+      [-0.3855504355631629, -0.5939111473845738, 105],
+    ];
+    for (const [re, im, period] of pixels) {
+      const result = classifyPixel(re, im, resolveOrbitOptions(options));
+      expect(result.status).toBe('attracting-cycle');
+      if (result.status === 'attracting-cycle') expect(result.period).toBe(period);
+    }
+  });
+});
+
 describe('triggered kernel never loses an acceptance to refused proposals', () => {
   // Review reproducers: the watched lag proposes repeatedly while the
   // verifier refuses (divisor-ambiguous near lambda = -1 at the default
