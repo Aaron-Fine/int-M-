@@ -1,10 +1,10 @@
-# Consolidated Test Harness and Production-Only Renderer Implementation Plan
+# Consolidated Test Harness and Reference-Kernel Removal Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** One ≤ 30-minute release evidence session replaces five browser runners, the e2e suite runs on the production bundle without slow or duplicate renders, the browser can run only the production renderer, and every npm dependency is current.
+**Goal:** One ≤ 30-minute release evidence session replaces five browser runners, the e2e suite runs on the production bundle without slow or duplicate renders, the reference classifier kernels and every renderer variant are removed from the codebase (owner decision 2026-10-16), and every npm dependency is current.
 
-**Architecture:** A new `tools/benchmark/harness/` (TypeScript run directly by Node 24's type stripping) holds pure statistics, budgets, scheduling, and checkpoint modules plus browser session, capture, evidence, and two passes, driven by `tools/benchmark/run-release.ts`. The browser path gets its own production classifier (`ProductionOrbitClassifier`, `classifyProductionRows`) and renderer (`ProductionRenderer`) that never import the reference kernels; Node keeps `CpuRenderer` with every mode. A build check fails if the reference kernels reach a browser bundle.
+**Architecture:** A new `tools/benchmark/harness/` (TypeScript run directly by Node 24's type stripping) holds pure statistics, budgets, scheduling, and checkpoint modules plus browser session, capture, evidence, and two passes, driven by `tools/benchmark/run-release.ts`. Before any deletion, a golden kernel fixture records the default classifier's output hashes on the frozen corpus, generated with equality to `legacy-scan` asserted; it then guards the removal of `legacy-scan`, `checkpoint`, `differential`, the instrumented kernel, counters, and the renderer-variant parameters, leaving one classifier, one row path, and one renderer.
 
 **Tech Stack:** TypeScript 6/7, Vite 8, Vitest 5, Playwright 1.64, Node 24, branded Chrome (Flatpak) and Firefox on Fedora/KDE.
 
@@ -18,7 +18,7 @@
 - Frozen budgets (warm medians, both browsers): coarse ≤ 100 ms every case; stable ≤ 250 ms Easy, ≤ 600 ms Hard known, ≤ 1,500 ms Fallback and Scale.
 - A full release session (both browsers) takes ≤ 30 minutes on the target laptop.
 - The browser runs only the production renderer; `?perf=1&conjugateMirror=0` is the only remaining renderer toggle.
-- `legacy-scan`, `checkpoint`, and `differential` stay available to Node code only.
+- `legacy-scan`, `checkpoint`, `differential`, the instrumented kernel, and diagnostics counters are deleted (ADR 0007); `tests/unit/render/kernel-golden.test.ts` stays green from Task 6 on.
 - Headed runs refuse to start on a locked session (`loginctl show-session <id> -p LockedHint`); long runs are wrapped in `kde-inhibit --screenSaver --power` by the caller.
 - Evidence directories follow `evidence/phase-2/README.md`: `environment.json`, raw observations, `summary.md`, `manifest.sha256` written last; Prettier-format the directory before emitting the manifest.
 - Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
@@ -28,9 +28,18 @@
 
 1. A headed browser that never presents a stable frame (locked or covered window, browser hiccup) must cost one retried sample, not the session — Task 3 capture test pins the retry.
 2. A session interrupted mid-run (`Ctrl-C`, crash, lock) must resume without repeating completed cases or double-counting samples — Task 2 checkpoint tests pin merge and skip.
-3. A stale `?classifierMode=legacy-scan` (or `bandOrder`, `yieldMechanism`, `frameOutput`, `perfCounters`) URL from an old bookmark or script must render the production default, not error — Task 8 test pins it.
+3. A stale `?classifierMode=legacy-scan` (or `bandOrder`, `yieldMechanism`, `frameOutput`, `perfCounters`) URL from an old bookmark or script must render the production default, not error — Task 7c test pins it.
 4. A `--compare dist:<dir>` pointing at a build without `?view=` support must fail fast with a clear message rather than measure the wrong viewport — Task 4 test pins the viewport check failure.
 5. A whole-build compare arm must alternate position with the other arms; a fixed order biases headed runs (the 2026-10-16 build-check defect) — Task 2 schedule test pins full rotation.
+
+## Execution
+
+Subagent-driven (`superpowers:subagent-driven-development`), owner direction 2026-10-16:
+
+- **Implementers: Haiku**, one fresh session per task, scoped to that task's Files list; Task 4 runs as two sessions (4a: `passes/corpus.ts` + tests; 4b: `passes/interactions.ts` + `run-release.ts` + smoke) and Task 7b as two (7b-1: render; 7b-2: worker and tile).
+- **Per-task reviewer: Sonnet**, checking the task against this plan and the spec before the next task starts.
+- **Final review: Sonnet**, whole branch against the spec.
+- Headed browser runs (Task 4 smoke is headless; Task 9 is headed) need the owner's unlocked session; Task 9 is run by the controller, not a subagent.
 
 ---
 
@@ -47,12 +56,8 @@
 | `tools/benchmark/harness/evidence.ts`                                | environment, raw, summary, manifest                                |
 | `tools/benchmark/harness/passes/corpus.ts`, `passes/interactions.ts` | the two passes                                                     |
 | `tools/benchmark/run-release.ts`                                     | CLI                                                                |
-| `src/domain/orbit-production.ts`                                     | `ProductionOrbitClassifier`                                        |
-| `src/render/row-common.ts`                                           | band-writing and coordinate helpers shared by both row classifiers |
-| `src/render/production-rows.ts`                                      | `classifyProductionRows`                                           |
-| `src/render/staged-renderer.ts`                                      | coarse→stable orchestration shared by both renderers               |
-| `src/render/production-renderer.ts`                                  | `ProductionRenderer` (browser)                                     |
-| `tools/check-bundle-modules.mjs`                                     | fails if reference kernels reach a browser bundle                  |
+| `tools/generate_kernel_golden.ts`, `fixtures/kernel-golden.v1.json`  | golden kernel fixture: the bit-for-bit reference after the removal |
+| `docs/decisions/0007-remove-reference-kernels.md`                    | records the removal and the new reference                          |
 
 ---
 
@@ -1198,348 +1203,289 @@ git commit -m "Retire the five per-purpose browser runners in favor of run-relea
 
 ---
 
-### Task 6: Production classifier and row path (domain + render)
+### Task 6: Golden kernel fixture (before any deletion)
 
 **Files:**
 
-- Create: `src/domain/orbit-production.ts`, `src/render/row-common.ts`, `src/render/production-rows.ts`
-- Modify: `src/domain/index.ts` (export `ProductionOrbitClassifier`), `src/render/classify-rows.ts` (import moved helpers from `row-common.ts`)
-- Test: `tests/unit/render/production-rows.test.ts`
+- Create: `tools/generate_kernel_golden.ts`, `fixtures/kernel-golden.v1.json` (generated), `tests/unit/render/kernel-golden.test.ts`
+- Modify: `package.json` (`"fixtures:kernel-golden": "vite build --ssr tools/generate_kernel_golden.ts --outDir .evidence-build/kernel-golden --emptyOutDir --logLevel warn && node .evidence-build/kernel-golden/generate_kernel_golden.js"`), `tsconfig.node.json` (include `tools/generate_kernel_golden.ts`)
 
 **Interfaces:**
 
-- Consumes: `classifyAnalyticInto`, `createOrbitSample`, `materializeOrbitResult`, `OrbitScratch`, `resolveOrbitOptions` from `src/domain/orbit.ts`; `classifyTriggeredOrbitInto` from `src/domain/orbit-triggered.ts`; `TriggeredRowKernel` from `src/render/triggered-rows.ts`
-- Produces:
-  - `class ProductionOrbitClassifier { constructor(options?: Partial<OrbitOptions>); classifyInto(cRe: number, cIm: number, out: OrbitSample): void; classify(c: Complex): OrbitResult }`
-  - `row-common.ts`: `throwIfAborted`, `nowMs`, `BandOutputBuffers`, `writeSampleToBand`, `prepareRealColumns`, `preparedRowImaginary`, `assertMirrorStride`, `isMirroredRow` (moved verbatim from `classify-rows.ts`)
-  - `classifyProductionRows(request: DynamicsRenderRequest, quality: RenderQuality, stride: number, y0: number, y1: number, signal: AbortSignal, output?: BandOutputBuffers, mirrorPlan?: ConjugateMirrorPlan): Promise<ProductionRowsResult>` where `ProductionRowsResult = SemanticBand & { timing: SemanticStageTiming }`
+- Consumes: `classifyRows(request, quality, stride, y0, y1, signal, classifierMode?)` from `src/render/classify-rows.ts`; `loadCorpusCases()` (each case has `id`, `profile`, `viewport`) and `profileQuality(profile)` from `tools/benchmark/judge/corpus.ts`
+- Produces: `GOLDEN_RASTER = { width: 160, height: 100 }`; `goldenDigest(viewport, quality): Promise<string>` (SHA-256 hex over the packed status/period, magnitude, and angle channels, in that order, little-endian as stored); `fixtures/kernel-golden.v1.json` = `{ schemaVersion: 1, raster, kernel: 'watched-lag triggered scan (ADR 0006)', generatedFrom: <short commit>, cases: { [caseId]: sha256 } }`
 
-- [ ] **Step 1: Write the failing parity test**
+The golden fixture replaces `legacy-scan` as the bit-for-bit reference once Task 7 deletes it. It is generated while the reference still exists, and the generator refuses to write unless the default kernel and `legacy-scan` produce identical bytes on every case — so the fixture carries the ADR 0006 equality forward.
 
-`tests/unit/render/production-rows.test.ts`:
+- [ ] **Step 1: Write the failing test**
+
+`tests/unit/render/kernel-golden.test.ts`:
 
 ```ts
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { classifyOrbit, planConjugateMirror } from '../../../src/domain';
-import { ProductionOrbitClassifier } from '../../../src/domain/orbit-production';
-import { classifyRows } from '../../../src/render/classify-rows';
-import { classifyProductionRows } from '../../../src/render/production-rows';
+import { GOLDEN_RASTER, goldenDigest } from '../../../tools/generate_kernel_golden';
+import { loadCorpusCases, profileQuality } from '../../../tools/benchmark/judge/corpus';
 
-const QUALITY = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
-const VIEWS = [
-  { center: { re: -0.75, im: 0 }, spanY: 2.5 },
-  { center: { re: -0.158902249, im: -1.034028 }, spanY: 0.019841269841269841269 },
-  { center: { re: -0.1225611668766535, im: 0.7448617666197435 }, spanY: 0.3 },
-];
+const golden = JSON.parse(
+  readFileSync(path.join(import.meta.dirname, '../../../fixtures/kernel-golden.v1.json'), 'utf8'),
+) as { raster: typeof GOLDEN_RASTER; cases: Record<string, string> };
 
-describe('production row path', () => {
-  for (const viewport of VIEWS) {
-    for (const stride of [1, 8]) {
-      it(`matches classifyRows' default bit for bit (${viewport.center.re}, stride ${stride})`, async () => {
-        const request = { viewport, size: { width: 64, height: 40 }, quality: QUALITY };
-        const signal = new AbortController().signal;
-        const mirrorPlan = stride === 1 ? planConjugateMirror(viewport, request.size) : undefined;
-        const reference = await classifyRows(
-          request,
-          QUALITY,
-          stride,
-          0,
-          40,
-          signal,
-          undefined,
-          undefined,
-          undefined,
-          { mirrorPlan },
-        );
-        const production = await classifyProductionRows(
-          request,
-          QUALITY,
-          stride,
-          0,
-          40,
-          signal,
-          undefined,
-          mirrorPlan,
-        );
-        expect([...production.packedStatusPeriod]).toEqual([...reference.packedStatusPeriod]);
-        expect([...production.smoothIterationOrMultiplierMagnitude]).toEqual([
-          ...reference.smoothIterationOrMultiplierMagnitude,
-        ]);
-        expect([...production.multiplierAngle]).toEqual([...reference.multiplierAngle]);
-      });
-    }
-  }
-
-  it('the production inspector matches classifyOrbit', () => {
-    const classifier = new ProductionOrbitClassifier({ maxIterations: 512, maxPeriod: 32 });
-    for (const point of [
-      { re: -0.75, im: 0.1 },
-      { re: 0.3, im: 0.5 },
-      { re: -0.1225611668766535, im: 0.7448617666197435 },
-    ]) {
-      expect(classifier.classify(point)).toEqual(
-        classifyOrbit(point, { maxIterations: 512, maxPeriod: 32 }),
-      );
-    }
+describe('kernel golden fixture', () => {
+  it('covers every corpus case at the golden raster', () => {
+    expect(golden.raster).toEqual(GOLDEN_RASTER);
+    expect(Object.keys(golden.cases).sort()).toEqual(
+      loadCorpusCases()
+        .map((c) => c.id)
+        .sort(),
+    );
   });
+
+  for (const corpusCase of loadCorpusCases()) {
+    it(`classifies ${corpusCase.id} bit for bit as recorded`, async () => {
+      expect(await goldenDigest(corpusCase.viewport, profileQuality(corpusCase.profile))).toBe(
+        golden.cases[corpusCase.id],
+      );
+    }, 60_000);
+  }
 });
 ```
 
 - [ ] **Step 2: Run to verify it fails**
 
-Run: `npx vitest run tests/unit/render/production-rows.test.ts`
-Expected: FAIL (modules not found).
+Run: `npx vitest run tests/unit/render/kernel-golden.test.ts`
+Expected: FAIL (module and fixture not found).
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 3: Implement the generator**
 
-`src/domain/orbit-production.ts`:
+`tools/generate_kernel_golden.ts`:
 
 ```ts
-import {
-  classifyAnalyticInto,
-  createOrbitSample,
-  materializeOrbitResult,
-  OrbitScratch,
-  resolveOrbitOptions,
-  type OrbitSample,
-} from './orbit';
-import { classifyTriggeredOrbitInto } from './orbit-triggered';
-import type { Complex, OrbitOptions, OrbitResult } from './types';
-
 /**
- * The production classifier: the analytic fast paths, then the watched-lag
- * kernel (ADR 0006). Bit-identical to OrbitClassifier in its default mode,
- * without referencing the reference kernels, so browser bundles that use it
- * tree-shake legacy-scan, checkpoint, and the instrumented kernel away.
+ * Golden kernel fixture: SHA-256 of the default classifier's output channels
+ * for every frozen-corpus case at a small raster. The bit-for-bit regression
+ * reference for the watched-lag kernel (ADR 0006/0007).
+ * Usage: npm run fixtures:kernel-golden [-- --check]
  */
-export class ProductionOrbitClassifier {
-  readonly #options: OrbitOptions;
-  readonly #scratch: OrbitScratch;
+import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import type { RenderQuality, Viewport } from '../src/domain';
+import { classifyRows } from '../src/render/classify-rows';
+import { loadCorpusCases, profileQuality } from './benchmark/judge/corpus';
 
-  public constructor(options: Partial<OrbitOptions> = {}) {
-    this.#options = resolveOrbitOptions({ ...options, classifierMode: 'triggered-scan' });
-    this.#scratch = new OrbitScratch(this.#options.maxPeriod);
-  }
+export const GOLDEN_RASTER = { width: 160, height: 100 } as const;
+const FIXTURE = path.resolve(import.meta.dirname, '..', 'fixtures/kernel-golden.v1.json');
 
-  public classifyInto(cRe: number, cIm: number, out: OrbitSample): void {
-    if (classifyAnalyticInto(cRe, cIm, out)) return;
-    this.#scratch.ensureCapacity(this.#options.maxPeriod);
-    classifyTriggeredOrbitInto(cRe, cIm, this.#options, this.#scratch, out);
-  }
+const channelsDigest = (band: {
+  packedStatusPeriod: Uint32Array;
+  smoothIterationOrMultiplierMagnitude: Float64Array;
+  multiplierAngle: Float64Array;
+}): string =>
+  createHash('sha256')
+    .update(new Uint8Array(band.packedStatusPeriod.buffer))
+    .update(new Uint8Array(band.smoothIterationOrMultiplierMagnitude.buffer))
+    .update(new Uint8Array(band.multiplierAngle.buffer))
+    .digest('hex');
 
-  public classify(c: Complex): OrbitResult {
-    const sample = createOrbitSample();
-    this.classifyInto(c.re, c.im, sample);
-    return materializeOrbitResult(sample);
+const classify = (viewport: Viewport, quality: RenderQuality, mode?: 'legacy-scan') =>
+  classifyRows(
+    { viewport, size: GOLDEN_RASTER, quality },
+    quality,
+    1,
+    0,
+    GOLDEN_RASTER.height,
+    new AbortController().signal,
+    mode,
+  );
+
+export const goldenDigest = async (viewport: Viewport, quality: RenderQuality): Promise<string> =>
+  channelsDigest(await classify(viewport, quality));
+
+const main = async (): Promise<void> => {
+  const cases: Record<string, string> = {};
+  for (const corpusCase of loadCorpusCases()) {
+    const quality = profileQuality(corpusCase.profile);
+    const digest = await goldenDigest(corpusCase.viewport, quality);
+    // Equality with the reference scan, asserted while it still exists.
+    // Task 7a deletes this block together with legacy-scan.
+    const reference = channelsDigest(await classify(corpusCase.viewport, quality, 'legacy-scan'));
+    if (reference !== digest)
+      throw new Error(`${corpusCase.id}: default kernel differs from legacy-scan`);
+    cases[corpusCase.id] = digest;
   }
+  const commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  const fixture = {
+    schemaVersion: 1,
+    raster: GOLDEN_RASTER,
+    kernel: 'watched-lag triggered scan (ADR 0006)',
+    generatedFrom: commit,
+    cases,
+  };
+  if (process.argv.includes('--check')) {
+    const current = JSON.parse(readFileSync(FIXTURE, 'utf8')) as { cases: Record<string, string> };
+    if (JSON.stringify(current.cases) !== JSON.stringify(cases)) {
+      process.stderr.write('kernel golden fixture is stale\n');
+      process.exit(1);
+    }
+    return;
+  }
+  writeFileSync(FIXTURE, `${JSON.stringify(fixture, null, 2)}\n`);
+};
+
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.endsWith('generate_kernel_golden.js')
+) {
+  await main();
 }
 ```
 
-`src/render/row-common.ts`: move (cut/paste, then `export`) `throwIfAborted`, `nowMs`, `BandOutputBuffers`, `writeSampleToBand`, `prepareRealColumns`, `preparedRowImaginary`, `assertMirrorStride`, `isMirroredRow` from `src/render/classify-rows.ts`; `classify-rows.ts` imports them back (and re-exports `BandOutputBuffers`, `prepareRealColumns`, `preparedRowImaginary` so existing importers keep working).
+- [ ] **Step 4: Generate and verify**
 
-`src/render/production-rows.ts`: a copy of `classifyRows`'s body with only the production branches — `TriggeredRowKernel` (constructed with `{ maxIterations, maxPeriod }`) at stride 1, `ProductionOrbitClassifier` + `writeSampleToBand` row loop at stride > 1, `defaultRowYieldScheduler()` yields with `yieldMaskForQuality`, mirror-row skipping, and the same `timing` object. No `classifierMode`, `yieldMechanism`, counters, or differential parameters, and no import of `classify-rows.ts`, `OrbitClassifier`, `perf-counters.ts`, or `checkpoint`.
-
-- [ ] **Step 4: Run tests**
-
-Run: `npx vitest run tests/unit/render && npm run typecheck`
-Expected: PASS (new parity tests and every existing render test).
+Run: `npm run fixtures:kernel-golden && npx prettier --write fixtures/kernel-golden.v1.json && npx vitest run tests/unit/render/kernel-golden.test.ts`
+Expected: the generator exits 0 (no "differs from legacy-scan"), 14 tests pass.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/domain src/render tests/unit/render
-git commit -m "Production classifier and row path that never import the reference kernels"
+git add tools/generate_kernel_golden.ts fixtures/kernel-golden.v1.json tests/unit/render/kernel-golden.test.ts package.json tsconfig.node.json
+git commit -m "Golden kernel fixture: bit-for-bit reference, generated with legacy-scan equality asserted"
 ```
 
 ---
 
-### Task 7: Production renderer for the browser; build check
+### Task 7a: Remove the reference kernels from the domain
 
 **Files:**
 
-- Create: `src/render/staged-renderer.ts`, `src/render/production-renderer.ts`, `tools/check-bundle-modules.mjs`
-- Modify: `src/render/cpu-renderer.ts` (becomes a thin `StagedRenderer` subclass), `src/render/index.ts` (export `ProductionRenderer`), `src/worker/runtime.ts` (default renderer `new ProductionRenderer()`), `src/worker/render.worker.ts` (`new ProductionRenderer(pool)`), `src/worker/tile-handler.ts` and `src/worker/tile-pool.ts` (call `classifyProductionRows`; drop `classifierMode`, `yieldMechanism`, `bandOrder: 'legacy'`, `frameOutput: 'legacy-merge'`, and differential aggregation), `src/worker/tile-protocol.ts` (drop `classifierMode`, `yieldMechanism`, `differential`, legacy-merge fields), `src/render/renderer.ts` (`TilePool.classifyStable(request, quality, signal)`; remove `BandOrder`/`FrameOutput` from `DynamicsRenderRequest`), `package.json` (`"check:bundle": "vite build --sourcemap --outDir .bundle-check --emptyOutDir --logLevel warn && node tools/check-bundle-modules.mjs .bundle-check"`, appended to `check`), `.gitignore` (`.bundle-check/`)
-- Test: `tests/unit/render/production-renderer.test.ts`; update `tests/unit/worker/tile-pool.test.ts` (delete the legacy band-order and legacy-merge tests), `tests/unit/worker/runtime.test.ts` (fake pools: three-argument `classifyStable`)
+- Delete: `src/domain/checkpoint.ts`, `src/domain/orbit-instrumented.ts`, `tests/unit/domain/checkpoint.test.ts`, `tests/unit/domain/checkpoint-differential.test.ts`, `tests/unit/domain/orbit-instrumented.test.ts`
+- Modify: `src/domain/orbit.ts`, `src/domain/types.ts`, `src/domain/index.ts`, `tests/unit/domain/triggered-scan.test.ts`, any other test the compiler flags, `tools/generate_kernel_golden.ts` (delete the legacy-equality block and its `mode` parameter)
 
 **Interfaces:**
 
-- Consumes: Task 6 exports
-- Produces:
-  - `type BandClassifier = (request: DynamicsRenderRequest, quality: RenderQuality, stride: number, y0: number, y1: number, signal: AbortSignal, mirrorPlan: ConjugateMirrorPlan | undefined) => Promise<SemanticBand & { timing: SemanticStageTiming; counters?: PerfCounters; differential?: DifferentialStats }>`
-  - `class StagedRenderer implements Renderer { constructor(classifyBand: BandClassifier, inspectPoint: (point: Complex, quality: RenderQuality) => OrbitResult, tilePool?: TilePool, poolEligible?: (request: DynamicsRenderRequest) => boolean) }`
-  - `class ProductionRenderer extends StagedRenderer { constructor(tilePool?: TilePool) }`
-  - `class CpuRenderer extends StagedRenderer { constructor(tilePool?: TilePool) }` — Node reference renderer, all modes; uses the pool only for production-default requests
+- Consumes: Task 6 golden fixture (the guard for this task)
+- Produces: `OrbitOptions` without `classifierMode`; `OrbitClassifier` = analytic fast paths + `classifyTriggeredOrbitInto`, constructor `(options?: Partial<OrbitOptions>, scratch?: OrbitScratch)`; `classifyInto(cRe, cIm, options, scratch, out)` = the same production path; no exports named `ClassifierMode`, `CLASSIFIER_MODES`, `DifferentialStats`, `createDifferentialStats`, `CheckpointMetrics`, `classifyCheckpointInto`, `classifyIntoInstrumented`, `LegacyScanCounters`, `CHECKPOINT_REVISION`.
 
-- [ ] **Step 1: Write the failing renderer parity test**
+- [ ] **Step 1: Confirm the guard is green**
 
-`tests/unit/render/production-renderer.test.ts`:
+Run: `npx vitest run tests/unit/render/kernel-golden.test.ts`
+Expected: 14 pass. This test must stay green through every step below.
+
+- [ ] **Step 2: Rewrite the production path in `orbit.ts`**
+
+Replace the body of `export const classifyInto` (currently: analytic paths, then `if (options.classifierMode === 'triggered-scan') { classifyTriggeredOrbitInto(...); return; }`, then the ~200-line legacy lag scan) with:
 
 ```ts
-import { describe, expect, it } from 'vitest';
-import { CpuRenderer, ProductionRenderer, type SemanticFrame } from '../../../src/render';
-
-const render = async (
-  renderer: CpuRenderer | ProductionRenderer,
-  viewport: { center: { re: number; im: number }; spanY: number },
-) => {
-  const frames: SemanticFrame[] = [];
-  await renderer.render(
-    {
-      viewport,
-      size: { width: 48, height: 30 },
-      quality: { maxIterations: 512, maxPeriod: 32, coarseStride: 8 },
-    },
-    new AbortController().signal,
-    (frame) => {
-      frames.push(frame);
-    },
-  );
-  return frames;
+export const classifyInto = (
+  cRe: number,
+  cIm: number,
+  options: OrbitOptions,
+  scratch: OrbitScratch,
+  out: OrbitSample,
+): void => {
+  if (classifyAnalyticInto(cRe, cIm, out)) return;
+  scratch.ensureCapacity(options.maxPeriod);
+  classifyTriggeredOrbitInto(cRe, cIm, options, scratch, out);
 };
-
-describe('ProductionRenderer', () => {
-  it('produces the same coarse and stable frames as CpuRenderer by default', async () => {
-    for (const viewport of [
-      { center: { re: -0.75, im: 0 }, spanY: 2.5 },
-      { center: { re: -0.158902249, im: -1.034028 }, spanY: 0.019841269841269841269 },
-    ]) {
-      const [expected, actual] = await Promise.all([
-        render(new CpuRenderer(), viewport),
-        render(new ProductionRenderer(), viewport),
-      ]);
-      expect(actual.map((f) => f.stage)).toEqual(expected.map((f) => f.stage));
-      actual.forEach((frame, index) => {
-        const reference = expected[index]!;
-        expect(frame.bands.map((b) => [...b.packedStatusPeriod])).toEqual(
-          reference.bands.map((b) => [...b.packedStatusPeriod]),
-        );
-        expect(frame.bands.map((b) => [...b.multiplierAngle])).toEqual(
-          reference.bands.map((b) => [...b.multiplierAngle]),
-        );
-      });
-    }
-  });
-
-  it('inspects with the production kernel', () => {
-    const point = { re: -0.75, im: 0.1 };
-    expect(new ProductionRenderer().inspect(point)).toEqual(new CpuRenderer().inspect(point));
-  });
-});
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+Reduce `OrbitClassifier` to `#options` and `#scratch`; its `classifyInto` calls the function above; delete `#extras`, `#legacyCounters`, `checkpointMetrics`, `differentialStats`, and the third constructor parameter. Delete the `checkpoint` and `orbit-instrumented` imports. In `resolveOrbitOptions` and `DEFAULT_ORBIT_OPTIONS`, delete `classifierMode` and its validation. In `types.ts`, delete `ClassifierMode`, `CLASSIFIER_MODES`, and `classifierMode` from `OrbitOptions`. In `index.ts`, delete the re-exports of removed symbols.
 
-Run: `npx vitest run tests/unit/render/production-renderer.test.ts`
-Expected: FAIL (`ProductionRenderer` not exported).
+Keep the legacy kernel's verifier-gated acceptance comment block (it documents the PR 3 policy the verifier still enforces) above `verifyCycleInto`'s call site in `orbit-triggered.ts` if it no longer has a home in `orbit.ts`.
 
-- [ ] **Step 3: Implement `staged-renderer.ts`, `production-renderer.ts`, refactor `cpu-renderer.ts`**
+- [ ] **Step 3: Delete the files and fix the tests**
 
-Move the body of `CpuRenderer` (coarse quality derivation, `classifyFull`, pool dispatch, `inspect`, `colorize`, `quiesce`) into `StagedRenderer`, replacing the direct `classifyRows(...)` call in `classifyFull` with `this.classifyBand(request, quality, stride, 0, request.size.height, signal, mirrorPlan)` and the `classifyOrbit` call in `inspect` with `this.inspectPoint(point, resolveRenderQuality(quality))`. The stable pass uses the pool when `pool !== undefined && pool.size > 1 && poolEligible(request)`.
+Run: `git rm src/domain/checkpoint.ts src/domain/orbit-instrumented.ts tests/unit/domain/checkpoint.test.ts tests/unit/domain/checkpoint-differential.test.ts tests/unit/domain/orbit-instrumented.test.ts`
+In `tests/unit/domain/triggered-scan.test.ts`, delete every test that constructs a `legacy-scan` classifier or reads `classifierMode`; keep the tests of the watched-lag kernel's own behavior (scan schedule constants, uncapped fires, reproducers) rewritten to call `classifyInto` with default options. Run `npm run typecheck` and fix each remaining error by deleting the reference-kernel usage, never by re-adding a symbol.
 
-`production-renderer.ts`:
+- [ ] **Step 4: Remove the generator's legacy block**
 
-```ts
-import { ProductionOrbitClassifier } from '../domain/orbit-production';
-import { classifyProductionRows } from './production-rows';
-import type { TilePool } from './renderer';
-import { StagedRenderer } from './staged-renderer';
+In `tools/generate_kernel_golden.ts`, delete the `reference` comparison and the `mode` parameter of `classify`.
 
-/** The browser renderer: the production path only (ADR 0006), always pool-eligible. */
-export class ProductionRenderer extends StagedRenderer {
-  public constructor(tilePool?: TilePool) {
-    super(
-      (request, quality, stride, y0, y1, signal, mirrorPlan) =>
-        classifyProductionRows(request, quality, stride, y0, y1, signal, undefined, mirrorPlan),
-      (point, quality) =>
-        new ProductionOrbitClassifier({
-          maxIterations: quality.maxIterations,
-          maxPeriod: quality.maxPeriod,
-        }).classify(point),
-      tilePool,
-      () => true,
-    );
-  }
-}
-```
+- [ ] **Step 5: Verify**
 
-`cpu-renderer.ts` keeps `export class CpuRenderer extends StagedRenderer` with `classifyRows(request, quality, stride, y0, y1, signal, request.classifierMode, request.yieldMechanism, undefined, { perfCounters: request.perfCounters === true, mirrorPlan })`, `classifyOrbit(point, { maxIterations, maxPeriod })`, and `poolEligible = (r) => r.perfCounters !== true && (r.classifierMode ?? 'triggered-scan') === 'triggered-scan' && (r.yieldMechanism ?? 'message-channel') === 'message-channel'`.
+Run: `npx vitest run tests/unit/domain tests/unit/render/kernel-golden.test.ts && npm run typecheck`
+Expected: PASS; golden 14/14. `npm run check` may still fail in `src/render`/`src/worker` (Task 7b) — record that, do not fix here.
 
-- [ ] **Step 4: Rewire the workers and slim the pool**
-
-- `runtime.ts`: `renderer: Renderer = new ProductionRenderer()`; import from `'../render/production-renderer'` (not the barrel).
-- `render.worker.ts`: `new RenderWorkerRuntime(port, new ProductionRenderer(pool))`.
-- `tile-handler.ts`: `classifyProductionRows(request, message.quality, 1, message.y0, message.y1, signal, bandOutput, mirrorPlan)`; result message without `differential`.
-- `tile-pool.ts`: `classifyStable(request, quality, signal)`; `#classifyInProcess` uses `classifyProductionRows`; dispatch order always `orderRowBandsForDispatch`; always zero-copy band storage; remove differential accumulation and the legacy-merge copy branch.
-- `tile-protocol.ts` and `renderer.ts`: remove the dropped fields and `BandOrder`/`FrameOutput` types; fix every compile error by deleting the now-dead branch, never by re-adding a field.
-
-- [ ] **Step 5: Write the build check**
-
-`tools/check-bundle-modules.mjs`:
-
-```js
-#!/usr/bin/env node
-/**
- * Fails if a browser bundle contains a reference kernel: the browser runs only
- * the production renderer (ADR 0006; spec 2026-10-16). Reads Vite source maps.
- * Usage: node tools/check-bundle-modules.mjs <outDir>
- */
-import { readdirSync, readFileSync } from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
-
-const FORBIDDEN = [
-  'src/domain/checkpoint.ts',
-  'src/domain/orbit-instrumented.ts',
-  'src/render/classify-rows.ts',
-  'src/render/perf-counters.ts',
-];
-const assets = path.join(process.argv[2] ?? '.bundle-check', 'assets');
-const offenders = readdirSync(assets)
-  .filter((file) => file.endsWith('.js.map'))
-  .flatMap((file) => {
-    const { sources } = JSON.parse(readFileSync(path.join(assets, file), 'utf8'));
-    return sources
-      .filter((source) => FORBIDDEN.some((name) => source.endsWith(name)))
-      .map((source) => `${file}: ${source}`);
-  });
-if (offenders.length > 0) {
-  process.stderr.write(`reference kernels in browser bundles:\n${offenders.join('\n')}\n`);
-  process.exit(1);
-}
-process.stdout.write('browser bundles contain only the production renderer\n');
-```
-
-- [ ] **Step 6: Run everything**
-
-Run: `npm run check:bundle`
-Expected: `browser bundles contain only the production renderer`. If it lists a file, follow the import chain from the worker entry (`grep -rn "from '../render'" src/worker`) and import the specific module instead of the barrel.
-Run: `npm run check && npx playwright test`
-Expected: PASS.
-
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add -A src tests tools/check-bundle-modules.mjs package.json .gitignore
-git commit -m "Browser runs only the production renderer; build check keeps reference kernels out of bundles"
+git add -A src/domain tests/unit/domain tools/generate_kernel_golden.ts
+git commit -m "Remove legacy-scan, checkpoint, differential, and the instrumented kernel from the domain"
 ```
 
 ---
 
-### Task 8: Remove old-renderer URL parameters and message fields
+### Task 7b: Production-only render, worker, and tile paths
 
 **Files:**
 
-- Modify: `src/ui/benchmark-params.ts` (remove `classifierMode`, `bandOrder`, `yieldMechanism`, `frameOutput`; keep `perf`, `conjugateMirror`, `view`, `quality`), `src/ui/application.ts` (stop sending those fields; drop `lastDifferential` from the hook), `src/worker/protocol.ts` (remove `classifierMode`, `bandOrder`, `frameOutput`, `yieldMechanism` from `RenderMessage`; `differential` from `FrameMessage`), `src/worker/runtime.ts` (`dynamicsRequest` passes only viewport, size, quality, conjugateMirror), `src/ui/worker-timing-marks.ts` (remove `differential`), `tests/unit/ui/benchmark-params.test.ts`, `tests/unit/render/bit-identical-flags.test.ts`, `tests/unit/worker/runtime.test.ts`, `src/ui/worker-timing-marks.test.ts`, `docs/IMPLEMENTATION.md` (classifier-mode bullet: browser runs only the default; modes are Node-only)
+- Delete: `src/render/perf-counters.ts`, `tests/unit/render/perf-counters.test.ts`, `tests/unit/render/bit-identical-flags.test.ts`
+- Modify: `src/render/classify-rows.ts`, `src/render/cpu-renderer.ts`, `src/render/renderer.ts`, `src/render/semantic-store.ts`, `src/render/yield-scheduler.ts`, `src/worker/protocol.ts`, `src/worker/runtime.ts`, `src/worker/tile-protocol.ts`, `src/worker/tile-handler.ts`, `src/worker/tile-pool.ts`, and their tests under `tests/unit/render` and `tests/unit/worker`
+
+**Interfaces:**
+
+- Consumes: Task 7a domain
+- Produces:
+  - `classifyRows(request: DynamicsRenderRequest, quality: RenderQuality, stride: number, y0: number, y1: number, signal: AbortSignal, output?: BandOutputBuffers, mirrorPlan?: ConjugateMirrorPlan): Promise<ClassifyRowsResult>` with `ClassifyRowsResult = SemanticBand & { timing: SemanticStageTiming }`
+  - `DynamicsRenderRequest = { viewport; size; quality?; conjugateMirror?: boolean }`
+  - `TilePool.classifyStable(request, quality, signal): Promise<SemanticFrame>`
+  - `RenderMessage = { type: 'render'; requestId; viewport; size; semanticView; quality?; conjugateMirror?: boolean }`
+
+- [ ] **Step 1: Confirm the guard**
+
+Run: `npx vitest run tests/unit/render/kernel-golden.test.ts`, and record the default-view stable hash: `npx vitest run tests/unit/render/cpu-renderer.test.ts` must pass before and after.
+
+- [ ] **Step 2: Slim `classifyRows`**
+
+Remove the `classifierMode`, `yieldMechanism`, and `options` parameters (replace `options.mirrorPlan` with a `mirrorPlan` parameter), `requestedClassifierMode`, `createTriggeredRowKernel`'s mode/counter checks (use `TriggeredRowKernel` whenever `stride === 1`), the counters and differential blocks, and `assembleCounters`. The row yields always use `defaultRowYieldScheduler()`. Update the golden generator's `classify` call to the new signature.
+
+- [ ] **Step 3: Slim the renderer types and callers**
+
+- `renderer.ts`: delete `classifierMode`, `bandOrder`, `yieldMechanism`, `frameOutput`, `perfCounters` from `DynamicsRenderRequest`; `counters`/`differential` from `SemanticFrame`; the types `BandOrder`, `FrameOutput`; `TilePool.classifyStable`'s fourth parameter.
+- `cpu-renderer.ts`: `classifyFull` calls `classifyRows(request, quality, stride, 0, request.size.height, signal, undefined, mirrorPlan)`; the stable pass uses the pool whenever `pool !== undefined && pool.size > 1`; `inspect` keeps `classifyOrbit`.
+- `semantic-store.ts`: delete the `cm:`/`pc:` key markers (the default key is unchanged, so `SEMANTIC_ALGORITHM_VERSION` stays 2).
+- `yield-scheduler.ts`: delete the `'timeout'` mechanism and `YieldMechanism` if only the MessageChannel scheduler remains; keep `defaultRowYieldScheduler`.
+- `tile-protocol.ts`, `tile-handler.ts`, `tile-pool.ts`: delete `classifierMode`, `yieldMechanism`, `differential`, the legacy band order, and the legacy-merge output path; dispatch always uses `orderRowBandsForDispatch`; band storage always zero-copy.
+- `protocol.ts`, `runtime.ts`: `RenderMessage` and `dynamicsRequest` carry only viewport, size, quality, and `conjugateMirror`; `FrameMessage` has no `differential`.
+
+- [ ] **Step 4: Fix tests**
+
+Delete `perf-counters.test.ts` and `bit-identical-flags.test.ts`; in `tile-pool.test.ts` delete the legacy band-order and legacy-merge tests; update fake pools and `classifyRows` calls to the new signatures; delete assertions on removed fields.
+
+- [ ] **Step 5: Verify**
+
+Run: `npm run typecheck && npx vitest run && npx playwright test`
+Expected: PASS; golden 14/14. (`tools/` may still fail typecheck — Task 7d.)
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add -A src/render src/worker tests/unit
+git commit -m "Render, worker, and tile paths run only the production kernel"
+```
+
+---
+
+### Task 7c: Remove the retired URL parameters from the UI
+
+**Files:**
+
+- Modify: `src/ui/benchmark-params.ts`, `src/ui/application.ts`, `src/ui/worker-timing-marks.ts`, `src/ui/worker-timing-marks.test.ts`, `tests/unit/ui/benchmark-params.test.ts`
 - Test: `tests/unit/ui/benchmark-params.test.ts`
 
 **Interfaces:**
 
-- Consumes: Task 7
+- Consumes: Task 7b protocol
 - Produces: `BenchmarkParams = { perfEnabled: boolean; conjugateMirror?: false; viewport?: Viewport; qualityProfile?: QualityProfileId }`
 
 - [ ] **Step 1: Write the failing test (Review Focus 3)**
 
-Add to `tests/unit/ui/benchmark-params.test.ts`:
+Add to `tests/unit/ui/benchmark-params.test.ts`, and delete the tests asserting that `classifierMode`, `bandOrder`, `yieldMechanism`, or `frameOutput` parse:
 
 ```ts
 it('ignores retired renderer parameters from old URLs', () => {
@@ -1550,30 +1496,107 @@ it('ignores retired renderer parameters from old URLs', () => {
 });
 ```
 
-Delete the existing tests that assert those parameters parse (classifier vocabulary, band order, yield mechanism, frame output).
-
 - [ ] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/unit/ui/benchmark-params.test.ts`
-Expected: FAIL (`classifierMode` etc. still present).
+Expected: FAIL (the retired keys still parse).
 
-- [ ] **Step 3: Remove the parameters and fields** listed under Files; let the compiler find every use.
+- [ ] **Step 3: Remove** the four parameters from `benchmark-params.ts`, the fields `application.ts` sends for them, `lastDifferential` from the perf hook, and `differential` from `worker-timing-marks.ts` (`FrameTrace`, `FrameDelivery`, `frameDelivery`).
 
-- [ ] **Step 4: Run everything**
+- [ ] **Step 4: Verify**
 
-Run: `npm run check && npm run check:bundle && npx playwright test`
-Expected: PASS; the browser bundle check still passes. The e2e provenance test still uses `classifierMode=legacy-scan` in its URL until Task 9 — it now renders the production default and may race; if it fails here, do Task 9's provenance rewrite in this task.
+Run: `npm run typecheck && npx vitest run && npx playwright test`
+Expected: PASS. If the e2e provenance test races now that its `classifierMode=legacy-scan` is ignored, apply Task 8 Step 2 here.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add -A src tests docs
+git add -A src/ui tests/unit/ui
 git commit -m "Remove retired renderer parameters from the browser"
 ```
 
 ---
 
-### Task 9: E2E suite on the production bundle; fast provenance test; one first-use flow
+### Task 7d: Tools, PoC, and documentation for the removal
+
+**Files:**
+
+- Delete: `tools/benchmark/lag-comparisons.ts`, `tools/benchmark/kernel-parity.ts`, `tools/benchmark/cancel-quiescence.ts`, `tools/benchmark/candidates/checkpoint.ts`, `tools/compare_orbit_optimizations.ts`, `poc/performance/src/checkpoint-parity.test.ts`, and their `package.json` scripts (`bench:lag-comparisons`, `bench:cancel-quiescence`, `evidence:optimizations`)
+- Modify: `tools/benchmark/candidates/baseline.ts` and `support.ts` (the judge baseline becomes the production `CpuRenderer`; remove `LEGACY_REFERENCE_OPTIONS`, `collectCounters`, `diagnosticMode`), `tools/benchmark/candidates/index.ts` and `demo.ts` (drop removed candidates and options), `tools/benchmark/judge/*.ts` (drop counters/diagnostic-mode reporting), `tools/benchmark/kernel-bench.ts`, `tools/benchmark/conjugate-mirror.ts`, `tools/measure_early_accept.ts` (default kernel only; delete a tool instead if its only purpose was comparing against `legacy-scan` or `checkpoint`), `tsconfig.node.json`, `docs/IMPLEMENTATION.md`, `docs/PERFORMANCE-MATHEMATICS.md` (§6 and §6a become history: "removed 2026-10-16, ADR 0007"), `docs/verification/REQUIREMENTS.md` (`MI-PERF-004` implementation area), `docs/verification/PHASE-2-CLOSEOUT.md` ("What this record does not establish": equality now guarded by the golden fixture), `docs/decisions/0006-watched-lag-default-classifier.md` (Consequences: pointer to ADR 0007)
+- Create: `docs/decisions/0007-remove-reference-kernels.md`
+
+**Interfaces:**
+
+- Consumes: Tasks 7a–7c
+- Produces: `npm run check` green with no reference-kernel symbols anywhere outside `evidence/` and `poc/performance/src/kernels/` (the self-contained PoC keeps its own copies)
+
+- [ ] **Step 1: Delete and re-baseline the tools**
+
+Run the `git rm` for the Delete list. Edit the Modify list so `npm run typecheck` passes. The tournament keeps working with the production kernel as its baseline: run `npm run tournament -- parity` and expect it to pass (every candidate against the new baseline).
+
+- [ ] **Step 2: Write ADR 0007**
+
+`docs/decisions/0007-remove-reference-kernels.md`:
+
+```markdown
+# ADR 0007: Remove the reference classifier kernels
+
+- Status: Accepted
+- Date: 2026-10-16
+
+## Context
+
+ADR 0006 made the watched-lag triggered scan the default after release
+evidence in both browsers. The reference lag scan (`legacy-scan`), the
+checkpoint schedule, differential mode, the instrumented counting kernel,
+and the browser diagnostics around them remained as code nobody runs in
+production.
+
+## Decision
+
+Remove them from the codebase (owner decision, 2026-10-16). The bit-for-bit
+reference for future kernel changes is the golden kernel fixture
+(`fixtures/kernel-golden.v1.json`, `tests/unit/render/kernel-golden.test.ts`):
+per-case SHA-256 of the classifier's output channels on the frozen corpus,
+generated while `legacy-scan` still existed, with equality between the two
+kernels asserted at generation time. The double-double oracle tests remain
+the independent correctness reference.
+
+## Consequences
+
+- One classifier, one row path, one renderer; no classifier-mode or
+  renderer-variant parameters anywhere.
+- A kernel change that alters any output bit fails the golden test; an
+  intended change regenerates the fixture in the same commit, with oracle
+  evidence for the changed pixels.
+- Phase 2 evidence that compared against the reference kernels is
+  reproducible from commits up to `<last commit before Task 7a>`.
+- The PoC under `poc/performance/` keeps its own self-contained kernels as
+  historical directional evidence.
+```
+
+Replace `<last commit before Task 7a>` with the actual short hash (`git log --oneline -1` before Task 7a's commit, i.e. Task 6's commit).
+
+- [ ] **Step 3: Update the listed docs** as described under Files; search for stale mentions:
+
+Run: `grep -rn "legacy-scan\|classifierMode\|perfCounters\|checkpoint mode\|differential mode" docs src tools tests --include=*.md --include=*.ts --include=*.mjs | grep -v "docs/decisions/000[36]\|docs/verification/PHASE-2-CLOSEOUT\|docs/verification/STAGE-A\|docs/verification/UNIFIED-KERNEL\|docs/verification/WORKSTREAM"`
+Expected: no hits in `src/`, `tools/`, `tests/`; doc hits only where they describe history, each marked as such.
+
+- [ ] **Step 4: Verify**
+
+Run: `npm run check && npx playwright test && npm run fixtures:kernel-golden -- --check`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A tools poc docs package.json tsconfig.node.json
+git commit -m "Retire reference-kernel tools; ADR 0007 records the removal and the golden-fixture reference"
+```
+
+---
+
+### Task 8: E2E suite on the production bundle; fast provenance test; one first-use flow
 
 **Files:**
 
@@ -1581,7 +1604,7 @@ git commit -m "Remove retired renderer parameters from the browser"
 
 **Interfaces:**
 
-- Consumes: Tasks 7–8 (production-only browser)
+- Consumes: Tasks 7a–7d (reference kernels removed)
 - Produces: suite with three fewer default-view loads per engine and no test above 10 s
 
 - [ ] **Step 1: Serve the production bundle**
@@ -1687,7 +1710,7 @@ git commit -m "E2E on the production bundle; fast provenance test; one first-use
 
 ---
 
-### Task 10: Acceptance release session
+### Task 9: Acceptance release session
 
 **Files:**
 

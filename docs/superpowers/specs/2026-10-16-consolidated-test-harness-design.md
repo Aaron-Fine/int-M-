@@ -14,8 +14,8 @@ and stop spending browser time on the slow reference kernel.
 - **What the owner asked for:** "so many integration tests that are different
   tests all rendering the same thing is a waste of time"; "use the new fast
   renderer"; both the evidence runners and the e2e suite; "now that testing
-  is done, we should just be using the new renderer" (scoped by the owner to
-  the browser: old kernels stay only as Node-side references); "update
+  is done, we should just be using the new renderer" (the owner then chose
+  to remove the old kernels entirely); "update
   dependencies while you are working on this implementation".
 - **Success criteria:**
   - One release evidence session covers both browsers in **≤ 30 minutes** on
@@ -49,16 +49,19 @@ diagnostic toggle until it is decided).
   `RenderMessage` and tile-protocol fields; the differential-stats plumbing
   through the worker, tile pool, and perf hook. The render worker and tile
   workers call the production kernel directly.
-- **Kept, Node-side only:** `legacy-scan` (judge baseline, offline lag
-  counts, parity and oracle tests), `checkpoint` and `differential` (their
-  unit tests and the tournament), and the renderer-path variants Node tools
-  need. They stay in `src/domain` and `src/render` but are unreachable from
-  the browser entry points.
-- **Acceptance:** a build check (script run by `npm run check`) fails if the
-  production source map for any bundle lists `src/domain/checkpoint.ts` or
-  `src/domain/orbit-instrumented.ts`; the inspector still classifies with
-  the production kernel; the default view's stable-canvas hash and the
-  corpus parity test are unchanged.
+- **Removed from the codebase (owner decision after a keep/remove
+  review, 2026-10-16):** `legacy-scan`, `checkpoint`, `differential`, the
+  instrumented counting kernel and diagnostics counters, and the
+  renderer-path variants (legacy band order, legacy-merge output, timeout
+  yields), with the tools and tests that only compared against them.
+- **Replacement reference:** a golden kernel fixture
+  (`fixtures/kernel-golden.v1.json`): per-case SHA-256 of the classifier's
+  output channels on the frozen corpus at 160×100, generated before the
+  removal with equality to `legacy-scan` asserted, and checked by a unit
+  test. ADR 0007 records the decision.
+- **Acceptance:** the golden test stays green through the removal; no
+  reference-kernel symbol remains in `src/`, `tools/`, or `tests/`; the
+  inspector and the default view's stable-canvas hash are unchanged.
 
 ## Evidence harness
 
