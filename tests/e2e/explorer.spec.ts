@@ -173,6 +173,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
       });
       await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
       await expect(page.getByLabel('Interior view')).toBeEnabled();
+      await expectNoAccessibilityViolations(page);
       await page.getByRole('button', { name: 'Explore' }).click();
       await expect(page.getByRole('heading', { name: 'Start with structure' })).not.toBeVisible();
 
@@ -211,10 +212,6 @@ test.describe('Mandelbrot Interiority explorer', () => {
       await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
       await expectNoAccessibilityViolations(page);
 
-      if (await page.getByRole('button', { name: 'Explore', exact: true }).isVisible()) {
-        await page.getByRole('button', { name: 'Explore' }).click();
-      }
-      // Scan the settled state, not the guide's 150 ms opacity transition.
       await expect(page.getByRole('button', { name: 'Explore', exact: true })).toBeHidden();
       const mainCardioid = page.getByRole('button', {
         name: 'Inspect Main cardioid, period 1',

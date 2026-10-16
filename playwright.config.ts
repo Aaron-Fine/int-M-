@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const devServer = Boolean(process.env['PLAYWRIGHT_DEV_SERVER']);
-const previewURL = 'http://127.0.0.1:4173';
+const previewURL = 'http://127.0.0.1:4174';
 const devURL = 'http://127.0.0.1:5173';
 const pilotSpec = /numerical-verifier-pilot\.spec\.ts/;
 
@@ -33,7 +33,7 @@ const projects = devServer
 
 const previewServer = {
   command:
-    'npx vite build --mode e2e --outDir dist-e2e --emptyOutDir --logLevel warn && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4173 --strictPort',
+    'npx vite build --mode e2e --outDir dist-e2e --emptyOutDir --logLevel warn && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4174 --strictPort',
   url: previewURL,
   reuseExistingServer: !process.env['CI'],
   timeout: 180_000,
