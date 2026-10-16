@@ -1,28 +1,19 @@
 {
   "schemaVersion": 1,
-  "capturedAt": "2026-10-11T19:17:12.502Z",
+  "capturedAt": "2026-10-15T23:33:28.296Z",
   "browser": {
-    "build": "155.0.8059.39",
-    "engine": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
-    "headed": true,
-    "powerMode": "AC, platform profile balanced",
-    "devicePixelRatio": 1,
-    "viewport": {
-      "width": 1397,
-      "height": 773
-    },
-    "automation": "Playwright 1.63.0 driving branded stable Google Chrome, headed: flatpak run com.google.Chrome (CDP)",
-    "label": "release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥21 warm pairs, BCa paired intervals",
-    "workerCount": [4],
-    "backend": "cpu",
-    "samples": 572,
-    "notes": "primary Stage A record"
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
   },
   "cpu": {
     "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
     "cores": 8
   },
-  "memoryTotalBytes": 16465481728,
+  "memoryTotalBytes": 16465489920,
   "os": {
     "platform": "Linux linux",
     "kernel": "7.2.8-200.fc44.x86_64"
@@ -38,14 +29,14 @@
     "backend": "cpu"
   },
   "harness": {
-    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-11-59926c5-watched-lag-release/environment.json --note Stage A paired classifier-mode run (chromium); production bundle via vite build + vite preview.",
+    "command": "node /tmp/claude-1000/-home-aaron-int-M-/140a1fea-8eca-4da2-a94f-803b8433b2d1/scratchpad/wt-59926c5/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-11-59926c5-watched-lag-release/environment.json --note Stage A paired classifier-mode run (firefox); production bundle via vite build + vite preview.",
     "version": "0.1.0",
     "node": "v24.19.0"
   },
   "notes": [
     "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
-    "Stage A paired classifier-mode run (chromium); production bundle via vite build + vite preview.",
-    "Browser facts filled by tools/benchmark/run-stage-a.mjs (chromium run)."
+    "Stage A paired classifier-mode run (firefox); production bundle via vite build + vite preview.",
+    "Browser facts filled by tools/benchmark/run-stage-a.mjs (firefox run)."
   ],
   "browsers": {
     "chromium": {
@@ -59,6 +50,22 @@
         "height": 773
       },
       "automation": "Playwright 1.63.0 driving branded stable Google Chrome, headed: flatpak run com.google.Chrome (CDP)",
+      "label": "release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥21 warm pairs, BCa paired intervals",
+      "workerCount": [4],
+      "backend": "cpu",
+      "samples": 572
+    },
+    "firefox": {
+      "build": "157.0",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0",
+      "headed": true,
+      "powerMode": "AC, platform profile balanced",
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "automation": "Playwright 1.63.0 driving branded stable Firefox, headed: /usr/bin/firefox (WebDriver BiDi)",
       "label": "release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥21 warm pairs, BCa paired intervals",
       "workerCount": [4],
       "backend": "cpu",

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-16T03:17:50.450Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465489920,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "9e70551a6817151f76b3481c25a0d03f248202db",
+    "algorithm": "9e70551a6817151f76b3481c25a0d03f248202db",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+  },
+  "render": {
+    "workerCount": 4,
+    "backend": "cpu"
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-15-9e70551-b-gate/environment.json --note Workstream B gate: paired pre-PR-2 vs current production build (firefox); vite build + vite preview, UI-driven region-select chains.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Workstream B gate: paired pre-PR-2 vs current production build (firefox); vite build + vite preview, UI-driven region-select chains.",
+    "Workstream B gate run (firefox): baseline dist from commit a6e183838a2c465dd1cc8e40aa2f094465267c90 (worktree fixture), candidate from 9e70551a6817151f76b3481c25a0d03f248202db.",
+    "Stable-frame stalls retried once in a fresh context (firefox): [{\"caseId\":\"mi-scale-6mx-basilica-rim\",\"repetition\":13,\"dist\":\"baseline\"}]."
+  ],
+  "browsers": {
+    "firefox": {
+      "build": "157.0",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0",
+      "headed": true,
+      "powerMode": "AC, platform profile balanced",
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "display": "session display (headed)",
+      "automation": "Playwright 1.63.0 driving branded stable Firefox, headed: /usr/bin/firefox (WebDriver BiDi)",
+      "label": "release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥21 warm pairs, BCa paired intervals",
+      "workerCount": [4],
+      "backend": "cpu",
+      "samples": 572
+    }
+  },
+  "comparison": {
+    "arms": {
+      "baseline": {
+        "role": "baseline (pre-PR-2 build)",
+        "commit": "a6e183838a2c465dd1cc8e40aa2f094465267c90",
+        "distDir": "/tmp/claude-1000/-home-aaron-int-M-/140a1fea-8eca-4da2-a94f-803b8433b2d1/scratchpad/wt-a6e1838/dist",
+        "classifierMode": "legacy-scan (the only mode the pre-PR-2 build has)",
+        "viewDriving": "real pointer UI: region-select chains + pan drags (tools/benchmark/view-chain.mjs)",
+        "profileSelection": "select#render-quality"
+      },
+      "current": {
+        "role": "candidate (current build; contains PR 2 + PR 4 default-legacy + renderer-path bundle)",
+        "commit": "9e70551a6817151f76b3481c25a0d03f248202db",
+        "distDir": "/home/aaron/int-M-/dist",
+        "classifierMode": "legacy-scan (pinned via ?classifierMode=legacy-scan to isolate B from C), conjugate mirroring off (?conjugateMirror=0, isolating B from M)",
+        "viewDriving": "real pointer UI: identical chains (no ?view=, matching the baseline arm)",
+        "profileSelection": "?quality= query parameter"
+      }
+    },
+    "baselineBuild": {
+      "commit": "a6e183838a2c465dd1cc8e40aa2f094465267c90",
+      "note": "built with vite build at the pre-PR-2 commit; measurement fixture only, not committed"
+    },
+    "protocol": {
+      "buildMode": "vite build (production bundle) served by vite preview; dev server never used",
+      "repetitions": 22,
+      "pairing": "per repetition both build arms run adjacently; baseline/candidate order alternates per repetition",
+      "coldWarm": "repetition 0 runs each arm in a fresh browser context (cold; the browser process is shared and the per-context HTTP cache is empty); repetitions 1+ re-navigate one persistent page (warm)",
+      "raster": "shipping-1024x640",
+      "wallMetric": "markWallMs: performance.mark(mi:render-request) -> performance.mark(mi:stable-presented) delta paired by requestId — both builds emit these marks inside the same rAF callback where requestToPresentMs is computed; identical definition in both builds. The current arm also records the trace requestToPresentMs for continuity with Stage A.",
+      "classifierMetric": "stable-frame classifyMs observed from Worker frame messages (workerTiming.classifyMs): the stable-pass classification wall as each build defines it (tiled job wall from dispatch to last band, yields subtracted). Parallelism/scheduling sit inside this column; single-threaded classifier evidence remains poc/performance/results/pr2/pr2-microbench.json.",
+      "viewDriving": "planned region-select chains (plus a pan step where the target center is unreachable by region selection alone); expectations replay the application viewport math and are unit-tested against src/domain/viewport.ts; achieved viewport verified per sample (exact hook readback on the current arm, 9-digit coordinate readout on the baseline arm)",
+      "hashByteOrder": "SHA-256 over row-major RGBA bytes from getImageData(0, 0, width, height) of canvas.explorer__canvas",
+      "engineLabels": "chromium = branded stable Google Chrome, firefox = branded stable Firefox, both headed with DevTools closed, on the declared target hardware (the machine running this harness)",
+      "pairedIntervals": "95% BCa bootstrap on warm pairs, 10000 resamples, seed 20261015 (tools/benchmark/bca.ts): median log-ratio ln(baseline/current) for the improvement, median current−baseline difference for the regression cap",
+      "outOfScope": "cancellation interactions, cache/replay/recolor distributions, and catalog shard states are out of scope"
+    }
+  }
+}
