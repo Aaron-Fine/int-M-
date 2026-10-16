@@ -9,6 +9,7 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
@@ -31,6 +32,8 @@
     "tools/benchmark/conjugate-mirror.ts",
     "tools/benchmark/recorder-cost.ts",
     "tools/benchmark/lag-comparisons.ts",
-    "tools/compare_orbit_optimizations.ts"
+    "tools/compare_orbit_optimizations.ts",
+    "tools/benchmark/harness/**/*.ts",
+    "tools/benchmark/run-release.ts"
   ]
 }
