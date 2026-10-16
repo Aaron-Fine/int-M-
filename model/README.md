@@ -17,10 +17,13 @@ features.
   services, catalog, and offline generation toolchain;
 - `UserExperienceRequirements` — sixteen active baselined Phase 1 UX
   requirements plus the retained OBE `MI-UX-014` requirement;
+- `PerformanceRequirements` — the eight Phase 2 performance requirements
+  `MI-PERF-001`…`MI-PERF-008`, worded as in
+  [REQUIREMENTS.md](../docs/verification/REQUIREMENTS.md#phase-2-performance-requirements);
 - `RequirementSatisfaction` — proposed allocation of those requirements to
   logical components; and
 - `Verification` — grouped verification cases that cover every active UX
-  requirement.
+  requirement and every performance requirement (`MI-VER-PERF-001`…`005`).
 
 The active requirements are normative for Phase 1. `MI-UX-014` is retained as
 OBE for identifier and decision-history continuity; `MI-UX-017` replaces it

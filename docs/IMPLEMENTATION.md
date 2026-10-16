@@ -211,8 +211,8 @@ workstream and gate.
   catalog, chart, algebra, or Newton path — propose only.
 - The classifier mode is a versioned option (`OrbitOptions.classifierMode`):
   `'triggered-scan'` (the watched-lag kernel, `src/domain/orbit-triggered.ts`)
-  is the default on this branch, proposed in
-  [ADR 0006](decisions/0006-watched-lag-default-classifier.md) and pending the
+  is the default, accepted in
+  [ADR 0006](decisions/0006-watched-lag-default-classifier.md) on the
   release-protocol Stage A run; `'legacy-scan'` is the reference mode (judge
   baseline, `perfCounters` instrumentation), `'checkpoint'` runs the PR 4
   schedule, and `'differential'` runs both kernels per pixel, reports the
@@ -226,6 +226,16 @@ workstream and gate.
   companion; their results are committed, labeled directional, and are not
   release evidence. Normative runs land under `evidence/phase-2/` per the
   [phase-2 evidence contract](../evidence/phase-2/README.md).
+- Render observability is part of the worker protocol: every frame carries
+  a provenance (`computed` with its `computeId`, or `inflight-replay`,
+  `semantic-cache`, `recolor` with the `originComputeId` it reuses), and
+  cancellation is acknowledged (`cancel-ack`) separately from quiescence
+  (`cancelled`, after every nested tile worker has stopped). The UI maps
+  frames to the bounded trace ring through one adapter (`frameDelivery`).
+- Evidence runners under `tools/benchmark/` share one branded-browser launch
+  (`release-browser.mjs`); `--release` runs the plan §9 protocol (branded
+  stable browsers, headed, ≥22 repetitions, BCa intervals). Headed runs need
+  an unlocked session; wrap long runs in a screensaver inhibitor.
 
 ## Requirements traceability
 

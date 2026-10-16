@@ -1,8 +1,7 @@
 # ADR 0006: Watched-lag triggered scan as the default classifier
 
-- Status: Proposed — default flipped on `proof/certified-acceptance`; acceptance
-  waits on the release-protocol Stage A run (plan §9), whose Chrome half has
-  passed and whose Firefox half is pending
+- Status: Accepted (2026-10-15) — the release-protocol Stage A run (plan §9)
+  passed in both branded browsers on the declared target hardware
 - Date: 2026-10-11
 
 ## Context
@@ -62,15 +61,19 @@ the semantic cache version advanced to 2.
 
 - Hard views are an order of magnitude faster in Node (see
   `docs/verification/UNIFIED-KERNEL-2026-10-11.md`).
-- The default flip still needs the release-protocol Stage A run (≥21 paired
-  repetitions, branded stable browsers, headed, declared target hardware). The
-  directional screening run (headless Playwright engines) is recorded with
-  the PR.
+- The default flip was conditioned on the release-protocol Stage A run (≥21
+  paired repetitions, branded stable browsers, headed, declared target
+  hardware); both halves below meet it. The directional screening run
+  (headless Playwright engines) is recorded with PR #23.
 - Release-protocol run, Chrome half
   (`evidence/phase-2/2026-10-11-59926c5-watched-lag-release/`): branded
   Chrome 155, headed, on the target laptop (AC, balanced profile), 21 warm
   pairs per case with 95% BCa paired intervals. Release-gate cases are
   1.67×–16.45× faster (lower bounds 1.61×–13.56×), easy cases 1.01×–1.58×, no
-  regression flag, and all 286 stable-canvas hash pairs match. The Firefox
-  half was stopped by host memory pressure before it stored samples; it is
-  the remaining condition for acceptance.
+  regression flag, and all 286 stable-canvas hash pairs match.
+- Release-protocol run, Firefox half (same directory, same build `59926c5`,
+  run 2026-10-15 after two earlier attempts stored no samples): branded
+  Firefox 157, headed, 21 warm pairs per case. Release-gate cases are
+  4.68×–26.06× faster (lower bounds 4.24×–21.16×), easy cases 1.06×–2.38×,
+  no regression flag, and all 286 stable-canvas hash pairs match. Hard-known
+  geometric means: 6.48× (Chrome), 16.31× (Firefox).

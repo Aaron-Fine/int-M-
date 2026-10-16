@@ -96,8 +96,10 @@ runs near deep component centers, never found one).
   repetitions, branded stable browsers, headed, declared target hardware;
   plan §9). The branded-Chrome half passed
   (`evidence/phase-2/2026-10-11-59926c5-watched-lag-release/`: release-gate
-  cases 1.67×–16.45×, no regression flag, every hash matched); the
-  branded-Firefox half is pending.
+  cases 1.67×–16.45×, no regression flag, every hash matched). Update
+  (2026-10-15): the branded-Firefox half passed in the same directory
+  (release-gate cases 4.68×–26.06×, no regression flag, every hash matched),
+  and ADR 0006 is accepted.
 - Certified early acceptance (archived `tournament/early-accept`) would
   resolve slowly attracting pixels earlier and convert some unresolved pixels,
   but its binary64 error allowance is heuristic, not proved, and it changes
