@@ -1,6 +1,7 @@
 coverage/
 catalog/
 dist/
+dist-e2e/
 docs/PLAN.md
 docs/RESEARCH.md
 # Authored plan documents: prettier's HTML rewrite (3k+ diff lines) is not a

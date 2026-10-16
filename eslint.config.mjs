@@ -8,6 +8,7 @@ export default tseslint.config(
       'coverage/',
       '.evidence-build/',
       'dist/',
+      'dist-e2e/',
       'model/',
       'node_modules/',
       'playwright-report/',

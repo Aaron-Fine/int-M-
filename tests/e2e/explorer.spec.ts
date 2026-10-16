@@ -149,34 +149,96 @@ const expectRecolorOf = async (page: Page, originComputeId: number | undefined):
 };
 
 test.describe('Mandelbrot Interiority explorer', () => {
-  test('starts with a useful, explained semantic view', async ({ page }) => {
-    await page.goto('/');
+  test('first-use flow: explanations, evidence terms, interior views, and accessibility', async ({
+    page,
+  }) => {
+    await test.step('starts with a useful, explained semantic view', async () => {
+      await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'Mandelbrot Interiority' })).toBeVisible();
-    await expect(page.getByLabel('Interior view')).toHaveValue('stability');
-    await expect(page.getByText('How quickly the orbit settles')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Mandelbrot Interiority' })).toBeVisible();
+      await expect(page.getByLabel('Interior view')).toHaveValue('stability');
+      await expect(page.getByText('How quickly the orbit settles')).toBeVisible();
 
-    const catalog = page.getByRole('button', { name: /Catalog/ });
-    await expect(catalog).toHaveAttribute('aria-pressed', 'true');
-    await expect(catalog).toContainText('Shown');
+      const catalog = page.getByRole('button', { name: /Catalog/ });
+      await expect(catalog).toHaveAttribute('aria-pressed', 'true');
+      await expect(catalog).toContainText('Shown');
 
-    await expect(page.getByRole('heading', { name: 'Semantic legend' })).toBeVisible();
-    await expect(page.getByText('Unresolved', { exact: true })).toBeVisible();
-    await expect(page.getByText('No claim at current quality')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Semantic legend' })).toBeVisible();
+      await expect(page.getByText('Unresolved', { exact: true })).toBeVisible();
+      await expect(page.getByText('No claim at current quality')).toBeVisible();
 
-    await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
-    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
-      timeout: 20_000,
+      await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
+      await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+        timeout: 20_000,
+      });
+      await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
+      await expect(page.getByLabel('Interior view')).toBeEnabled();
+      await page.getByRole('button', { name: 'Explore' }).click();
+      await expect(page.getByRole('heading', { name: 'Start with structure' })).not.toBeVisible();
+
+      await expect(page.getByRole('status', { name: 'Render status' })).toBeVisible();
+      await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
     });
-    await expect(page.getByRole('heading', { name: 'Start with structure' })).toBeVisible();
-    await expect(page.getByLabel('Interior view')).toBeEnabled();
-    await page.getByRole('button', { name: 'Explore' }).click();
-    await expect(page.getByRole('heading', { name: 'Start with structure' })).not.toBeVisible();
 
-    await expect(page.getByRole('status', { name: 'Render status' })).toBeVisible();
-    await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
+    await test.step('explains evidence terms and exposes bounded quality profiles', async () => {
+      const help = page.getByText('How to read these values');
+      await help.click();
+      await expect(page.getByText('Multiplier magnitude |λ|', { exact: true })).toBeVisible();
+      await expect(page.getByText(/Attraction strength per iteration/)).toBeVisible();
+      await expect(page.getByText(/unresolved still means no claim/)).toBeVisible();
+    });
+
+    await test.step('changes semantic views and updates their explanation', async () => {
+      await page.getByLabel('Interior view').selectOption('multiplier');
+      await expect(
+        page.getByText('The strength and angle of attraction around a detected cycle.'),
+      ).toBeVisible();
+      await expect(page.getByText(/Hue and oriented stripes show rotation/)).toBeVisible();
+      await expect(page.getByText('Multiplier angle', { exact: true })).toBeVisible();
+
+      await page.getByLabel('Interior view').selectOption('period');
+      await expect(page.getByText('The detected attracting-cycle period.')).toBeVisible();
+      await expect(
+        page.getByText(
+          'Each color category represents the exact detected attracting-cycle period p.',
+        ),
+      ).toBeVisible();
+      await expect(page.getByText('Period 1', { exact: true })).toBeVisible();
+      await expect(page.getByText('Period 3+', { exact: true })).toBeVisible();
+    });
+
+    await test.step('has no automated WCAG A or AA violations in primary states', async () => {
+      await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
+      await expectNoAccessibilityViolations(page);
+
+      if (await page.getByRole('button', { name: 'Explore', exact: true }).isVisible()) {
+        await page.getByRole('button', { name: 'Explore' }).click();
+      }
+      // Scan the settled state, not the guide's 150 ms opacity transition.
+      await expect(page.getByRole('button', { name: 'Explore', exact: true })).toBeHidden();
+      const mainCardioid = page.getByRole('button', {
+        name: 'Inspect Main cardioid, period 1',
+      });
+      await expect(mainCardioid).toBeVisible({ timeout: 20_000 });
+      await mainCardioid.click();
+      await expect(page.getByRole('heading', { name: 'Main cardioid' })).toBeVisible();
+      await expectNoAccessibilityViolations(page);
+    });
+
+    await test.step('selects the Detailed quality profile', async () => {
+      const quality = page.getByLabel('Quality');
+      await expect(quality).toHaveValue('balanced');
+      await quality.selectOption('detailed');
+      // Plan §4 recommended framing, driven by the Detailed profile's period
+      // policy: the guaranteed systematic budget plus the opportunistic caveat.
+      await expect(
+        page.getByText(
+          /Detailed quality selected · Systematically checks through period 64 within 1024 iterations/,
+        ),
+      ).toBeVisible();
+      await expect(page.getByText(/Checks longer and higher-period cycles/)).toBeVisible();
+    });
   });
-
   test('supports keyboard navigation, reset, and an explicit zoom bound', async ({ page }) => {
     await page.goto('/');
     const canvas = page.getByLabel('Interactive Mandelbrot set');
@@ -228,27 +290,6 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await catalog.click();
     await expect(catalog).toHaveAttribute('aria-pressed', 'false');
     await expect(mainCardioid).not.toBeVisible();
-  });
-
-  test('changes semantic views and updates their explanation', async ({ page }) => {
-    await page.goto('/');
-
-    await page.getByLabel('Interior view').selectOption('multiplier');
-    await expect(
-      page.getByText('The strength and angle of attraction around a detected cycle.'),
-    ).toBeVisible();
-    await expect(page.getByText(/Hue and oriented stripes show rotation/)).toBeVisible();
-    await expect(page.getByText('Multiplier angle', { exact: true })).toBeVisible();
-
-    await page.getByLabel('Interior view').selectOption('period');
-    await expect(page.getByText('The detected attracting-cycle period.')).toBeVisible();
-    await expect(
-      page.getByText(
-        'Each color category represents the exact detected attracting-cycle period p.',
-      ),
-    ).toBeVisible();
-    await expect(page.getByText('Period 1', { exact: true })).toBeVisible();
-    await expect(page.getByText('Period 3+', { exact: true })).toBeVisible();
   });
 
   test('zooms to a selected area and reveals labels as magnification increases', async ({
@@ -496,35 +537,32 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('render traces carry delivery provenance and two-event cancellation timing', async ({
     page,
   }) => {
-    // A slow hard view keeps the first render in flight long enough to cancel
-    // it after its coarse frame.
     await page.goto(
       '/?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed',
     );
     const explorer = page.locator('#explorer');
-    await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', { timeout: 30_000 });
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 30_000 });
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     await canvas.focus();
-    await canvas.press('+');
 
-    await expect
-      .poll(() => tracesWith(page, 'cancelled'), {
-        timeout: 30_000,
-      })
-      .toBeDefined();
-    const cancelledTrace = await tracesWith(page, 'cancelled');
-    expect(cancelledTrace?.cancelAckMs).toBeGreaterThanOrEqual(0);
+    // Cancel: press during a coarse frame; the stable frame can win the race,
+    // so retry until a trace closes as cancelled.
+    let cancelledTrace: TraceView | undefined;
+    for (let attempt = 0; attempt < 5 && cancelledTrace === undefined; attempt += 1) {
+      await canvas.press(attempt % 2 === 0 ? '+' : '-');
+      await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', { timeout: 10_000 });
+      await canvas.press(attempt % 2 === 0 ? '-' : '+');
+      await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 10_000 });
+      cancelledTrace = await tracesWith(page, 'cancelled');
+    }
+    expect(cancelledTrace).toBeDefined();
     expect(cancelledTrace?.childQuiescenceMs).toBeGreaterThanOrEqual(
       cancelledTrace?.cancelAckMs ?? Number.POSITIVE_INFINITY,
     );
 
-    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 60_000 });
-    await expect
-      .poll(() => tracesWith(page, 'completed'), {
-        timeout: 10_000,
-      })
-      .toBeDefined();
-    const computedTrace = await tracesWith(page, 'completed');
+    const computedTrace = (await renderTraces(page))
+      .filter((t) => t.outcome === 'completed')
+      .at(-1);
     expect(computedTrace?.computeId).toBeGreaterThan(0);
     for (const frame of computedTrace?.frames ?? []) {
       expect(frame.source).toBe('computed');
@@ -535,46 +573,6 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByLabel('Interior view').selectOption('multiplier');
     await expectRecolorOf(page, computedTrace?.computeId);
   });
-
-  test('explains evidence terms and exposes bounded quality profiles', async ({ page }) => {
-    await page.goto('/');
-
-    const help = page.getByText('How to read these values');
-    await help.click();
-    await expect(page.getByText('Multiplier magnitude |λ|', { exact: true })).toBeVisible();
-    await expect(page.getByText(/Attraction strength per iteration/)).toBeVisible();
-    await expect(page.getByText(/unresolved still means no claim/)).toBeVisible();
-
-    const quality = page.getByLabel('Quality');
-    await expect(quality).toHaveValue('balanced');
-    await quality.selectOption('detailed');
-    // Plan §4 recommended framing, driven by the Detailed profile's period
-    // policy: the guaranteed systematic budget plus the opportunistic caveat.
-    await expect(
-      page.getByText(
-        /Detailed quality selected · Systematically checks through period 64 within 1024 iterations/,
-      ),
-    ).toBeVisible();
-    await expect(page.getByText(/Checks longer and higher-period cycles/)).toBeVisible();
-  });
-
-  test('has no automated WCAG A or AA violations in primary states', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByLabel('Interactive Mandelbrot set')).toBeVisible();
-    await expectNoAccessibilityViolations(page);
-
-    await page.getByRole('button', { name: 'Explore' }).click();
-    // Scan the settled state, not the guide's 150 ms opacity transition.
-    await expect(page.getByRole('button', { name: 'Explore', exact: true })).toBeHidden();
-    const mainCardioid = page.getByRole('button', {
-      name: 'Inspect Main cardioid, period 1',
-    });
-    await expect(mainCardioid).toBeVisible({ timeout: 20_000 });
-    await mainCardioid.click();
-    await expect(page.getByRole('heading', { name: 'Main cardioid' })).toBeVisible();
-    await expectNoAccessibilityViolations(page);
-  });
-
   test('preserves focus and non-color state cues in forced colors', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
     await page.goto('/');

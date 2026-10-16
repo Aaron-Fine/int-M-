@@ -1076,7 +1076,7 @@ export function mountApplication(host: HTMLElement): () => void {
     retryRendererButton.hidden = true;
     workerClient.retry();
   });
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV || import.meta.env.MODE === 'e2e') {
     window.__MI_PHASE1_TEST__ = {
       failRenderer: () => workerClient.simulateUnexpectedFailure(),
     };
@@ -1093,7 +1093,7 @@ export function mountApplication(host: HTMLElement): () => void {
     longTaskObserver?.disconnect();
     document.removeEventListener('keydown', onDocumentKeydown);
     workerClient.dispose();
-    if (import.meta.env.DEV) delete window.__MI_PHASE1_TEST__;
+    if (import.meta.env.DEV || import.meta.env.MODE === 'e2e') delete window.__MI_PHASE1_TEST__;
     delete window.__miRenderTrace;
     perfHook = undefined;
     host.replaceChildren();

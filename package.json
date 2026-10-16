@@ -31,6 +31,7 @@
     "test:unit": "vitest run --passWithNoTests",
     "test:unit:watch": "vitest",
     "test:browser": "playwright test --pass-with-no-tests",
+    "test:browser:dev": "PLAYWRIGHT_DEV_SERVER=1 playwright test",
     "test:browser:headed": "playwright test --headed",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:check && npm run fixtures:check && npm run test:unit && npm run build:assets",
     "evidence:early-accept": "vite build --ssr tools/measure_early_accept.ts --outDir .evidence-build --emptyOutDir && node --max-old-space-size=1536 .evidence-build/measure_early_accept.js",
