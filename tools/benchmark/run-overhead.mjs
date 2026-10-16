@@ -2,7 +2,7 @@
 /**
  * MI-PERF-007 overhead benchmark (performance plan §8/§9).
  *
- * Paired end-to-end overhead evidence for the opt-in `?perf=1&perfCounters=1`
+ * Paired end-to-end overhead evidence for the opt-in `?perf=1`
  * diagnostics, plus direct cost and retention evidence for the always-on ring,
  * in the declared Firefox target
  * environment, on the production bundle (`vite build` + `vite preview`):
@@ -31,10 +31,7 @@
  *       [--headless] [--reps 11] [--cases <id,id>]
  *       [--release] [--executable <branded browser>] (plan §9 release protocol:
  *       branded stable browser, headed on the session display, ≥22 reps)
- *       [--diagnostics counters|hook] (counters, the default: the diagnostic
- *       arm adds `perfCounters=1` and both arms pin its legacy-scan kernel;
- *       hook: the diagnostic arm is `?perf=1` alone and both arms run the
- *       production default kernel)
+ *       (diagnostics counters are offline only: npm run bench:lag-comparisons)
  *       [--out-dir <evidence/phase-2/<date>-<commit>>]
  */
 import { spawnSync } from 'node:child_process';
@@ -88,12 +85,7 @@ if (engine !== 'chromium' && engine !== 'firefox') {
   process.exit(2);
 }
 const RELEASE = args.includes('--release');
-const DIAGNOSTICS = readOption('--diagnostics') ?? 'counters';
-if (DIAGNOSTICS !== 'counters' && DIAGNOSTICS !== 'hook') {
-  process.stderr.write(`unknown --diagnostics: ${DIAGNOSTICS} (use counters or hook)\n`);
-  process.exit(2);
-}
-const DIAGNOSTIC_QUERY = DIAGNOSTICS === 'counters' ? 'perf=1&perfCounters=1' : 'perf=1';
+const DIAGNOSTIC_QUERY = 'perf=1';
 const reps = Number(readOption('--reps') ?? (RELEASE ? 22 : 11));
 if (!Number.isInteger(reps) || reps < 2) {
   process.stderr.write('--reps must be an integer >= 2\n');
@@ -403,13 +395,9 @@ log(
 // ---------------------------------------------------------------------------
 // Paired measurement.
 // ---------------------------------------------------------------------------
-// Counters mode pins the reference kernel in both arms: `perfCounters=1`
-// selects legacy-scan (the counters vocabulary is its own), so leaving the
-// absent arm on the default kernel would measure a kernel difference, not
-// diagnostics overhead. Hook mode runs the production default in both arms.
-const kernelQuery = DIAGNOSTICS === 'counters' ? 'classifierMode=legacy-scan&' : '';
+// Both arms run the production default kernel.
 const urlFor = (caseInfo, perf) =>
-  `${baseUrl}/?${perf ? `${DIAGNOSTIC_QUERY}&` : ''}${kernelQuery}view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
+  `${baseUrl}/?${perf ? `${DIAGNOSTIC_QUERY}&` : ''}view=${caseInfo.center.re},${caseInfo.center.im},${caseInfo.spanY}` +
   `&quality=${caseInfo.profile.toLowerCase()}`;
 
 const measureOnce = async (page, spec) => {
@@ -859,7 +847,7 @@ environment.render = {
 };
 environment.protocol = {
   buildMode: 'vite build (production bundle) served by vite preview; dev server never used',
-  design: `paired ?${DIAGNOSTIC_QUERY} present vs absent, ${DIAGNOSTICS === 'counters' ? "both arms pinned to classifierMode=legacy-scan (the counters' kernel)" : 'both arms on the production default kernel'}, ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
+  design: `paired ?${DIAGNOSTIC_QUERY} present vs absent, both arms on the production default kernel, ${reps} paired repetitions, arm order alternating per repetition, rep 0 cold (fresh context per arm), reps 1+ warm`,
   wallMetric:
     'in-page User Timing marks: last mi:stable-presented startTime minus mi:app-mount startTime (both marks are emitted unconditionally, so the metric exists in both arms without the diagnostic hook)',
   alwaysOnBudget:
@@ -900,7 +888,7 @@ const samplesByEngine = {
 const rawObservations = {
   schemaVersion: 1,
   description:
-    'Every overhead-benchmark sample, raw and timestamp-free. Aggregates in summary.md are derived views only. perf1 samples additionally carry the full opt-in render-trace snapshot and per-band counters.',
+    'Every overhead-benchmark sample, raw and timestamp-free. Aggregates in summary.md are derived views only. perf1 samples additionally carry the full opt-in render-trace snapshot.',
   corpus: {
     file: 'tools/benchmark/corpus.v1.json',
     schemaVersion: corpus.schemaVersion,
@@ -1030,9 +1018,7 @@ for (const note of [
   `Execution: ${executionMode}. Automation-bundled engines are directional; the release protocol (plan §9) needs branded stable Firefox, declared target hardware, 21+ paired repetitions with BCa intervals.`,
   'The wall metric is mark-based (mi:app-mount → last mi:stable-presented) rather than the ring’s requestToPresentMs, so it exists identically in the perf0 arm; requestToPresentMs of the perf arm is stored raw for cross-reference.',
   `Stalls: a sample whose stable frame did not arrive within ${STABLE_TIMEOUT_MS / 60_000} min was retried once in a fresh context and marked \`retriedAfterStall\` (${stalls.length} retried).`,
-  DIAGNOSTICS === 'counters'
-    ? 'The perf=1&perfCounters=1 arm carries the full opt-in diagnostics (hook, trace retention, and per-band counters from the instrumented legacy-scan kernel); both arms run that kernel, and the always-on ring is present in BOTH arms, so the paired delta isolates opt-in overhead on top of the always-on recorder.'
-    : 'The perf=1 arm carries the opt-in diagnostic hook (trace snapshot exposure) on the production kernel; the always-on ring is present in BOTH arms, so the paired delta isolates the hook on top of the always-on recorder.',
+  'The perf=1 arm carries the opt-in diagnostic hook (trace snapshot exposure) on the production kernel; the always-on ring is present in BOTH arms, so the paired delta isolates the hook on top of the always-on recorder.',
   'Rep 0 (cold) is included in the paired intervals (worker/module compile noise is paired and largely cancels); warm-only views are derivable from raw-observations.json.',
   'Retention fills use the ring capacity (32): the hard case alternates semantic-view requests and waits for every trace to complete; the easy case first performs 22 distinct pan renders, then completes the ring through semantic-view requests. The single-trace × 32 extrapolation bounds the all-worst-shape case.',
   'recorder-cost-node.json is a Node/V8 microbenchmark — directional only. The separate 2% end-to-end always-on budget still needs an instrumented-build vs recorder-free-build comparison; this harness cannot establish it because both arms include the ring.',

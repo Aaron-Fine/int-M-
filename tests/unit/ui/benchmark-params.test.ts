@@ -55,13 +55,10 @@ describe('parseBenchmarkParams', () => {
     expect(parseBenchmarkParams('?perf=').perfEnabled).toBe(false);
   });
 
-  it('enables the plan §8 counters sub-mode only under ?perf=1&perfCounters=1', () => {
-    expect(parseBenchmarkParams('?perf=1&perfCounters=1').perfCounters).toBe(true);
-    expect(parseBenchmarkParams('?perf=1').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('?perfCounters=1').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('?perf=0&perfCounters=1').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('?perf=1&perfCounters=0').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('').perfCounters).toBeUndefined();
+  it('has no browser counters parameter: counters are offline only', () => {
+    const parsed = parseBenchmarkParams('?perf=1&perfCounters=1');
+    expect(parsed).not.toHaveProperty('perfCounters');
+    expect(parsed.classifierMode).toBeUndefined();
   });
 
   it('accepts exactly the frozen classifier mode vocabulary', () => {

@@ -6,7 +6,6 @@ import type {
   Viewport,
 } from '../domain';
 import type { YieldMechanism } from '../render/yield-scheduler';
-import type { PerfCounters } from '../render/perf-counters';
 import type { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
 
 /**
@@ -48,11 +47,6 @@ export interface TileClassifyMessage {
   /** Frozen packed status+period encoding of any bandOutput views. */
   readonly outputRevision?: typeof PACKED_OUTPUT_REVISION;
   /**
-   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` wiring).
-   * Additive optional field: absent on the default path.
-   */
-  readonly perfCounters?: boolean;
-  /**
    * Conjugate mirroring is in effect for this job (the supervisor sends it
    * only when workers must skip mirrored rows in place): the worker derives
    * the same conjugate-mirror plan from viewport+size (a pure function) and
@@ -76,11 +70,6 @@ export interface TileResultMessage {
   readonly outputRevision: typeof PACKED_OUTPUT_REVISION;
   readonly yieldWaitMs: number;
   readonly yieldCount: number;
-  /**
-   * Opt-in diagnostics counters for this band (plan §8). Additive optional
-   * field: absent unless the classify request opted in via perfCounters.
-   */
-  readonly counters?: PerfCounters;
   /**
    * Differential-mode disagreement record for this band
    * (classifierMode 'differential'). Additive optional field.

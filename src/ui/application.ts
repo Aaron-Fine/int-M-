@@ -5,7 +5,6 @@ import type {
   MainToWorkerMessage,
   WorkerToMainMessage,
 } from '../worker/protocol';
-import type { PerfCounters } from '../render/perf-counters';
 import {
   complexToPixel,
   panViewport,
@@ -80,15 +79,14 @@ declare global {
     /**
      * Opt-in (?perf=1) render-trace diagnostic boundary, performance plan §8.
      * Absent unless requested; exposes the bounded ring's snapshot, the most
-     * recently completed trace, the live viewport, and (with
-     * `?perf=1&perfCounters=1`) the last stable frame's diagnostics counters
-     * for the Stage A evidence harness.
+     * recently completed trace, the live viewport, and (classifierMode
+     * 'differential') the last stable frame's disagreement record for the
+     * evidence harnesses.
      */
     __miRenderTrace?: {
       readonly snapshot: () => readonly RenderTrace[];
       readonly viewport: () => Viewport;
       lastTrace: RenderTrace | undefined;
-      lastCounters: PerfCounters | undefined;
       lastDifferential: DifferentialStats | undefined;
     };
   }
@@ -139,7 +137,6 @@ export function mountApplication(host: HTMLElement): () => void {
       snapshot: () => renderTraces.snapshot(),
       viewport: () => ({ ...state.viewport }),
       lastTrace: undefined,
-      lastCounters: undefined,
       lastDifferential: undefined,
     };
     window.__miRenderTrace = perfHook;
@@ -561,7 +558,6 @@ export function mountApplication(host: HTMLElement): () => void {
       ...(benchmark.yieldMechanism === undefined
         ? {}
         : { yieldMechanism: benchmark.yieldMechanism }),
-      ...(benchmark.perfCounters ? { perfCounters: true } : {}),
       ...(benchmark.conjugateMirror === false ? { conjugateMirror: false } : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
@@ -600,11 +596,8 @@ export function mountApplication(host: HTMLElement): () => void {
         frame,
         frameDelivery(frame, performance.now() - state.requestStartedAtMs),
       );
-      // Last stable frame's diagnostics counters (plan §8): surfaced through
-      // the __miRenderTrace hook for the Stage A evidence harness. Undefined
-      // unless the request opted in via ?perf=1&perfCounters=1.
+      // Last stable frame's differential record, for the evidence harness.
       if (frame.stage === 'stable' && perfHook !== undefined) {
-        perfHook.lastCounters = frame.counters;
         perfHook.lastDifferential = frame.differential;
       }
     });

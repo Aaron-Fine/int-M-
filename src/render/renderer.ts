@@ -77,9 +77,10 @@ export interface DynamicsRenderRequest {
    */
   readonly frameOutput?: FrameOutput;
   /**
-   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` wiring).
-   * Absent on the default path: no counters object is allocated anywhere and
-   * no counter field appears on any message.
+   * Offline diagnostics counters (plan §8), for Node tools such as the
+   * tournament judge: the render classifies in process with the instrumented
+   * legacy-scan kernel. Not reachable from the browser (the counters exceed
+   * the opt-in overhead budget in Firefox). Absent on the default path.
    */
   readonly perfCounters?: boolean;
   /**
@@ -202,7 +203,6 @@ export interface TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
-    perfCounters?: boolean,
   ): Promise<SemanticFrame>;
   /**
    * Resolves once every child of a cancelled job has stopped, resetting the

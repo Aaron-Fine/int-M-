@@ -589,7 +589,6 @@ describe('RenderWorkerRuntime', () => {
       STABLE_QUALITY,
       expect.any(AbortSignal),
       undefined,
-      false,
     );
     expect(messages.filter((message) => message.type === 'frame')).toEqual([
       expect.objectContaining({ type: 'frame', requestId: 'first', stage: 'coarse' }),
@@ -666,7 +665,7 @@ describe('RenderWorkerRuntime', () => {
     );
   });
 
-  it('threads perfCounters into the dynamics request and counters onto the frame message', async () => {
+  it('never transports counters to the UI: counters are offline only', async () => {
     const countersFrame = (size: RasterSize): SemanticFrame => ({
       ...semanticFrame(size),
       counters: {
@@ -717,47 +716,16 @@ describe('RenderWorkerRuntime', () => {
       viewport: { center: { re: 0, im: 0 }, spanY: 3 },
       size: { width: 2, height: 2 },
       semanticView: 'stability',
-      perfCounters: true,
     });
     expect(requests).toHaveLength(1);
-    expect(requests[0]?.perfCounters).toBe(true);
+    expect(requests[0]).not.toHaveProperty('perfCounters');
+    // Even a renderer that attaches counters cannot put them on the wire.
     const frameMessage = messages.find(
       (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
         message.type === 'frame',
     );
-    expect(frameMessage?.counters?.attracting).toBe(4);
-    expect(frameMessage?.differential).toBeUndefined();
-
-    // Default path: no perfCounters on the request, and a counters-less
-    // frame produces a frame message without the counters field
-    // (byte-identical messages).
-    messages.length = 0;
-    requests.length = 0;
-    const plainRenderer: Renderer = {
-      inspect: (point, quality) => renderer.inspect(point, quality),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const plainRuntime = new RenderWorkerRuntime(
-      { postMessage: (message) => messages.push(message) },
-      plainRenderer,
-    );
-    await plainRuntime.handle({
-      type: 'render',
-      requestId: 2,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-    });
-    expect(requests[0]).not.toHaveProperty('perfCounters');
-    const defaultFrame = messages.find(
-      (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
-        message.type === 'frame',
-    );
-    expect(defaultFrame).not.toHaveProperty('counters');
+    expect(frameMessage).toBeDefined();
+    expect(frameMessage).not.toHaveProperty('counters');
   });
 });
 

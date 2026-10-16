@@ -107,16 +107,12 @@ export class CpuRenderer implements Renderer {
     await onFrame(coarse);
     throwIfAborted(signal);
 
+    // Counters are an offline diagnostic (plan §8: they exceed the opt-in
+    // budget in Firefox), so a counted render classifies in process.
     const pool = this.tilePool;
     const stable =
-      pool !== undefined && pool.size > 1
-        ? await pool.classifyStable(
-            request,
-            quality,
-            signal,
-            request.classifierMode,
-            request.perfCounters === true,
-          )
+      pool !== undefined && pool.size > 1 && request.perfCounters !== true
+        ? await pool.classifyStable(request, quality, signal, request.classifierMode)
         : await classifyFull(request, quality, 1, 'stable', signal);
     throwIfAborted(signal);
     await onFrame(stable);

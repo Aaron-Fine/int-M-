@@ -355,8 +355,8 @@ Stage A decisions that nothing else may preempt:
    to legacy on the corpus). Release protocol passed in both branded
    browsers; the ADR is accepted (2026-10-15).
 4. The frozen absolute coarse/stable latency budgets and the declared
-   user-facing hard-view budget (plan §9, program-level success): proposed in
-   the [closeout](verification/PHASE-2-CLOSEOUT.md#latency-budgets-proposed).
+   user-facing hard-view budget (plan §9, program-level success): approved in
+   the [closeout](verification/PHASE-2-CLOSEOUT.md#latency-budgets-approved-2026-10-16).
 
 ## Conditional workstreams — current evidence state
 

@@ -1,6 +1,5 @@
 import type { DifferentialStats, RenderQuality, SemanticView, Viewport } from '../domain';
 import type { FrameMessage, FrameSource } from '../worker/protocol';
-import type { PerfCounters } from '../render/perf-counters';
 
 /**
  * Bounded always-on render observability (performance plan §8).
@@ -54,11 +53,6 @@ export interface FrameTrace {
   readonly yieldWaitMs?: number | undefined;
   /** Number of row yields across the frame's bands. */
   readonly yieldCount?: number | undefined;
-  /**
-   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` only):
-   * per-band counters summed once per frame. Absent otherwise.
-   */
-  readonly counters?: PerfCounters | undefined;
   /** Differential-mode disagreement record (classifierMode 'differential'). */
   readonly differential?: DifferentialStats | undefined;
 }
@@ -116,13 +110,12 @@ export interface FrameDelivery {
   readonly bandsElapsedMs?: readonly number[] | undefined;
   readonly yieldWaitMs?: number | undefined;
   readonly yieldCount?: number | undefined;
-  readonly counters?: PerfCounters | undefined;
   readonly differential?: DifferentialStats | undefined;
 }
 
 export interface RenderTraceRingOptions {
   readonly capacity?: number;
-  /** Opt-in diagnostic hook boundary; no counters mode is built here. */
+  /** Opt-in diagnostic hook boundary. */
   readonly onTraceCompleted?: ((trace: RenderTrace) => void) | undefined;
 }
 
@@ -187,7 +180,6 @@ const toFrameTrace = (frame: FrameMessage, delivery: FrameDelivery): FrameTrace 
     bandsElapsedMs: computed ? delivery.bandsElapsedMs : undefined,
     yieldWaitMs: computed ? delivery.yieldWaitMs : undefined,
     yieldCount: computed ? delivery.yieldCount : undefined,
-    counters: computed ? delivery.counters : undefined,
     differential: computed ? delivery.differential : undefined,
   };
 };
@@ -319,7 +311,6 @@ export const frameDelivery = (frame: FrameMessage, requestToPresentMs: number): 
     bandsElapsedMs: timing?.bandsElapsedMs,
     yieldWaitMs: timing?.yieldWaitMs,
     yieldCount: timing?.yieldCount,
-    counters: frame.counters,
     differential: frame.differential,
   };
 };

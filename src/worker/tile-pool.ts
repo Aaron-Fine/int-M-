@@ -3,11 +3,6 @@ import { applyConjugateMirror } from '../render/conjugate-mirror';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { orderRowBandsForDispatch, splitRowBands } from '../render/row-bands';
 import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
-import {
-  accumulatePerfCounters,
-  createPerfCounters,
-  type MutablePerfCounters,
-} from '../render/perf-counters';
 import type { RowBand } from '../render/row-bands';
 import type { SemanticStageTiming } from '../render/renderer';
 import type {
@@ -93,7 +88,6 @@ const frameFromBands = (
   storage: readonly BandStorage[],
   progress: number,
   timing: SemanticStageTiming,
-  counters?: MutablePerfCounters,
   differential?: DifferentialStats,
 ): SemanticFrame => ({
   stage: 'stable',
@@ -112,7 +106,6 @@ const frameFromBands = (
   }),
   progress,
   timing,
-  ...(counters === undefined ? {} : { counters }),
   ...(differential === undefined ? {} : { differential }),
 });
 
@@ -123,7 +116,6 @@ interface ActiveJob {
   readonly request: DynamicsRenderRequest;
   readonly quality: RenderQuality;
   readonly classifierMode?: ClassifierMode;
-  readonly perfCounters: boolean;
   /** Experiment (workstream M): rows to fill by mirroring after the last band returns. */
   readonly mirrorPlan: ConjugateMirrorPlan | undefined;
   /** True when bands span mirrored rows and workers must skip them in place. */
@@ -141,8 +133,6 @@ interface ActiveJob {
   nextDispatch: number;
   readonly bandsElapsedMs: number[];
   mergeCpuMs: number;
-  /** Opt-in plan §8 counters, summed per band as results arrive. */
-  readonly counters: MutablePerfCounters | undefined;
   /** Differential-mode stats, summed per band as results arrive. */
   readonly differential: DifferentialStats | undefined;
   settled: boolean;
@@ -182,7 +172,6 @@ class TilePoolImpl implements TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
-    perfCounters?: boolean,
   ): Promise<SemanticFrame> {
     throwIfAborted(signal);
     if (this.#active !== undefined) {
@@ -194,8 +183,8 @@ class TilePoolImpl implements TilePool {
     throwIfAborted(signal);
 
     return this.#workerCount === 1
-      ? this.#classifyInProcess(request, quality, signal, classifierMode, perfCounters === true)
-      : this.#classifyTiled(request, quality, signal, classifierMode, perfCounters === true);
+      ? this.#classifyInProcess(request, quality, signal, classifierMode)
+      : this.#classifyTiled(request, quality, signal, classifierMode);
   }
 
   public async quiesce(): Promise<void> {
@@ -219,7 +208,6 @@ class TilePoolImpl implements TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
-    perfCounters = false,
   ): Promise<SemanticFrame> {
     const mirrorPlan =
       request.conjugateMirror !== false
@@ -235,10 +223,7 @@ class TilePoolImpl implements TilePool {
       classifierMode,
       request.yieldMechanism,
       undefined,
-      {
-        perfCounters,
-        mirrorPlan,
-      },
+      { mirrorPlan },
     );
     throwIfAborted(signal);
     const semanticBand: SemanticBand = {
@@ -262,7 +247,6 @@ class TilePoolImpl implements TilePool {
       progress: 1,
       timing,
       ...(band.differential === undefined ? {} : { differential: band.differential }),
-      ...(band.counters === undefined ? {} : { counters: band.counters }),
     };
   }
 
@@ -271,7 +255,6 @@ class TilePoolImpl implements TilePool {
     quality: RenderQuality,
     signal: AbortSignal,
     classifierMode?: ClassifierMode,
-    perfCounters = false,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
     // Conjugate mirroring (workstream M, default on). When the computed rows
@@ -317,7 +300,6 @@ class TilePoolImpl implements TilePool {
         request,
         quality,
         ...(classifierMode === undefined ? {} : { classifierMode }),
-        perfCounters,
         mirrorPlan,
         workersSkipMirroredRows: computedRows === undefined && mirrorPlan !== undefined,
         bands,
@@ -331,7 +313,6 @@ class TilePoolImpl implements TilePool {
         nextDispatch: 0,
         bandsElapsedMs: new Array<number>(dispatchBands.length).fill(Number.NaN),
         mergeCpuMs: 0,
-        counters: perfCounters ? createPerfCounters() : undefined,
         differential: classifierMode === 'differential' ? createDifferentialStats() : undefined,
         settled: false,
         resolve,
@@ -400,7 +381,6 @@ class TilePoolImpl implements TilePool {
       ...(active.request.yieldMechanism === undefined
         ? {}
         : { yieldMechanism: active.request.yieldMechanism }),
-      ...(active.perfCounters ? { perfCounters: true } : {}),
       // Only in the in-place fallback; with prefix scheduling workers never
       // see a mirrored row and need no flag.
       ...(active.workersSkipMirroredRows ? { conjugateMirror: true as const } : {}),
@@ -486,11 +466,8 @@ class TilePoolImpl implements TilePool {
     current.mergeCpuMs += performance.now() - mergeStarted;
     current.received.set(message.jobId, message);
     current.bandsElapsedMs[message.jobId] = performance.now() - current.startedAt;
-    // Opt-in plan §8 counters and differential stats arrive per band; the
-    // frame-level record is the per-band sum, accumulated once here.
-    if (current.counters !== undefined && message.counters !== undefined) {
-      accumulatePerfCounters(current.counters, message.counters);
-    }
+    // Differential stats arrive per band; the frame-level record is the
+    // per-band sum, accumulated once here.
     if (current.differential !== undefined && message.differential !== undefined) {
       accumulateDifferentialStats(current.differential, message.differential);
     }
@@ -509,7 +486,6 @@ class TilePoolImpl implements TilePool {
             bandsElapsedMs: [...job.bandsElapsedMs],
             mergeCpuMs: job.mergeCpuMs,
           },
-          job.counters,
           job.differential,
         );
         const timing = frame.timing;

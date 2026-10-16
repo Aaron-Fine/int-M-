@@ -4,19 +4,9 @@ import type { RenderQuality } from '../../../src/domain';
 import { classifyRows } from '../../../src/render/classify-rows';
 import { CpuRenderer } from '../../../src/render/cpu-renderer';
 import { unpackStatus } from '../../../src/render/packed-semantic';
-import type { PerfCounters } from '../../../src/render/perf-counters';
 import type { SemanticFrame } from '../../../src/render';
-import { createTilePool } from '../../../src/worker/tile-pool';
-import type {
-  SupervisorToTileMessage,
-  TileClassifyMessage,
-  TileMessageEvent,
-  TileResultMessage,
-  TileWorkerHandle,
-} from '../../../src/worker/tile-protocol';
 
 const BALANCED: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
-const SMALL_QUALITY: RenderQuality = { maxIterations: 48, maxPeriod: 8, coarseStride: 8 };
 
 const MAIN_CARDIOID_VIEWPORT = {
   center: { re: 0.1, im: 0.05 },
@@ -55,7 +45,7 @@ const classifyBand = async (
     options.perfCounters ? { perfCounters: true } : undefined,
   );
 
-describe('classifyRows diagnostics counters (plan §8 opt-in)', () => {
+describe('classifyRows diagnostics counters (plan §8, offline)', () => {
   it('attaches no counters unless the caller opted in', async () => {
     const result = await classifyBand(MAIN_CARDIOID_VIEWPORT, 24, 16);
     expect('counters' in result).toBe(false);
@@ -178,170 +168,31 @@ describe('CpuRenderer frame-level counters', () => {
   });
 });
 
-class CountersFakeTileWorker implements TileWorkerHandle {
-  public readonly posts: SupervisorToTileMessage[] = [];
-  readonly #listeners = new Set<(event: TileMessageEvent) => void>();
-
-  public postMessage(message: SupervisorToTileMessage): void {
-    this.posts.push(message);
-  }
-
-  public addEventListener(_type: 'message', listener: (event: TileMessageEvent) => void): void {
-    this.#listeners.add(listener);
-  }
-
-  public removeEventListener(_type: 'message', listener: (event: TileMessageEvent) => void): void {
-    this.#listeners.delete(listener);
-  }
-
-  public terminate(): void {
-    // no-op
-  }
-
-  /** Runs the real per-band classification and answers with its counters. */
-  public async emitResult(classify: TileClassifyMessage): Promise<void> {
-    const result = await classifyRows(
-      { viewport: classify.viewport, size: classify.size, quality: classify.quality },
-      classify.quality,
-      1,
-      classify.y0,
-      classify.y1,
+describe('offline counters with a tile pool', () => {
+  it('classifies a counted render in process instead of fanning out to tile workers', async () => {
+    let poolCalls = 0;
+    const renderer = new CpuRenderer({
+      size: 4,
+      classifyStable: () => {
+        poolCalls += 1;
+        return Promise.reject(new Error('counted renders must not use the tile pool'));
+      },
+      dispose: () => undefined,
+    });
+    const frames: SemanticFrame[] = [];
+    await renderer.render(
+      {
+        viewport: MAIN_CARDIOID_VIEWPORT,
+        size: { width: 24, height: 16 },
+        quality: BALANCED,
+        perfCounters: true,
+      },
       new AbortController().signal,
-      classify.classifierMode,
-      undefined,
-      undefined,
-      classify.perfCounters === true ? { perfCounters: true } : undefined,
-    );
-    const message: TileResultMessage = {
-      type: 'tile-result',
-      generation: classify.generation,
-      jobId: classify.jobId,
-      y0: classify.y0,
-      y1: classify.y1,
-      packedStatusPeriod: result.packedStatusPeriod,
-      smoothIterationOrMultiplierMagnitude: result.smoothIterationOrMultiplierMagnitude,
-      multiplierAngle: result.multiplierAngle,
-      outputRevision: 'poc-packed-1.0.0',
-      yieldWaitMs: 0,
-      yieldCount: 0,
-      ...(result.counters === undefined ? {} : { counters: result.counters }),
-    };
-    for (const listener of this.#listeners) listener({ data: message });
-  }
-}
-
-/**
- * Drives a tiled classifyStable through the fake workers: answers every
- * classify post as it appears (the pool dispatches the next wave
- * synchronously from the result handler, so this converges) and resolves
- * with the settled frame.
- */
-const drainTileClassifies = async (
-  workers: readonly CountersFakeTileWorker[],
-  framePromise: Promise<SemanticFrame>,
-  onClassify?: (message: TileClassifyMessage) => void,
-): Promise<SemanticFrame> => {
-  let settled: SemanticFrame | undefined;
-  let failure: unknown;
-  const done = framePromise.then(
-    (value) => {
-      settled = value;
-    },
-    (error: unknown) => {
-      failure = error;
-    },
-  );
-  for (;;) {
-    let answered = 0;
-    for (const worker of workers) {
-      for (const post of worker.posts.splice(0)) {
-        if (post.type === 'tile-classify') {
-          answered += 1;
-          onClassify?.(post);
-          await worker.emitResult(post);
-        }
-      }
-    }
-    if (settled !== undefined) return settled;
-    if (failure !== undefined) {
-      throw failure instanceof Error ? failure : new Error('tiled classify failed');
-    }
-    if (answered === 0) await done;
-  }
-};
-
-describe('tile-pool per-band sum consistency (plan §8)', () => {
-  it('frame counters equal the sum of the per-band counters', async () => {
-    const width = 64;
-    const height = 64;
-    const workers: CountersFakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new CountersFakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const frame = await drainTileClassifies(
-      workers,
-      pool.classifyStable(
-        {
-          viewport: RABBIT_VIEWPORT,
-          size: { width, height },
-          quality: SMALL_QUALITY,
-          perfCounters: true,
-        },
-        SMALL_QUALITY,
-        new AbortController().signal,
-        undefined,
-        true,
-      ),
-    );
-    pool.dispose();
-    expect(frame.stage).toBe('stable');
-
-    const counters: PerfCounters | undefined = frame.counters;
-    expect(counters).toBeDefined();
-    expect(
-      (counters?.escaped ?? 0) + (counters?.attracting ?? 0) + (counters?.unresolved ?? 0),
-    ).toBe(width * height);
-    // The rabbit view has interior, exterior, and unresolved strata at this
-    // budget, so the totals are non-trivial.
-    expect(counters?.escaped).toBeGreaterThan(0);
-    expect(counters?.attracting).toBeGreaterThan(0);
-  });
-
-  it('attaches no counters when the request did not opt in', async () => {
-    const workers: CountersFakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new CountersFakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const classifyPostsWithCounters: TileClassifyMessage[] = [];
-    const frame = await drainTileClassifies(
-      workers,
-      pool.classifyStable(
-        {
-          viewport: RABBIT_VIEWPORT,
-          size: { width: 32, height: 32 },
-          quality: SMALL_QUALITY,
-        },
-        SMALL_QUALITY,
-        new AbortController().signal,
-      ),
-      (message) => {
-        if (message.perfCounters === true) classifyPostsWithCounters.push(message);
+      (frame) => {
+        frames.push(frame);
       },
     );
-    pool.dispose();
-    expect(frame.counters).toBeUndefined();
-    expect('counters' in frame).toBe(false);
-    // The classify messages on the default path carry no perfCounters field.
-    expect(classifyPostsWithCounters).toHaveLength(0);
+    expect(poolCalls).toBe(0);
+    expect(frames.at(-1)?.counters?.attracting).toBe(24 * 16);
   });
 });

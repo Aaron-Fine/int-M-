@@ -56,7 +56,6 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   ...(message.bandOrder === undefined ? {} : { bandOrder: message.bandOrder }),
   ...(message.yieldMechanism === undefined ? {} : { yieldMechanism: message.yieldMechanism }),
   ...(message.frameOutput === undefined ? {} : { frameOutput: message.frameOutput }),
-  ...(message.perfCounters === undefined ? {} : { perfCounters: message.perfCounters }),
   ...(message.conjugateMirror === undefined ? {} : { conjugateMirror: message.conjugateMirror }),
 });
 
@@ -157,7 +156,6 @@ export class RenderWorkerRuntime {
       rgba: raster.rgba,
       progress: raster.progress,
       workerTiming,
-      ...(computed && frame.counters !== undefined ? { counters: frame.counters } : {}),
       ...(computed && frame.differential !== undefined ? { differential: frame.differential } : {}),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);

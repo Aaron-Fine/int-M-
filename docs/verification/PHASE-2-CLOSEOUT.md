@@ -67,12 +67,12 @@ per frame and ≤64 KiB retained), paired BCa on the pooled median log-ratio:
 
 The hook shows no measurable cost in either browser; the Firefox interval
 needs the 88-pair run that the Chrome one got (the attempt was refused on a
-locked session). The counters mode costs about 10% in Firefox, so under plan
-§8 ("If a metric exceeds the budget, move it to an offline experiment") it is
-proposed as an offline/benchmark-only mode outside the opt-in budget: the
-counts it exists for are now produced offline by `npm run
-bench:lag-comparisons`, and the browser's opt-in diagnostics are the hook.
-Retention and recorder cost are in each overhead summary.
+locked session). The counters mode cost about 10% in Firefox, so under plan
+§8 ("If a metric exceeds the budget, move it to an offline experiment") it
+is now **offline only** (owner decision, 2026-10-16): the browser has no
+`perfCounters` parameter and no counters on the worker protocol, and the
+counts come from `npm run bench:lag-comparisons` and the tournament judge
+(a counted `CpuRenderer` render classifies in process). Retention and recorder cost are in each overhead summary.
 
 ### B — allocation-free scalar kernel
 
@@ -145,7 +145,7 @@ bounded quality profiles`), and the release runs present those frames in both
 browsers. The product-language review of the final copy is part of the owner
 approval below.
 
-## Latency budgets (Proposed)
+## Latency budgets (approved 2026-10-16)
 
 Plan §9 freezes the coarse and stable budgets after the clean target-hardware
 baseline. Proposed from the release Stage A warm medians of the default
@@ -238,10 +238,10 @@ waiting for.
 
 ## Approval
 
-| Decision                                                                         | Owner response |
-| -------------------------------------------------------------------------------- | -------------- |
-| Latency budgets as proposed                                                      |                |
-| Conditional dispositions as proposed (M kept default-on as a recorded deviation) |                |
-| Opt-in diagnostics: counters mode moved out of the ≤5% budget (A above)          |                |
-| Workstream B recorded as not met in Firefox, superseded for users by C           |                |
-| Phase 2 performance closed                                                       |                |
+| Decision                                                                         | Owner response                                                              |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Latency budgets as proposed                                                      | Approved 2026-10-16 ("Latency is met with the changes that have been made") |
+| Conditional dispositions as proposed (M kept default-on as a recorded deviation) |                                                                             |
+| Opt-in diagnostics: counters mode moved out of the ≤5% budget (A above)          | Approved 2026-10-16: counters offline only, implemented                     |
+| Workstream B recorded as not met in Firefox, superseded for users by C           |                                                                             |
+| Phase 2 performance closed                                                       |                                                                             |

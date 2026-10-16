@@ -118,13 +118,12 @@ describe('URL toggle', () => {
     expect(parseBenchmarkParams('?perf=1&conjugateMirror=false').conjugateMirror).toBeUndefined();
   });
 
-  it('perfCounters without a classifierMode selects legacy-scan explicitly', () => {
-    expect(parseBenchmarkParams('?perf=1&perfCounters=1').classifierMode).toBe('legacy-scan');
+  it('perfCounters is not a URL toggle (counters are offline only)', () => {
+    expect(parseBenchmarkParams('?perf=1&perfCounters=1').classifierMode).toBeUndefined();
     expect(
       parseBenchmarkParams('?perf=1&perfCounters=1&classifierMode=checkpoint').classifierMode,
     ).toBe('checkpoint');
     expect(parseBenchmarkParams('?perf=1').classifierMode).toBeUndefined();
-    expect(parseBenchmarkParams('?perfCounters=1').classifierMode).toBeUndefined();
   });
 });
 
