@@ -7,7 +7,7 @@
  * per-band elapsed arrays) and reports the mean ring call cost per frame,
  * per request, and per snapshot. Label: directional — Node/V8 timings
  * approximate but do not replace browser evidence; the paired end-to-end
- * overhead benchmark (tools/benchmark/run-overhead.mjs) bounds the same
+ * overhead benchmark (tools/benchmark/run-release.ts) bounds the same
  * budget behaviorally in the target browser.
  *
  * Usage: npm run bench:recorder
@@ -139,7 +139,7 @@ const result = {
   schemaVersion: 1,
   measurement: 'render-trace-ring recorder cost per frame/request/snapshot',
   label:
-    'directional Node/V8 microbenchmark of the production ring; browser-side overhead is bounded end-to-end by tools/benchmark/run-overhead.mjs',
+    'directional Node/V8 microbenchmark of the production ring; browser-side overhead is bounded end-to-end by tools/benchmark/run-release.ts',
   worstShape: {
     framesPerRequest: 2,
     bandsElapsedMsLength: BANDS,

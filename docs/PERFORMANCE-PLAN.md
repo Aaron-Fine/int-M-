@@ -157,9 +157,8 @@ fields) only on computed frames. Step 6 tests: `tests/unit/worker/runtime.test.t
 (quiescence waits for every child), `src/ui/worker-timing-marks.test.ts`
 (lifecycle, bounds, invariants, adapter), and the browser test
 `render traces carry delivery provenance and two-event cancellation timing`
-(both engines). The release-browser distributions come from
-`tools/benchmark/run-operational.mjs`; the overhead pair from
-`tools/benchmark/run-overhead.mjs --release`.
+(both engines). The release-browser distributions and the overhead pair come from
+`npm run evidence:release` (`tools/benchmark/run-release.ts`).
 
 The plan as written:
 
@@ -246,12 +245,12 @@ behind), and the current Stage A paired arms both run the post-PR-2 kernel,
 so the gate needs dedicated browser evidence ([gate
 analysis](verification/STAGE-A-GATE-ANALYSIS.md)).
 
-`tools/benchmark/run-b-gate.mjs` requires an explicit two-build `--dist`
-argument. For a gate run, create a disposable detached worktree at the pinned
-pre-PR-2 commit `a6e1838`, build its `dist`, pass
-`baseline=<worktree>/dist,current=dist`, and remove the worktree after the
-evidence manifest is verified. The runner intentionally has no default
-session or `/tmp` worktree dependency.
+The B gate runs through `npm run evidence:release` with `--compare`. For a
+gate run, create a disposable detached worktree at the pinned pre-PR-2 commit
+`a6e1838`, build its `dist`, pass `--compare baseline=dist:<worktree>/dist`
+alongside the current build, and remove the worktree after the evidence
+manifest is verified. The runner intentionally has no default session or
+`/tmp` worktree dependency.
 
 ### PR 3 — Common verifier and semantic oracle (landed)
 

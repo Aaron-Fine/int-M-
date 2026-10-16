@@ -14,7 +14,7 @@
  * value; the browser-side clamp magnitudes (4.1 ms vs 0.1 ms per hop) are
  * established in poc/performance/browser/results/yield-ab.json, and the
  * browser-side yieldWaitMs deltas are recorded in the renderer-path paired
- * evidence (tools/benchmark/run-renderer-path.mjs, detail m2-yield).
+ * evidence (tools/benchmark/run-release.ts, detail m2-yield).
  *
  * Usage: npm run bench:cancel-quiescence
  */
@@ -137,5 +137,5 @@ const result = {
 
 process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 // The default row-yield scheduler's port keeps the Node event loop alive;
-// evidence scripts exit explicitly (same as run-stage-a.mjs).
+// evidence scripts exit explicitly (same as run-release.ts).
 process.exit(0);

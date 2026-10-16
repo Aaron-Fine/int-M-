@@ -232,9 +232,10 @@ workstream and gate.
   cancellation is acknowledged (`cancel-ack`) separately from quiescence
   (`cancelled`, after every nested tile worker has stopped). The UI maps
   frames to the bounded trace ring through one adapter (`frameDelivery`).
-- Evidence runners under `tools/benchmark/` share one branded-browser launch
-  (`release-browser.mjs`); `--release` runs the plan §9 protocol (branded
-  stable browsers, headed, ≥22 repetitions, BCa intervals). Headed runs need
+- Browser evidence comes from one release harness, `tools/benchmark/run-release.ts`
+  (`npm run evidence:release`); `--release` runs the plan §9 protocol (branded
+  stable browsers, headed, ≥22 repetitions, BCa intervals). `--compare` adds
+  paired arms, and `--resume` continues an interrupted run. Headed runs need
   an unlocked session; wrap long runs in a screensaver inhibitor.
 
 ## Requirements traceability
