@@ -24,7 +24,7 @@ file only turns the flag on.
 ## Minimal candidate
 
 Most candidates wrap the production renderer with a request option. The helper
-`productionCandidate` does the rendering, unpacking, colorizing, diagnostics and
+`productionCandidate` does the rendering, unpacking, colorizing and diagnostics
 for you (the worked example is the baseline in `baseline.ts`):
 
 ```ts
@@ -34,7 +34,7 @@ import type { Candidate } from './types';
 export const myFlag: Candidate = productionCandidate({
   id: 'my-flag',
   description: 'One sentence: what changes.',
-  requestOptions: { conjugateMirror: true }, // your DynamicsRenderRequest flag(s)
+  requestOptions: { conjugateMirror: false }, // your DynamicsRenderRequest flag(s); mirroring is on by default, so this one turns it off
 });
 ```
 
@@ -123,7 +123,7 @@ acceptance, certified neighbor transplant). Rules, per **baseline** status:
 1. Baseline **attracting**: the candidate must also accept, with identical
    status and period. Magnitude and direction may differ only within the
    declared tolerance (the candidate may report lambda at a refined cycle
-   point). `iterations`/`evidence` may differ; their distribution is reported.
+   point). `iterations`/`evidence` may differ and are not compared.
 2. Baseline **escaped**: bit-identical on every field. No smooth tolerance.
 3. Baseline **unresolved**: may stay unresolved (exact), or the candidate may
    accept it. Every such conversion is counted, the first 20 are listed

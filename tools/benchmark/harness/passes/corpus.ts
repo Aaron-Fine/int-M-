@@ -287,6 +287,111 @@ export interface CorpusPassResult {
 const isStall = (error: unknown): boolean =>
   error instanceof Error && error.name === 'TimeoutError';
 
+interface CaseRun {
+  readonly caseInfo: CorpusCase;
+  readonly arms: readonly ArmSpec[];
+  readonly reps: number;
+  readonly checkLock: boolean;
+  readonly driver: CorpusDriver;
+  readonly locked: () => boolean | null;
+}
+
+const sampleOf = (
+  caseInfo: CorpusCase,
+  repetition: number,
+  arm: ArmSpec,
+  capture: RenderCapture,
+  retried: boolean,
+): CorpusSample => {
+  const stable = frameOf(capture, (f) => f.stage === 'stable' && f.source === 'computed');
+  const coarse = frameOf(capture, (f) => f.stage === 'coarse');
+  return {
+    caseId: caseInfo.id,
+    repetition,
+    arm: arm.name,
+    climate: repetition === 0 ? 'cold' : 'warm',
+    markWallMs: capture.markWallMs,
+    stableMs: stable?.requestToPresentMs,
+    coarseMs: coarse?.requestToPresentMs,
+    classifyMs: stable?.classifyMs,
+    bandsElapsedMs: stable?.bandsElapsedMs,
+    ...(arm.hook && stable !== undefined ? { trace: stable } : {}),
+    hash: capture.hash,
+    retriedAfterStall: retried,
+  };
+};
+
+/**
+ * One arm's capture, or the incomplete record when it stalls twice. A twice
+ * stalled capture on a locked session throws the resumable error instead.
+ */
+const captureOrAbandon = async (
+  run: CaseRun,
+  live: Live,
+  arm: ArmSpec,
+  repetition: number,
+  stallsSoFar: number,
+): Promise<
+  | { sample: CorpusSample; abandoned?: undefined }
+  | { sample?: undefined; abandoned: IncompleteCase }
+> => {
+  const { caseInfo } = run;
+  const baseUrl = run.driver.baseUrl(arm);
+  if (baseUrl === undefined) throw new Error(`no served build for arm ${arm.name}`);
+  try {
+    const { capture, retried } = await run.driver.capture(live, caseInfo, arm, baseUrl);
+    if (arm.hook) {
+      if (capture.viewport === undefined)
+        throw new Error(`${caseInfo.id}: arm ${arm.name} reported no viewport`);
+      assertViewport(caseInfo, capture.viewport, arm.name);
+    }
+    return { sample: sampleOf(caseInfo, repetition, arm, capture, retried) };
+  } catch (error) {
+    if (!isStall(error)) throw error;
+    const message = (error as Error).message.split('\n')[0] ?? 'timeout';
+    if (run.checkLock && run.locked() === true) {
+      throw new Error(`session locked during ${caseInfo.id}; resume with --resume (${message})`, {
+        cause: error,
+      });
+    }
+    return {
+      abandoned: {
+        caseId: caseInfo.id,
+        repetition,
+        stalls: stallsSoFar + 2,
+        reason: `arm ${arm.name} stalled twice at repetition ${repetition}: ${message}`,
+      },
+    };
+  }
+};
+
+/** Every repetition of one case; stops at the first twice-stalled capture. */
+const runCase = async (
+  run: CaseRun,
+): Promise<{ samples: CorpusSample[]; abandoned: IncompleteCase | undefined }> => {
+  const armByName = new Map(run.arms.map((arm) => [arm.name, arm]));
+  const samples: CorpusSample[] = [];
+  for (let repetition = 0; repetition < run.reps; repetition += 1) {
+    const live = await run.driver.open();
+    try {
+      for (const name of armOrder(
+        run.arms.map((a) => a.name),
+        repetition,
+      )) {
+        const arm = armByName.get(name);
+        if (arm === undefined) throw new Error(`unknown arm ${name}`);
+        const stalls = samples.filter((s) => s.retriedAfterStall).length;
+        const result = await captureOrAbandon(run, live, arm, repetition, stalls);
+        if (result.abandoned !== undefined) return { samples, abandoned: result.abandoned };
+        samples.push(result.sample);
+      }
+    } finally {
+      await live.context.close().catch(() => undefined);
+    }
+  }
+  return { samples, abandoned: undefined };
+};
+
 /**
  * Runs every case. A case that stalls twice is recorded as incomplete and the
  * pass moves on; a stall on a locked session throws the resumable error
@@ -303,7 +408,6 @@ export const runCorpusPass = async (
 ): Promise<CorpusPassResult> => {
   const driver = options.driver ?? sessionDriver(session);
   const locked = options.locked ?? sessionLocked;
-  const armByName = new Map(arms.map((arm) => [arm.name, arm]));
   claimPartial(partialFile, options.header);
   const done = completedCases(
     readPartial(partialFile) as CorpusSample[],
@@ -317,70 +421,12 @@ export const runCorpusPass = async (
     if (done.has(caseInfo.id)) continue;
     if (checkLock && locked() === true)
       throw new Error(`session locked before ${caseInfo.id}; resume with --resume`);
-    const caseSamples: CorpusSample[] = [];
-    let abandoned: IncompleteCase | undefined;
-    for (let repetition = 0; repetition < reps && abandoned === undefined; repetition += 1) {
-      const order = armOrder(
-        arms.map((a) => a.name),
-        repetition,
-      );
-      const live = await driver.open();
-      try {
-        for (const name of order) {
-          const arm = armByName.get(name);
-          if (arm === undefined) throw new Error(`unknown arm ${name}`);
-          const baseUrl = driver.baseUrl(arm);
-          if (baseUrl === undefined) throw new Error(`no served build for arm ${arm.name}`);
-          let result: Awaited<ReturnType<CorpusDriver['capture']>>;
-          try {
-            result = await driver.capture(live, caseInfo, arm, baseUrl);
-          } catch (error) {
-            if (!isStall(error)) throw error;
-            if (checkLock && locked() === true) {
-              throw new Error(
-                `session locked during ${caseInfo.id}; resume with --resume (${(error as Error).message})`,
-              );
-            }
-            abandoned = {
-              caseId: caseInfo.id,
-              repetition,
-              stalls: caseSamples.filter((s) => s.retriedAfterStall).length + 2,
-              reason: `arm ${name} stalled twice at repetition ${repetition}: ${(error as Error).message.split('\n')[0] ?? 'timeout'}`,
-            };
-            break;
-          }
-          const { capture, retried } = result;
-          if (arm.hook) {
-            if (capture.viewport === undefined)
-              throw new Error(`${caseInfo.id}: arm ${arm.name} reported no viewport`);
-            assertViewport(caseInfo, capture.viewport, arm.name);
-          }
-          const stable = frameOf(capture, (f) => f.stage === 'stable' && f.source === 'computed');
-          const coarse = frameOf(capture, (f) => f.stage === 'coarse');
-          caseSamples.push({
-            caseId: caseInfo.id,
-            repetition,
-            arm: name,
-            climate: repetition === 0 ? 'cold' : 'warm',
-            markWallMs: capture.markWallMs,
-            stableMs: stable?.requestToPresentMs,
-            coarseMs: coarse?.requestToPresentMs,
-            classifyMs: stable?.classifyMs,
-            bandsElapsedMs: stable?.bandsElapsedMs,
-            ...(arm.hook && stable !== undefined ? { trace: stable } : {}),
-            hash: capture.hash,
-            retriedAfterStall: retried,
-          });
-        }
-      } finally {
-        await live.context.close().catch(() => undefined);
-      }
-    }
-    if (abandoned === undefined) {
-      appendPartial(partialFile, caseSamples);
+    const result = await runCase({ caseInfo, arms, reps, checkLock, driver, locked });
+    if (result.abandoned === undefined) {
+      appendPartial(partialFile, result.samples);
     } else {
-      incomplete.push(abandoned);
-      incompleteSamples.push(...caseSamples);
+      incomplete.push(result.abandoned);
+      incompleteSamples.push(...result.samples);
     }
   }
   const selectedCases = new Set(cases.map((c) => c.id));

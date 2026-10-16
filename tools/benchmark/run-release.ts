@@ -454,8 +454,8 @@ const finishedEngine = (ctx: RunContext, engine: Engine): EngineRun | undefined 
   };
 };
 
-const main = async (): Promise<void> => {
-  const { values } = parseArgs({
+const parseCli = () =>
+  parseArgs({
     options: {
       engines: { type: 'string', default: ENGINES.join(',') },
       release: { type: 'boolean', default: false },
@@ -467,31 +467,43 @@ const main = async (): Promise<void> => {
       'out-dir': { type: 'string' },
       interactions: { type: 'string' },
     },
-  });
+  }).values;
+type Cli = ReturnType<typeof parseCli>;
 
-  const engines = values.engines.split(',').map((engine) => engine.trim());
+const parseEngines = (value: string): Engine[] => {
+  const engines = value.split(',').map((engine) => engine.trim());
   for (const engine of engines) {
     if (!(ENGINES as readonly string[]).includes(engine)) die(`unknown engine ${engine}`);
   }
-  const release = values.release;
-  const skipInteractions = values['skip-interactions'];
-  if (release && values.cases !== undefined) die('--release runs the whole corpus; drop --cases');
-  if (release && skipInteractions)
-    die('--release runs the interaction pass; drop --skip-interactions');
-  const interactions = int('interactions', values.interactions, 50);
-  if (release && interactions < 50) die('--release requires --interactions >= 50');
+  return engines as Engine[];
+};
 
-  const allCases = corpusCases();
-  const selected = values.cases
-    ? values.cases.split(',').map((id) => {
-        const found = allCases.find((caseInfo) => caseInfo.id === id);
+const selectCases = (all: CorpusCase[], list: string | undefined): CorpusCase[] =>
+  list === undefined
+    ? all
+    : list.split(',').map((id) => {
+        const found = all.find((caseInfo) => caseInfo.id === id);
         if (found === undefined) die(`unknown case ${id}`);
         return found;
-      })
-    : allCases;
+      });
+
+/** A release session is the whole protocol: it refuses flags that narrow it. */
+const checkReleaseFlags = (values: Cli, interactions: number): void => {
+  if (!values.release) return;
+  if (values.cases !== undefined) die('--release runs the whole corpus; drop --cases');
+  if (values['skip-interactions'])
+    die('--release runs the interaction pass; drop --skip-interactions');
+  if (interactions < 50) die('--release requires --interactions >= 50');
+};
+
+const buildContext = (values: Cli, engines: Engine[]): RunContext => {
+  const release = values.release;
+  const interactions = int('interactions', values.interactions, 50);
+  checkReleaseFlags(values, interactions);
+  const allCases = corpusCases();
+  const selected = selectCases(allCases, values.cases);
   const hardCase = allCases.find((caseInfo) => caseInfo.id === 'mi-hard-supplied-126x');
   if (hardCase === undefined) die('corpus is missing mi-hard-supplied-126x');
-
   const compares = values.compare.map((spec) => parseCompare(spec, process.cwd()));
   const arms: ArmSpec[] = [
     { name: 'hook', hook: true },
@@ -499,23 +511,14 @@ const main = async (): Promise<void> => {
     ...compares.map((compare) => compare.arm),
   ];
   const reps = int('reps', values.reps, release ? releaseDefaultReps(arms.length) : 9);
-  if (release) {
-    const problem = releaseRepsProblem(reps, arms.length);
-    if (problem !== undefined) die(problem);
-  }
+  const problem = release ? releaseRepsProblem(reps, arms.length) : undefined;
+  if (problem !== undefined) die(problem);
   const commit = shortHead();
   const outDir = values['out-dir']
     ? path.resolve(process.cwd(), values['out-dir'])
     : path.join(repoRoot, `evidence/phase-2/${today()}-${commit}-${labelOf(release)}`);
-  if (!values.resume) {
-    for (const engine of engines as Engine[]) {
-      if (existsSync(partialPath(outDir, engine))) {
-        die(`${partialPath(outDir, engine)} exists; pass --resume to continue or remove it`);
-      }
-    }
-  }
-
-  const ctx: RunContext = {
+  const skipInteractions = values['skip-interactions'];
+  return {
     release,
     resume: values.resume,
     scope: {
@@ -537,31 +540,46 @@ const main = async (): Promise<void> => {
     commit,
     outDir,
   };
+};
+
+/** Measures (or, on --resume, reloads) one engine; returns its gate failures. */
+const processEngine = async (ctx: RunContext, engine: Engine): Promise<string[]> => {
+  const summarize = (run: EngineRun) =>
+    ctx.selected.map((caseInfo) =>
+      summarizeCase(caseInfo, run.samples, ctx.arms, SEED, run.incomplete),
+    );
+  const finished = finishedEngine(ctx, engine);
+  if (finished !== undefined) {
+    process.stderr.write(
+      `[run-release] ${engine}: evidence already written with this protocol; skipping\n`,
+    );
+    return gateFailures(engine, finished, summarize(finished), ctx.release);
+  }
+  const run = await runEngine(engine, ctx);
+  const summaries = summarize(run);
+  const failures = gateFailures(engine, run, summaries, ctx.release);
+  // Remove the partial before writing: the manifest hashes every file in outDir.
+  rmSync(partialPath(ctx.outDir, engine), { force: true });
+  writeEngineEvidence(ctx, engine, run, summaries);
+  process.stderr.write(`[run-release] ${engine}: evidence written to ${ctx.outDir}\n`);
+  return failures;
+};
+
+const main = async (): Promise<void> => {
+  const values = parseCli();
+  const engines = parseEngines(values.engines);
+  const ctx = buildContext(values, engines);
+  if (!ctx.resume) {
+    for (const engine of engines) {
+      if (existsSync(partialPath(ctx.outDir, engine))) {
+        die(`${partialPath(ctx.outDir, engine)} exists; pass --resume to continue or remove it`);
+      }
+    }
+  }
 
   const failures: string[] = [];
   try {
-    for (const engine of engines as Engine[]) {
-      const finished = finishedEngine(ctx, engine);
-      if (finished !== undefined) {
-        process.stderr.write(
-          `[run-release] ${engine}: evidence already written with this protocol; skipping\n`,
-        );
-        const summaries = selected.map((caseInfo) =>
-          summarizeCase(caseInfo, finished.samples, arms, SEED),
-        );
-        failures.push(...gateFailures(engine, finished, summaries, ctx.release));
-        continue;
-      }
-      const run = await runEngine(engine, ctx);
-      const summaries = selected.map((caseInfo) =>
-        summarizeCase(caseInfo, run.samples, arms, SEED, run.incomplete),
-      );
-      failures.push(...gateFailures(engine, run, summaries, ctx.release));
-      // Remove the partial before writing: the manifest hashes every file in outDir.
-      rmSync(partialPath(outDir, engine), { force: true });
-      writeEngineEvidence(ctx, engine, run, summaries);
-      process.stderr.write(`[run-release] ${engine}: evidence written to ${outDir}\n`);
-    }
+    for (const engine of engines) failures.push(...(await processEngine(ctx, engine)));
   } catch (error) {
     // Gates already collected for finished engines are still results.
     for (const failure of failures) process.stderr.write(`FAILED: ${failure}\n`);
