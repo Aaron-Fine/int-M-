@@ -158,7 +158,10 @@ export const summarizeCase = (
     hashMismatches: own.filter(
       (s) => (s.arm === 'hook' || s.arm === 'plain') && s.hash !== reference,
     ).length,
-    stalls: own.filter((s) => s.retriedAfterStall).length,
+    // A case abandoned after its second stall counts those stalls too.
+    stalls:
+      own.filter((s) => s.retriedAfterStall).length +
+      (incomplete.find((entry) => entry.caseId === caseInfo.id)?.stalls ?? 0),
     incomplete: incomplete.find((entry) => entry.caseId === caseInfo.id),
     compare,
   };

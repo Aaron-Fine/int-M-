@@ -21,7 +21,10 @@ export const releaseRepsProblem = (reps: number, armCount: number): string | und
   const warm = reps - 1;
   if (warm < 21) return `--release requires at least 21 warm repetitions (--reps >= 22)`;
   if (warm % armCount !== 0) {
-    return `--release needs a warm count that is a multiple of the ${armCount} arms so arm order balances; use --reps ${releaseDefaultReps(armCount)} or ${1 + warm + (armCount - (warm % armCount))}`;
+    const next = 1 + warm + (armCount - (warm % armCount));
+    const fallback = releaseDefaultReps(armCount);
+    const options = next === fallback ? `${next}` : `${fallback} or ${next}`;
+    return `--release needs a warm count that is a multiple of the ${armCount} arms so arm order balances; use --reps ${options}`;
   }
   return undefined;
 };

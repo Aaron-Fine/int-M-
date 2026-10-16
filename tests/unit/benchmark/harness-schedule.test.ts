@@ -48,7 +48,8 @@ describe('release repetitions', () => {
   it('refuses unbalanced or short release counts', () => {
     expect(releaseRepsProblem(23, 2)).toBeUndefined();
     expect(releaseRepsProblem(22, 3)).toBeUndefined();
-    expect(releaseRepsProblem(22, 2)).toMatch(/multiple of the 2 arms/);
+    expect(releaseRepsProblem(22, 2)).toMatch(/multiple of the 2 arms.*; use --reps 23$/);
+    expect(releaseRepsProblem(26, 2)).toMatch(/use --reps 23 or 27$/);
     expect(releaseRepsProblem(21, 3)).toMatch(/at least 21 warm/);
     expect(releaseRepsProblem(20, 1)).toMatch(/at least 21 warm/);
   });

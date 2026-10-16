@@ -215,6 +215,7 @@ describe('runCorpusPass stalls', () => {
     expect(stableTrace).toMatchObject({ stage: 'stable' });
     const summary = summarizeCase(caseInfo, result.samples, arms, 11, result.incomplete);
     expect(summary.incomplete?.reason).toMatch(/stalled twice/);
+    expect(summary.stalls).toBeGreaterThanOrEqual(2);
     expect(
       summarizeCase(second, result.samples, arms, 11, result.incomplete).incomplete,
     ).toBeUndefined();

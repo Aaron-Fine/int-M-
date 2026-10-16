@@ -103,7 +103,7 @@ for the new harness.
 
 ### Corpus pass
 
-Per engine, per corpus case (13), per repetition (22; rep 0 cold):
+Per engine, per corpus case (13), per repetition (rep 0 cold, then a warm count that is the smallest multiple of the arm count ≥ 21, so arm order balances: 23 repetitions for two arms):
 
 - **Arms:** `hook` (`?perf=1&view=…&quality=…`, full trace) and `plain`
   (`?view=…&quality=…`, mark wall and hash only), both on the production
@@ -125,7 +125,7 @@ Per engine, per corpus case (13), per repetition (22; rep 0 cold):
 - **Retention:** after the last case, the hook page's ring snapshot size is
   recorded against the 64 KiB budget (replaces the overhead runner's fills).
 
-Estimate: 13 × 22 × 2 renders per engine at ~0.3–1 s each including
+Estimate: 13 × 23 × 2 renders per engine at ~0.3–1 s each including
 navigation → about 10 minutes per engine.
 
 ### Interaction pass

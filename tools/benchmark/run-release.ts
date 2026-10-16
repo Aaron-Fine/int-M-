@@ -273,7 +273,9 @@ const budgetSection = (engine: Engine, summaries: CaseSummary[]): string =>
       String(BUDGETS.coarseMedianMs),
       num(summary.stableMedianMs),
       String(summary.budget.stableBudgetMs),
-      `${summary.budget.coarse} / ${summary.budget.stable}`,
+      summary.incomplete === undefined
+        ? `${summary.budget.coarse} / ${summary.budget.stable}`
+        : `incomplete (${summary.incomplete.reason})`,
     ]),
   )}\n\nHonesty note: \`requestToPresentMs\` ends at the next presentation opportunity; it is not proof of paint.`;
 
