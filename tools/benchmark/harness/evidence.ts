@@ -11,6 +11,8 @@ export const writeEvidence = (
     engine: string;
     environment: Record<string, unknown>;
     raw: unknown;
+    /** Title, label and run scope: the first lines of summary.md, replaced on every write. */
+    summaryHeader: string;
     summarySections: readonly string[];
   },
 ): void => {
@@ -51,9 +53,12 @@ export const writeEvidence = (
   const kept = existsSync(summaryPath)
     ? readFileSync(summaryPath, 'utf8')
         .split(/(?=^## )/m)
-        .filter((section) => !section.startsWith(`## ${parts.engine}`))
-    : ['# Release evidence session\n\n'];
-  writeFileSync(summaryPath, `${[...kept, ...parts.summarySections].join('\n')}\n`);
+        .filter((section) => section.startsWith('## ') && !section.startsWith(`## ${parts.engine}`))
+    : [];
+  writeFileSync(
+    summaryPath,
+    `${[`${parts.summaryHeader.trimEnd()}\n`, ...kept, ...parts.summarySections].join('\n')}\n`,
+  );
 
   const formatted = spawnSync('npx', ['prettier', '--write', outDir], {
     cwd: repoRoot,

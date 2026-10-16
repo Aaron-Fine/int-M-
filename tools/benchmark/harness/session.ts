@@ -21,6 +21,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { chromium, firefox, type Browser, type Page } from '@playwright/test';
 import { build, preview, type PreviewServer } from 'vite';
+import { assertServes, type CompareDist } from './compare.ts';
 
 const require = createRequire(import.meta.url);
 
@@ -44,6 +45,9 @@ export interface Session {
   readonly baseUrls: Record<string, string>;
   readonly viewport: { readonly width: number; readonly height: number };
   readonly launchedBy: string | undefined;
+  /** logind LockedHint at start: 'yes', 'no' or 'unknown'. */
+  readonly lockedHint: 'yes' | 'no' | 'unknown';
+  readonly powerMode: string | null;
   readonly version: string;
   readonly userAgent: string;
   close(): Promise<void>;
@@ -240,7 +244,8 @@ export const startSession = async (options: {
   compareDists: readonly { name: string; dir: string }[];
   executablePath?: string;
 }): Promise<Session> => {
-  if (options.release && sessionLocked() === true) {
+  const lockedHint = sessionLocked();
+  if (options.release && lockedHint === true) {
     throw new Error(
       'the session is locked: headed release runs stall without frame callbacks; unlock it first',
     );
@@ -254,20 +259,27 @@ export const startSession = async (options: {
   let launch: LaunchedBrowser | undefined;
   try {
     const baseUrls: Record<string, string> = {};
-    const serve = async (root: string, port: number): Promise<string> => {
-      servers.push(
-        await preview({
-          root,
-          configFile: path.join(root, 'vite.config.ts'),
-          preview: { host: '127.0.0.1', port, strictPort: true },
-        }),
-      );
+    const serve = async (root: string, port: number, target?: CompareDist): Promise<string> => {
+      // A compare dist is served from its own directory: without the explicit
+      // outDir, preview would serve the parent config's `dist`, the current build.
+      const server = await preview({
+        root,
+        configFile: path.join(root, 'vite.config.ts'),
+        ...(target === undefined ? {} : { build: { outDir: target.dir } }),
+        preview: { host: '127.0.0.1', port, strictPort: true },
+      });
+      servers.push(server);
+      if (target !== undefined) assertServes(target.name, server.config, target.dir);
       return `http://127.0.0.1:${port}`;
     };
     const currentUrl = await serve(repoRoot, PREVIEW_PORT);
     baseUrls['current'] = currentUrl;
     for (const [index, compare] of options.compareDists.entries()) {
-      baseUrls[compare.name] = await serve(path.dirname(compare.dir), PREVIEW_PORT + 1 + index);
+      baseUrls[compare.name] = await serve(
+        path.dirname(compare.dir),
+        PREVIEW_PORT + 1 + index,
+        compare,
+      );
     }
 
     const launched = await launchEvidenceBrowser(
@@ -283,11 +295,16 @@ export const startSession = async (options: {
       baseUrls,
       viewport,
       launchedBy: launched.launchedBy,
+      lockedHint: lockedHint === null ? 'unknown' : lockedHint ? 'yes' : 'no',
+      powerMode: readPowerMode(),
       version: launched.browser.version(),
       userAgent,
       close: async () => {
-        await launched.close();
-        await Promise.all(servers.map((server) => server.close()));
+        try {
+          await launched.close();
+        } finally {
+          await Promise.all(servers.map((server) => server.close()));
+        }
       },
     };
   } catch (error) {

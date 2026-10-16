@@ -16,8 +16,17 @@ import process from 'node:process';
 import { parseArgs } from 'node:util';
 import type { Page } from '@playwright/test';
 import { BUDGETS } from './harness/budgets.ts';
+import { parseCompare, type Compare, type CompareDist } from './harness/compare.ts';
 import { writeEvidence } from './harness/evidence.ts';
-import { startSession, type Session } from './harness/session.ts';
+import { releaseDefaultReps, releaseRepsProblem } from './harness/schedule.ts';
+import {
+  DIRECTIONAL_LABEL,
+  RELEASE_LABEL,
+  automationLabel,
+  startSession,
+  type Session,
+} from './harness/session.ts';
+import { RESAMPLES } from './harness/stats.ts';
 import {
   HOOK_OVERHEAD_MAX,
   hookOverheadVerdict,
@@ -28,6 +37,7 @@ import {
   type ArmSpec,
   type CorpusCase,
   type CorpusSample,
+  type IncompleteCase,
 } from './harness/passes/corpus.ts';
 import {
   interactionTable,
@@ -46,16 +56,19 @@ const VIEWS = ['stability', 'multiplier', 'period'];
 const ENGINES = ['chromium', 'firefox'] as const;
 type Engine = (typeof ENGINES)[number];
 type CaseSummary = ReturnType<typeof summarizeCase>;
-interface CompareDist {
-  name: string;
-  dir: string;
-}
-interface Compare {
-  arm: ArmSpec;
-  dist?: CompareDist;
+interface RunScope {
+  engines: string[];
+  /** Case ids run; `all` is true when no --cases subset was given. */
+  cases: string[];
+  allCases: boolean;
+  reps: number;
+  arms: string[];
+  skippedPasses: string[];
 }
 interface RunContext {
   release: boolean;
+  resume: boolean;
+  scope: RunScope;
   reps: number;
   interactions: number;
   skipInteractions: boolean;
@@ -69,8 +82,12 @@ interface RunContext {
 }
 interface EngineRun {
   samples: CorpusSample[];
+  incomplete: IncompleteCase[];
   interactionResults: InteractionResults | undefined;
   ringBytes: number;
+  viewport: Session['viewport'];
+  powerMode: Session['powerMode'];
+  lockedHint: Session['lockedHint'];
   browserVersion: Session['version'];
   userAgent: Session['userAgent'];
   launchedBy: Session['launchedBy'];
@@ -111,20 +128,6 @@ const table = (headers: readonly string[], rows: readonly (readonly string[])[])
     `| ${headers.map(() => '---').join(' | ')} |`,
     ...rows.map((row) => `| ${row.join(' | ')} |`),
   ].join('\n');
-
-/** Parses `name=<query>` or `name=dist:<dir>`. */
-const parseCompare = (spec: string): Compare => {
-  const eq = spec.indexOf('=');
-  if (eq < 1 || eq === spec.length - 1)
-    die(`--compare expects name=<query>|name=dist:<dir>: ${spec}`);
-  const name = spec.slice(0, eq);
-  const value = spec.slice(eq + 1);
-  if (value.startsWith('dist:')) {
-    const dir = path.resolve(process.cwd(), value.slice('dist:'.length));
-    return { arm: { name, hook: true, dist: name }, dist: { name, dir } };
-  }
-  return { arm: { name, hook: true, query: value } };
-};
 
 /** Opens a fresh hook page, drives interior-view recolors, and measures the ring's JSON size. */
 const ringBytesAfterRecolors = async (session: Session, caseInfo: CorpusCase): Promise<number> => {
@@ -167,13 +170,22 @@ const runEngine = async (engine: Engine, ctx: RunContext): Promise<EngineRun> =>
     compareDists: ctx.compareDists,
   });
   try {
-    const samples = await runCorpusPass(
+    const { samples, incomplete } = await runCorpusPass(
       session,
       ctx.selected,
       ctx.arms,
       ctx.reps,
       partialPath(ctx.outDir, engine),
       ctx.release,
+      {
+        header: {
+          release: ctx.release,
+          reps: ctx.reps,
+          arms: ctx.arms.map((arm) => arm.name),
+          commit: ctx.commit,
+          caseIds: ctx.selected.map((caseInfo) => caseInfo.id),
+        },
+      },
     );
     const interactionResults = ctx.skipInteractions
       ? undefined
@@ -181,8 +193,12 @@ const runEngine = async (engine: Engine, ctx: RunContext): Promise<EngineRun> =>
     const ringBytes = await ringBytesAfterRecolors(session, ctx.hardCase);
     return {
       samples,
+      incomplete,
       interactionResults,
       ringBytes,
+      viewport: session.viewport,
+      powerMode: session.powerMode,
+      lockedHint: session.lockedHint,
       browserVersion: session.version,
       userAgent: session.userAgent,
       launchedBy: session.launchedBy,
@@ -208,6 +224,11 @@ const gateFailures = (
   }
   for (const summary of summaries) {
     const label = `${engine} ${summary.caseId}`;
+    if (summary.incomplete !== undefined) {
+      failures.push(
+        `${label}: incomplete after ${summary.incomplete.stalls} stalls (${summary.incomplete.reason})`,
+      );
+    }
     if (summary.budget.coarse === 'fail' || summary.budget.stable === 'fail') {
       failures.push(
         `${label}: budget failed (coarse ${summary.budget.coarse}, stable ${summary.budget.stable})`,
@@ -254,7 +275,7 @@ const budgetSection = (engine: Engine, summaries: CaseSummary[]): string =>
       String(summary.budget.stableBudgetMs),
       `${summary.budget.coarse} / ${summary.budget.stable}`,
     ]),
-  )}`;
+  )}\n\nHonesty note: \`requestToPresentMs\` ends at the next presentation opportunity; it is not proof of paint.`;
 
 const overheadSection = (
   engine: Engine,
@@ -275,7 +296,7 @@ const overheadSection = (
       row(release ? 'pooled (gated)' : 'pooled (not gated: not a release run)', pooled),
       ...summaries.map((summary) => row(summary.caseId, summary.hookOverhead)),
     ],
-  )}`;
+  )}\n\nRing retention: ${run.ringBytes} bytes measured after ${RING_RECOLORS} recolors (limit ${RING_LIMIT_BYTES}).`;
 };
 
 const paritySection = (engine: Engine, summaries: CaseSummary[]): string =>
@@ -322,12 +343,43 @@ const compareSection = (engine: Engine, compare: Compare, summaries: CaseSummary
     }),
   )}`;
 
+const labelOf = (release: boolean): 'release' | 'directional' =>
+  release ? 'release' : 'directional';
+
+const scopeText = (scope: RunScope): string =>
+  [
+    `engines ${scope.engines.join(', ')}`,
+    scope.allCases ? `cases all ${scope.cases.length}` : `cases ${scope.cases.join(', ')} (subset)`,
+    `reps ${scope.reps} (1 cold + ${scope.reps - 1} warm)`,
+    `arms ${scope.arms.join(', ')}`,
+    `skipped passes ${scope.skippedPasses.length === 0 ? 'none' : scope.skippedPasses.join(', ')}`,
+  ].join('; ');
+
+const summaryHeader = (ctx: RunContext): string =>
+  `# ${ctx.release ? 'Release' : 'Directional'} evidence session\n\nLabel: ${labelOf(ctx.release)}. ${
+    ctx.release ? RELEASE_LABEL : DIRECTIONAL_LABEL
+  }\n\nScope: ${scopeText(ctx.scope)}.\n`;
+
+/** Protocol facts shared by an engine's environment entry and raw entry. */
+const protocolFacts = (ctx: RunContext, engine: Engine, run: EngineRun) => ({
+  label: labelOf(ctx.release),
+  labelText: ctx.release ? RELEASE_LABEL : DIRECTIONAL_LABEL,
+  scope: ctx.scope,
+  automation: automationLabel(engine, ctx.release, run.launchedBy),
+  seed: SEED,
+  resamples: RESAMPLES,
+  powerMode: run.powerMode,
+  viewport: run.viewport,
+  lockedHint: run.lockedHint,
+});
+
 const writeEngineEvidence = (
   ctx: RunContext,
   engine: Engine,
   run: EngineRun,
   summaries: CaseSummary[],
 ): void => {
+  const facts = protocolFacts(ctx, engine, run);
   writeEvidence(ctx.outDir, {
     engine,
     environment: {
@@ -339,12 +391,21 @@ const writeEngineEvidence = (
       reps: ctx.reps,
       interactions: ctx.skipInteractions ? null : ctx.interactions,
       commit: ctx.commit,
+      ...facts,
     },
     raw: {
+      ...facts,
+      release: ctx.release,
+      reps: ctx.reps,
+      commit: ctx.commit,
+      caseIds: ctx.selected.map((caseInfo) => caseInfo.id),
+      arms: ctx.arms.map((arm) => arm.name),
       samples: run.samples,
+      incomplete: run.incomplete,
       interactions: run.interactionResults ?? null,
       ringBytes: run.ringBytes,
     },
+    summaryHeader: summaryHeader(ctx),
     summarySections: [
       budgetSection(engine, summaries),
       overheadSection(engine, run, summaries, ctx.release),
@@ -353,6 +414,44 @@ const writeEngineEvidence = (
       ...ctx.compares.map((compare) => compareSection(engine, compare, summaries)),
     ],
   });
+};
+
+/**
+ * With --resume, an engine whose evidence is already written under the same
+ * protocol is not measured again; its gates are re-evaluated from the raw file.
+ */
+const finishedEngine = (ctx: RunContext, engine: Engine): EngineRun | undefined => {
+  if (!ctx.resume) return undefined;
+  const rawPath = path.join(ctx.outDir, 'raw-observations.json');
+  if (!existsSync(rawPath)) return undefined;
+  const entry = (
+    JSON.parse(readFileSync(rawPath, 'utf8')) as {
+      byEngine?: Record<string, Record<string, unknown> | undefined>;
+    }
+  ).byEngine?.[engine];
+  if (entry === undefined) return undefined;
+  const same =
+    entry['reps'] === ctx.reps &&
+    entry['release'] === ctx.release &&
+    entry['commit'] === ctx.commit &&
+    JSON.stringify(entry['caseIds']) === JSON.stringify(ctx.selected.map((c) => c.id)) &&
+    JSON.stringify(entry['arms']) === JSON.stringify(ctx.arms.map((a) => a.name)) &&
+    (entry['interactions'] === null) === ctx.skipInteractions &&
+    Array.isArray(entry['incomplete']) &&
+    entry['incomplete'].length === 0;
+  if (!same) return undefined;
+  return {
+    samples: entry['samples'] as CorpusSample[],
+    incomplete: [],
+    interactionResults: (entry['interactions'] ?? undefined) as InteractionResults | undefined,
+    ringBytes: entry['ringBytes'] as number,
+    viewport: entry['viewport'] as Session['viewport'],
+    powerMode: entry['powerMode'] as Session['powerMode'],
+    lockedHint: entry['lockedHint'] as Session['lockedHint'],
+    browserVersion: '',
+    userAgent: '',
+    launchedBy: undefined,
+  };
 };
 
 const main = async (): Promise<void> => {
@@ -375,9 +474,11 @@ const main = async (): Promise<void> => {
     if (!(ENGINES as readonly string[]).includes(engine)) die(`unknown engine ${engine}`);
   }
   const release = values.release;
-  const reps = int('reps', values.reps, release ? 22 : 9);
+  const skipInteractions = values['skip-interactions'];
+  if (release && values.cases !== undefined) die('--release runs the whole corpus; drop --cases');
+  if (release && skipInteractions)
+    die('--release runs the interaction pass; drop --skip-interactions');
   const interactions = int('interactions', values.interactions, 50);
-  if (release && reps < 22) die('--release requires --reps >= 22');
   if (release && interactions < 50) die('--release requires --interactions >= 50');
 
   const allCases = corpusCases();
@@ -391,16 +492,21 @@ const main = async (): Promise<void> => {
   const hardCase = allCases.find((caseInfo) => caseInfo.id === 'mi-hard-supplied-126x');
   if (hardCase === undefined) die('corpus is missing mi-hard-supplied-126x');
 
-  const compares = values.compare.map(parseCompare);
+  const compares = values.compare.map((spec) => parseCompare(spec, process.cwd()));
   const arms: ArmSpec[] = [
     { name: 'hook', hook: true },
     { name: 'plain', hook: false },
     ...compares.map((compare) => compare.arm),
   ];
+  const reps = int('reps', values.reps, release ? releaseDefaultReps(arms.length) : 9);
+  if (release) {
+    const problem = releaseRepsProblem(reps, arms.length);
+    if (problem !== undefined) die(problem);
+  }
   const commit = shortHead();
   const outDir = values['out-dir']
     ? path.resolve(process.cwd(), values['out-dir'])
-    : path.join(repoRoot, `evidence/phase-2/${today()}-${commit}-release`);
+    : path.join(repoRoot, `evidence/phase-2/${today()}-${commit}-${labelOf(release)}`);
   if (!values.resume) {
     for (const engine of engines as Engine[]) {
       if (existsSync(partialPath(outDir, engine))) {
@@ -411,9 +517,18 @@ const main = async (): Promise<void> => {
 
   const ctx: RunContext = {
     release,
+    resume: values.resume,
+    scope: {
+      engines,
+      cases: selected.map((caseInfo) => caseInfo.id),
+      allCases: values.cases === undefined,
+      reps,
+      arms: arms.map((arm) => arm.name),
+      skippedPasses: skipInteractions ? ['interactions'] : [],
+    },
     reps,
     interactions,
-    skipInteractions: values['skip-interactions'],
+    skipInteractions,
     selected,
     hardCase,
     arms,
@@ -424,14 +539,33 @@ const main = async (): Promise<void> => {
   };
 
   const failures: string[] = [];
-  for (const engine of engines as Engine[]) {
-    const run = await runEngine(engine, ctx);
-    const summaries = selected.map((caseInfo) => summarizeCase(caseInfo, run.samples, arms, SEED));
-    failures.push(...gateFailures(engine, run, summaries, ctx.release));
-    // Remove the partial before writing: the manifest hashes every file in outDir.
-    rmSync(partialPath(outDir, engine), { force: true });
-    writeEngineEvidence(ctx, engine, run, summaries);
-    process.stderr.write(`[run-release] ${engine}: evidence written to ${outDir}\n`);
+  try {
+    for (const engine of engines as Engine[]) {
+      const finished = finishedEngine(ctx, engine);
+      if (finished !== undefined) {
+        process.stderr.write(
+          `[run-release] ${engine}: evidence already written with this protocol; skipping\n`,
+        );
+        const summaries = selected.map((caseInfo) =>
+          summarizeCase(caseInfo, finished.samples, arms, SEED),
+        );
+        failures.push(...gateFailures(engine, finished, summaries, ctx.release));
+        continue;
+      }
+      const run = await runEngine(engine, ctx);
+      const summaries = selected.map((caseInfo) =>
+        summarizeCase(caseInfo, run.samples, arms, SEED, run.incomplete),
+      );
+      failures.push(...gateFailures(engine, run, summaries, ctx.release));
+      // Remove the partial before writing: the manifest hashes every file in outDir.
+      rmSync(partialPath(outDir, engine), { force: true });
+      writeEngineEvidence(ctx, engine, run, summaries);
+      process.stderr.write(`[run-release] ${engine}: evidence written to ${outDir}\n`);
+    }
+  } catch (error) {
+    // Gates already collected for finished engines are still results.
+    for (const failure of failures) process.stderr.write(`FAILED: ${failure}\n`);
+    throw error;
   }
 
   if (failures.length > 0) {

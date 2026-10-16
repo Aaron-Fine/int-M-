@@ -1,7 +1,7 @@
 /** Derived statistics for evidence summaries (plan §9). Pure functions. */
 import { bcaInterval } from '../bca.ts';
 
-const RESAMPLES = 10_000;
+export const RESAMPLES = 10_000;
 
 const sorted = (values: readonly number[]): number[] => [...values].sort((a, b) => a - b);
 

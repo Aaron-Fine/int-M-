@@ -26,7 +26,7 @@
     "bench:recorder": "vite build --ssr tools/benchmark/recorder-cost.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/recorder-cost.js",
     "evidence:cpu": "vite build --ssr tools/measure_cpu.ts --outDir .evidence-build --emptyOutDir && node .evidence-build/measure_cpu.js",
     "evidence:release": "node tools/benchmark/run-release.ts --release",
-    "evidence:smoke": "node tools/benchmark/run-release.ts --reps 2 --cases mi-easy-default-full,mi-hard-supplied-126x --compare mirrorOff=conjugateMirror=0",
+    "evidence:smoke": "node tools/benchmark/run-release.ts --reps 2 --out-dir test-results/evidence-smoke --cases mi-easy-default-full,mi-hard-supplied-126x --compare mirrorOff=conjugateMirror=0",
     "test": "npm run test:unit && npm run test:browser",
     "test:unit": "vitest run --passWithNoTests",
     "test:unit:watch": "vitest",

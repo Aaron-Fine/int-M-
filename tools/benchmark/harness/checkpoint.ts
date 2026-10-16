@@ -35,13 +35,75 @@ export const completedCases = (
   );
 };
 
-export const readPartial = (file: string): unknown[] =>
-  existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as unknown[]) : [];
+/** Protocol facts a partial file was measured under; a resume must match them. */
+export interface PartialHeader {
+  readonly release: boolean;
+  readonly reps: number;
+  readonly arms: readonly string[];
+  readonly commit: string;
+  readonly caseIds: readonly string[];
+}
+
+interface PartialFile {
+  readonly header?: PartialHeader;
+  readonly samples: unknown[];
+}
+
+const readPartialFile = (file: string): PartialFile | undefined => {
+  if (!existsSync(file)) return undefined;
+  const parsed = JSON.parse(readFileSync(file, 'utf8')) as unknown;
+  // Files written before the header existed were a bare sample array.
+  return Array.isArray(parsed) ? { samples: parsed } : (parsed as PartialFile);
+};
+
+const writeAtomic = (file: string, content: PartialFile): void => {
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(`${file}.tmp`, JSON.stringify(content));
+  renameSync(`${file}.tmp`, file);
+};
+
+export const readPartial = (file: string): unknown[] => readPartialFile(file)?.samples ?? [];
+
+/** Names the first protocol field that differs, or undefined when they agree. */
+export const headerMismatch = (
+  found: PartialHeader | undefined,
+  expected: PartialHeader,
+): string | undefined => {
+  if (found === undefined) return 'it has no protocol header';
+  const fields: (keyof PartialHeader)[] = ['release', 'reps', 'arms', 'commit', 'caseIds'];
+  for (const field of fields) {
+    if (JSON.stringify(found[field]) !== JSON.stringify(expected[field])) {
+      return `${field} differs (partial ${JSON.stringify(found[field])}, this run ${JSON.stringify(expected[field])})`;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Starts or continues a partial file. A new file gets the header; an existing
+ * one must carry a matching header, so a resume never merges samples taken
+ * under a different protocol.
+ */
+export const claimPartial = (file: string, header: PartialHeader): void => {
+  const existing = readPartialFile(file);
+  if (existing === undefined) {
+    writeAtomic(file, { header, samples: [] });
+    return;
+  }
+  const mismatch = headerMismatch(existing.header, header);
+  if (mismatch !== undefined) {
+    throw new Error(
+      `${file} was written under a different protocol (${mismatch}); remove it or rerun with the original flags`,
+    );
+  }
+};
 
 /** Atomic append: write a temporary file, then rename over the partial. */
 export const appendPartial = (file: string, samples: readonly Cell[]): void => {
-  const merged = mergeSamples(readPartial(file) as Cell[], samples);
-  mkdirSync(path.dirname(file), { recursive: true });
-  writeFileSync(`${file}.tmp`, JSON.stringify(merged));
-  renameSync(`${file}.tmp`, file);
+  const existing = readPartialFile(file);
+  const merged = mergeSamples((existing?.samples ?? []) as Cell[], samples);
+  writeAtomic(file, {
+    ...(existing?.header === undefined ? {} : { header: existing.header }),
+    samples: merged,
+  });
 };

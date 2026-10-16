@@ -8,7 +8,13 @@ import type { Session } from '../session.ts';
 import type { RenderCapture, ViewportLike } from '../capture.ts';
 import { measureRender, withStallRetry } from '../capture.ts';
 import type { BrowserContext, Page } from '@playwright/test';
-import { appendPartial, completedCases, readPartial } from '../checkpoint.ts';
+import {
+  appendPartial,
+  claimPartial,
+  completedCases,
+  readPartial,
+  type PartialHeader,
+} from '../checkpoint.ts';
 import { evaluateBudget } from '../budgets.ts';
 import { armOrder } from '../schedule.ts';
 import { median, pairedRatio, regression } from '../stats.ts';
@@ -42,6 +48,16 @@ export interface CorpusSample {
   readonly hash: string;
   readonly retriedAfterStall: boolean;
   readonly bandsElapsedMs?: readonly number[] | undefined;
+  /** The stable computed frame of the render trace (hook arms only). */
+  readonly trace?: unknown;
+}
+
+/** A case that stalled twice and was abandoned; it fails the gate. */
+export interface IncompleteCase {
+  readonly caseId: string;
+  readonly stalls: number;
+  readonly reason: string;
+  readonly repetition: number;
 }
 
 export const urlFor = (baseUrl: string, caseInfo: CorpusCase, arm: ArmSpec): string => {
@@ -103,6 +119,7 @@ export const summarizeCase = (
   samples: readonly CorpusSample[],
   arms: readonly ArmSpec[],
   seed: number,
+  incomplete: readonly IncompleteCase[] = [],
 ) => {
   const own = samples.filter((s) => s.caseId === caseInfo.id);
   const hook = warm(own, 'hook');
@@ -142,6 +159,7 @@ export const summarizeCase = (
       (s) => (s.arm === 'hook' || s.arm === 'plain') && s.hash !== reference,
     ).length,
     stalls: own.filter((s) => s.retriedAfterStall).length,
+    incomplete: incomplete.find((entry) => entry.caseId === caseInfo.id),
     compare,
   };
 };
@@ -200,7 +218,7 @@ const frameOf = (capture: { trace?: unknown }, pick: (f: Frame) => boolean): Fra
   return trace?.frames?.find(pick);
 };
 
-interface Live {
+export interface Live {
   context: BrowserContext;
   page: Page;
 }
@@ -237,6 +255,43 @@ const captureArm = async (
   return { capture, retried };
 };
 
+/** What the pass needs from a browser; tests substitute a stub. */
+export interface CorpusDriver {
+  baseUrl(arm: ArmSpec): string | undefined;
+  open(): Promise<Live>;
+  capture(
+    live: Live,
+    caseInfo: CorpusCase,
+    arm: ArmSpec,
+    baseUrl: string,
+  ): Promise<{ capture: RenderCapture; retried: boolean }>;
+}
+
+const sessionDriver = (session: Session): CorpusDriver => ({
+  baseUrl: (arm) => session.baseUrls[arm.dist ?? 'current'],
+  open: () => openLive(session),
+  capture: (live, caseInfo, arm, baseUrl) => captureArm(session, live, caseInfo, arm, baseUrl),
+});
+
+export interface CorpusPassOptions {
+  readonly header: PartialHeader;
+  readonly driver?: CorpusDriver;
+  readonly locked?: () => boolean | null;
+}
+
+export interface CorpusPassResult {
+  readonly samples: CorpusSample[];
+  readonly incomplete: IncompleteCase[];
+}
+
+const isStall = (error: unknown): boolean =>
+  error instanceof Error && error.name === 'TimeoutError';
+
+/**
+ * Runs every case. A case that stalls twice is recorded as incomplete and the
+ * pass moves on; a stall on a locked session throws the resumable error
+ * instead, since every later case would stall too.
+ */
 export const runCorpusPass = async (
   session: Session,
   cases: readonly CorpusCase[],
@@ -244,32 +299,57 @@ export const runCorpusPass = async (
   reps: number,
   partialFile: string,
   checkLock: boolean,
-): Promise<CorpusSample[]> => {
+  options: CorpusPassOptions,
+): Promise<CorpusPassResult> => {
+  const driver = options.driver ?? sessionDriver(session);
+  const locked = options.locked ?? sessionLocked;
   const armByName = new Map(arms.map((arm) => [arm.name, arm]));
+  claimPartial(partialFile, options.header);
   const done = completedCases(
     readPartial(partialFile) as CorpusSample[],
     cases.map((c) => c.id),
     reps,
     arms.map((a) => a.name),
   );
+  const incomplete: IncompleteCase[] = [];
+  const incompleteSamples: CorpusSample[] = [];
   for (const caseInfo of cases) {
     if (done.has(caseInfo.id)) continue;
-    if (checkLock && sessionLocked() === true)
+    if (checkLock && locked() === true)
       throw new Error(`session locked before ${caseInfo.id}; resume with --resume`);
     const caseSamples: CorpusSample[] = [];
-    for (let repetition = 0; repetition < reps; repetition += 1) {
+    let abandoned: IncompleteCase | undefined;
+    for (let repetition = 0; repetition < reps && abandoned === undefined; repetition += 1) {
       const order = armOrder(
         arms.map((a) => a.name),
         repetition,
       );
-      const live = await openLive(session);
+      const live = await driver.open();
       try {
         for (const name of order) {
           const arm = armByName.get(name);
           if (arm === undefined) throw new Error(`unknown arm ${name}`);
-          const baseUrl = session.baseUrls[arm.dist ?? 'current'];
+          const baseUrl = driver.baseUrl(arm);
           if (baseUrl === undefined) throw new Error(`no served build for arm ${arm.name}`);
-          const { capture, retried } = await captureArm(session, live, caseInfo, arm, baseUrl);
+          let result: Awaited<ReturnType<CorpusDriver['capture']>>;
+          try {
+            result = await driver.capture(live, caseInfo, arm, baseUrl);
+          } catch (error) {
+            if (!isStall(error)) throw error;
+            if (checkLock && locked() === true) {
+              throw new Error(
+                `session locked during ${caseInfo.id}; resume with --resume (${(error as Error).message})`,
+              );
+            }
+            abandoned = {
+              caseId: caseInfo.id,
+              repetition,
+              stalls: caseSamples.filter((s) => s.retriedAfterStall).length + 2,
+              reason: `arm ${name} stalled twice at repetition ${repetition}: ${(error as Error).message.split('\n')[0] ?? 'timeout'}`,
+            };
+            break;
+          }
+          const { capture, retried } = result;
           if (arm.hook) {
             if (capture.viewport === undefined)
               throw new Error(`${caseInfo.id}: arm ${arm.name} reported no viewport`);
@@ -287,15 +367,26 @@ export const runCorpusPass = async (
             coarseMs: coarse?.requestToPresentMs,
             classifyMs: stable?.classifyMs,
             bandsElapsedMs: stable?.bandsElapsedMs,
+            ...(arm.hook && stable !== undefined ? { trace: stable } : {}),
             hash: capture.hash,
             retriedAfterStall: retried,
           });
         }
       } finally {
-        await live.context.close();
+        await live.context.close().catch(() => undefined);
       }
     }
-    appendPartial(partialFile, caseSamples);
+    if (abandoned === undefined) {
+      appendPartial(partialFile, caseSamples);
+    } else {
+      incomplete.push(abandoned);
+      incompleteSamples.push(...caseSamples);
+    }
   }
-  return readPartial(partialFile) as CorpusSample[];
+  const selectedCases = new Set(cases.map((c) => c.id));
+  const selectedArms = new Set(arms.map((a) => a.name));
+  const samples = (readPartial(partialFile) as CorpusSample[]).filter(
+    (s) => selectedCases.has(s.caseId) && selectedArms.has(s.arm),
+  );
+  return { samples: [...samples, ...incompleteSamples], incomplete };
 };
