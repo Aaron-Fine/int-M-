@@ -38,7 +38,7 @@ Subagent-driven (`superpowers:subagent-driven-development`), owner direction 202
 
 - **Implementers: Haiku**, one fresh session per task, scoped to that task's Files list; Task 4 runs as two sessions (4a: `passes/corpus.ts` + tests; 4b: `passes/interactions.ts` + `run-release.ts` + smoke) and Task 7b as two (7b-1: render; 7b-2: worker and tile).
 - **Per-task reviewer: Sonnet**, checking the task against this plan and the spec before the next task starts.
-- **Final review: Sonnet**, whole branch against the spec.
+- **Final review: Opus**, whole branch against the spec (owner direction).
 - Headed browser runs (Task 4 smoke is headless; Task 9 is headed) need the owner's unlocked session; Task 9 is run by the controller, not a subagent.
 
 ---
