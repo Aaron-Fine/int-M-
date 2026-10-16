@@ -31,7 +31,7 @@ const channelsDigest = (band: {
     .update(bytesOf(band.multiplierAngle))
     .digest('hex');
 
-const classify = (viewport: Viewport, quality: RenderQuality, mode?: 'legacy-scan') =>
+const classify = (viewport: Viewport, quality: RenderQuality) =>
   classifyRows(
     { viewport, size: GOLDEN_RASTER, quality },
     quality,
@@ -39,7 +39,6 @@ const classify = (viewport: Viewport, quality: RenderQuality, mode?: 'legacy-sca
     0,
     GOLDEN_RASTER.height,
     new AbortController().signal,
-    mode,
   );
 
 export const goldenDigest = async (viewport: Viewport, quality: RenderQuality): Promise<string> =>
@@ -49,13 +48,7 @@ const main = async (): Promise<void> => {
   const cases: Record<string, string> = {};
   for (const corpusCase of loadCorpusCases()) {
     const quality = profileQuality(corpusCase.profile);
-    const digest = await goldenDigest(corpusCase.viewport, quality);
-    // Equality with the reference scan, asserted while it still exists.
-    // Task 7a deletes this block together with legacy-scan.
-    const reference = channelsDigest(await classify(corpusCase.viewport, quality, 'legacy-scan'));
-    if (reference !== digest)
-      throw new Error(`${corpusCase.id}: default kernel differs from legacy-scan`);
-    cases[corpusCase.id] = digest;
+    cases[corpusCase.id] = await goldenDigest(corpusCase.viewport, quality);
   }
   const commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
   const fixture = {

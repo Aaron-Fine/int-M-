@@ -3,15 +3,15 @@ import { VERIFIER_VERDICT, verifyCycleInto } from './verifier';
 import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
 
 /**
- * Triggered lag-scan kernel (classifierMode 'triggered-scan').
+ * Triggered lag-scan kernel: the production orbit loop behind classifyInto.
  *
- * The legacy kernel (classifyInto in orbit.ts) tests every lag 1..maxPeriod
- * against the proposal gate on every iteration. Almost all of those distances
- * are thrown away. This kernel keeps the one product of a scan that predicts
- * the next proposal — the lag whose distance was smallest — and between full
- * scans tests only that WATCHED lag, with exactly the legacy proposal test
- * (squared distance <= cycleTolerance^2). A full scan, identical to the legacy
- * scan at that iteration (ascending lags, inline verifier), runs when
+ * A full lag scan (every lag 1..maxPeriod against the proposal gate on every
+ * iteration) throws away almost all of its distances. This kernel keeps the
+ * one product of a scan that predicts the next proposal — the lag whose
+ * distance was smallest — and between full scans tests only that WATCHED lag,
+ * with the proposal test of the full scan (squared distance <= cycleTolerance^2).
+ * A full scan, identical to the full scan of that iteration (ascending lags,
+ * inline verifier), runs when
  *
  * - the watched lag proposes (a "fire"). Fires are not capped: while the
  *   verifier keeps refusing a proposing lag, the pixel scans every iteration,
