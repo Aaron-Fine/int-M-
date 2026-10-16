@@ -220,6 +220,8 @@ time, each followed by `npm run check` and the browser suite:
 - **`@types/node`**: latest 24.x, matching the Node 24 runtime the
   toolchain runs on (26.x describes APIs the runtime lacks).
 
+TypeScript 7 deferred: `npm run lint` fails with `Error: typescript-eslint does not support TS 7.0.`, and `npm run typecheck` fails with TS2339 errors on the `typescript` API in `poc/performance/src/numerics/period-two-verifier.test.ts`.
+
 The lockfile is regenerated with the pinned npm major (`packageManager`).
 
 ## Out of scope
