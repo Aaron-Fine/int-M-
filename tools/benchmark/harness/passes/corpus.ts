@@ -116,6 +116,7 @@ export const summarizeCase = (
       wall?: ReturnType<typeof pairedRatio>;
       classify?: ReturnType<typeof pairedRatio>;
       regression?: ReturnType<typeof regression>;
+      hashMismatches: number;
     }
   > = {};
   for (const arm of arms.filter((a) => a.name !== 'hook' && a.name !== 'plain')) {
@@ -126,6 +127,7 @@ export const summarizeCase = (
       wall: pairedRatio(otherStable, hookStable, seed),
       classify: pairedRatio(otherClassify, hookClassify, seed),
       regression: regression(otherStable, hookStable, seed),
+      hashMismatches: own.filter((s) => s.arm === arm.name && s.hash !== reference).length,
     };
   }
   const [plainWall, hookWall] = aligned(plain, hook, (s) => s.markWallMs);
@@ -136,12 +138,35 @@ export const summarizeCase = (
     coarseMedianMs: coarseMedian,
     budget: evaluateBudget(caseInfo.class, coarseMedian, stableMedian),
     hookOverhead: pairedRatio(plainWall, hookWall, seed),
-    hashMismatches: own.filter((s) => s.hash !== reference).length,
+    hashMismatches: own.filter(
+      (s) => (s.arm === 'hook' || s.arm === 'plain') && s.hash !== reference,
+    ).length,
     stalls: own.filter((s) => s.retriedAfterStall).length,
     compare,
   };
 };
 export type CaseSummary = ReturnType<typeof summarizeCase>;
+
+/**
+ * Hook overhead pooled across cases: every case's warm plain/hook pairs
+ * (matched by repetition within the case) feed one paired interval.
+ */
+export const pooledHookOverhead = (samples: readonly CorpusSample[], seed: number) => {
+  const plainAll: number[] = [];
+  const hookAll: number[] = [];
+  const caseIds = [...new Set(samples.map((s) => s.caseId))];
+  for (const caseId of caseIds) {
+    const own = samples.filter((s) => s.caseId === caseId);
+    const [plainWall, hookWall] = aligned(
+      warm(own, 'plain'),
+      warm(own, 'hook'),
+      (s) => s.markWallMs,
+    );
+    plainAll.push(...plainWall);
+    hookAll.push(...hookWall);
+  }
+  return pairedRatio(plainAll, hookAll, seed);
+};
 
 interface Frame {
   stage: string;
@@ -199,6 +224,7 @@ export const runCorpusPass = async (
   arms: readonly ArmSpec[],
   reps: number,
   partialFile: string,
+  checkLock: boolean,
 ): Promise<CorpusSample[]> => {
   const armByName = new Map(arms.map((arm) => [arm.name, arm]));
   const done = completedCases(
@@ -209,7 +235,7 @@ export const runCorpusPass = async (
   );
   for (const caseInfo of cases) {
     if (done.has(caseInfo.id)) continue;
-    if (sessionLocked() === true)
+    if (checkLock && sessionLocked() === true)
       throw new Error(`session locked before ${caseInfo.id}; resume with --resume`);
     const caseSamples: CorpusSample[] = [];
     for (let repetition = 0; repetition < reps; repetition += 1) {

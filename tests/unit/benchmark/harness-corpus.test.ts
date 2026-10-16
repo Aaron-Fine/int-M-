@@ -81,6 +81,35 @@ describe('corpus pass', () => {
     ).toBe(1);
   });
 
+  it('keeps compare-arm hash differences out of parity but reports them per arm', () => {
+    const samples = [0, 1].flatMap((repetition) =>
+      ['hook', 'plain', 'mirrorOff'].map((arm) => ({
+        caseId: caseInfo.id,
+        repetition,
+        arm,
+        climate: 'warm',
+        markWallMs: 1,
+        stableMs: 1,
+        coarseMs: 1,
+        classifyMs: 1,
+        hash: arm === 'mirrorOff' ? 'differs' : 'h',
+        retriedAfterStall: false,
+      })),
+    );
+    const summary = summarizeCase(
+      caseInfo,
+      samples,
+      [
+        { name: 'hook', hook: true },
+        { name: 'plain', hook: false },
+        { name: 'mirrorOff', hook: true, query: 'conjugateMirror=0' },
+      ],
+      11,
+    );
+    expect(summary.hashMismatches).toBe(0);
+    expect(summary.compare['mirrorOff']?.hashMismatches).toBe(2);
+  });
+
   it('rejects a render whose achieved viewport is not the corpus view', () => {
     expect(() =>
       assertViewport(caseInfo, { center: { re: -0.75, im: 0 }, spanY: 2.5 }, 'previous'),

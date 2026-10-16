@@ -1,5 +1,6 @@
 /** Per-case checkpointing so an interrupted session resumes without repeats. */
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 interface Cell {
   readonly caseId: string;
@@ -40,6 +41,7 @@ export const readPartial = (file: string): unknown[] =>
 /** Atomic append: write a temporary file, then rename over the partial. */
 export const appendPartial = (file: string, samples: readonly Cell[]): void => {
   const merged = mergeSamples(readPartial(file) as Cell[], samples);
+  mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(`${file}.tmp`, JSON.stringify(merged));
   renameSync(`${file}.tmp`, file);
 };
