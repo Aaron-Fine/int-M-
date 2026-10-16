@@ -99,7 +99,8 @@ production default is 4.7×–26× faster than this same legacy mode in Firefox
 (Stage A above). Proposed disposition: record B as not met in Firefox and
 superseded for users by C (the watched-lag kernel keeps PR 2's
 allocation-free structure); a follow-up should find which change slowed the
-SpiderMonkey legacy lag scan, since `legacy-scan` remains the judge baseline.
+SpiderMonkey legacy lag scan. `legacy-scan` has since been removed (ADR 0007),
+and the judge baseline is now the production renderer with mirroring on.
 
 ### C — reduce the lag-scan cost (realized as the watched-lag kernel)
 
@@ -236,9 +237,18 @@ waiting for.
   hook overhead was within 5% in both browsers. One Firefox stall recovered on
   retry. 25 of the 26 stable medians are within ±20% of the 2026-10-15
   Stage A candidate medians. The exception is Firefox
-  `mi-fallback-budget-exhaustion`, at 398 ms against 616 ms. The earlier
-  sample had a MAD of 161 ms, so the difference is within its noise. The
-  interaction medians are within the MADs of the 2026-10-15 operational run.
+  `mi-fallback-budget-exhaustion`, at 398 ms against 616 ms (0.65×). That
+  difference, 218 ms, exceeds the earlier sample's 161 ms MAD. The earlier
+  Firefox half ran with Steam in the background (its run note), and this case
+  was the one sample in this session that stalled and was retried, so the gap
+  is recorded rather than explained. The interaction medians are within the
+  MADs of the 2026-10-15 operational run.
+
+  The session rotated arm order over an odd number of warm repetitions, which
+  favors the hook arm slightly; recomputed on position-balanced pairs the
+  pooled plain/hook ratios are 0.994 [0.979, 1.007] (Chrome) and 0.984
+  [0.958, 1.003] (Firefox), still within 5%. The harness now balances arm
+  positions.
 
 ## What this record does not establish
 

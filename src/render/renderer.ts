@@ -69,8 +69,7 @@ export interface SemanticStageTiming {
   readonly bandsElapsedMs?: readonly number[];
   /**
    * Tiled stable pass only: supervisor-side merge/assembly cost of the
-   * stable semantic frame. ~0 on the zero-copy path (band views are already
-   * in place), the copy cost on the legacy-merge measurement arm.
+   * stable semantic frame. Small, since band views are already in place.
    */
   readonly mergeCpuMs?: number;
 }

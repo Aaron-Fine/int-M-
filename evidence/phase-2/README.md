@@ -120,7 +120,10 @@ node tools/benchmark/run-release.ts [--engines chromium,firefox] [--release]
 ```
 
 `npm run evidence:release` is `--release`; `npm run evidence:smoke` is a
-two-repetition screening run with one `--compare` arm.
+two-repetition screening run with one `--compare` arm, written to
+`test-results/evidence-smoke/` (git-ignored) and labelled directional.
+`--release` refuses `--cases` subsets and `--skip-interactions`, so a release
+directory always covers the whole corpus and both passes.
 
 **Engines.** One session per engine (default: Chromium and Firefox). Each
 session builds the production bundle once, serves it with `vite preview` (on port 4185;
@@ -128,7 +131,9 @@ each `dist:` compare arm gets its own preview on 4186, 4187, …), and launches
 the browser. A `--release` run refuses to start when the desktop session is
 locked (logind `LockedHint`).
 
-**Arms.** Every case runs two arms, in an order that rotates each repetition:
+**Arms.** Every case runs two arms. Repetition 0 (cold) uses the declared
+order; warm repetitions rotate it on the warm index, so each arm leads equally
+often when the warm count is a multiple of the arm count:
 
 - `hook`: the query `?perf=1`, with the render-trace hook present.
 - `plain`: no hook. The per-sample RGBA hash must match `hook`.
@@ -139,8 +144,11 @@ are paired against `hook` and are hash-checked the same way.
 
 **Repetitions.** The screening default is 9 paired repetitions. `--release`
 runs branded headed browsers (Chrome through flatpak over CDP, Firefox over
-WebDriver BiDi) and requires at least 22 repetitions (repetition 0 is cold);
-smaller values exit with an error.
+WebDriver BiDi). Its default is 1 cold plus the smallest multiple of the arm
+count that is at least 21 warm (23 repetitions for two arms, 22 for three). An
+explicit `--reps` under `--release` must leave a warm count that is at least 21
+and a multiple of the arm count; anything else exits with an error. A first-in-
+context penalty of about 3% makes an unbalanced count bias the paired ratio.
 
 **Passes.** Each engine runs a corpus pass, then an interaction pass (`cancel`,
 `inflight-replay`, `recolor`, `semantic-cache`, `--interactions N` each, default
@@ -150,32 +158,56 @@ second pass.
 
 **Checkpoints and resume.** Each completed case is checkpointed to
 `<outDir>/.partial-<engine>.json`. Without `--resume`, an existing partial file
-stops the run, so an interrupted session is never silently overwritten. With
-`--resume`, the run continues from the checkpoint. The partial file is removed
-once that engine's evidence is written.
+stops the run, so an interrupted session is never silently overwritten. The
+partial file starts with a protocol header (release flag, repetitions, arm
+names, commit, case ids); `--resume` refuses a partial file whose header
+differs from the current flags. With `--resume`, the run continues from the
+checkpoint, and an engine whose `raw-observations.json` entry already matches
+the repetitions, release flag, commit, cases and arms (and has no incomplete
+case) is not measured again; its gates are re-evaluated from the stored
+samples. The partial file is removed once that engine's evidence is written.
+
+**Stalls.** A stalled render is retried once on a fresh context and marked
+`retriedAfterStall`. A second stall abandons that case: it is recorded as
+incomplete (stall count and reason), its remaining repetitions are skipped, the
+run continues, and the case fails the gate. If the session is locked at that
+point, the run stops with the resumable `session locked ... resume with
+--resume` error instead. Gate failures already collected are printed before
+an error ends the run.
 
 **Outputs.** The default directory is `evidence/phase-2/<date>-<commit>-release/`
-(the `-release` suffix is always applied); `--out-dir` overrides it. The
-writer (`tools/benchmark/harness/evidence.ts`) emits:
+under `--release` and `evidence/phase-2/<date>-<commit>-directional/` otherwise;
+`--out-dir` overrides it. The writer (`tools/benchmark/harness/evidence.ts`) emits:
 
 - `environment.json`: the `capture-environment.mjs` skeleton plus a
-  `browsers.<engine>` entry per engine.
-- `raw-observations.json` (`schemaVersion: 1`, `byEngine`): every sample,
-  individually, with its full render-trace snapshot.
-- `summary.md`: one section per engine; re-running one engine replaces only
-  that engine's section.
+  `browsers.<engine>` entry per engine. Each entry records the label
+  (`release` or `directional`), the run scope (engines, cases, reps, arms,
+  skipped passes), the BCa `seed` and `resamples`, `powerMode` (sysfs AC and
+  platform profile), the calibrated `viewport`, and the `lockedHint` seen at
+  session start.
+- `raw-observations.json` (`schemaVersion: 1`, `byEngine`): per engine, the same
+  protocol facts plus `release`, `reps`, `commit`, `caseIds`, `arms`, every
+  sample individually (hook samples keep the stable computed frame of the render
+  trace; plain samples have none), any `incomplete` cases, the interaction
+  results and `ringBytes`. About 1 KB per hook sample as formatted (measured on a smoke run), so a
+  release session stays well under the 5 MiB threshold.
+- `summary.md`: the first lines state the label and the run scope, then one
+  section per engine; re-running one engine replaces only that engine's
+  section and the header.
 - `manifest.sha256`: emitted last by `tools/benchmark/manifest.mjs`.
 
 Paired intervals are 95% BCa intervals (`tools/benchmark/harness/stats.ts`,
-seed recorded in `raw-observations.json`). The speed ratio is the median paired
+seed recorded in `environment.json` and `raw-observations.json`). The speed ratio is the median paired
 log-ratio, and the regression cap is the median paired difference.
 
 **Gates.** Any failed gate makes the run exit non-zero, with one message per
 failure:
 
 - ring retention: ring bytes above 65,536;
+- incomplete case: a case that stalled twice;
 - budget: coarse or stable frame budget failures;
-- hash mismatch between `hook` and `plain` or a compare arm;
+- hash mismatch between `hook` and `plain`. Compare-arm mismatches are
+  reported per arm in the summary, not gated;
 - hook overhead (release only): the pooled plain/hook lower bound must be at
   least 1/1.05, that is, hook overhead of at most 5%. Non-release runs print
   this as "not gated";

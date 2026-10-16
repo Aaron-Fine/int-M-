@@ -220,8 +220,8 @@ for arms, passes, outputs, and resume behavior.
 - Measurement reaches the app through validated query parameters
   (`?perf=1&view=re,im,spanY&quality=…`; the `classifierMode` parameter was removed 2026-10-16, ADR 0007); the default
   no-parameter path is byte-identical and pinned by unit tests.
-- Repetition 0 is cold (fresh browser context per arm); later repetitions are
-  warm. Cancellation, cache, replay, and recolor interactions run in a
+- Repetition 0 is cold (a fresh browser context per repetition, shared by that
+  repetition's arms); later repetitions are warm. Cancellation, cache, replay, and recolor interactions run in a
   separate per-engine interaction pass (skippable with `--skip-interactions`).
 - Every sample is stored raw in `raw-observations.json` together with
   `environment.json`, `summary.md`, and `manifest.sha256` (see the evidence

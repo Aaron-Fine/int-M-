@@ -159,12 +159,22 @@ sections: budgets; hook overhead; parity; interactions; band balance; one
 section per `--compare` arm; stalls and lock events; honesty notes
 (`requestToPresentMs` is not proof of paint, and so on).
 
+Narrowing as built (2026-10-16 review): the summary has no band
+balance/imbalance, classify or colorize rows and no lock-events section, and
+`semantic-comparison.json` is not produced. Per-case classify and band data
+stay in `raw-observations.json` (the stable-frame trace of every hook
+sample); the summary reports a stall count per case and the lock state seen
+at session start is in `environment.json`. `requestToPresentMs` ends at the
+next presentation opportunity; it is not proof of paint, and the corpus
+summary says so.
+
 ### Testing
 
 - Unit tests (vitest, `tests/unit/benchmark/`): `stats.mjs` (median, p95
   threshold, regression flag), `budgets.mjs` (evaluation at and around each
   threshold), the arm/order schedule (every arm in every position over a
-  rotation), checkpoint merge and `--resume` selection, summary section
+  rotation; each arm leads equally often over the warm repetitions),
+  checkpoint merge and `--resume` selection, summary section
   assembly from fixed samples.
 - `npm run evidence:smoke`: headless end to end (2 reps, 2 cases, one
   `--compare conjugateMirror=0`); run by hand before release sessions, not
@@ -177,7 +187,7 @@ section per `--compare` arm; stalls and lock events; honesty notes
 ## E2E suite
 
 - **Production bundle.** `playwright.config.ts` serves `vite build` +
-  `vite preview` (port 4173) instead of `npm run dev`; local and CI use the
+  `vite preview` (port 4174, so `npm run preview` on 4173 is never reused) instead of `npm run dev`; local and CI use the
   same command. A `test:browser:dev` script keeps the dev-server variant for
   debugging.
 - **Provenance test on the fast kernel.** `render traces carry delivery

@@ -22,17 +22,17 @@ evidence links. It is a status document, not a marketing document:
 
 ## Status at a glance
 
-| Sequence item (plan §11)                                       | Workstream        | Status                                                                                                                                                                                               | Evidence                                                                                                                          |
-| -------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Step 0 — PoC harness                                           | —                 | **Landed**                                                                                                                                                                                           | [poc/performance/](../poc/performance/README.md)                                                                                  |
-| PR 1 — Corpus, timing, bounded observability                   | A                 | **Landed** (2026-10-15): provenance, compute identity, worker/band timing, and two-event cancellation are wired end to end; the A gate waits on the release-browser operational suite                | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                        |
-| PR 2 — Allocation-free scalar kernel                           | B                 | **Landed**; release B gate passes in Chrome, **not met in Firefox** (the reference-kernel comparison regresses there; [closeout](verification/PHASE-2-CLOSEOUT.md#b--allocation-free-scalar-kernel)) | [b-gate evidence](../evidence/phase-2/2026-10-15-9e70551-b-gate/summary.md)                                                       |
-| PR 3 — Common verifier and semantic oracle                     | C (part)          | **Landed**                                                                                                                                                                                           | src/domain/verifier.ts, verifier/adjudication tests                                                                               |
-| PR 4 — Checkpoint candidates                                   | C                 | **Landed** behind a flag; the workstream C gate closed on the watched-lag default ([closeout](verification/PHASE-2-CLOSEOUT.md#c--reduce-the-lag-scan-cost-realized-as-the-watched-lag-kernel))      | src/domain/checkpoint.ts, pr4 bench (directional), [first Stage A run](../evidence/phase-2/2026-09-02-6f49f19/summary.md)         |
-| PR 5 — Period policy buckets and product language              | D                 | **Landed**; gate passes ([closeout](verification/PHASE-2-CLOSEOUT.md#d--period-policy-and-product-language))                                                                                         | src/domain/period-policy.ts, policy tests                                                                                         |
-| Stage A — target-hardware baseline and gate runs               | A/B/C/D           | **Release protocol complete** (branded Chrome 155 and Firefox 157, headed, target laptop, 21 warm pairs, BCa)                                                                                        | [evidence/phase-2/2026-10-11-59926c5-watched-lag-release/](../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md) |
-| Conditional PRs M, O, N, E, G, F, H, I, K (+ renderer details) | M/O/N/E/G/F/H/I/K | Proposed final dispositions in the [closeout](verification/PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions-proposed); M shipped default-on in PR #23                                         | poc/performance/results/, poc/performance/browser/results/                                                                        |
-| Research tracks — rigorous subdivision (J), trap-radius (L)    | J/L               | Open-ended; L has PoC oracle-gate evidence (below)                                                                                                                                                   | poc/performance/src/kernels/trap.ts and results                                                                                   |
+| Sequence item (plan §11)                                       | Workstream        | Status                                                                                                                                                                                                                                    | Evidence                                                                                                                          |
+| -------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Step 0 — PoC harness                                           | —                 | **Landed**                                                                                                                                                                                                                                | [poc/performance/](../poc/performance/README.md)                                                                                  |
+| PR 1 — Corpus, timing, bounded observability                   | A                 | **Landed** (2026-10-15): provenance, compute identity, worker/band timing, and two-event cancellation are wired end to end; the A gate waits on the release-browser operational suite                                                     | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                        |
+| PR 2 — Allocation-free scalar kernel                           | B                 | **Landed**; release B gate passes in Chrome, **not met in Firefox** (the reference-kernel comparison regresses there; [closeout](verification/PHASE-2-CLOSEOUT.md#b--allocation-free-scalar-kernel))                                      | [b-gate evidence](../evidence/phase-2/2026-10-15-9e70551-b-gate/summary.md)                                                       |
+| PR 3 — Common verifier and semantic oracle                     | C (part)          | **Landed**                                                                                                                                                                                                                                | src/domain/verifier.ts, verifier/adjudication tests                                                                               |
+| PR 4 — Checkpoint candidates                                   | C                 | **Landed**; the flag and module were removed 2026-10-16 (ADR 0007); the workstream C gate closed on the watched-lag default ([closeout](verification/PHASE-2-CLOSEOUT.md#c--reduce-the-lag-scan-cost-realized-as-the-watched-lag-kernel)) | pr4 bench (directional; module removed, ADR 0007), [first Stage A run](../evidence/phase-2/2026-09-02-6f49f19/summary.md)         |
+| PR 5 — Period policy buckets and product language              | D                 | **Landed**; gate passes ([closeout](verification/PHASE-2-CLOSEOUT.md#d--period-policy-and-product-language))                                                                                                                              | src/domain/period-policy.ts, policy tests                                                                                         |
+| Stage A — target-hardware baseline and gate runs               | A/B/C/D           | **Release protocol complete** (branded Chrome 155 and Firefox 157, headed, target laptop, 21 warm pairs, BCa)                                                                                                                             | [evidence/phase-2/2026-10-11-59926c5-watched-lag-release/](../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md) |
+| Conditional PRs M, O, N, E, G, F, H, I, K (+ renderer details) | M/O/N/E/G/F/H/I/K | Proposed final dispositions in the [closeout](verification/PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions-proposed); M shipped default-on in PR #23                                                                              | poc/performance/results/, poc/performance/browser/results/                                                                        |
+| Research tracks — rigorous subdivision (J), trap-radius (L)    | J/L               | Open-ended; L has PoC oracle-gate evidence (below)                                                                                                                                                                                        | poc/performance/src/kernels/trap.ts and results                                                                                   |
 
 ## Recovery audit update (2026-09-02)
 
@@ -245,12 +245,14 @@ behind), and the current Stage A paired arms both run the post-PR-2 kernel,
 so the gate needs dedicated browser evidence ([gate
 analysis](verification/STAGE-A-GATE-ANALYSIS.md)).
 
-The B gate runs through `npm run evidence:release` with `--compare`. For a
-gate run, create a disposable detached worktree at the pinned pre-PR-2 commit
-`a6e1838`, build its `dist`, pass `--compare baseline=dist:<worktree>/dist`
-alongside the current build, and remove the worktree after the evidence
-manifest is verified. The runner intentionally has no default session or
-`/tmp` worktree dependency.
+The B gate is dispositioned (see the
+[closeout](verification/PHASE-2-CLOSEOUT.md#b--allocation-free-scalar-kernel)).
+Re-running it needs `run-b-gate.mjs` from `0e960ea`; the retired runner and
+`view-chain.mjs` are gone from the tree. `npm run evidence:release --compare
+baseline=dist:<dir>` cannot drive it: the `a6e1838` build has no `?view=`,
+`?perf=1` or `__miRenderTrace`, so the harness stops with "arm baseline
+reported no viewport". `--compare` is for builds that carry the current URL
+contract.
 
 ### PR 3 — Common verifier and semantic oracle (landed)
 
@@ -265,7 +267,7 @@ legacy-vs-verifier divergence is adjudicated by the double-double oracle
 
 ### PR 4 — Checkpoint candidates (workstream C; history: removed 2026-10-16, ADR 0007)
 
-[src/domain/checkpoint.ts](../src/domain/checkpoint.ts) (revision
+`src/domain/checkpoint.ts` (removed; revision
 `src-checkpoint-1.0.0`) ports the PoC's `poc-checkpoint-1.0.1` schedule:
 power-of-two interval doubling capped at the systematic ceiling, doubling
 rejection re-arm against the same retained state, the oracle-matched
