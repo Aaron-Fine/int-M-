@@ -157,8 +157,6 @@ describe('classifyRows', () => {
       0,
       height,
       new AbortController().signal,
-      undefined,
-      undefined,
       allocated,
     );
     expect(band.packedStatusPeriod).toBe(allocated.packedStatusPeriod);
@@ -177,7 +175,7 @@ describe('classifyRows', () => {
       quality: BALANCED,
     };
     await expect(
-      classifyRows(request, BALANCED, 1, 0, 4, new AbortController().signal, undefined, undefined, {
+      classifyRows(request, BALANCED, 1, 0, 4, new AbortController().signal, {
         packedStatusPeriod: new Uint32Array(3),
         smoothIterationOrMultiplierMagnitude: new Float64Array(3),
         multiplierAngle: new Float64Array(3),

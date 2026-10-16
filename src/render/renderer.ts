@@ -1,15 +1,11 @@
 import type {
-  ClassifierMode,
   Complex,
-  DifferentialStats,
   OrbitResult,
   RasterSize,
   RenderQuality,
   SemanticView,
   Viewport,
 } from '../domain';
-import type { PerfCounters } from './perf-counters';
-import type { YieldMechanism } from './yield-scheduler';
 
 export type RenderStage = 'coarse' | 'stable';
 
@@ -49,41 +45,6 @@ export interface DynamicsRenderRequest {
   readonly size: RasterSize;
   readonly quality?: Partial<RenderQuality>;
   /**
-   * Versioned classifier mode (Stage A opt-in wiring). Absent means the
-   * default 'triggered-scan' kernel ('legacy-scan' is the explicit reference
-   * mode); the semantic cache key scopes cached frames by mode when present.
-   */
-  readonly classifierMode?: ClassifierMode;
-  /**
-   * Stable-band dispatch order (renderer-path detail, plan §5). Absent means
-   * the default center-out order; 'legacy' is the diagnostic top-to-bottom
-   * arm used by the paired evidence harness. The order affects only the
-   * stable-pass dispatch schedule, never the semantic result.
-   */
-  readonly bandOrder?: BandOrder;
-  /**
-   * Row-yield mechanism (renderer-path detail, plan §5). Absent means the
-   * default MessageChannel port yield; 'timeout' is the diagnostic arm that
-   * keeps the nested setTimeout(0) yields (4 ms nested-timer clamp) for
-   * paired evidence.
-   */
-  readonly yieldMechanism?: YieldMechanism;
-  /**
-   * Stable-frame output path (renderer-path detail, plan §5). Absent means
-   * the default zero-copy path: the supervisor pre-slices per-band
-   * transferable views the tile workers classify into directly, and the
-   * merge is a no-op. 'legacy-merge' is the diagnostic arm where workers
-   * allocate their own output and the supervisor copies band results.
-   */
-  readonly frameOutput?: FrameOutput;
-  /**
-   * Offline diagnostics counters (plan §8), for Node tools such as the
-   * tournament judge: the render classifies in process with the instrumented
-   * legacy-scan kernel. Not reachable from the browser (the counters exceed
-   * the opt-in overhead budget in Firefox). Absent on the default path.
-   */
-  readonly perfCounters?: boolean;
-  /**
    * Conjugate mirroring (performance workstream M), default ON: the stable
    * pass classifies only one row of each exact conjugate pair of pixel rows
    * and fills the other by copying with the multiplier angle negated. Only
@@ -93,20 +54,6 @@ export interface DynamicsRenderRequest {
    */
   readonly conjugateMirror?: boolean;
 }
-
-/**
- * Stable-band dispatch order. 'center-out' presents mid-screen semantic work
- * first at identical throughput; 'legacy' is the pre-bundle top-to-bottom
- * order kept as a measurement arm.
- */
-export type BandOrder = 'center-out' | 'legacy';
-
-/**
- * Stable-frame output path. 'zero-copy' is the default; 'legacy-merge' is
- * kept as the paired-evidence measurement arm for the copy cost the
- * zero-copy path removes.
- */
-export type FrameOutput = 'zero-copy' | 'legacy-merge';
 
 export type SemanticStatusCode = 0 | 1 | 2;
 
@@ -155,16 +102,6 @@ export interface SemanticFrame {
   readonly bands: readonly SemanticBand[];
   readonly progress: number;
   readonly timing?: SemanticStageTiming;
-  /**
-   * Opt-in diagnostics counters (plan §8): the frame's per-band counters
-   * summed once. Absent unless the request opted in via perfCounters.
-   */
-  readonly counters?: PerfCounters;
-  /**
-   * Differential-mode disagreement record (classifierMode 'differential'):
-   * per-band stats summed once. Absent in every other mode.
-   */
-  readonly differential?: DifferentialStats;
 }
 
 export type SemanticFrameConsumer = (frame: SemanticFrame) => void | Promise<void>;
@@ -202,7 +139,6 @@ export interface TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
-    classifierMode?: ClassifierMode,
   ): Promise<SemanticFrame>;
   /**
    * Resolves once every child of a cancelled job has stopped, resetting the

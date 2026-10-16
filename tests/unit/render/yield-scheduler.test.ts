@@ -4,7 +4,6 @@ import {
   MAX_PENDING_YIELDS,
   createYieldScheduler,
   defaultRowYieldScheduler,
-  isYieldMechanism,
 } from '../../../src/render/yield-scheduler';
 import type { MessageChannelLike } from '../../../src/render/yield-scheduler';
 
@@ -136,27 +135,6 @@ describe('createYieldScheduler (message-channel)', () => {
   });
 });
 
-describe('createYieldScheduler (timeout measurement arm)', () => {
-  it('uses the timer queue', async () => {
-    vi.useFakeTimers();
-    try {
-      const scheduler = createYieldScheduler({ mechanism: 'timeout' });
-      let resolved = false;
-      const pending = scheduler.yieldToEventLoop().then(() => {
-        resolved = true;
-      });
-      await Promise.resolve();
-      expect(resolved).toBe(false);
-      await vi.advanceTimersByTimeAsync(0);
-      await pending;
-      expect(resolved).toBe(true);
-      scheduler.dispose();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-});
-
 describe('defaultRowYieldScheduler (real macrotasks)', () => {
   beforeEach(() => {
     expect(typeof globalThis.MessageChannel).toBe('function');
@@ -182,14 +160,5 @@ describe('defaultRowYieldScheduler (real macrotasks)', () => {
     const scheduler = defaultRowYieldScheduler();
     await scheduler.yieldToEventLoop();
     expect(scheduler.pendingCount).toBe(0);
-  });
-});
-
-describe('isYieldMechanism', () => {
-  it('accepts only known mechanisms', () => {
-    expect(isYieldMechanism('message-channel')).toBe(true);
-    expect(isYieldMechanism('timeout')).toBe(true);
-    expect(isYieldMechanism('port')).toBe(false);
-    expect(isYieldMechanism('')).toBe(false);
   });
 });

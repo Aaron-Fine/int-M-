@@ -6,7 +6,6 @@ import {
   DEFAULT_VIEWPORT,
   OrbitClassifier,
   planConjugateMirror,
-  type ClassifierMode,
   type RenderQuality,
   type SemanticView,
   type Viewport,
@@ -333,36 +332,6 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
     });
   }
 
-  it('parity_checkpointClassifierMode', async () => {
-    const view = VIEWS[0]!;
-    const base: DynamicsRenderRequest = {
-      viewport: view.viewport,
-      size: view.size,
-      quality: BALANCED,
-      classifierMode: 'checkpoint',
-    };
-    const direct = await stableFrame({ ...base, conjugateMirror: false });
-    const mirrored = await stableFrame(base);
-    expectFramesIdentical(mirrored, direct);
-  });
-
-  it('parity_perfCountersCountOnlyComputedRows', async () => {
-    const view = VIEWS[0]!;
-    const base: DynamicsRenderRequest = {
-      viewport: view.viewport,
-      size: view.size,
-      quality: BALANCED,
-      perfCounters: true,
-    };
-    const direct = await stableFrame({ ...base, conjugateMirror: false });
-    const mirrored = await stableFrame(base);
-    expectFramesIdentical(mirrored, direct);
-    const total = (frame: SemanticFrame): number =>
-      frame.counters!.escaped + frame.counters!.attracting + frame.counters!.unresolved;
-    expect(total(direct)).toBe(view.size.width * view.size.height);
-    expect(total(mirrored)).toBe(view.size.width * (view.size.height / 2));
-  });
-
   const flatten = (frame: SemanticFrame, size: { width: number; height: number }): SemanticBand => {
     const length = size.width * size.height;
     const out = {
@@ -475,32 +444,26 @@ describe('conjugate mirroring: bitwise semantic parity', () => {
   });
 
   it.each([1, 8, 9])('classifyRows_classifiesOnlyTheUpperHalf_height%i', async (height) => {
-    // Default mode runs the two-lane row kernel (one call per computed row);
-    // the explicit legacy scan goes through OrbitClassifier per pixel.
+    // The production stride-1 path runs the two-lane row kernel once per
+    // computed row and never the scalar per-pixel classifier.
     const rowKernel = vi.spyOn(TriggeredRowKernel.prototype, 'classifyRow');
     const classify = vi.spyOn(OrbitClassifier.prototype, 'classifyInto');
     try {
       const size = { width: 7, height };
       const viewport = DEFAULT_VIEWPORT;
       const plan = planConjugateMirror(viewport, size);
-      const run = (mode: ClassifierMode | undefined) =>
-        classifyRows(
-          { viewport, size, quality: BALANCED },
-          BALANCED,
-          1,
-          0,
-          height,
-          new AbortController().signal,
-          mode,
-          undefined,
-          undefined,
-          { mirrorPlan: plan },
-        );
-      await run(undefined);
+      await classifyRows(
+        { viewport, size, quality: BALANCED },
+        BALANCED,
+        1,
+        0,
+        height,
+        new AbortController().signal,
+        undefined,
+        plan,
+      );
       expect(rowKernel).toHaveBeenCalledTimes(Math.ceil(height / 2));
       expect(classify).not.toHaveBeenCalled();
-      await run('legacy-scan');
-      expect(classify).toHaveBeenCalledTimes(7 * Math.ceil(height / 2));
     } finally {
       rowKernel.mockRestore();
       classify.mockRestore();
@@ -527,9 +490,6 @@ describe('conjugate mirroring: signed zero in deep on-axis cardioid views', () =
 describe('conjugate mirroring: on by default, conjugateMirror=false disables', () => {
   it('flagDefault_queryParserOnlyDisablesWithPerfAndZero', () => {
     expect(parseBenchmarkParams('').conjugateMirror).toBeUndefined();
-    expect(
-      parseBenchmarkParams('?perf=1&classifierMode=checkpoint').conjugateMirror,
-    ).toBeUndefined();
     expect(parseBenchmarkParams('?perf=1&conjugateMirror=1').conjugateMirror).toBeUndefined();
     expect(parseBenchmarkParams('?perf=1&conjugateMirror=true').conjugateMirror).toBeUndefined();
     expect(parseBenchmarkParams('?conjugateMirror=0').conjugateMirror).toBeUndefined();

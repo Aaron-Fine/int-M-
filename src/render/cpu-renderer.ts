@@ -50,13 +50,8 @@ const classifyFull = async (
     0,
     request.size.height,
     signal,
-    request.classifierMode,
-    request.yieldMechanism,
     undefined,
-    {
-      perfCounters: request.perfCounters === true,
-      mirrorPlan,
-    },
+    mirrorPlan,
   );
 
   throwIfAborted(signal);
@@ -80,8 +75,6 @@ const classifyFull = async (
     bands: [semanticBand],
     progress: stage === 'coarse' ? 0.2 : 1,
     timing,
-    ...(band.differential === undefined ? {} : { differential: band.differential }),
-    ...(band.counters === undefined ? {} : { counters: band.counters }),
   };
 };
 
@@ -107,12 +100,10 @@ export class CpuRenderer implements Renderer {
     await onFrame(coarse);
     throwIfAborted(signal);
 
-    // Counters are an offline diagnostic (plan §8: they exceed the opt-in
-    // budget in Firefox), so a counted render classifies in process.
     const pool = this.tilePool;
     const stable =
-      pool !== undefined && pool.size > 1 && request.perfCounters !== true
-        ? await pool.classifyStable(request, quality, signal, request.classifierMode)
+      pool !== undefined && pool.size > 1
+        ? await pool.classifyStable(request, quality, signal)
         : await classifyFull(request, quality, 1, 'stable', signal);
     throwIfAborted(signal);
     await onFrame(stable);

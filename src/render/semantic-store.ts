@@ -18,13 +18,6 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     request.size.width,
     request.size.height,
     qualityKey(quality),
-    // Classifier mode is part of the frame's semantics. Conditional so the
-    // default (mode-less) key stays byte-identical to its previous form.
-    ...(request.classifierMode === undefined ? [] : [`cm:${request.classifierMode}`]),
-    // Counters are part of the cached frame's payload (a counters-cached
-    // frame must not be served to a counters-less request or vice versa).
-    // Conditional so the default key stays byte-identical.
-    ...(request.perfCounters === true ? ['pc:1'] : []),
     // Mirroring is on by default and its output is designed to be
     // bit-identical; the explicit-off marker only keeps A/B toggling from
     // being served from the cache. Conditional: default key has no marker.
