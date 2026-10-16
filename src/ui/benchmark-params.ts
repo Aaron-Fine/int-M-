@@ -1,7 +1,4 @@
-import type { ClassifierMode, Viewport } from '../domain';
-import { CLASSIFIER_MODES } from '../domain';
-import type { BandOrder, FrameOutput } from '../render';
-import { isYieldMechanism, type YieldMechanism } from '../render/yield-scheduler';
+import type { Viewport } from '../domain';
 import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from './view-state';
 
 /**
@@ -13,33 +10,9 @@ import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from '.
  * path stays byte-identical.
  */
 
-const BAND_ORDERS: readonly BandOrder[] = ['center-out', 'legacy'];
-
 export interface BenchmarkParams {
   /** `?perf=1` only; enables the window.__miRenderTrace diagnostic hook. */
   readonly perfEnabled: boolean;
-  /**
-   * Validated `?classifierMode=` value; absent when missing or invalid (the
-   * default 'triggered-scan' applies). Diagnostics counters are offline only
-   * (`npm run bench:lag-comparisons`, the tournament judge); the browser has
-   * no counters parameter.
-   */
-  readonly classifierMode?: ClassifierMode | undefined;
-  /**
-   * Validated `?bandOrder=` stable-band dispatch order; absent when missing
-   * or invalid. Diagnostic arm selector for the center-out scheduling gate.
-   */
-  readonly bandOrder?: BandOrder | undefined;
-  /**
-   * Validated `?yieldMechanism=` row-yield mechanism; absent when missing or
-   * invalid. Diagnostic arm selector for the yield-mechanism gate.
-   */
-  readonly yieldMechanism?: YieldMechanism | undefined;
-  /**
-   * Validated `?frameOutput=` stable-frame output path; absent when missing
-   * or invalid. Diagnostic arm selector for the zero-copy gate.
-   */
-  readonly frameOutput?: FrameOutput | undefined;
   /**
    * `?perf=1&conjugateMirror=0` only: disables the default-on mirroring of
    * exact-conjugate pixel rows of the stable pass (A/B arm). Absent otherwise.
@@ -95,10 +68,6 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const result: {
     perfEnabled: boolean;
     conjugateMirror?: false;
-    classifierMode?: ClassifierMode;
-    bandOrder?: BandOrder;
-    yieldMechanism?: YieldMechanism;
-    frameOutput?: FrameOutput;
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
@@ -108,22 +77,6 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
     result.conjugateMirror = false;
   }
 
-  const classifierMode = params.get('classifierMode');
-  if (classifierMode !== null && (CLASSIFIER_MODES as readonly string[]).includes(classifierMode)) {
-    result.classifierMode = classifierMode as ClassifierMode;
-  }
-  const bandOrder = params.get('bandOrder');
-  if (bandOrder !== null && (BAND_ORDERS as readonly string[]).includes(bandOrder)) {
-    result.bandOrder = bandOrder as BandOrder;
-  }
-  const yieldMechanism = params.get('yieldMechanism');
-  if (yieldMechanism !== null && isYieldMechanism(yieldMechanism)) {
-    result.yieldMechanism = yieldMechanism;
-  }
-  const frameOutput = params.get('frameOutput');
-  if (frameOutput === 'zero-copy' || frameOutput === 'legacy-merge') {
-    result.frameOutput = frameOutput;
-  }
   const viewport = parseViewParam(params.get('view'));
   if (viewport !== undefined) result.viewport = viewport;
   const qualityProfile = params.get('quality');

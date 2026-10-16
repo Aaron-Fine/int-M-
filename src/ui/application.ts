@@ -1,4 +1,4 @@
-import type { Complex, DifferentialStats, EvidenceSource } from '../domain';
+import type { Complex, EvidenceSource } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
@@ -79,15 +79,13 @@ declare global {
     /**
      * Opt-in (?perf=1) render-trace diagnostic boundary, performance plan §8.
      * Absent unless requested; exposes the bounded ring's snapshot, the most
-     * recently completed trace, the live viewport, and (classifierMode
-     * 'differential') the last stable frame's disagreement record for the
-     * evidence harnesses.
+     * recently completed trace and the live viewport for the evidence
+     * harnesses.
      */
     __miRenderTrace?: {
       readonly snapshot: () => readonly RenderTrace[];
       readonly viewport: () => Viewport;
       lastTrace: RenderTrace | undefined;
-      lastDifferential: DifferentialStats | undefined;
     };
   }
 }
@@ -96,7 +94,7 @@ export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
   // Opt-in benchmark parameters (plan §8/§9): validated query parameters for
   // the Stage A evidence harness. Absent parameters leave every default —
-  // viewport, quality profile, classifier mode, trace hook — untouched.
+  // viewport, quality profile, and trace hook — untouched.
   const benchmark = parseBenchmarkParams(window.location.search);
   let perfHook: NonNullable<Window['__miRenderTrace']> | undefined;
   const renderTraces = createRenderTraceRing({
@@ -137,7 +135,6 @@ export function mountApplication(host: HTMLElement): () => void {
       snapshot: () => renderTraces.snapshot(),
       viewport: () => ({ ...state.viewport }),
       lastTrace: undefined,
-      lastDifferential: undefined,
     };
     window.__miRenderTrace = perfHook;
   }
@@ -551,13 +548,6 @@ export function mountApplication(host: HTMLElement): () => void {
       size,
       semanticView: state.semanticView,
       quality: quality.quality,
-      ...(benchmark.classifierMode === undefined
-        ? {}
-        : { classifierMode: benchmark.classifierMode }),
-      ...(benchmark.bandOrder === undefined ? {} : { bandOrder: benchmark.bandOrder }),
-      ...(benchmark.yieldMechanism === undefined
-        ? {}
-        : { yieldMechanism: benchmark.yieldMechanism }),
       ...(benchmark.conjugateMirror === false ? { conjugateMirror: false } : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
@@ -596,10 +586,6 @@ export function mountApplication(host: HTMLElement): () => void {
         frame,
         frameDelivery(frame, performance.now() - state.requestStartedAtMs),
       );
-      // Last stable frame's differential record, for the evidence harness.
-      if (frame.stage === 'stable' && perfHook !== undefined) {
-        perfHook.lastDifferential = frame.differential;
-      }
     });
 
     if (frame.stage === 'coarse') {

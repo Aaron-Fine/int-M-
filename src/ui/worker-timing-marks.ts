@@ -1,4 +1,4 @@
-import type { DifferentialStats, RenderQuality, SemanticView, Viewport } from '../domain';
+import type { RenderQuality, SemanticView, Viewport } from '../domain';
 import type { FrameMessage, FrameSource } from '../worker/protocol';
 
 /**
@@ -53,8 +53,6 @@ export interface FrameTrace {
   readonly yieldWaitMs?: number | undefined;
   /** Number of row yields across the frame's bands. */
   readonly yieldCount?: number | undefined;
-  /** Differential-mode disagreement record (classifierMode 'differential'). */
-  readonly differential?: DifferentialStats | undefined;
 }
 
 export interface RenderTrace {
@@ -110,7 +108,6 @@ export interface FrameDelivery {
   readonly bandsElapsedMs?: readonly number[] | undefined;
   readonly yieldWaitMs?: number | undefined;
   readonly yieldCount?: number | undefined;
-  readonly differential?: DifferentialStats | undefined;
 }
 
 export interface RenderTraceRingOptions {
@@ -180,7 +177,6 @@ const toFrameTrace = (frame: FrameMessage, delivery: FrameDelivery): FrameTrace 
     bandsElapsedMs: computed ? delivery.bandsElapsedMs : undefined,
     yieldWaitMs: computed ? delivery.yieldWaitMs : undefined,
     yieldCount: computed ? delivery.yieldCount : undefined,
-    differential: computed ? delivery.differential : undefined,
   };
 };
 
@@ -311,7 +307,6 @@ export const frameDelivery = (frame: FrameMessage, requestToPresentMs: number): 
     bandsElapsedMs: timing?.bandsElapsedMs,
     yieldWaitMs: timing?.yieldWaitMs,
     yieldCount: timing?.yieldCount,
-    differential: frame.differential,
   };
 };
 

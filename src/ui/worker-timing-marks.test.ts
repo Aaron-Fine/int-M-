@@ -389,8 +389,6 @@ describe('createRenderTraceRing', () => {
       bandsElapsedMs: undefined,
       yieldWaitMs: undefined,
       yieldCount: undefined,
-      counters: undefined,
-      differential: undefined,
     });
   });
 
