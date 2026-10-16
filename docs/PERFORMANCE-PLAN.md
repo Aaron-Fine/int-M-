@@ -9,7 +9,7 @@ evidence links. It is a status document, not a marketing document:
 - The default classifier is the watched-lag triggered scan
   ([ADR 0006](decisions/0006-watched-lag-default-classifier.md), accepted
   2026-10-15 on the release-protocol Stage A run in both branded browsers);
-  `legacy-scan` is the reference mode. Phase 2 closure is recorded in
+  `legacy-scan` was the reference mode until it was removed 2026-10-16 (ADR 0007). Phase 2 closure is recorded in
   [PHASE-2-CLOSEOUT.md](verification/PHASE-2-CLOSEOUT.md) (proposed, awaiting
   owner approval).
 - Evidence lives in two tiers. **Release-comparable** evidence is the frozen
@@ -41,7 +41,7 @@ full repository check passes (formatting, strict lint, all TypeScript
 projects, generated-data checks, 357 unit tests, and the production build).
 The browser suite passes 31 tests in Chromium and Firefox with one
 Firefox-only recovery test skipped and no failures. These checks support
-continued development behind the existing `legacy-scan` default; they do not
+continued development on the triggered-scan default (ADR 0006); they do not
 replace the release benchmark protocol.
 
 The audit confirms the following status:
@@ -263,7 +263,7 @@ analytic fast paths migrated to verifier-gated acceptance; every
 legacy-vs-verifier divergence is adjudicated by the double-double oracle
 (`tests/unit/domain/orbit-oracle-adjudication.test.ts`).
 
-### PR 4 — Checkpoint candidates (workstream C; landed behind the legacy-scan default)
+### PR 4 — Checkpoint candidates (workstream C; history: removed 2026-10-16, ADR 0007)
 
 [src/domain/checkpoint.ts](../src/domain/checkpoint.ts) (revision
 `src-checkpoint-1.0.0`) ports the PoC's `poc-checkpoint-1.0.1` schedule:
@@ -273,8 +273,8 @@ rejected-candidate budget (64), interval-exhaustion rolls evaluated
 independently of the proposal branch, and the default-on verifier-gated
 exhaustion scan. It is reachable through the versioned
 `OrbitOptions.classifierMode` (`'legacy-scan'` default | `'checkpoint'` |
-`'differential'`); differential mode runs both kernels per pixel, reports the
-legacy answer, and counts disagreements into a preallocated record.
+`'differential'`) while it existed; differential mode ran both kernels per pixel.
+The modes and the checkpoint module were removed 2026-10-16 (ADR 0007).
 
 Committed directional evidence
 ([poc/performance/results/pr4/pr4-bench.json](../poc/performance/results/pr4/pr4-bench.json),
@@ -346,7 +346,7 @@ Stage A decisions that nothing else may preempt:
 2. The workstream C gate percentages above, at release-comparable repetition
    counts, plus the matched-budget detection analysis on the stratified
    holdouts (plan §4).
-3. Whether the `classifierMode` default may flip away from `legacy-scan`
+3. (Resolved by ADR 0006 and ADR 0007.) Whether the `classifierMode` default may flip away from `legacy-scan`
    (plan §9 semantic-change rules; unresolved-rate increase ≤0.1 percentage
    point unless oracle-supported).
    Proposed flip to the watched-lag `triggered-scan`:
@@ -375,7 +375,7 @@ the per-gate evidence analysis (workstreams B, C, D, K, E, N, M, L) in
 | N   | Cost-weighted static banding                         | **Recommend kill-or-scope-limit** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([coarse-cost.json](../poc/performance/browser/results/coarse-cost.json)): the skew gate fires on all three measured views (1.21/1.89/3.30), equal-cost banding helps the hard views (1.89→1.08, 3.30→2.09) but **worsens the interior-heavy easy view 1.21→1.59** with weak estimate-vs-actual correlation (r = 0.29) — the plan's kill criterion directionally fired on that view class.                                                                                                                                                                    |
 | E   | Dynamic microbands (+ zero-copy, yields, band order) | Microbands not attempted. Renderer-path details have directional browser measurements: zero-copy transfer 0.2 ms vs 26.8 ms copy roundtrip at 1024×640 ([zero-copy-transfer.json](../poc/performance/browser/results/zero-copy-transfer.json)); MessageChannel yields remove the ~4 ms nested-timer clamp ([yield-ab.json](../poc/performance/browser/results/yield-ab.json)); band-order control behaves as specified ([band-order.json](../poc/performance/browser/results/band-order.json)). N is attempted before E whenever E's skew gate fires.                                                                                                                                                |
 | G   | Catalog/session/adjacent-pixel Newton candidates     | Not started as a PR. PoC directional evidence is strong on raster-coherent content ([summary.json](../poc/performance/results/summary.json) grids; PoC README "PR 4 design inputs"): transplantation chains 255/255 hits at 0.004× checkpoint comparisons on coherent grids and improves weak-attraction detection; the multiplier-map guard refused 100% of attempts on the coarse anchor-2 grid with zero wrong results.                                                                                                                                                                                                                                                                           |
-| F   | Reproducible period-12 core and runtime shards       | **Deferred by default** per plan rev 3/4 (workstream F disposition) and [ADR 0004](decisions/0004-catalog-disposition.md). The reopening gate does **not** fire on current evidence: matched-budget detection shows zero checkpoint-only and zero legacy-only detections on every stratum ([pr4-bench.json](../poc/performance/results/pr4/pr4-bench.json)), and the measured seeding gains come from adjacent-pixel/session seeds (G's independent sources), not from a generated catalog ([WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)).                                                                                                                                  |
+| F   | Reproducible period-12 core and runtime shards       | **Deferred by default** per plan rev 3/4 (workstream F disposition) and [ADR 0004](decisions/0004-catalog-disposition.md). The reopening gate does **not** fire on current evidence: matched-budget detection (checkpoint kernel, removed 2026-10-16 per ADR 0007) shows zero checkpoint-only and zero legacy-only detections on every stratum ([pr4-bench.json](../poc/performance/results/pr4/pr4-bench.json)), and the measured seeding gains come from adjacent-pixel/session seeds (G's independent sources), not from a generated catalog ([WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)).                                                                             |
 | H   | p3/p4 algebraic experiment                           | Not started; no PoC measurement.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | I   | Wasm SIMD backend                                    | Not started. Conditions and the scalar-Wasm stepping-stone gate are recorded in [ADR 0005](decisions/0005-conditional-wasm-simd-backend.md); direction accepted, work not begun.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | K   | Worker pool sizing                                   | **Hold for the declared ≥8-core target class** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([pool-sizing.json](../poc/performance/browser/results/pool-sizing.json)): on the 8-core test machine the 126× hard case improves from the 4-worker cap to 0.840× median wall at 8 workers (0.892× at 6) — below the ≥20% bar — and earlier committed runs measured 0.985×/0.864× and 0.69×/0.58× ([PoC browser README](../poc/performance/browser/README.md)): the >4-worker verdict is run-sensitive, one browser. Gate needs ≥20% on a ≥8-core class in both browsers, plus the easy <3% and memory checks (unmeasured).                      |

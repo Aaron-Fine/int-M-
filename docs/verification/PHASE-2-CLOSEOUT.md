@@ -71,7 +71,7 @@ locked session). The counters mode cost about 10% in Firefox, so under plan
 §8 ("If a metric exceeds the budget, move it to an offline experiment") it
 is now **offline only** (owner decision, 2026-10-16): the browser has no
 `perfCounters` parameter and no counters on the worker protocol, and the
-counts come from `npm run bench:lag-comparisons` and the tournament judge
+counts came from `npm run bench:lag-comparisons` (removed 2026-10-16, ADR 0007) and the tournament judge
 (a counted `CpuRenderer` render classifies in process). Retention and recorder cost are in each overhead summary.
 
 ### B — allocation-free scalar kernel
@@ -233,8 +233,11 @@ waiting for.
   recorder-free build; both overhead arms here contain the always-on ring.
   The ring's direct cost is measured instead (recorder microbenchmark and
   retention), as the overhead summaries record.
-- Equality of the default kernel with the reference scan is established on
+- Equality of the default kernel with the reference scan was established on
   the frozen corpus and in targeted adversarial runs, not proved (ADR 0006).
+  The reference scan was removed 2026-10-16 (ADR 0007); bit-level equality is
+  now guarded by the golden kernel fixture (`fixtures/kernel-golden.v1.json`),
+  generated while the reference still existed.
 
 ## Approval
 

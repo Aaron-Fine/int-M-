@@ -136,7 +136,12 @@ compatibility contract). PoC artifacts encode the same rule:
 `summary.json` `metricNotes` states that JSON `null` encodes `+Infinity` for
 κ. This rule is versioned with the tolerance policy.
 
-## 6. Brent-inspired approximate checkpointing
+## 6. Brent-inspired approximate checkpointing (removed 2026-10-16, ADR 0007)
+
+> History. The checkpoint kernel was removed on 2026-10-16
+> ([ADR 0007](decisions/0007-remove-reference-kernels.md)); the production
+> classifier is the watched-lag scan in §6a. The text below records the design
+> as it was evaluated.
 
 The plan (§4 callout) defines the boundary precisely, and it is worth restating
 because the name invites overclaiming. In Brent's 1980 cycle-detection
@@ -149,8 +154,8 @@ cycle-length candidate with O(μ + L) evaluations.
 This project borrows only that exponentially spaced checkpoint schedule. For
 the complex orbit, an attracting cycle converges asymptotically and normally
 does **not** repeat exactly in binary64. So the kernel
-([src/domain/checkpoint.ts](../src/domain/checkpoint.ts), revision
-`src-checkpoint-1.0.0`) compares the current `z_n` with the retained
+(`src/domain/checkpoint.ts`, revision `src-checkpoint-1.0.0`, removed
+2026-10-16) compares the current `z_n` with the retained
 checkpoint `z_k` at the permissive `tauCandidate`; when proximity fires with
 lag `q = n − k` inside the systematic ceiling, `(z_n, q)` is **proposed** to
 the common verifier. A hit may be the primitive period `p`, a multiple `k·p`
@@ -176,7 +181,7 @@ bound as `|λ| → 1`. A maximum period therefore does not guarantee detection
 without an adequate iteration and verification budget — which is exactly what
 the unresolved state is for.
 
-### 6a. Watched-lag triggered scan (the default since ADR 0006)
+### 6a. Watched-lag triggered scan (the only classifier since ADR 0006)
 
 The production default ([src/domain/orbit-triggered.ts](../src/domain/orbit-triggered.ts),
 [ADR 0006](decisions/0006-watched-lag-default-classifier.md)) reaches the same

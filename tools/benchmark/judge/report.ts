@@ -1,7 +1,7 @@
 /** Tournament report: ranking, results.json payload, and summary.md text. */
 import type { CandidateParity } from './aggregate';
 import type { EnvironmentRecord } from './env';
-import type { CandidateTiming, CaseTiming } from './perf-run';
+import type { CandidateTiming } from './perf-run';
 
 export const EVIDENCE_LABEL =
   'directional Node evidence, serial CPU renderer, local laptop; not the release protocol; browsers via CI/Stage A';
@@ -205,32 +205,6 @@ const conversionLines = (p: CandidateParity): string[] => {
   ];
 };
 
-const diagnosticLines = (p: CandidateParity): string[] => {
-  const entries = Object.entries(p.iterationDeltas).filter(([, d]) => d.differing > 0);
-  if (entries.length === 0) return [];
-  return [
-    'Iteration-count differences (candidate minus baseline, by baseline status; diagnostic, never gating):',
-    '',
-    ...table(
-      ['Baseline status', 'Pixels', 'Differing', 'Min', 'Median', 'P90', 'Max', 'Mean'],
-      entries.map(([klass, d]) => [
-        klass,
-        d.compared,
-        d.differing,
-        d.min,
-        d.p50,
-        d.p90,
-        d.max,
-        fixed(d.mean, 2),
-      ]),
-    ),
-    Object.keys(p.evidenceChanges).length === 0
-      ? ''
-      : `Evidence-code changes: ${JSON.stringify(p.evidenceChanges)}`,
-    '',
-  ];
-};
-
 const oracleLines = (p: CandidateParity): string[] =>
   p.oracle === undefined
     ? []
@@ -269,24 +243,8 @@ const parityDetails = (p: CandidateParity): string[] => [
       ]),
   ...mismatchLines(p),
   ...conversionLines(p),
-  ...diagnosticLines(p),
   ...oracleLines(p),
 ];
-
-const counterRows = (c: CaseTiming): string[][] =>
-  Object.keys({ ...c.baselineCounters, ...c.candidateCounters })
-    .sort()
-    .map((key) => {
-      const b = c.baselineCounters[key];
-      const k = c.candidateCounters[key];
-      return [
-        c.caseId,
-        key,
-        b === undefined ? '-' : String(b),
-        k === undefined ? '-' : String(k),
-        b !== undefined && k !== undefined && b > 0 ? fixed(k / b) : '-',
-      ];
-    });
 
 const perfDetails = (t: CandidateTiming, parity: readonly CandidateParity[]): string[] => {
   const eligible = parity.find((p) => p.id === t.id)?.passed === true;
@@ -301,7 +259,6 @@ const perfDetails = (t: CandidateTiming, parity: readonly CandidateParity[]): st
     fixed(c.summary.p90),
     t.aggregate?.slowerCases.includes(c.caseId) === true ? 'SLOWER >3%' : '',
   ]);
-  const counters = t.cases.flatMap(counterRows).filter((r) => r[2] !== r[3]);
   return [
     `### ${t.id}${eligible ? '' : ' (parity FAILED: diagnostic timing only, not eligible for ranking)'}`,
     '',
@@ -309,13 +266,6 @@ const perfDetails = (t: CandidateTiming, parity: readonly CandidateParity[]): st
       ['Case', 'Baseline ms', 'Candidate ms', 'Median ratio', '95% CI', 'P10', 'P90', 'Flag'],
       rows,
     ),
-    ...(counters.length === 0
-      ? []
-      : [
-          'Counters that differ from baseline (candidate / baseline):',
-          '',
-          ...table(['Case', 'Counter', 'Baseline', 'Candidate', 'Ratio'], counters),
-        ]),
   ];
 };
 

@@ -22,7 +22,7 @@
  * Usage (see the evidence summary for the exact invocation):
  *   vite build --ssr tools/benchmark/conjugate-mirror.ts --outDir .evidence-build --emptyOutDir
  *   node .evidence-build/conjugate-mirror.js --out evidence/phase-2/conjugate-mirror-<date>-<sha> \
- *     [--reps 15] [--mode legacy-scan|checkpoint] [--cases id,id,...]
+ *     [--reps 15] [--cases id,id,...]
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -30,12 +30,7 @@ import { cpus, loadavg, platform, release, totalmem } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
 
-import {
-  planConjugateMirror,
-  type ClassifierMode,
-  type RenderQuality,
-  type Viewport,
-} from '../../src/domain';
+import { planConjugateMirror, type RenderQuality, type Viewport } from '../../src/domain';
 import { classifyRows } from '../../src/render/classify-rows';
 import { applyConjugateMirror } from '../../src/render/conjugate-mirror';
 import type { DynamicsRenderRequest, SemanticBand } from '../../src/render';
@@ -74,8 +69,6 @@ const argValue = (name: string): string | undefined => {
 };
 
 const REPS = Number(argValue('reps') ?? '15');
-// Pinned to the legacy scan by default so evidence runs stay comparable.
-const MODE = (argValue('mode') ?? 'legacy-scan') as ClassifierMode;
 const OUT = argValue('out');
 const ONLY = argValue('cases')?.split(',');
 const WARMUP_SIZE = { width: 256, height: 160 };
@@ -165,7 +158,7 @@ const runDirect = async (
 ): Promise<{ band: SemanticBand; ms: number }> => {
   const quality = request.quality as RenderQuality;
   const started = performance.now();
-  const band = await classifyRows(request, quality, 1, 0, request.size.height, signal, MODE);
+  const band = await classifyRows(request, quality, 1, 0, request.size.height, signal);
   const ms = performance.now() - started - band.timing.yieldWaitMs;
   return { band, ms };
 };
@@ -184,10 +177,8 @@ const runMirrored = async (
     0,
     request.size.height,
     signal,
-    MODE,
     undefined,
-    undefined,
-    { mirrorPlan: plan },
+    plan,
   );
   const classified = performance.now();
   if (plan !== undefined) applyConjugateMirror(plan, [band], request.size.width);
@@ -333,7 +324,6 @@ const payload = {
   environment,
   loadAverage1m5m15m: { start: loadAverageAtStart, end: loadavg() },
   raster: { id: shipping.id, ...SIZE },
-  classifierMode: MODE,
   repetitions: REPS,
   armOrder: 'alternating (even repetitions direct-first, odd mirrored-first)',
   timing: 'performance.now around classifyRows (+plan+fill for mirrored), minus row-yield wait',
@@ -350,8 +340,8 @@ if (OUT === undefined) {
   process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 } else {
   mkdirSync(OUT, { recursive: true });
-  writeFileSync(join(OUT, `results-${MODE}.json`), `${JSON.stringify(payload, null, 2)}\n`);
-  writeFileSync(join(OUT, `table-${MODE}.md`), `${table}\n`);
+  writeFileSync(join(OUT, 'results.json'), `${JSON.stringify(payload, null, 2)}\n`);
+  writeFileSync(join(OUT, 'table.md'), `${table}\n`);
   process.stdout.write(`${table}\n`);
 }
 // The default row-yield scheduler's port keeps the Node event loop alive;

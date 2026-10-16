@@ -88,7 +88,7 @@ const observe = async (arm: Candidate, fixture: RawFixture): Promise<Observed> =
     },
   };
   const spec = {
-    ...makeSpec(corpusCase, { width: 1, height: 1 }, { diagnostics: true, collectCounters: false }),
+    ...makeSpec(corpusCase, { width: 1, height: 1 }, { diagnostics: true }),
     quality: {
       maxIterations: fixture.classificationBudget.maxIterations,
       maxPeriod: fixture.classificationBudget.maxPeriod,

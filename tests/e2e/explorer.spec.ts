@@ -496,10 +496,10 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('render traces carry delivery provenance and two-event cancellation timing', async ({
     page,
   }) => {
-    // A slow reference-mode hard view keeps the first render in flight long
-    // enough to cancel it after its coarse frame.
+    // A slow hard view keeps the first render in flight long enough to cancel
+    // it after its coarse frame.
     await page.goto(
-      '/?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed&classifierMode=legacy-scan',
+      '/?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed',
     );
     const explorer = page.locator('#explorer');
     await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', { timeout: 30_000 });

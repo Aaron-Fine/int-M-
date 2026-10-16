@@ -15,7 +15,6 @@ import type {
   SemanticView,
 } from '../candidates/types';
 import { compareFloat, directionDeviation, sameDouble, validateTolerance } from './tolerance';
-import { percentile } from './stats';
 
 export const MISMATCH_LIMIT = 10;
 export const CONVERSION_LIMIT = 20;
@@ -56,16 +55,6 @@ export interface Conversion {
   readonly certificate: unknown;
 }
 
-export interface DistributionSummary {
-  readonly compared: number;
-  readonly differing: number;
-  readonly min: number;
-  readonly p50: number;
-  readonly p90: number;
-  readonly max: number;
-  readonly mean: number;
-}
-
 export interface CompareInput {
   readonly caseId: string;
   readonly raster: string;
@@ -94,9 +83,6 @@ export interface CompareResult {
   readonly changedPixels: number;
   readonly conversionCount: number;
   readonly conversions: readonly Conversion[];
-  /** Diagnostics only (never fail the gate): iterations/evidence differences. */
-  readonly iterationDeltas: Readonly<Record<string, DistributionSummary>> | undefined;
-  readonly evidenceChanges: Readonly<Record<string, number>> | undefined;
 }
 
 class Recorder {
@@ -420,61 +406,6 @@ const compareRgbaView = (
   }
 };
 
-const summarizeDeltas = (deltas: readonly number[], compared: number): DistributionSummary => {
-  if (deltas.length === 0) {
-    return { compared, differing: 0, min: 0, p50: 0, p90: 0, max: 0, mean: 0 };
-  }
-  let min = Number.POSITIVE_INFINITY;
-  let max = Number.NEGATIVE_INFINITY;
-  let sum = 0;
-  for (const delta of deltas) {
-    min = Math.min(min, delta);
-    max = Math.max(max, delta);
-    sum += delta;
-  }
-  return {
-    compared,
-    differing: deltas.length,
-    min,
-    p50: percentile(deltas, 50),
-    p90: percentile(deltas, 90),
-    max,
-    mean: sum / deltas.length,
-  };
-};
-
-const STATUS_NAMES = ['unresolved', 'escaped', 'attracting'] as const;
-
-/** Distribution of (candidate - baseline) iteration counts and evidence changes. */
-export const diagnosticDifferences = (
-  base: SemanticFields,
-  cand: SemanticFields,
-): Pick<CompareResult, 'iterationDeltas' | 'evidenceChanges'> => {
-  if (base.iterations === undefined || cand.iterations === undefined) {
-    return { iterationDeltas: undefined, evidenceChanges: undefined };
-  }
-  const deltas: number[][] = [[], [], []];
-  const compared = [0, 0, 0];
-  const changes = new Map<string, number>();
-  for (let i = 0; i < base.iterations.length; i += 1) {
-    const klass = base.status[i] ?? 0;
-    compared[klass] = (compared[klass] ?? 0) + 1;
-    const delta = (cand.iterations[i] ?? 0) - (base.iterations[i] ?? 0);
-    if (delta !== 0) deltas[klass]?.push(delta);
-    const be = base.evidence?.[i];
-    const ce = cand.evidence?.[i];
-    if (be !== undefined && ce !== undefined && be !== ce) {
-      const key = `${be}->${ce}`;
-      changes.set(key, (changes.get(key) ?? 0) + 1);
-    }
-  }
-  const out: Record<string, DistributionSummary> = {};
-  STATUS_NAMES.forEach((name, klass) => {
-    out[name] = summarizeDeltas(deltas[klass] ?? [], compared[klass] ?? 0);
-  });
-  return { iterationDeltas: out, evidenceChanges: Object.fromEntries(changes) };
-};
-
 export const compareFrames = (input: CompareInput): CompareResult => {
   const pixels = input.width * input.height;
   const rec = new Recorder(input, input.mismatchLimit ?? MISMATCH_LIMIT);
@@ -508,6 +439,5 @@ export const compareFrames = (input: CompareInput): CompareResult => {
     changedPixels,
     conversionCount,
     conversions,
-    ...diagnosticDifferences(input.base, input.cand),
   };
 };

@@ -121,13 +121,11 @@ production performance.
 npm ci
 npm run check
 npm run evidence:cpu
-npm run evidence:optimizations
-INTM_EVIDENCE_DETECTION=checkpoint npm run evidence:cpu
 npm run test:browser
 ```
 
 The CPU harness now includes the original rectangular cases plus full-set
-512²/1024² and rabbit 768² cases. `evidence:optimizations` reports discrepancies
+512²/1024² and rabbit 768² cases. `evidence:optimizations` (removed 2026-10-16, ADR 0007; history) reported discrepancies
 rather than masking them or claiming an equivalence pass. No transcendental
 approximation or GPU shader change is included.
 
@@ -149,4 +147,4 @@ above is either carried, superseded, or deliberately not adopted:
 | Prepared per-column / per-row coordinates          | Carried, unconditional (bit-identical to the per-pixel transform).                                                                                           |
 | Upper-half classification of real-axis views       | Carried as conjugate mirroring, on by default (`?perf=1&conjugateMirror=0` disables).                                                                        |
 | Float32 multiplier-direction channels              | Not adopted: the band keeps the binary64 angle; colorization instead dropped per-pixel tuples and fmod calls (byte-identical, 1.8–2.4× faster).              |
-| Checkpoint detector behind an option               | Kept opt-in (`classifierMode: 'checkpoint'`).                                                                                                                |
+| Checkpoint detector behind an option               | Kept opt-in (`classifierMode: 'checkpoint'`); removed 2026-10-16 (ADR 0007).                                                                                 |

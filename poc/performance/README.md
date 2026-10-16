@@ -412,34 +412,28 @@ decision:
 
 ## PR 4 status: production checkpoint schedule behind the legacy differential flag
 
-The production classifier now has the checkpoint schedule this harness
-benchmarked: `src/domain/checkpoint.ts` (revision `src-checkpoint-1.0.0`,
-PR 4) ports the frozen `poc-checkpoint-1.0.1` semantics exactly —
-power-of-two interval doubling capped at the systematic maxPeriod, doubling
-rejection re-arm against the SAME retained state, the oracle-matched
-rejected-candidate budget (64), the interval-exhaustion update evaluated
-independently of the proposal branch (over-ceiling near-returns roll), and
-the default-on, verifier-gated exhaustion scan. It is reachable through the
-versioned `OrbitOptions.classifierMode` option (`'legacy-scan'` default |
-`'checkpoint'` | `'differential'`); the legacy scan remains the reported
-answer everywhere until Stage A browser evidence says otherwise (plan §9).
+The production classifier once had the checkpoint schedule this harness
+benchmarked (`src/domain/checkpoint.ts`, revision `src-checkpoint-1.0.0`, PR 4),
+reachable through `OrbitOptions.classifierMode` (`'legacy-scan'` default |
+`'checkpoint'` | `'differential'`). Both mode and file were removed 2026-10-16
+(ADR 0007); the notes below are history.
 
-- Parity pin: `poc/performance/src/checkpoint-parity.test.ts` classifies the
+- Parity pin (history; test removed 2026-10-16, ADR 0007): `poc/performance/src/checkpoint-parity.test.ts` classified the
   whole corpus with BOTH this kernel and the production port and requires
   identical status/iterations/period/angle plus identical deterministic
   comparison and verifier-call counters under every profile and exhaustion
   setting. The one documented rounding difference is the |lambda| magnitude
   definition (the PoC verifier uses sqrt(re^2+im^2); src keeps the legacy
   Math.hypot form).
-- Differential discipline: `'differential'` mode runs both kernels per
+- Differential discipline (history; mode removed 2026-10-16, ADR 0007): `'differential'` mode ran both kernels per
   pixel, reports the legacy answer, and counts status/period/|lambda|-bit
   disagreements into a preallocated record (`src/domain/checkpoint.ts`,
-  `DifferentialStats`); `poc/performance/src/pr4-bench.ts` reports the
+  `DifferentialStats`); `poc/performance/src/pr4-bench.ts` (removed 2026-10-16) reported the
   per-raster counts alongside the directional gate numbers.
 - Directional evidence: `poc/performance/results/pr4/` (pr4-bench; Node/V8,
   labeled directional). The release-comparable workstream C percentages
   remain Stage A browser runs (plan §9).
-- This harness's checkpoint kernel is unchanged and remains the frozen
+- This harness's checkpoint kernel is unchanged and was the frozen
   reference implementation the production port is pinned against.
 
 ## Known limits

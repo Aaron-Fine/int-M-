@@ -23,17 +23,10 @@ export interface CaseRenderSpec {
   /** Resolved production quality (maxIterations, maxPeriod, coarseStride). */
   readonly quality: RenderQuality;
   /**
-   * True only in the UNTIMED parity pass. Candidates should then also fill the
-   * optional `iterations`/`evidence` channels of readFields() and expose
+   * True only in the UNTIMED parity pass. Candidates should then also expose
    * certificates(). Never true in a timed render.
    */
   readonly diagnostics: boolean;
-  /**
-   * True only in the single UNTIMED counter pass that follows the timed
-   * repetitions. Candidates may switch on instrumented kernels here; timed
-   * renders always see false, so instrumentation never perturbs timing.
-   */
-  readonly collectCounters: boolean;
 }
 
 /**
@@ -52,10 +45,6 @@ export interface SemanticFields {
   readonly multiplierMagnitude: Float64Array;
   /** arg(lambda) in radians; the multiplier view's direction derives from it. */
   readonly multiplierAngle: Float64Array;
-  /** Optional diagnostics (parity pass only): iterations used by the classifier. */
-  readonly iterations?: Uint32Array;
-  /** Optional diagnostics (parity pass only): ORBIT_EVIDENCE_CODE per pixel. */
-  readonly evidence?: Uint8Array;
 }
 
 export interface RenderedFrame {
@@ -125,14 +114,6 @@ export interface Candidate {
    * The whole call is what the judge times.
    */
   render(spec: CaseRenderSpec): RenderedFrame | Promise<RenderedFrame>;
-  /**
-   * Counters of the most recent render (only requested after a render with
-   * spec.collectCounters === true). Keys are free-form (iterations, lag
-   * comparisons, verifierCalls, certificationAttempts, newtonSteps, ...);
-   * all keys are recorded per case and compared against baseline where the
-   * baseline reports the same key.
-   */
-  counters?(): Record<string, number>;
   /**
    * Certificate data for pixels the candidate ACCEPTED where baseline stayed
    * unresolved ('semantic-revision' only), keyed by pixel index

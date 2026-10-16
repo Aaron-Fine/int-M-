@@ -3,8 +3,7 @@
  * Design per case and candidate: one untimed warmup render per arm, then R
  * repetitions; each repetition renders ABBA (odd repetitions BAAB) so linear
  * drift cancels; the repetition's value for an arm is the mean of its two
- * renders and the paired ratio is baseline/candidate. A final untimed pass
- * collects counters.
+ * renders and the paired ratio is baseline/candidate.
  */
 import type { RasterSize } from '../../../src/domain';
 import type { Candidate, CaseRenderSpec } from '../candidates/types';
@@ -35,8 +34,6 @@ export interface CaseTiming {
   readonly summary: CaseTimingSummary;
   readonly medianBaselineMs: number;
   readonly medianCandidateMs: number;
-  readonly baselineCounters: Readonly<Record<string, number>>;
-  readonly candidateCounters: Readonly<Record<string, number>>;
 }
 
 export interface CandidateTiming {
@@ -84,22 +81,13 @@ const pairedRepetition = async (
   };
 };
 
-const collectCounters = async (
-  arm: Candidate,
-  spec: CaseRenderSpec,
-): Promise<Record<string, number>> => {
-  arm.reset?.();
-  await arm.render({ ...spec, collectCounters: true });
-  return { ...arm.counters?.() };
-};
-
 const timeCase = async (
   baseline: Candidate,
   candidate: Candidate,
   corpusCase: CorpusCase,
   options: PerfRunOptions,
 ): Promise<CaseTiming> => {
-  const spec = makeSpec(corpusCase, options.raster, { diagnostics: false, collectCounters: false });
+  const spec = makeSpec(corpusCase, options.raster, { diagnostics: false });
   const baselineMs: number[] = [];
   const candidateMs: number[] = [];
   baseline.reset?.();
@@ -122,8 +110,6 @@ const timeCase = async (
     summary,
     medianBaselineMs: median(baselineMs),
     medianCandidateMs: median(candidateMs),
-    baselineCounters: await collectCounters(baseline, spec),
-    candidateCounters: await collectCounters(candidate, spec),
   };
 };
 

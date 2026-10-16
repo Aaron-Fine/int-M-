@@ -59,6 +59,9 @@ the semantic cache version advanced to 2.
 
 ## Consequences
 
+- The reference lag scan, checkpoint schedule, and differential mode were
+  removed 2026-10-16 ([ADR 0007](0007-remove-reference-kernels.md)); the golden
+  kernel fixture now guards bit-level equality of the default kernel.
 - Hard views are an order of magnitude faster in Node (see
   `docs/verification/UNIFIED-KERNEL-2026-10-11.md`).
 - The default flip was conditioned on the release-protocol Stage A run (≥21

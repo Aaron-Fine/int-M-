@@ -276,21 +276,6 @@ describe('tournament parity: semantic-revision policy', () => {
       'rgba:multiplier',
     );
   });
-
-  it('iterationDistribution_isReportedWithoutGating', () => {
-    const base = { ...baselineFields(), iterations: new Uint32Array(PIXELS).fill(100) };
-    const cand = { ...copy(baselineFields()), iterations: new Uint32Array(PIXELS).fill(100) };
-    cand.iterations[4] = 40;
-    cand.iterations[5] = 60;
-    const result = run(cand, { policy, tolerance }, base);
-    expect(result.violationCount).toBe(0);
-    expect(result.iterationDeltas?.['attracting']).toMatchObject({
-      compared: 4,
-      differing: 2,
-      min: -60,
-      max: -40,
-    });
-  });
 });
 
 describe('tournament parity: candidate aggregation', () => {

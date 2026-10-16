@@ -218,7 +218,7 @@ See the [release sessions section](../../evidence/phase-2/README.md#release-sess
 for arms, passes, outputs, and resume behavior.
 
 - Measurement reaches the app through validated query parameters
-  (`?perf=1&classifierMode=…&view=re,im,spanY&quality=…`); the default
+  (`?perf=1&view=re,im,spanY&quality=…`; the `classifierMode` parameter was removed 2026-10-16, ADR 0007); the default
   no-parameter path is byte-identical and pinned by unit tests.
 - Repetition 0 is cold (fresh browser context per arm); later repetitions are
   warm. Cancellation, cache, replay, and recolor interactions run in a

@@ -55,7 +55,6 @@ export const profileQuality = (profile: QualityProfileName): CaseRenderSpec['qua
 
 export interface SpecFlags {
   readonly diagnostics: boolean;
-  readonly collectCounters: boolean;
 }
 
 export const makeSpec = (
@@ -70,7 +69,6 @@ export const makeSpec = (
   profile: corpusCase.profile,
   quality: profileQuality(corpusCase.profile),
   diagnostics: flags.diagnostics,
-  collectCounters: flags.collectCounters,
 });
 
 export const parseRaster = (text: string): RasterSize => {
