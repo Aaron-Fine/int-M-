@@ -2,7 +2,7 @@
 
 > **Closeout (2026-10-15).** Proposed final dispositions, including the
 > release-protocol measurement of M, are in
-> [PHASE-2-CLOSEOUT.md](PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions-proposed).
+> [PHASE-2-CLOSEOUT.md](PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions).
 > The working records below remain the evidence each disposition cites.
 
 Recorded dispositions for every conditional workstream of plan §5, as
