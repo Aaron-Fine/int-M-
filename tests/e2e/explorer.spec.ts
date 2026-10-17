@@ -2131,6 +2131,8 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       .locator('.catalog-glossary summary')
       .evaluate((summary) => summary.getBoundingClientRect().height);
     expect(glossaryHeight).toBeGreaterThanOrEqual(44);
+    // display: list-item keeps the native disclosure triangle (flex would remove it).
+    await expect(panel.locator('.catalog-glossary summary')).toHaveCSS('display', 'list-item');
     expect(entries).toHaveLength(11);
     for (const entry of entries) {
       expect(entry.height).toBeGreaterThanOrEqual(44);

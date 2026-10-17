@@ -1033,10 +1033,11 @@ button:disabled {
   font-size: 0.76rem;
 }
 
+/* Stays display: list-item so the native disclosure triangle remains; padding centres the text in the 44 px target. */
 .catalog-glossary summary {
   min-height: 2.75rem;
-  display: flex;
-  align-items: center;
+  padding-block: 0.7rem;
+  box-sizing: border-box;
   cursor: pointer;
   color: var(--accent-strong);
   font-weight: 700;
