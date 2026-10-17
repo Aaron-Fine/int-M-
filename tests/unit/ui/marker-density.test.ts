@@ -177,6 +177,23 @@ describe('catalog marker density policy (Q4)', () => {
       expect(plan(viewport, {}, reversed)).toEqual(plan(viewport));
     }
   });
+
+  it('returns an empty plan, without throwing, for a canvas that is not whole positive pixels', () => {
+    for (const size of [
+      { width: 0, height: 600 },
+      { width: 960, height: 0 },
+      { width: 960.5, height: 600 },
+    ]) {
+      expect(plan(DEFAULT_VIEWPORT, { size })).toEqual({ markers: [], visited: 0 });
+    }
+  });
+
+  it('rejects a cap that is not a finite number of at least 1', () => {
+    for (const cap of [0, 0.5, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => plan(DEFAULT_VIEWPORT, { cap })).toThrow(RangeError);
+    }
+    expect(plan(DEFAULT_VIEWPORT, { cap: 1 }).markers.length).toBeLessThanOrEqual(1);
+  });
 });
 
 describe('catalog marker collisions', () => {
@@ -225,5 +242,103 @@ describe('catalog marker collisions', () => {
     const right = testComponent(3, 1, 2, at(360, 0), 'Right component');
     const result = plan(view, {}, createCatalogIndex([alpha, right]));
     expect(result.markers.map((m) => m.leftFacing)).toEqual([false, true]);
+  });
+
+  it('shows a selected label even where it covers a neighbour marker', () => {
+    const beta = testComponent(3, 1, 2, at(-30, 0), 'Beta component');
+    const result = plan(view, { selectedId: beta.id }, createCatalogIndex([alpha, beta]));
+    // The selected label is placed first and covers Alpha's label, so Alpha's label hides.
+    expect(result.markers.map((m) => [m.component.label, m.labelVisible])).toEqual([
+      ['Alpha component', false],
+      ['Beta component', true],
+    ]);
+    const unselected = plan(view, {}, createCatalogIndex([alpha, beta]));
+    expect(unselected.markers.map((m) => m.labelVisible)).toEqual([true, false]);
+  });
+
+  it('hides a label that covers an earlier label, with no marker in the way', () => {
+    const ahead = testComponent(2, 1, 2, at(280, 0), 'Alpha component');
+    const beta = testComponent(3, 1, 2, at(80, 0), 'Beta component');
+    const result = plan(view, {}, createCatalogIndex([ahead, beta]));
+    expect(result.markers.map((m) => [m.leftFacing, m.compact, m.labelVisible])).toEqual([
+      [true, false, true],
+      [false, false, false],
+    ]);
+  });
+
+  it('hides a label that would cover a neighbour marker, with no label in the way', () => {
+    const beta = testComponent(3, 1, 2, at(-30, 0), 'B');
+    const result = plan(view, {}, createCatalogIndex([alpha, beta]));
+    expect(result.markers.map((m) => [m.compact, m.labelVisible])).toEqual([
+      [true, true],
+      [true, false],
+    ]);
+  });
+
+  it('compares full hit boxes at the root font size', () => {
+    const beta = testComponent(3, 1, 2, at(-60, 0), 'Beta component');
+    const index = createCatalogIndex([alpha, beta]);
+    const at16 = planMarkers({ index, viewport: view, ...WIDE, remPx: 16 });
+    const at32 = planMarkers({ index, viewport: view, ...WIDE, remPx: 32 });
+    expect(at16.markers.map((m) => m.compact)).toEqual([false, false]);
+    expect(at32.markers.map((m) => m.compact)).toEqual([true, true]);
+  });
+
+  it('offsets the label from its marker by the root font size', () => {
+    const ahead = testComponent(2, 1, 2, at(0, 0), 'B');
+    const beta = testComponent(3, 1, 2, at(110, 0), 'C');
+    const index = createCatalogIndex([ahead, beta]);
+    const at16 = planMarkers({ index, viewport: view, ...WIDE, remPx: 16 });
+    const at32 = planMarkers({ index, viewport: view, ...WIDE, remPx: 32 });
+    expect(at16.markers.map((m) => m.labelVisible)).toEqual([true, true]);
+    expect(at32.markers.map((m) => m.labelVisible)).toEqual([false, true]);
+  });
+
+  it('breaks a tie within a period by size, larger first, before catalog order', () => {
+    const first = testComponent(3, 1, 3, at(-5, 20), 'First component');
+    const second = testComponent(3, 2, 3, at(5, 10), 'Second component');
+    const index = createCatalogIndex([first, second]);
+    const big =
+      (index.find(first.id)?.size ?? 0) > (index.find(second.id)?.size ?? 0) ? first : second;
+    const small = big === first ? second : first;
+    // The test only means something if size and catalog order disagree.
+    expect(index.find(big.id)?.size).not.toBe(index.find(small.id)?.size);
+    expect(index.find(big.id)?.rank).toBeGreaterThan(index.find(small.id)?.rank ?? Infinity);
+    // The two dots overlap, so only the first in priority is placed.
+    expect(ids(plan(view, {}, index))).toEqual([big.id]);
+  });
+
+  it('breaks a tie between conjugates by catalog order, upper half first', () => {
+    const upper = testComponent(3, 1, 7, { re: -0.2, im: 0.02 }, 'Upper component');
+    const lower = testComponent(3, 6, 7, { re: -0.2, im: -0.02 }, 'Lower component');
+    const index = createCatalogIndex([lower, upper]);
+    expect(index.find(upper.id)?.size).toBe(index.find(lower.id)?.size);
+    expect(index.find(upper.id)?.rank).toBeLessThan(index.find(lower.id)?.rank ?? -Infinity);
+    // Equal sizes and overlapping dots: the upper half is placed, the lower half dropped.
+    expect(ids(plan(view, {}, index))).toEqual([upper.id]);
+    // At the cap boundary (one slot), the upper half still takes it.
+    expect(ids(plan(view, { cap: 1 }, index))).toEqual([upper.id]);
+  });
+
+  it('places dots and hit boxes that exactly touch, since their edges do not overlap', () => {
+    const touchingDot = testComponent(3, 1, 2, at(24, 0), 'Beta component');
+    const dots = plan(view, {}, createCatalogIndex([alpha, touchingDot]));
+    expect(ids(dots)).toEqual([alpha.id, touchingDot.id]);
+    expect(dots.markers.map((m) => m.compact)).toEqual([true, true]);
+    const touchingBox = testComponent(3, 1, 2, at(44, 0), 'Beta component');
+    const boxes = plan(view, {}, createCatalogIndex([alpha, touchingBox]));
+    expect(boxes.markers.map((m) => m.compact)).toEqual([false, false]);
+  });
+
+  it('checks a label against the compact hit box of a neighbour, not its full box', () => {
+    const near = testComponent(2, 1, 2, at(0, 0), 'B');
+    const beta = testComponent(3, 1, 2, at(58, 0), 'C');
+    const gamma = testComponent(3, 2, 3, at(98, 0), 'D');
+    const result = plan(view, {}, createCatalogIndex([near, beta, gamma]));
+    const byLabel = new Map(result.markers.map((m) => [m.component.label, m]));
+    expect(byLabel.get('B')?.compact).toBe(false);
+    expect(byLabel.get('B')?.labelVisible).toBe(true);
+    expect(byLabel.get('C')?.compact).toBe(true);
+    expect(byLabel.get('D')?.compact).toBe(true);
   });
 });

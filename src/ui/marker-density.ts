@@ -26,6 +26,9 @@ import { complexToPixel } from '../domain/viewport';
  *    label. A collision hides a label, never its marker.
  * 5. The markers come back in catalog order, the DOM and keyboard focus
  *    order, which does not depend on the view.
+ *
+ * Precondition: the canvas size is in whole CSS pixels. The caller rounds it;
+ * a size that is not a positive integer yields no markers.
  */
 
 /** Owner decision Q4: about 40 interactive markers at once, lowest periods first. */
@@ -99,6 +102,8 @@ const square = (x: number, y: number, side: number): Box => ({
   bottom: y + side / 2,
 });
 
+const isPositiveInteger = (value: number): boolean => Number.isInteger(value) && value > 0;
+
 const overlaps = (a: Box, b: Box): boolean =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 
@@ -147,9 +152,20 @@ const labelBox = (placement: Placement, input: MarkerPlanInput, leftFacing: bool
   return { left, right: left + width, top: placement.y - half, bottom: placement.y + half };
 };
 
-/** Plans the catalog markers for one view; see the module comment for the rules. */
+/**
+ * Plans the catalog markers for one view; see the module comment for the rules.
+ * A canvas that is not a positive whole number of CSS pixels in both
+ * directions has no room for markers, so the plan is empty. Callers round
+ * sizes to whole CSS pixels.
+ */
 export const planMarkers = (input: MarkerPlanInput): MarkerPlan => {
   const cap = input.cap ?? MARKER_CAP;
+  if (!Number.isFinite(cap) || cap < 1) {
+    throw new RangeError(`marker cap must be a finite number of at least 1, got ${cap}`);
+  }
+  if (!isPositiveInteger(input.width) || !isPositiveInteger(input.height)) {
+    return { markers: [], visited: 0 };
+  }
   const { candidates, visited } = candidatesFor(input, cap);
   const placed = place(candidates, input, cap);
   const compact = placed.map((placement) =>
