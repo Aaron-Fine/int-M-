@@ -119,7 +119,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       headless run and passed alone (2026-10-16/17, all while other agents
       loaded the laptop): Firefox "pans from a catalog marker…", Chromium
       "marks and describes arbitrary … points", Firefox "catalog markers are
-      keyboard-selectable". Rerun the suite on a quiet machine with
+      keyboard-selectable" (each two to four times by 2026-10-17); and Chromium "render traces carry delivery provenance…" once, at the in-flight replay assertion (`originComputeId` 4 against an expected 2). Rerun the suite on a quiet machine with
       `--repeat-each 5`; fix any test that still fails (waits on fixed
       timeouts rather than state). 0.5–1. Root cause found for the Chromium
       one (2026-10-17): `resetView` in `src/ui/application.ts` does not
