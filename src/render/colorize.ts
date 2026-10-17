@@ -3,6 +3,8 @@ import {
   dimChannel,
   EMPTY_PERIOD_KEY,
   ESCAPE_BAND_RATE,
+  MULTIPLIER_STRIPE_AMPLITUDE,
+  MULTIPLIER_STRIPE_FREQUENCY,
   OTHER_PERIODS_COLOR,
   unresolvedTextureColors,
   type PeriodKey,
@@ -176,7 +178,10 @@ const writeAttracting = (
   );
   // Oriented lightness stripes (modulateForMultiplierAngle).
   const projection = x * Math.cos(multiplierAngle) + y * Math.sin(multiplierAngle);
-  const stripe = Math.sin(projection * 0.45) >= 0 ? 22 : -22;
+  const stripe =
+    Math.sin(projection * MULTIPLIER_STRIPE_FREQUENCY) >= 0
+      ? MULTIPLIER_STRIPE_AMPLITUDE
+      : -MULTIPLIER_STRIPE_AMPLITUDE;
   rgba[offset] = clampByte((rgba[offset] ?? 0) + stripe);
   rgba[offset + 1] = clampByte((rgba[offset + 1] ?? 0) + stripe);
   rgba[offset + 2] = clampByte((rgba[offset + 2] ?? 0) + stripe);

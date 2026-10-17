@@ -57,6 +57,9 @@ export {
   colorForUnresolved,
   ESCAPE_BAND_RATE,
   modulateForMultiplierAngle,
+  modulateForMultiplierDirection,
+  MULTIPLIER_STRIPE_AMPLITUDE,
+  MULTIPLIER_STRIPE_FREQUENCY,
   UNRESOLVED_TEXTURE_OFFSET,
   unresolvedTextureColors,
 } from './semantic';

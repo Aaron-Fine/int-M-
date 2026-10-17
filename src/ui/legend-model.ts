@@ -2,6 +2,9 @@ import {
   colorForAttracting,
   colorForEscaped,
   ESCAPE_BAND_RATE,
+  modulateForMultiplierDirection,
+  MULTIPLIER_STRIPE_AMPLITUDE,
+  MULTIPLIER_STRIPE_FREQUENCY,
   OTHER_PERIODS_COLOR,
   unresolvedTextureColors,
   type PeriodKey,
@@ -21,6 +24,24 @@ export interface LegendTick {
   readonly label: string;
 }
 
+/**
+ * One multiplier stripe sample: the light/dark pair the raster draws at one
+ * arg λ, laid out at the raster's pitch and orientation.
+ */
+export interface LegendStripeSample {
+  readonly label: string;
+  /** arg λ in radians. */
+  readonly argLambda: number;
+  /** CSS angle of the gradient line, in degrees. */
+  readonly angleDeg: number;
+  /** Width of one light or dark band, in CSS pixels. */
+  readonly pitch: number;
+  readonly light: string;
+  readonly dark: string;
+  /** CSS background: a repeating light/dark gradient. */
+  readonly background: string;
+}
+
 export interface LegendScale {
   readonly kind: 'scale';
   readonly label: string;
@@ -28,6 +49,8 @@ export interface LegendScale {
   /** CSS background of the bar. */
   readonly background: string;
   readonly ticks: readonly LegendTick[];
+  /** Stripe samples drawn beside the bar (multiplier angle only). */
+  readonly stripes?: readonly LegendStripeSample[];
 }
 
 export interface LegendSwatch {
@@ -58,7 +81,7 @@ export const DEFINITIONS: Readonly<Record<SemanticView, string>> = {
   multiplier:
     'Hue and oriented stripes show rotation (arg λ); lightness shows attraction strength through |λ|.',
   period:
-    'Up to five periods covering the most area in this view get a color, in ascending period order; all other periods share one gray. Colors can change when the view changes, so this key always shows the current mapping.',
+    'Up to five periods covering the most area in this view get a color, in ascending period order; all other periods share one gray. Colors can change when the view changes or refines, so this key always shows the current mapping.',
 };
 
 /** CSS colour of a palette colour (alpha is always 255 in the raster). */
@@ -99,23 +122,68 @@ const stabilityScale = (): LegendScale => ({
 const magnitudeScale = (): LegendScale => ({
   kind: 'scale',
   label: 'Attraction |λ|',
-  detail:
-    '|λ| from 0 (light, strongly attracting) to 1 (dark, neutral); ticks at |λ| = 0.25, 0.5, 0.75; shown at arg λ = 0',
+  detail: `|λ| from 0 (light, strongly attracting) to 1 (dark, neutral); ticks at |λ| = 0.25, 0.5, 0.75; shown at arg λ = 0; the raster adds ±${MULTIPLIER_STRIPE_AMPLITUDE} lightness stripes to these colours`,
   background: gradient((position) => colorForAttracting(1, position, 0, 'multiplier')),
   ticks: [0, 0.25, 0.5, 0.75, 1].map((position) => ({ position, label: String(position) })),
 });
 
-const ANGLE_STRIPES =
-  'repeating-linear-gradient(115deg, rgb(0 0 0 / 28%) 0 2px, transparent 2px 6px)';
+/** Width of one light or dark stripe band: half the period of sin(f·projection). */
+const STRIPE_PITCH = Math.PI / MULTIPLIER_STRIPE_FREQUENCY;
+
+const STRIPE_SAMPLE_ANGLES: readonly { readonly label: string; readonly argLambda: number }[] = [
+  { label: '−π/2', argLambda: -Math.PI / 2 },
+  { label: '0', argLambda: 0 },
+  { label: 'π/2', argLambda: Math.PI / 2 },
+];
+
+const stripeSample = (label: string, argLambda: number): LegendStripeSample => {
+  const base = colorForAttracting(1, 0.5, argLambda, 'multiplier');
+  const unitRe = Math.cos(argLambda);
+  const unitIm = Math.sin(argLambda);
+  // Projections at the centres of a light band (sin > 0) and a dark band (sin < 0).
+  const light = cssColor(
+    modulateForMultiplierDirection(
+      base,
+      (STRIPE_PITCH / 2) * unitRe,
+      (STRIPE_PITCH / 2) * unitIm,
+      unitRe,
+      unitIm,
+    ),
+  );
+  const dark = cssColor(
+    modulateForMultiplierDirection(
+      base,
+      ((3 * STRIPE_PITCH) / 2) * unitRe,
+      ((3 * STRIPE_PITCH) / 2) * unitIm,
+      unitRe,
+      unitIm,
+    ),
+  );
+  // The raster's stripe coordinate runs along (cos λ, sin λ) with y down; a CSS
+  // gradient at angle a runs along (sin a, −cos a), so a = λ + 90°.
+  const angleDeg = (argLambda * 180) / Math.PI + 90;
+  const pitch = STRIPE_PITCH;
+  const edge = pitch.toFixed(2);
+  const end = (2 * pitch).toFixed(2);
+  return {
+    label,
+    argLambda,
+    angleDeg,
+    pitch,
+    light,
+    dark,
+    background: `repeating-linear-gradient(${angleDeg}deg, ${light} 0 ${edge}px, ${dark} ${edge}px ${end}px)`,
+  };
+};
 
 const angleScale = (): LegendScale => ({
   kind: 'scale',
   label: 'Multiplier angle',
   detail:
-    'Hue and stripe orientation represent arg λ from −π to π; ticks at arg λ = −π/2, 0, π/2; shown at |λ| = 0.5',
-  background: `${ANGLE_STRIPES}, ${gradient((position) =>
+    'Hue represents arg λ from −π to π; lightness stripes turn with arg λ, as in the samples at −π/2, 0 and π/2; ticks at arg λ = −π/2, 0, π/2; shown at |λ| = 0.5',
+  background: gradient((position) =>
     colorForAttracting(1, 0.5, Math.PI * (2 * position - 1), 'multiplier'),
-  )}`,
+  ),
   ticks: [
     { position: 0, label: '−π' },
     { position: 0.25, label: '−π/2' },
@@ -123,6 +191,7 @@ const angleScale = (): LegendScale => ({
     { position: 0.75, label: 'π/2' },
     { position: 1, label: 'π' },
   ],
+  stripes: STRIPE_SAMPLE_ANGLES.map(({ label, argLambda }) => stripeSample(label, argLambda)),
 });
 
 /** A share of attracting-cycle pixels, never rounded to 0% or 100% when it is neither. */

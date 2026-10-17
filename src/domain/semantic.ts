@@ -108,6 +108,12 @@ export const modulateForMultiplierAngle = (
   );
 };
 
+/** Spatial frequency of the multiplier stripes: radians of phase per pixel. */
+export const MULTIPLIER_STRIPE_FREQUENCY = 0.45;
+
+/** Lightness offset (±) the multiplier stripes add to every channel. */
+export const MULTIPLIER_STRIPE_AMPLITUDE = 22;
+
 /** Raster form consumes the multiplier direction without an angle round trip. */
 export const modulateForMultiplierDirection = (
   color: Rgba,
@@ -117,7 +123,10 @@ export const modulateForMultiplierDirection = (
   unitIm: number,
 ): Rgba => {
   const projection = x * unitRe + y * unitIm;
-  const offset = Math.sin(projection * 0.45) >= 0 ? 22 : -22;
+  const offset =
+    Math.sin(projection * MULTIPLIER_STRIPE_FREQUENCY) >= 0
+      ? MULTIPLIER_STRIPE_AMPLITUDE
+      : -MULTIPLIER_STRIPE_AMPLITUDE;
   return [
     clampByte(color[0] + offset),
     clampByte(color[1] + offset),

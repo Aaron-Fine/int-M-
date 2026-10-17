@@ -5,6 +5,9 @@ import {
   colorForAttracting,
   colorForEscaped,
   EMPTY_PERIOD_KEY,
+  modulateForMultiplierDirection,
+  MULTIPLIER_STRIPE_AMPLITUDE,
+  MULTIPLIER_STRIPE_FREQUENCY,
   OTHER_PERIODS_COLOR,
   PERIOD_EMPHASIS_PALETTE,
   unresolvedTextureColors,
@@ -72,6 +75,36 @@ describe('legend model', () => {
     expect(angle?.background).toContain(
       `${cssColor(colorForAttracting(1, 0.5, 0, 'multiplier'))} 50.00%`,
     );
+  });
+
+  it('draws the multiplier stripe samples from the raster stripe functions', () => {
+    const [magnitude, angle] = scales(legendModel('multiplier').items);
+    const pitch = Math.PI / MULTIPLIER_STRIPE_FREQUENCY;
+    expect(angle?.stripes?.map((stripe) => stripe.label)).toEqual(['−π/2', '0', 'π/2']);
+    expect(magnitude?.detail).toContain(`±${MULTIPLIER_STRIPE_AMPLITUDE} lightness stripes`);
+
+    for (const stripe of angle?.stripes ?? []) {
+      const base = colorForAttracting(1, 0.5, stripe.argLambda, 'multiplier');
+      const re = Math.cos(stripe.argLambda);
+      const im = Math.sin(stripe.argLambda);
+      const at = (distance: number) =>
+        cssColor(modulateForMultiplierDirection(base, distance * re, distance * im, re, im));
+      // Light where sin(f·projection) >= 0, dark in the next half period.
+      expect(stripe.light).toBe(at(pitch / 2));
+      expect(stripe.dark).toBe(at((3 * pitch) / 2));
+      expect(stripe.light).not.toBe(stripe.dark);
+      expect(stripe.pitch).toBeCloseTo(pitch, 10);
+      // CSS angle a runs along (sin a, −cos a); the raster runs along (cos λ, sin λ).
+      const a = (stripe.angleDeg * Math.PI) / 180;
+      expect(Math.sin(a)).toBeCloseTo(re, 10);
+      expect(-Math.cos(a)).toBeCloseTo(im, 10);
+      expect(stripe.background).toBe(
+        `repeating-linear-gradient(${stripe.angleDeg}deg, ${stripe.light} 0 ${pitch.toFixed(2)}px, ${stripe.dark} ${pitch.toFixed(2)}px ${(2 * pitch).toFixed(2)}px)`,
+      );
+    }
+    // Orientation differs between samples, so the bar shows rotation.
+    expect(new Set(angle?.stripes?.map((stripe) => stripe.angleDeg)).size).toBe(3);
+    expect(angle?.background).not.toContain('repeating-linear-gradient');
   });
 
   it('lists exactly the emphasized periods, in ascending order, plus the neutral class', () => {
