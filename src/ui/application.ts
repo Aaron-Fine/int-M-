@@ -1553,8 +1553,9 @@ function formatEvidence(evidence: string): string {
 /**
  * Human labels for the evidenceSource vocabulary (src/domain/period-policy.ts).
  * The 'fallback' label names the systematic orbit scan honestly — it is what
- * ran — without suggesting a degraded or less trustworthy result: acceptance
- * was identical (the common verifier) regardless of origin.
+ * ran — without suggesting a degraded or less trustworthy result: orbit-path
+ * acceptances go through the common verifier and the closed forms (periods
+ * 1-3) accept by its attraction margin; neither is a weaker claim.
  */
 const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.freeze({
   analytic: 'Analytic closed form',

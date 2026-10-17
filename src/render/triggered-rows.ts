@@ -42,10 +42,14 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * with every double the loops carry round-tripped through `spill`.
  * classifyRow adds no inlinable call for the period-3 path (ADR 0010): the
  * gate is a per-row window computed from the box data before the lanes start,
- * and only the closed form, too large for TurboFan to inline, is called.
- * Calling inPeriodThreeGate here spent TurboFan's inlining budget, so a refill
- * site of classifyAnalyticInto stayed a real call, and the far-exterior stable
- * pass, where no pixel reaches the gate, ran about 10% slower.
+ * and only the closed form, which is large, is called. Observed with V8 in
+ * Node 24: calling inPeriodThreeGate here made the far-exterior stable pass,
+ * where no pixel reaches the gate, about 10% slower in some compiles. The
+ * working explanation is that the inlined gate spent TurboFan's inlining
+ * budget and left a refill call to classifyAnalyticInto out of line. This
+ * depends on V8 heuristics and is unguarded: rerun
+ * tools/benchmark/fallback-overhead.ts after changing classifyRow or
+ * upgrading V8.
  *
  * Lockstep shape: each lane raises an event on one of three tests, so the
  * common iteration is three compares per lane:

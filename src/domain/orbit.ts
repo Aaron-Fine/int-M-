@@ -254,9 +254,11 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  * Observable semantics are identical to classifyOrbit, which materializes
  * the rich result boundary from this core.
  *
- * Acceptance policy (PR 3): every attracting result — analytic fast paths
- * included — passes the common numerical verifier (src/domain/verifier.ts,
- * revision VERIFIER_REVISION). The lag-scan candidate proposal (proximity
+ * Acceptance policy (PR 3): every orbit-path attracting result passes the
+ * common numerical verifier (src/domain/verifier.ts, revision
+ * VERIFIER_REVISION) via verifyCycleInto. The closed forms (periods 1-3)
+ * accept by the verifier's attraction margin instead, period 3 with a derived
+ * binary64 allowance (ADR 0010). The lag-scan candidate proposal (proximity
  * below OrbitOptions.cycleTolerance) is unchanged; only acceptance migrated.
  *
  * Semantic changes versus the legacy classifier, enumerated per plan

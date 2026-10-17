@@ -31,7 +31,11 @@ import { ORBIT_EVIDENCE_CODE } from './types';
 /** 2^-46 = 128 u for binary64 (u = 2^-53), the allowance coefficient. */
 export const PERIOD_THREE_ALLOWANCE_COEFFICIENT = 2 ** -46;
 
-/** Revision of this acceptance rule (closed form, allowance, margin). */
+/**
+ * Revision of this acceptance rule (closed form, allowance, margin). Nothing
+ * keys a cache on it: bump SEMANTIC_ALGORITHM_VERSION
+ * (src/render/semantic-store.ts) together with this constant.
+ */
 export const PERIOD_THREE_ANALYTIC_REVISION = 'src-analytic-p3-1.0.0';
 
 /** Mutable record written on acceptance; structurally satisfied by OrbitSample. */
