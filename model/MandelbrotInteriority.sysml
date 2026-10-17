@@ -705,7 +705,9 @@ package MandelbrotInteriority {
             doc /*
              * Check catalog completeness, deterministic generation when a
              * generated layer ships, and keyboard, focus, and marker-cap
-             * accessibility of catalog presentation.
+             * accessibility of catalog presentation. Schema v2 entries carry
+             * residuals, method and provenance; ids derive from the
+             * characteristic rays and v1 ids remain aliases (ADR 0011).
              */
             objective catalogDeterminism {
                 verify PerformanceRequirements::CuratedCatalogIntegrity;

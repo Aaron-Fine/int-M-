@@ -225,13 +225,18 @@ silently.
 
 **Trace:** PLAN §3.3, §11. **Estimate:** 2.
 
-- [ ] Schema v2: per-entry `residual`, `method` and `provenance` (generator,
-      loader, `npm run catalog:check`).
-- [ ] A catalog unit test: unique ids, exact period, ray pairs, schema.
-- [ ] A stable id scheme that survives regeneration (today's `mi-p4-NN` is
-      ordinal).
-- [ ] Record internal and angled addresses for the six period-4 entries that
-      lack them, or state why not.
+- [x] Schema v2: per-entry `residual`, `method` and `provenance` (generator,
+      loader, `npm run catalog:check`). Done:
+      [ADR 0011](../decisions/0011-catalog-schema-v2-and-stable-ids.md),
+      `catalog/components.v2.json`, `src/catalog/schema.ts`.
+- [x] A catalog unit test: unique ids, exact period, ray pairs, schema.
+      Done: `tests/unit/catalog/` and `npm run catalog:test`.
+- [x] A stable id scheme that survives regeneration (today's `mi-p4-NN` is
+      ordinal). Done: `mi-p<p>-<a>-<b>` from the characteristic rays; v1 ids
+      stay as aliases, `v` unchanged (ADR 0011, ADR 0009 amendment).
+- [x] Record internal and angled addresses for the six period-4 entries that
+      lack them, or state why not. Done: generated from the rays (kneading
+      sequence, Schleicher denominators, tuned sub-wakes), listed in ADR 0011.
 
 **Done when:** every catalog entry carries its validation residual and
 provenance, and a unit test guards the file.

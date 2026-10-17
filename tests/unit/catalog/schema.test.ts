@@ -136,6 +136,26 @@ describe('catalog schema v2 loader', () => {
       edited((_, e) => (at(e, 3)['provenance'] = 'hearsay')),
       /unknown provenance/,
     ],
+    [
+      'two canonical entries sharing an id',
+      edited((_, e) => (e[4] = structuredClone(at(e, 3)))),
+      /components: id or alias mi-p3-5-6 is not unique/,
+    ],
+    [
+      'a missing centre',
+      edited((_, e) => delete at(e, 2)['center']),
+      /components\[2\]\.center: must be an object/,
+    ],
+    [
+      'a missing label',
+      edited((_, e) => delete at(e, 2)['label']),
+      /components\[2\]\.label: must be a non-empty string/,
+    ],
+    [
+      'a missing period',
+      edited((_, e) => delete at(e, 2)['period']),
+      /components\[2\]\.period: must be an integer/,
+    ],
   ])('rejects %s', (_name, raw, message) => {
     expectRejected(raw, message);
   });
