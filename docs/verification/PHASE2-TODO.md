@@ -44,6 +44,27 @@ from the audit.
 
 Estimates are engineering days. They are planning figures and may overlap.
 
+### Owner decisions (2026-10-16)
+
+- **Q1:** The period view emphasizes at most **5 periods per view**, chosen by
+  area in the current view, and draws every other period in one neutral
+  "other periods" colour. A fixed five-colour CVD-safe palette is assigned to
+  the emphasized periods in ascending period order, so a period's colour may
+  change between views, and the legend always shows the mapping. Basis: on the
+  frozen corpus, no view has more than 2 periods covering ≥1% of its pixels,
+  or more than 6 covering ≥0.1% (320×200, production classifier). The periods
+  that matter vary by view (p4/8/12/16 at 126×, p32 at the Feigenbaum point),
+  so a fixed p1–p4 scheme was rejected.
+- **Q2:** A versioned query string, `?v=1&c=<re>,<im>&s=<span>&view=&q=&sel=`,
+  with exact decimals and `replaceState` once a view settles. Old or broken
+  links fall back with a visible notice.
+- **Q3:** The full period ≤12 core (workstream F), generated with a pinned
+  arbitrary-precision tool and independently cross-checked, with generated
+  labels plus curated names where known.
+- **Q4:** A zoom-dependent cap of about 40 interactive markers, lowest periods
+  first, with the catalog list reaching every entry.
+- Q5 and Q6 are still open.
+
 ### 0. Worth doing now
 
 - [ ] **Confirming release session on the mirror-free build** (owner screen
@@ -90,9 +111,12 @@ checks, and the legend cannot drift from the rendered colours.
 **Trace:** proposed `MI-UX-018`; `MI-UX-010`. **Estimate:** 2–3. **Needs:**
 Q1, item 1.
 
-- [ ] The period view emphasizes at most the agreed classes (Q1); the rest are
-      neutral; each emphasized class has a non-hue cue
-      (`src/domain/semantic.ts:52` currently gives every period its own hue).
+- [ ] The period view emphasizes the (at most 5) periods covering the most
+      area in the current view, coloured from a fixed five-colour CVD-safe
+      palette in ascending period order; every other period is one neutral
+      colour (Q1). Today `src/domain/semantic.ts:52` gives every period its
+      own hue. The per-view ranking needs the frame's period histogram at
+      colorize time, so a pan or zoom can recolour without reclassifying.
 - [ ] Legend numeric scales for κ and |λ|; the period key lists exactly the
       emphasized classes plus "other".
 - [ ] Update `DEFINITIONS`, the colorizer byte-parity test, and the e2e legend
