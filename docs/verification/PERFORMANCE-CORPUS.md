@@ -89,14 +89,15 @@ release-gate cases at Balanced, the default heuristic budget.
 - `mi-fallback-unknown-high-period` — Seahorse Valley at 250,000×, far beyond
   any cataloged component. No attracting cycles are detected at all; the
   workload is slow-escaping boundary and budget exhaustion.
-- `mi-fallback-weak-attraction` — the period-6 satellite capping the Douady
-  rabbit's far internal ray (the ray from the rabbit's catalog center away from
-  its cardioid root). ~97% of sampled pixels are attracting period-6 with
-  accepted multiplier magnitudes up to ~0.81; orbits with |λ| approaching 1
-  correctly stay unresolved, which is itself the fallback behavior under test.
-  The chosen coordinates were located by scanning the internal ray with the
-  checked-in classifier; the closure-acceptance rules cap the weakest accepted
-  attraction near |λ| ≈ 0.81 in this region.
+- `mi-fallback-weak-attraction` — the interior of the Douady rabbit next to its
+  1/2 root. ~97% of sampled pixels are attracting period-3 with |λ| between
+  0.848 and 0.902 (arg λ ≈ −π); at the centre (−0.1205, 0.8268) the classifier
+  gives period 3, |λ| = 0.876. A thin near-boundary band stays unresolved. The
+  coordinates were located by scanning with the checked-in classifier. This
+  entry originally described the view as a period-6 satellite with |λ| up to
+  ~0.81; the H spike showed that was wrong
+  ([side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)). The
+  `period-5-8` stratum tag is kept because tags are frozen.
 - `mi-fallback-ambiguous-boundary` — the Elephant Valley filament comb at
   (0.3, 0.008): status flips between neighboring pixels, with slow-escape
   exterior, high-period filament attractors (p15–p32), and a thin unresolved
@@ -112,9 +113,11 @@ release-gate cases at Balanced, the default heuristic budget.
   rational 1/2,400,000, i.e. exactly 6,000,000× against the 2.5 default span,
   the product's declared `MAX_MAGNIFICATION`. The center is the basilica
   disk's 1/2-parabolic point (−5/4, 0) — an exact rational coordinate, chosen
-  because the disk boundary is locally vertical there: the shipping raster
-  splits deterministically into ~50% analytic period-2 interior and ~50%
-  near-parabolic exterior that exhausts the budget.
+  because the boundary is locally vertical there: the shipping raster splits
+  deterministically at Re c = −1.25 into ~50% analytic period-2 interior (right
+  half) and ~50% interior of the period-4 bulb (left half) with |λ| between
+  1 − 5e-6 and 1 − 2e-8, which the Balanced budget leaves unresolved
+  ([side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
 
 ### Stratum evidence
 
@@ -139,13 +142,14 @@ justify the tags):
   p12 and higher), 4% unresolved.
 - `mi-fallback-unknown-high-period`: 91% escaped (slow), 9% unresolved, no
   detected cycles.
-- `mi-fallback-weak-attraction`: 97% attracting p6 (|λ| up to 0.81), 3%
+- `mi-fallback-weak-attraction`: 97% attracting p3 (|λ| 0.848–0.902), 3%
   unresolved.
 - `mi-fallback-ambiguous-boundary`: 96% escaped (slow tail to the budget), 3%
   attracting (p15–p32), 1% unresolved.
 - `mi-fallback-budget-exhaustion`: 67% escaped, 30% unresolved, 3% attracting
   at the period-32 cap.
-- `mi-scale-6mx-basilica-rim`: 50% unresolved, 50% analytic period-2.
+- `mi-scale-6mx-basilica-rim`: 50% analytic period-2, 50% period-4 interior
+  that the production classifier leaves unresolved (|λ| within 5e-6 of 1).
 
 ## Protocol summary
 

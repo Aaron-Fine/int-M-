@@ -136,7 +136,7 @@
       "profile": "Balanced",
       "designation": "release-gate",
       "strata": ["weak-attraction", "period-5-8", "boundary"],
-      "rationale": "Interior of the period-6 satellite capping the Douady rabbit's far internal ray (along the catalog rabbit center away from its cardioid root): ~97% attracting period-6 with accepted multiplier magnitudes up to ~0.81, plus a near-boundary unresolved band. Orbits with |lambda| approaching 1 correctly remain unresolved, which is the fallback behavior under test."
+      "rationale": "Interior of the Douady rabbit next to its 1/2 root: ~97% attracting period-3 with |lambda| between 0.848 and 0.902 and arg lambda near -pi (production classifier, 256x160 sample), plus a ~3% near-boundary unresolved band. At the centre (-0.1205, 0.8268) the classifier gives period 3, |lambda| = 0.876. Exercises weak but resolvable attraction and the cost of the unresolved fringe in the fallback path. Corrected 2026-10-16: an earlier description of this view as a higher-period satellite was wrong (WORKSTREAM-H-SPIKE-2026-10-16.md, side finding 1)."
     },
     {
       "id": "mi-fallback-ambiguous-boundary",
@@ -166,7 +166,7 @@
       "profile": "Balanced",
       "designation": "release-gate",
       "strata": ["period-1-4", "weak-attraction", "boundary", "high-unresolved"],
-      "rationale": "The declared product zoom envelope: spanY is the decimal rounding of 1/2,400,000, i.e. exactly 6,000,000x against the 2.5 default span. Centered on the basilica disk's 1/2-parabolic point (-5/4, 0), an exact rational coordinate; the disk boundary is locally vertical there, splitting the shipping raster deterministically into ~50% analytic period-2 interior and ~50% near-parabolic exterior that exhausts the budget."
+      "rationale": "The declared product zoom envelope: spanY is the decimal rounding of 1/2,400,000, i.e. exactly 6,000,000x against the 2.5 default span. Centered on the basilica disk's 1/2-parabolic point (-5/4, 0), an exact rational coordinate; the boundary is locally vertical there, splitting the shipping raster deterministically at Re c = -1.25 into ~50% analytic period-2 interior (right half) and ~50% interior of the period-4 bulb (left half, Re c < -1.25), where |lambda| lies between 1 - 5e-6 and 1 - 2e-8 so the Balanced budget leaves those pixels unresolved (at the 256x160 spike raster all 20,480 left-half pixels confirm as period 4 with a 5,000,000-iteration budget). Corrected 2026-10-16: the left half is interior, not exterior (WORKSTREAM-H-SPIKE-2026-10-16.md, side finding 1)."
     }
   ]
 }
