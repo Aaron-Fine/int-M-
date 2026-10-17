@@ -63,7 +63,13 @@ Estimates are engineering days. They are planning figures and may overlap.
   labels plus curated names where known.
 - **Q4:** A zoom-dependent cap of about 40 interactive markers, lowest periods
   first, with the catalog list reaching every entry.
-- Q5 and Q6 are still open.
+- **Q5:** Keep the stability and multiplier palettes. Set numeric floors
+  (minimum colour difference and contrast under simulated colour vision) from
+  the passing Phase 1 CVD matrix, checked by unit tests.
+- **Q6:** Deterministic hashes of colorized frames in unit tests are the gate;
+  browser screenshots are advisory.
+- **Workstream H:** adopt period 3 now and period 4 after a rigorous error
+  bound ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)); item 8 below.
 
 ### 0. Worth doing now
 
@@ -85,6 +91,11 @@ Estimates are engineering days. They are planning figures and may overlap.
 - [ ] **Memory high-water (`MI-PERF-006`).** It is the one performance
       requirement never measured in the release browsers. Add a
       per-engine high-water figure to the release harness. 1–2.
+- [ ] **Corpus rationale corrections.** `mi-fallback-weak-attraction` is
+      period 3 (|λ| 0.848–0.902), not period 6. The left half of
+      `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
+      exterior ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
+      Correct the rationale text only; the frozen view parameters stay. 0.5.
 - [ ] **E2E in-flight replay.** Assert an `inflight-replay` frame naming the
       active computation in the browser provenance test (final-review M6). 0.5.
 
@@ -214,6 +225,26 @@ marker count stays bounded at any zoom.
 **Done when:** the full core ships, is validated independently, stays within
 its size budget, and is displayed like the curated markers.
 
+### 8. Algebraic period-3/4 classification (workstream H)
+
+**Trace:** `MI-PERF-001`, plan §3 answer-change rule. **Estimate:** p3 3–4;
+p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
+
+- [ ] **Period 3:** add the closed form λ = 4(c+2) ± 4i·c·√(4c+7) as an
+      analytic fast path beside the period-1/2 ones, with a written error
+      budget and, if practical, a Lean statement next to `PeriodThreeLocus`.
+- [ ] Place the test so early escapers never pay it (the spike measured
+      3–8% fallback overhead on the far exterior against a 5% limit).
+- [ ] Evidence codes and flags for the analytic source; regenerate the golden
+      kernel fixture in the same commit, with oracle evidence for every
+      changed pixel (unresolved → attracting).
+- [ ] A release-harness run in both browsers.
+- [ ] **Period 4, after a rigorous root-error bound** (Kantorovich, or a cusp
+      exclusion disk): the cubic solve inside the component boxes.
+
+**Done when:** the hard views gain as the spike measured, in the browsers, and
+every changed pixel is adjudicated against the oracle.
+
 ## Proposed requirements
 
 To be added to [REQUIREMENTS.md](REQUIREMENTS.md) and the SysML model as each
@@ -243,7 +274,6 @@ condition in the closeout:
 
 - overlapping the coarse and stable passes;
 - weak-attraction early acceptance (research track L);
-- workstream H, pending its exploratory spike;
 - the dormant Firefox B bisect, reopened only on a missed budget;
 - the 2% always-on overhead check, which needs a recorder-free build;
 - TypeScript 7, once `typescript-eslint` supports it.

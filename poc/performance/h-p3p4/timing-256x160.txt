@@ -1,0 +1,14 @@
+mi-easy-default-full             prod    5.56  null    5.11  proto    5.07 ms | proto/prod x  1.10  proto vs null   -0.8%
+mi-easy-exterior-heavy           prod    2.86  null    2.89  proto    3.05 ms | proto/prod x  0.94  proto vs null    5.7%
+mi-easy-main-cardioid            prod    2.48  null    2.57  proto    2.52 ms | proto/prod x  0.98  proto vs null   -2.0%
+mi-easy-period2-bulb             prod    1.80  null    1.78  proto    1.76 ms | proto/prod x  1.02  proto vs null   -1.3%
+mi-hard-rabbit-boundary          prod   22.45  null   22.61  proto   11.23 ms | proto/prod x  2.00  proto vs null  -50.3%
+mi-hard-supplied-126x            prod   29.13  null   27.85  proto   16.28 ms | proto/prod x  1.79  proto vs null  -41.6%
+mi-hard-supplied-609x            prod   11.59  null   11.59  proto    8.38 ms | proto/prod x  1.38  proto vs null  -27.7%
+mi-hard-supplied-13x             prod   20.94  null   21.23  proto   12.47 ms | proto/prod x  1.68  proto vs null  -41.3%
+mi-fallback-unknown-high-period  prod   64.32  null   64.50  proto   66.14 ms | proto/prod x  0.97  proto vs null    2.5%
+mi-fallback-weak-attraction      prod  116.04  null  116.22  proto    2.89 ms | proto/prod x 40.15  proto vs null  -97.5%
+mi-fallback-ambiguous-boundary   prod   11.35  null   11.53  proto   11.84 ms | proto/prod x  0.96  proto vs null    2.7%
+mi-fallback-budget-exhaustion    prod   86.66  null   90.16  proto   88.96 ms | proto/prod x  0.97  proto vs null   -1.3%
+mi-scale-6mx-basilica-rim        prod   87.22  null   84.08  proto   10.37 ms | proto/prod x  8.41  proto vs null  -87.7%
+corpus sum (ms): prod 462.4 null 462.1 proto 241.0; saving vs prod 47.9%

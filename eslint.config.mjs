@@ -15,6 +15,8 @@ export default tseslint.config(
       'test-results/',
       'proof/.lake/',
       '.remember/',
+      // Frozen exploratory spike scripts (directional record, see their README).
+      'poc/performance/h-p3p4/',
     ],
   },
   eslint.configs.recommended,
