@@ -119,7 +119,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
       exterior ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
       Correct the rationale text only; the frozen view parameters stay. 0.5.
-- [ ] **E2E flake watch.** Three different tests each failed once in a full
+- [x] **E2E flake watch.** Three different tests each failed once in a full
       headless run and passed alone (2026-10-16/17, all while other agents
       loaded the laptop): Firefox "pans from a catalog marker…", Chromium
       "marks and describes arbitrary … points", Firefox "catalog markers are
@@ -131,11 +131,22 @@ Estimates are engineering days. They are planning figures and may overlap.
       reply arriving after Reset re-selects the point. That is a real app
       race: fix it in `resetView` and make the test await the inspection
       result before Reset.
-- [ ] **Catalog marker target size at 320 px.** axe reports a `target-size`
+      Done 2026-10-17: Reset now invalidates the pending inspection and ends a
+      drag in progress; the catalog overlay keeps its marker buttons across
+      redraws (the cause of both Firefox flakes and of lost keyboard focus);
+      the provenance test waits for the settled request instead of assuming the
+      last completed trace is the cached computation, and prints the trace ring
+      if `originComputeId` ever disagrees with `computeId` again; the coarse and
+      stable order test waits for the presented marks it reads; the folded
+      first-use flow is marked slow. The full suite passed `--repeat-each 3
+    --workers 8` beside eight busy loops (log kept in the scratchpad). Not
+      run: `--repeat-each 5` on a quiet machine.
+- [x] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
       "Airplane, period 3"), found while planning item 3. Enlarge the hit
       target without changing the drawn marker, and add axe to the 320 px
       reflow test. 0.5–1.
+      Done 2026-10-17: period-4 markers use their 24px dot as the hit target; the 320/375/430 px reflow test now runs axe.
 - [x] **E2E in-flight replay.** Assert an `inflight-replay` frame naming the
       active computation in the browser provenance test (final-review M6). 0.5.
 
