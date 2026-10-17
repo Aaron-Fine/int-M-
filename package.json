@@ -39,6 +39,7 @@
     "fixtures:kernel-golden": "vite build --ssr tools/generate_kernel_golden.ts --outDir .evidence-build/kernel-golden --emptyOutDir --logLevel warn && node .evidence-build/kernel-golden/generate_kernel_golden.js",
     "evidence:palette": "vite build --ssr tools/palette_metrics.ts --outDir .evidence-build/palette --emptyOutDir --logLevel warn && node .evidence-build/palette/palette_metrics.js",
     "kernel-bench": "vite build --ssr tools/benchmark/kernel-bench.ts --outDir .evidence-build/kernel-bench --emptyOutDir --logLevel warn && node .evidence-build/kernel-bench/kernel-bench.js",
+    "fixtures:pixel-dump": "vite build --ssr tools/kernel_pixel_dump.ts --outDir .evidence-build/pixel-dump --emptyOutDir --logLevel warn && node .evidence-build/pixel-dump/kernel_pixel_dump.js",
     "coarse-budget-study": "vite build --ssr tools/benchmark/coarse-budget-study.ts --outDir .evidence-build/coarse-budget-study --emptyOutDir --logLevel warn && node .evidence-build/coarse-budget-study/coarse-budget-study.js"
   },
   "devDependencies": {

@@ -33,6 +33,8 @@
     "tools/benchmark/harness/**/*.ts",
     "tools/benchmark/run-release.ts",
     "tools/generate_kernel_golden.ts",
+    "tools/kernel_pixel_dump.ts",
+    "tools/benchmark/fallback-overhead.ts",
     "tools/palette_metrics.ts"
   ]
 }
