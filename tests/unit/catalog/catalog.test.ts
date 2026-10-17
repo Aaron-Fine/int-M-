@@ -72,6 +72,22 @@ const angledDenominatorOf = (numerator: number, period: number, from: number, to
   return (to - remainder) / from + (orbit.has(from) ? 1 : 2);
 };
 
+/** Schleicher: p_k counts j in 0..q_k-2 with 2^(j·S_k)·θ mod 1 in (0, θ], θ the lower ray. */
+const angledNumeratorOf = (
+  numerator: number,
+  period: number,
+  from: number,
+  denominator: number,
+): number => {
+  const modulus = rayModulus(period);
+  let count = 0;
+  for (let j = 0, angle = numerator; j < denominator - 1; j += 1) {
+    if (angle !== 0 && angle <= numerator) count += 1;
+    angle = (angle * 2 ** from) % modulus;
+  }
+  return count;
+};
+
 const hasExactRayPeriod = (numerator: number, period: number): boolean =>
   properDivisors(period).every(
     (divisor) => (numerator * rayModulus(divisor)) % rayModulus(period) !== 0,
@@ -118,7 +134,7 @@ describe('component catalog', () => {
     }
   });
 
-  it('records residuals that bound the stored centre', () => {
+  it('declares residuals within the published bounds', () => {
     for (const { id, center, period, residual } of COMPONENT_CATALOG) {
       const scale = Math.max(1, Math.hypot(center.re, center.im));
       expect(residual.centerError, id).toBeLessThanOrEqual(Number.EPSILON * scale);
@@ -146,14 +162,36 @@ describe('component catalog', () => {
     }
   });
 
-  it('states angled addresses with Schleicher denominators in lowest terms', () => {
+  it('states angled addresses recomputed from the lower ray', () => {
     for (const component of COMPONENT_CATALOG.filter((entry) => entry.period > 1)) {
       const [lower] = raysOf(component);
-      for (const step of component.angledInternalAddress ?? []) {
-        expect(step.rotation.denominator, component.id).toBe(
-          angledDenominatorOf(lower, component.period, step.fromPeriod, step.toPeriod),
-        );
-      }
+      const address = internalAddressOf(lower, component.period);
+      const steps = component.angledInternalAddress;
+      expect(steps, component.id).toBeDefined();
+      expect(steps, component.id).toHaveLength(address.length - 1);
+      steps!.forEach((step, index) => {
+        const from = address[index]!;
+        const to = address[index + 1]!;
+        expect(step.fromPeriod, component.id).toBe(from);
+        expect(step.toPeriod, component.id).toBe(to);
+        const denominator = angledDenominatorOf(lower, component.period, from, to);
+        expect(step.rotation, `${component.id} ${from}->${to}`).toEqual({
+          numerator: angledNumeratorOf(lower, component.period, from, denominator),
+          denominator,
+        });
+      });
+    }
+  });
+
+  it('puts the rays and the centre in the same half-plane', () => {
+    for (const { id, period, center, characteristicRays } of COMPONENT_CATALOG) {
+      if (characteristicRays === undefined) continue;
+      const half = rayModulus(period);
+      const lower = characteristicRays[0].numerator;
+      const upper = characteristicRays[1].numerator;
+      if (center.im > 0) expect(2 * upper, id).toBeLessThan(half);
+      else if (center.im < 0) expect(2 * lower, id).toBeGreaterThan(half);
+      else expect(lower + upper, id).toBe(half);
     }
   });
 
@@ -201,6 +239,10 @@ describe('component catalog', () => {
     ]);
     expect(raysOf(reviewed('mi-p3-airplane')!)).toEqual([3, 4]);
     expect(reviewed('mi-p3-airplane')?.internalAddress).toEqual([1, 2, 3]);
+    expect(reviewed('mi-p3-airplane')?.angledInternalAddress).toEqual([
+      { fromPeriod: 1, toPeriod: 2, rotation: { numerator: 1, denominator: 2 } },
+      { fromPeriod: 2, toPeriod: 3, rotation: { numerator: 1, denominator: 2 } },
+    ]);
     expect(reviewed('mi-p3-corabbit')?.angledInternalAddress).toEqual([
       { fromPeriod: 1, toPeriod: 3, rotation: { numerator: 2, denominator: 3 } },
     ]);
