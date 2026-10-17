@@ -140,14 +140,14 @@ Estimates are engineering days. They are planning figures and may overlap.
 **Trace:** proposed `MI-UX-021`; `MI-UX-011`, `MI-UX-016`. **Estimate:** 3–4.
 **Needs:** Q5.
 
-- [ ] Define the numeric acceptance: luminance monotonicity of the stability
+- [x] Define the numeric acceptance: luminance monotonicity of the stability
       ramp, minimum ΔE between the escaped, unresolved and interior classes
       under protan, deutan and tritan simulation, and label contrast over the
       raster.
-- [ ] Unit-test those thresholds from the `colorize.ts` output (no browser).
-- [ ] Derive the legend swatches from the same palette functions; today they
+- [x] Unit-test those thresholds from the `colorize.ts` output (no browser).
+- [x] Derive the legend swatches from the same palette functions; today they
       are CSS and can drift.
-- [ ] Re-run the CVD matrix and axe on any palette change and record the
+- [x] Re-run the CVD matrix and axe on any palette change and record the
       evidence under `evidence/phase-2/`.
 
 **Done when:** each view's palette has numeric thresholds that a unit test
@@ -158,15 +158,15 @@ checks, and the legend cannot drift from the rendered colours.
 **Trace:** proposed `MI-UX-018`; `MI-UX-010`. **Estimate:** 2–3. **Needs:**
 Q1, item 1.
 
-- [ ] The period view emphasizes the (at most 5) periods covering the most
+- [x] The period view emphasizes the (at most 5) periods covering the most
       area in the current view, coloured from a fixed five-colour CVD-safe
       palette in ascending period order; every other period is one neutral
       colour (Q1). Today `src/domain/semantic.ts:52` gives every period its
       own hue. The per-view ranking needs the frame's period histogram at
       colorize time, so a pan or zoom can recolour without reclassifying.
-- [ ] Legend numeric scales for κ and |λ|; the period key lists exactly the
+- [x] Legend numeric scales for κ and |λ|; the period key lists exactly the
       emphasized classes plus "other".
-- [ ] Update `DEFINITIONS`, the colorizer byte-parity test, and the e2e legend
+- [x] Update `DEFINITIONS`, the colorizer byte-parity test, and the e2e legend
       assertions; bump the semantic algorithm version only if cached fields
       change.
 
@@ -294,7 +294,9 @@ item lands:
 
 - `MI-UX-018` Period view emphasis: the period view emphasizes no more than
   the agreed classes, each also distinguishable by a non-hue cue, and the
-  legend lists exactly what is emphasized.
+  legend lists exactly what is emphasized. Added with items 1 and 2: the
+  non-hue identification is the ordered legend (exact periods, area shares)
+  plus isolation on legend hover, focus or activation.
 - `MI-UX-019` Shareable state: the viewport (exact decimal centre and span),
   semantic view, quality profile and selection are encoded in a versioned URL
   and restored on load; malformed or out-of-range values fall back to defaults
@@ -305,7 +307,8 @@ item lands:
   and a bounded marker count.
 - `MI-UX-021` Palette acceptance: each view's palette meets declared
   monotonicity and distinguishability thresholds under normal and simulated
-  colour vision, and the legend derives from the rendered palette.
+  colour vision, and the legend derives from the rendered palette. Added with
+  item 1.
 - `MI-VER-UX-001` Image regression: each semantic view has committed goldens
   for the default and two zoomed views, with a documented tolerance and
   update procedure.

@@ -401,6 +401,41 @@ package MandelbrotInteriority {
              * shall never be reinterpreted silently.
              */
         }
+
+        requirement <'MI-UX-018'> PeriodViewEmphasis {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The period view shall emphasize at most five periods per view,
+             * chosen by area in the frame shown, and draw every other period
+             * in one neutral color. The legend shall list exactly the
+             * emphasized periods in ascending order, with their exact period
+             * numbers, their shares of the attracting-cycle area and the
+             * colors the raster uses, plus the neutral class. Each emphasized
+             * period shall be identifiable without relying on hue through
+             * that legend and by isolation: hovering, focusing or activating
+             * its legend entry shall dim every pixel not of that period, with
+             * at least 3:1 contrast between the period and the dimmed field,
+             * until the entry is released or activated again, Escape is
+             * pressed, or the interior view changes.
+             */
+        }
+
+        requirement <'MI-UX-021'> PaletteAcceptance {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Each semantic view's palette shall meet the declared minimum
+             * CIEDE2000 differences, set from the passing Phase 1 matrix (the
+             * period-color floor raised to 11 for the accepted palette),
+             * between the escaped and unresolved classes and among and
+             * against the period-view classes under normal and simulated
+             * protan, deutan and tritan vision; where interior colors overlap
+             * those classes by design, the unresolved texture and the
+             * multiplier stripes shall meet their own floors. The stability
+             * ramp shall be monotonic in luminance, text drawn over the
+             * raster shall keep at least 4.5:1 contrast, and every legend
+             * color shall derive from the colorizer's palette.
+             */
+        }
     }
 
 
@@ -521,6 +556,12 @@ package MandelbrotInteriority {
                 by app.uiShell;
             satisfy UserExperienceRequirements::RendererRecoveryAndFallback
                 by app.uiShell.rendererLifecycle;
+            satisfy UserExperienceRequirements::PeriodViewEmphasis
+                by app.renderingWorker.paletteMapper;
+            satisfy UserExperienceRequirements::PeriodViewEmphasis
+                by app.uiShell.legend;
+            satisfy UserExperienceRequirements::PaletteAcceptance
+                by app.renderingWorker.paletteMapper;
             satisfy UserExperienceRequirements::ShareableState
                 by app.uiShell;
         }
@@ -595,6 +636,8 @@ package MandelbrotInteriority {
                 verify UserExperienceRequirements::SemanticLegend;
                 verify UserExperienceRequirements::NonColorStateDistinction;
                 verify UserExperienceRequirements::EvidenceBoundedInspector;
+                verify UserExperienceRequirements::PeriodViewEmphasis;
+                verify UserExperienceRequirements::PaletteAcceptance;
             }
         }
 
