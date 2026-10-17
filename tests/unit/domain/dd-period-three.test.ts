@@ -41,9 +41,22 @@ describe('ddPeriodThreeCycle', () => {
       [-0.1155037469844854, 0.8402560718860035],
       [-0.11341865594943658, 0.860569472501573],
     ] as const) {
-      const verdict = ddPeriodThreeCycle(re, im);
-      expect(verdict.status === 'attracting-cycle' && verdict.cycle.primitive === 3).toBe(false);
+      // Pinned: the adjudicator cannot certify these period-6 satellite points,
+      // so it reports `unresolved` (not a period-3 cycle).
+      expect(ddPeriodThreeCycle(re, im).status).toBe('unresolved');
     }
+  });
+
+  it('certifies period 3 at the rim point |lambda| = 1 - 2e-8 to 1e-12', () => {
+    // Built like the 1 - 1e-11 point: on the line through the rabbit's period-3
+    // parabolic root (the same direction as the 1 - 1e-3 and 1 - 1e-9 points),
+    // solved to |lambda| = 1 - 2e-8 in 80-digit decimal Newton on f^3(z) - z,
+    // then rounded to binary64. Reference modulus at the rounded point:
+    // 0.99999997999999988 (1 - 2.0000001e-8). Pinned: certified, not unresolved.
+    expect(certifiedMagnitude(-0.04577863852986036, 0.6922649063652311)).toBeCloseTo(
+      0.9999999799999999,
+      12,
+    );
   });
 
   it('reports the escape of an exterior parameter', () => {
