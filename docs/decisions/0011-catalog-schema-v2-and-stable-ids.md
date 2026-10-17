@@ -118,3 +118,12 @@ canonical id. Sharding by period is possible without changing ids.
 - The period-4 labels remain the v1 placeholders ("Period-4 component N").
   Naming them is an item 6 or 7 curation decision; a label change does not
   change an id.
+
+## Amendment (2026-10-17, ADR 0012)
+
+[ADR 0012](0012-catalog-navigation-and-marker-density.md) adds an optional
+`annotation` to each entry: at most 280 characters, carried from
+`curation.v2.json` by the generator and validated by the loader. The change is
+additive, so `schemaVersion` stays 2. ADR 0012 also makes the catalog order
+(period, then lower characteristic angle) the keyboard focus order of the
+markers in place of the file order; the file order itself is unchanged.

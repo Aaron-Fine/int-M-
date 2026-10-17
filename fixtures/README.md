@@ -92,6 +92,15 @@ separate job that cannot fail the build (`continue-on-error`). A difference
 is a prompt to look at the report (`playwright-report-visual/`), not a
 failure. Commit new baselines with the change that explains them.
 
+Pending (2026-10-17, PHASE2-TODO item 6): the inspector now shows a curated
+entry's annotation, so `selected-marker-evidence.png` differs in both
+engines until the owner regenerates the baselines in the container. The
+three raster golden views are unaffected, since `tests/visual/raster-only.css`
+hides the marker and overlay layers. `catalog-overlay.png` and
+`selected-marker.png` shoot `#explorer` and may change where a label is now
+hidden; the advisory job reports any that do. The baselines await owner
+regeneration in the container; none has been regenerated here.
+
 ## Orbit fixtures
 
 `orbits.v1.json` is an independently generated high-precision reference set for

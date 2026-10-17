@@ -96,6 +96,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       "Phase 2 performance closed" approval.
 - [ ] **Merge PR #25** (owner). This also clears the Dependabot `source-map-js`
       alert on `main`.
+- [ ] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
 - [x] **Deep-view first frame: re-diagnosed, no coarse change.** The
       [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) found that the
       6,000,000× view's unresolved half is period-4 interior the stable pass
@@ -267,17 +268,25 @@ is regenerated in the same reviewed commit.
 
 ### 6. Catalog navigation and annotations
 
-**Trace:** proposed `MI-UX-020`; `MI-UX-006`, `MI-UX-015`, `MI-PERF-008`.
+**Trace:** `MI-UX-020`; `MI-UX-006`, `MI-UX-015`, `MI-PERF-008`.
 **Estimate:** 6–9. **Needs:** Q4, item 4.
 
-- [ ] A catalog panel: entries grouped by period; activating one zooms to it
-      and selects it; keyboard operable.
-- [ ] Per-entry annotation text (an optional schema field) and a short
-      glossary for internal and angled addresses and rays.
-- [ ] A marker density policy (Q4) with a stable focus order; handle label
-      collisions.
-- [ ] A viewport-indexed lookup so thousands of centres need no full scan.
-- [ ] Accessibility tests for the panel: axe, forced colours, 320 px reflow.
+- [x] A catalog panel: entries grouped by period; activating one zooms to it
+      and selects it; keyboard operable. Done: `src/ui/catalog-panel.ts`,
+      [ADR 0012](../decisions/0012-catalog-navigation-and-marker-density.md).
+- [x] Per-entry annotation text (an optional schema field) and a short
+      glossary for internal and angled addresses and rays. Done: `annotation`
+      (at most 280 characters) in schema v2 and `catalog/curation.v2.json`,
+      five curated; the glossary in the catalog panel
+      (`src/ui/catalog-glossary.ts`).
+- [x] A marker density policy (Q4) with a stable focus order; handle label
+      collisions. Done: `src/ui/marker-density.ts`: at most 40 markers,
+      lowest periods first, catalog focus order, colliding labels hidden.
+- [x] A viewport-indexed lookup so thousands of centres need no full scan.
+      Done: `src/catalog/viewport-index.ts`; at the default view it examines
+      53 of 4,016 synthetic entries.
+- [x] Accessibility tests for the panel: axe, forced colours, 320 px reflow.
+      Done: `Catalog panel (MI-UX-020)` in Firefox and Chromium.
 
 **Done when:** every catalog entry is reachable by list and keyboard, and the
 marker count stays bounded at any zoom.
@@ -295,6 +304,9 @@ marker count stays bounded at any zoom.
 - [ ] Generated labels, plus curated names where they exist; the encoded size
       budget (≤256 KiB) and a loader off the main thread.
 - [ ] Display through item 6's markers and panel.
+- [ ] Lazy period groups: a group of more than 8 entries builds its buttons
+      on first open; check the 2,010-entry period-12 group at full size
+      (ADR 0012).
 - [ ] An ADR 0004 amendment recording the product decision.
 
 **Done when:** the full core ships, is validated independently, stays within
@@ -338,7 +350,7 @@ item lands:
   2026-10-16 with item 3.
 - `MI-UX-020` Catalog navigation: every catalog entry is reachable and
   selectable by keyboard and by a list, with zoom-to-entry, annotation text,
-  and a bounded marker count.
+  and a bounded marker count. Added 2026-10-17 with item 6.
 - `MI-UX-021` Palette acceptance: each view's palette meets declared
   monotonicity and distinguishability thresholds under normal and simulated
   colour vision, and the legend derives from the rendered palette. Added with

@@ -402,6 +402,24 @@ package MandelbrotInteriority {
              */
         }
 
+        requirement <'MI-UX-020'> CatalogNavigation {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Every catalog entry shall be reachable and selectable by
+             * keyboard and by a list grouped by period. Activating an entry
+             * shall zoom to it, never past the zoom ceiling, and select it.
+             * Curated entries may carry annotation text, and a glossary shall
+             * explain periods, characteristic rays and internal and angled
+             * internal addresses. At most 40 catalog markers shall be
+             * interactive at once, lowest periods first; the selected entry
+             * shall be shown whenever it is in view; the marker focus order
+             * shall not depend on the view; a marker shall be left off only
+             * when the cap is reached or its dot would cover another
+             * marker's, and a colliding label shall be hidden while its
+             * marker stays.
+             */
+        }
+
         requirement <'MI-UX-018'> PeriodViewEmphasis {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
@@ -568,6 +586,8 @@ package MandelbrotInteriority {
                 by app.renderingWorker.paletteMapper;
             satisfy UserExperienceRequirements::ShareableState
                 by app.uiShell;
+            satisfy UserExperienceRequirements::CatalogNavigation
+                by app.uiShell;
         }
 
         part perfSatisfactionContext {
@@ -624,6 +644,7 @@ package MandelbrotInteriority {
                 verify UserExperienceRequirements::RestoreDefaultView;
                 verify UserExperienceRequirements::ZoomBoundFeedback;
                 verify UserExperienceRequirements::ShareableState;
+                verify UserExperienceRequirements::CatalogNavigation;
             }
         }
 
@@ -669,6 +690,7 @@ package MandelbrotInteriority {
             objective accessibility {
                 verify UserExperienceRequirements::KeyboardOperation;
                 verify UserExperienceRequirements::AccessibleInterface;
+                verify UserExperienceRequirements::CatalogNavigation;
             }
         }
 

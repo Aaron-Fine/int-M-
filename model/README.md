@@ -17,8 +17,9 @@ features.
   services, catalog, and offline generation toolchain;
 - `UserExperienceRequirements` — sixteen active baselined Phase 1 UX
   requirements, the Phase 2 requirements `MI-UX-018` (period view emphasis),
-  `MI-UX-019` (shareable state) and `MI-UX-021` (palette acceptance), and the
-  retained OBE `MI-UX-014` requirement;
+  `MI-UX-019` (shareable state), `MI-UX-020` (catalog navigation) and
+  `MI-UX-021` (palette acceptance), and the retained OBE `MI-UX-014`
+  requirement;
 - `PerformanceRequirements` — the eight Phase 2 performance requirements
   `MI-PERF-001`…`MI-PERF-008`, worded as in
   [REQUIREMENTS.md](../docs/verification/REQUIREMENTS.md#phase-2-performance-requirements);
