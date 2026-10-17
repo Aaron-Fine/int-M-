@@ -680,9 +680,11 @@ package MandelbrotInteriority {
              * and update procedure. Unit tests hash the colorized frame bytes
              * of every semantic view (zero tolerance, the gate); browser
              * screenshots in the pinned Playwright container are advisory.
+             * These goldens and screenshots guard against regressions of the
+             * colour requirements that MI-VER-UX-003 verifies; they are not
+             * themselves evidence of correctness.
              */
             objective imageRegression {
-                verify UserExperienceRequirements::TruthfulIntermediateResults;
                 verify UserExperienceRequirements::NonColorStateDistinction;
                 verify UserExperienceRequirements::PeriodViewEmphasis;
                 verify UserExperienceRequirements::PaletteAcceptance;
