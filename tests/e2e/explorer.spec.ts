@@ -420,6 +420,29 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(mainCardioid).not.toBeVisible();
   });
 
+  test('the Douady rabbit marker reports the analytic period-3 closed form', async ({ page }) => {
+    await page.goto('/');
+
+    const rabbit = page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' });
+    await expect(rabbit).toBeVisible({ timeout: 20_000 });
+    await rabbit.focus();
+    await rabbit.press('Enter');
+
+    await expect(page.getByRole('heading', { name: 'Douady rabbit' })).toBeVisible();
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
+      'Attracting cycle',
+      { timeout: 10_000 },
+    );
+    // ADR 0010: the closed form answers, and the inspector says so.
+    await expect(pointEvidence.locator('.inspector__evidence')).toHaveText(
+      'Analytic Period 3 Component',
+    );
+    await expect(
+      pointEvidence.locator('.facts').getByText('Analytic closed form', { exact: true }),
+    ).toBeVisible();
+  });
+
   test('zooms to a selected area and reveals labels as magnification increases', async ({
     page,
   }) => {
