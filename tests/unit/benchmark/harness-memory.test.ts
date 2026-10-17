@@ -4,6 +4,7 @@ import {
   MEMORY_TABLE_HEADERS,
   RETAINED_LABEL,
   formatMiB,
+  memoryPassFailure,
   memoryRows,
   notMeasured,
   notRecordedMemory,
@@ -116,5 +117,17 @@ describe('formatMiB and memoryRows', () => {
       '0',
       'Firefox exposes no memory API',
     ]);
+  });
+});
+
+describe('memoryPassFailure', () => {
+  it('memoryPassFailure_errorInstance_recordsMessageAsNotMeasured', () => {
+    expect(memoryPassFailure(new Error('Timeout 120000ms exceeded'))).toEqual(
+      notMeasured('memory pass failed: Timeout 120000ms exceeded'),
+    );
+  });
+
+  it('memoryPassFailure_nonError_stringifiesTheValue', () => {
+    expect(memoryPassFailure('boom')).toEqual(notMeasured('memory pass failed: boom'));
   });
 });

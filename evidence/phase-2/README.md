@@ -114,6 +114,14 @@ per corpus case, and each carries the label of what it measures.
 | Chromium | `retained` | `performance.measureUserAgentSpecificMemory()` after the stable frame, on a cross-origin-isolated copy of the same build served only for this pass (the timing passes are never isolated). Includes workers and buffers. A snapshot, not a peak. |
 | Firefox  | both       | **Not measured.** Under Playwright (WebDriver BiDi) Firefox has no CDP, no `performance.memory` and no `measureUserAgentSpecificMemory`, and `about:memory` is unreachable. No proxy (such as process RSS) is substituted.                       |
 
+The headless smoke run (`npm run evidence:smoke`) observed
+`measureUserAgentSpecificMemory` unavailable in the headless bundled Chromium
+even on a cross-origin-isolated page, so `retained` read "not measured" there.
+Whether branded headed Chrome supports it is unverified until the next release
+session. A failure while measuring (a navigation timeout, say) also degrades
+that figure to "not measured" with the error, and does not discard the engine
+run.
+
 When Chromium's `retained` figure is "not measured", the reason is recorded
 (for example, the page was not cross-origin isolated). Evidence written before
 this pass existed reloads under `--resume` as "not recorded in this evidence

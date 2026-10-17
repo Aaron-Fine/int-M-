@@ -11,6 +11,9 @@ export interface Compare {
   dist?: CompareDist;
 }
 
+/** Key of the cross-origin-isolated build in `Session.baseUrls`; not usable as a compare name. */
+const RESERVED_ARM_NAME = 'isolated';
+
 /** Parses `name=<query>` or `name=dist:<dir>`; a relative dir resolves against `cwd`. */
 export const parseCompare = (spec: string, cwd: string): Compare => {
   const eq = spec.indexOf('=');
@@ -19,6 +22,9 @@ export const parseCompare = (spec: string, cwd: string): Compare => {
   }
   const name = spec.slice(0, eq);
   const value = spec.slice(eq + 1);
+  if (name === RESERVED_ARM_NAME) {
+    throw new Error(`--compare name "${name}" is reserved for the memory pass's isolated build`);
+  }
   if (value.startsWith('dist:')) {
     const dir = path.resolve(cwd, value.slice('dist:'.length));
     return { arm: { name, hook: true, dist: name }, dist: { name, dir } };

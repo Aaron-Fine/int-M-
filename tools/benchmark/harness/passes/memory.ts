@@ -12,10 +12,12 @@ import type { CDPSession, Page } from '@playwright/test';
 import {
   JS_HEAP_LABEL,
   RETAINED_LABEL,
+  memoryPassFailure,
   notMeasured,
   summarizeReadings,
   unsupportedEngineMemory,
   type EngineMemory,
+  type MemoryFigure,
   type MemoryEngine,
   type MemoryReading,
 } from '../memory.ts';
@@ -126,18 +128,35 @@ export const runMemoryPass = async (
   const heapReadings: MemoryReading[] = [];
   const retainedReadings: MemoryReading[] = [];
   let retainedReason = 'no readings';
+  // A failed case makes that figure "not measured": a maximum over fewer
+  // cases than the corpus would pass for a complete one.
+  let heapFailure: MemoryFigure | undefined;
+  let retainedFailure: MemoryFigure | undefined;
   for (const [index, caseInfo] of cases.entries()) {
     log(`${engine}: ${caseInfo.id} (${index + 1}/${cases.length})`);
-    heapReadings.push(await measureJsHeap(session, caseInfo));
-    const retained = await measureRetained(session, caseInfo);
-    if (typeof retained === 'string') retainedReason = retained;
-    else retainedReadings.push(retained);
+    try {
+      heapReadings.push(await measureJsHeap(session, caseInfo));
+    } catch (error) {
+      heapFailure ??= memoryPassFailure(error);
+      log(`${engine}: ${caseInfo.id}: JS heap measurement failed, recorded as not measured`);
+    }
+    try {
+      const retained = await measureRetained(session, caseInfo);
+      if (typeof retained === 'string') retainedReason = retained;
+      else retainedReadings.push(retained);
+    } catch (error) {
+      retainedFailure ??= memoryPassFailure(error);
+      log(`${engine}: ${caseInfo.id}: retained measurement failed, recorded as not measured`);
+    }
   }
   return {
-    jsHeap: summarizeReadings(JS_HEAP_LABEL, heapReadings, 'CDP returned no JSHeapUsedSize'),
+    jsHeap:
+      heapFailure ??
+      summarizeReadings(JS_HEAP_LABEL, heapReadings, 'CDP returned no JSHeapUsedSize'),
     retained:
-      retainedReadings.length === 0
+      retainedFailure ??
+      (retainedReadings.length === 0
         ? notMeasured(`measureUserAgentSpecificMemory: ${retainedReason}`)
-        : summarizeReadings(RETAINED_LABEL, retainedReadings, retainedReason),
+        : summarizeReadings(RETAINED_LABEL, retainedReadings, retainedReason)),
   };
 };

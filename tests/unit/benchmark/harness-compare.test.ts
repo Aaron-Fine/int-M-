@@ -25,6 +25,11 @@ describe('parseCompare', () => {
     expect(() => parseCompare('=x', '/w')).toThrow(/--compare expects/);
     expect(() => parseCompare('a=', '/w')).toThrow(/--compare expects/);
   });
+
+  it('rejects the reserved isolated name', () => {
+    expect(() => parseCompare('isolated=quality=fast', '/w')).toThrow(/reserved/);
+    expect(() => parseCompare('isolated=dist:./d', '/w')).toThrow(/reserved/);
+  });
 });
 
 describe('served root', () => {
