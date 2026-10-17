@@ -141,7 +141,10 @@ const expectBandsIdentical = (actual: SemanticBand, expected: SemanticBand): voi
 describe('tile pool: parity with direct classification', () => {
   for (const view of VIEWS) {
     for (const workerCount of [1, 2, 3]) {
-      it(`tilePool_matchesDirectClassification_${workerCount}workers_${view.name}`, async () => {
+      // One worker classifies in process (no bands posted); two and three
+      // exercise band split, dispatch, and assembly.
+      const path = workerCount === 1 ? '1worker_inProcess' : `${workerCount}workers_bands`;
+      it(`tilePool_matchesDirectClassification_${path}_${view.name}`, async () => {
         const request: DynamicsRenderRequest = {
           viewport: view.viewport,
           size: view.size,
