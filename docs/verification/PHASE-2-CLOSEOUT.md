@@ -231,8 +231,8 @@ waiting for.
   the 6,000,000× basilica rim much of the screen shows the unresolved texture.
   The first reading blamed the coarse frame's ≤256-iteration budget. The
   [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) shows otherwise:
-  the coarse pass already resolves every pixel there that the stable pass
-  resolves, and the unresolved left half is period-4 interior with |λ| within
+  the coarse pass already resolves every sampled pixel there that the stable
+  pass resolves, and the unresolved left half is period-4 interior with |λ| within
   5e-6 of 1 that the stable pass also leaves unresolved
   ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
   The fix is H's analytic period-4 path, not a deeper coarse budget. A real

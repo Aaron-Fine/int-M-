@@ -86,9 +86,11 @@ Estimates are engineering days. They are planning figures and may overlap.
       (`src/render/coarse-budget.ts`) stays unwired at today's 256.
 - [ ] **Coarse budget at the Feigenbaum view (optional).** At 2,500× the
       coarse frame leaves 20.2% of resolvable pixels unresolved (4.8% at a
-      512 budget); 126× leaves 6.5%. A depth ramp starting at 1,000× would not
-      reach them. Decide whether a per-view or per-profile coarse budget is
-      worth its coarse-frame time; measure with the study script's Part 2.
+      512 budget); 126× leaves 6.5%. A depth ramp starting at 1,000× barely
+      reaches 2,500× (about 10% of its rise) and does not reach 126×. Decide
+      whether a per-view or per-profile coarse budget is worth its
+      coarse-frame time; the per-budget costs are already in the study's
+      Part 1 tables.
 - [ ] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
       at 8 and 16 against 4 with
       `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
