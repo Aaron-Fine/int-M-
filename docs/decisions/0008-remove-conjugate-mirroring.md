@@ -16,8 +16,8 @@ basilica rim).
 The release run
 ([evidence](../../evidence/phase-2/2026-10-15-9e70551-conjugate-mirror/summary.md))
 measured the classifier at 1.39× in Chrome and 1.24× in Firefox on the default
-view, below the plan's ≥1.6× gate. The two symmetric hard views reached
-1.4×–1.8× wall time.
+view, below the plan's ≥1.6× gate. The other two symmetric views (Fallback
+and Scale classes) reached 1.4×–1.8× in wall time.
 
 ## Decision
 

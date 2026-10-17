@@ -34,7 +34,7 @@ import type { Candidate } from './types';
 export const myFlag: Candidate = productionCandidate({
   id: 'my-flag',
   description: 'One sentence: what changes.',
-  requestOptions: { quality: { maxIterations: 256, maxPeriod: 32, coarseStride: 2 } }, // any DynamicsRenderRequest option; these values are illustrative
+  requestOptions: { quality: { maxIterations: 256, maxPeriod: 32, coarseStride: 2 } }, // any DynamicsRenderRequest option (illustrative; a quality change alters pixels, so the parity gate will report it)
 });
 ```
 
