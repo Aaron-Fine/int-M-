@@ -535,7 +535,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await mainCardioid.press('Enter');
 
     await expect(page.getByRole('heading', { name: 'Main cardioid' })).toBeVisible();
-    await expect(page.getByText('Internal address')).toBeVisible();
+    await expect(
+      page.locator('.facts').getByText('Internal address', { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText('Attracting cycle', { exact: true })).toBeVisible({
       timeout: 10_000,
     });
@@ -1922,5 +1924,205 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await expect.poll(() => searchParam(page, 'v')).toBe('1');
     expect(searchParam(page, 'q')).toBe('quick');
     expect(searchParam(page, 'quality')).toBeNull();
+  });
+});
+
+test.describe('Catalog panel (MI-UX-020)', () => {
+  const ENTRY_ORDER = [
+    'Main cardioid',
+    'Period-2 bulb',
+    'Douady rabbit',
+    'Airplane',
+    'Co-rabbit',
+    'Period-4 component 6',
+    'Period-4 component 4',
+    'Period-4 component 2',
+    'Period-4 component 1',
+    'Period-4 component 3',
+    'Period-4 component 5',
+  ];
+
+  const openExplorer = async (page: Page): Promise<void> => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+  };
+
+  test('zooms to an entry and selects it from the keyboard', async ({ page }) => {
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    const airplane = panel.getByRole('button', { name: 'Airplane', exact: true });
+    await airplane.focus();
+    await airplane.press('Enter');
+
+    // zoomSpanFor: 2.5 × the size estimate 0.019036, so 2.5 / 0.047589 ≈ 53×.
+    await expect(page.getByLabel('Magnification')).toHaveText('53×');
+    await expect(page.getByText('Zoomed to Airplane.')).toBeVisible();
+    await expect(airplane).toBeFocused();
+    await expect(airplane).toHaveAttribute('aria-current', 'true');
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.getByRole('heading', { name: 'Airplane' })).toBeVisible();
+    await expect(pointEvidence.locator('.inspector__annotation')).toContainText('period-3 window');
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(page.getByRole('button', { name: 'Inspect Airplane, period 3' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
+      .toBe('mi-p3-3-4');
+  });
+
+  test('reaches every entry by Tab, grouped by period in catalog order', async ({ page }) => {
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    await panel.locator('summary').first().focus();
+    const visited: string[] = [];
+    for (let step = 0; step < 40; step += 1) {
+      const focused = await page.evaluate(() => {
+        const active = document.activeElement;
+        if (!active?.closest('.catalog-panel')) return undefined;
+        return `${active.tagName.toLowerCase()}:${active.textContent}`;
+      });
+      // The last stop repeats in Firefox, where Tab then leaves the document.
+      if (focused === undefined || focused === visited.at(-1)) break;
+      visited.push(focused);
+      await page.keyboard.press('Tab');
+    }
+    expect(visited).toEqual([
+      'summary:Period 11 component',
+      'button:Main cardioid',
+      'summary:Period 21 component',
+      'button:Period-2 bulb',
+      'summary:Period 33 components',
+      ...ENTRY_ORDER.slice(2, 5).map((label) => `button:${label}`),
+      'summary:Period 46 components',
+      ...ENTRY_ORDER.slice(5).map((label) => `button:${label}`),
+      'summary:About periods, rays and addresses',
+    ]);
+  });
+
+  test('opens and closes a period group from the keyboard', async ({ page }) => {
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    const group = panel.locator('details.catalog-group').nth(3);
+    const entry = panel.getByRole('button', { name: 'Period-4 component 2', exact: true });
+    await expect(entry).toBeVisible();
+    await group.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(entry).toBeHidden();
+    await page.keyboard.press('Enter');
+    await expect(entry).toBeVisible();
+  });
+
+  test('marks a marker selection in the list, opening its group, and Reset clears it', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    const group = panel.locator('details.catalog-group').nth(2);
+    await group.locator('summary').click();
+    await expect(group).not.toHaveAttribute('open');
+
+    await page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' }).click();
+    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    await expect(group).toHaveAttribute('open');
+    await expect(rabbit).toHaveAttribute('aria-current', 'true');
+    await expect(panel.locator('[aria-current="true"]')).toHaveCount(1);
+
+    // Reset is enabled only away from the default view.
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(panel.locator('[aria-current="true"]')).toHaveCount(0);
+  });
+
+  test('marks the entry a shared link selects, also by a v1 alias', async ({ page }) => {
+    await page.goto('/?v=1&c=-1.3107026413368328,0&s=0.05&sel=mi-p4-02');
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    await expect(
+      panel.getByRole('button', { name: 'Period-4 component 2', exact: true }),
+    ).toHaveAttribute('aria-current', 'true');
+    await expect(panel.locator('[aria-current="true"]')).toHaveCount(1);
+  });
+
+  test('has no automated WCAG violations with an entry selected and the glossary open', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    await panel.getByText('About periods, rays and addresses').click();
+    await expect(panel.getByText('Angled internal address', { exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: 'Douady rabbit', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expectNoAccessibilityViolations(page);
+  });
+
+  test('marks the selected entry and focus without colour in forced colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    await rabbit.click();
+    await expect(rabbit).toHaveAttribute('aria-current', 'true');
+    const cue = await rabbit.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        edge: Number.parseFloat(style.borderLeftWidth),
+        weight: Number.parseInt(style.fontWeight, 10),
+      };
+    });
+    expect(cue.edge).toBeGreaterThanOrEqual(4);
+    expect(cue.weight).toBeGreaterThanOrEqual(700);
+
+    // Keyboard focus draws a forced-colours outline on entries and on group toggles.
+    const summary = panel.locator('summary').first();
+    const entry = panel.getByRole('button', { name: 'Main cardioid', exact: true });
+    await summary.focus();
+    await page.keyboard.press('Tab');
+    await expect(entry).toBeFocused();
+    await expect
+      .poll(() => entry.evaluate((element) => element.matches(':focus-visible')))
+      .toBe(true);
+    expect(await entry.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe(
+      'none',
+    );
+    await page.keyboard.press('Shift+Tab');
+    await expect(summary).toBeFocused();
+    expect(await summary.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe(
+      'none',
+    );
+    await expectNoAccessibilityViolations(page);
+  });
+
+  test('reflows below the canvas at 320 px with full-size entries', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    await panel.getByText('About periods, rays and addresses').click();
+    await expectNoHorizontalOverflow(page, '320 px catalog panel');
+    const canvas = await page.locator('.explorer__stack').boundingBox();
+    const panelBox = await panel.boundingBox();
+    if (!canvas || !panelBox) throw new Error('canvas or panel has no box');
+    expect(canvas.width / canvas.height).toBeGreaterThan(1.3);
+    expect(panelBox.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
+    expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(320);
+    const entries = await panel.locator('.catalog-entry').evaluateAll((buttons) =>
+      buttons.map((entry) => {
+        const { right, height } = entry.getBoundingClientRect();
+        return { right, height };
+      }),
+    );
+    expect(entries).toHaveLength(11);
+    for (const entry of entries) {
+      expect(entry.height).toBeGreaterThanOrEqual(44);
+      expect(entry.right).toBeLessThanOrEqual(320);
+    }
+    await expectNoAccessibilityViolations(page);
   });
 });

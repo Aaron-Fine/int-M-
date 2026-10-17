@@ -17,7 +17,9 @@ import {
   findCatalogComponent,
   type CatalogComponent,
 } from '../catalog/components';
+import { catalogGroups, zoomSpanFor } from '../catalog/navigation';
 import { createCatalogIndex } from '../catalog/viewport-index';
+import { createCatalogPanel } from './catalog-panel';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { planMarkers } from './marker-density';
@@ -325,6 +327,12 @@ export function mountApplication(host: HTMLElement): () => void {
   const inspector = createInspector();
   const legend = createSemanticLegend();
   legend.update(state.semanticView);
+  const catalogPanel = createCatalogPanel({
+    groups: catalogGroups(COMPONENT_CATALOG),
+    onActivate: (component) => {
+      activateCatalogEntry(component);
+    },
+  });
   const catalogOverlay = element('div', {
     className: 'catalog-overlay',
     attributes: {
@@ -435,7 +443,7 @@ export function mountApplication(host: HTMLElement): () => void {
     className: 'side-panel',
     attributes: { 'aria-label': 'Interpretation' },
   });
-  sidePanel.append(inspector.element, legend.element);
+  sidePanel.append(inspector.element, legend.element, catalogPanel.element);
 
   const workspace = element('main', { className: 'workspace' });
   const primary = element('div', { className: 'primary' });
@@ -914,7 +922,19 @@ export function mountApplication(host: HTMLElement): () => void {
     scheduleUrlWrite();
   }
 
+  /** Zooms to a catalog entry and selects it: the catalog panel's action (MI-UX-020). */
+  function activateCatalogEntry(component: CatalogComponent): void {
+    cancelPointerSession(false);
+    clearPresentationPreview();
+    state.viewport = { center: { ...component.center }, spanY: zoomSpanFor(component) };
+    updateCoordinateReadout();
+    inspectPoint(component.center, component);
+    showFeedback(`Zoomed to ${component.label}.`);
+    scheduleRender(true);
+  }
+
   function updateCatalogSelection(): void {
+    catalogPanel.setSelected(state.selectedCatalogId);
     for (const marker of catalogOverlay.querySelectorAll<HTMLButtonElement>('.catalog-marker')) {
       const selected = marker.dataset['catalogId'] === state.selectedCatalogId;
       marker.classList.toggle('catalog-marker--selected', selected);
@@ -1470,6 +1490,11 @@ function createInspector(): {
     ]);
   };
 
+  const annotation = (component: CatalogComponent | undefined): HTMLElement | undefined =>
+    component?.annotation === undefined
+      ? undefined
+      : element('p', { className: 'inspector__annotation', text: component.annotation });
+
   const loading = (coordinate: string, component?: CatalogComponent): void => {
     replaceChildren(body, [
       component
@@ -1478,6 +1503,7 @@ function createInspector(): {
             text: component.label,
           })
         : undefined,
+      annotation(component),
       element('p', {
         className: 'inspector__coordinate',
         text: `c = ${coordinate}`,
@@ -1572,6 +1598,7 @@ function createInspector(): {
             text: component.label,
           })
         : undefined,
+      annotation(component),
       element('p', {
         className: 'inspector__coordinate',
         text: `c = ${coordinate}`,
