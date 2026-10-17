@@ -894,48 +894,70 @@ button:disabled {
   gap: 0.65rem;
 }
 
+.legend__item--scale {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+}
+
+.legend__note {
+  grid-template-columns: minmax(0, 1fr);
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+}
+
+/* Swatch and bar colors are set inline from the colorizer palette (legend-model.ts). */
 .legend__swatch {
   width: 1.15rem;
   height: 1.15rem;
-  background-color: #aaa;
   border: 1px solid rgb(255 255 255 / 35%);
   border-radius: 0.2rem;
+  forced-color-adjust: none;
 }
 
-.legend__swatch--strong {
-  background: #ececec;
-}
-
-.legend__swatch--weak {
-  background: #4d4d4d;
-}
-
-.legend__swatch--angle {
-  background:
-    repeating-linear-gradient(115deg, rgb(0 0 0 / 28%) 0 2px, transparent 2px 6px),
-    linear-gradient(135deg, #d95555, #d6c84e, #47a7a0, #665fc1);
-}
-
-.legend__swatch--period-1 {
-  background: hsl(138deg 72% 54%);
-}
-
-.legend__swatch--period-2 {
-  background: hsl(275deg 72% 54%);
-}
-
-.legend__swatch--period-3 {
-  background: hsl(53deg 72% 54%);
-}
-
-.legend__swatch--outside {
-  background: #19324b;
+.legend__swatch--dashed {
   border-style: dashed;
 }
 
-.legend__swatch--unknown {
-  background: repeating-linear-gradient(45deg, #585b5e 0 3px, #85898d 3px 6px);
+.legend__swatch--dotted {
   border-style: dotted;
+}
+
+.legend__scale {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.legend__bar {
+  display: block;
+  height: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 0.2rem;
+  forced-color-adjust: none;
+}
+
+.legend__ticks {
+  position: relative;
+  display: block;
+  height: 1rem;
+  color: var(--ink-muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1rem;
+}
+
+.legend__tick {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.legend__tick--start {
+  transform: none;
+}
+
+.legend__tick--end {
+  transform: translateX(-100%);
 }
 
 .legend__copy {
@@ -1252,7 +1274,8 @@ button:disabled {
     background: CanvasText;
   }
 
-  .legend__swatch {
+  .legend__swatch,
+  .legend__bar {
     border-width: 2px;
   }
 

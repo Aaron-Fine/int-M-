@@ -1,77 +1,76 @@
+import type { PeriodKey } from '../domain';
 import { element, replaceChildren } from './dom';
+import {
+  legendModel,
+  type LegendItem,
+  type LegendScale,
+  type LegendSwatch,
+  type LegendTick,
+} from './legend-model';
 import type { SemanticView } from './view-state';
 
-interface LegendEntry {
-  readonly label: string;
-  readonly detail: string;
-  readonly cue:
-    'strong' | 'weak' | 'angle' | 'period-1' | 'period-2' | 'period-3' | 'outside' | 'unknown';
-}
-
-const LEGENDS: Record<SemanticView, readonly LegendEntry[]> = {
-  stability: [
-    {
-      label: 'Strong attraction',
-      detail: 'High κ; centers reach κ = ∞',
-      cue: 'strong',
-    },
-    {
-      label: 'Weak attraction',
-      detail: 'κ approaches 0 near neutral stability',
-      cue: 'weak',
-    },
-  ],
-  multiplier: [
-    {
-      label: 'Strong attraction',
-      detail: 'Lighter values have smaller |λ|',
-      cue: 'strong',
-    },
-    {
-      label: 'Weak attraction',
-      detail: 'Darker values have |λ| approaching 1',
-      cue: 'weak',
-    },
-    {
-      label: 'Multiplier angle',
-      detail: 'Hue and stripe orientation represent arg λ',
-      cue: 'angle',
-    },
-  ],
-  period: [
-    { label: 'Period 1', detail: 'Fixed-point component', cue: 'period-1' },
-    { label: 'Period 2', detail: 'Two-cycle component', cue: 'period-2' },
-    {
-      label: 'Period 3+',
-      detail: 'Every exact period receives a distinct hue',
-      cue: 'period-3',
-    },
-  ],
+const copyOf = (label: string, detail: string): HTMLElement => {
+  const copy = element('span', { className: 'legend__copy' });
+  copy.append(element('strong', { text: label }), element('small', { text: detail }));
+  return copy;
 };
 
-const COMMON: readonly LegendEntry[] = [
-  {
-    label: 'Escaped',
-    detail: 'Outside the Mandelbrot set',
-    cue: 'outside',
-  },
-  {
-    label: 'Unresolved',
-    detail: 'No claim at current quality',
-    cue: 'unknown',
-  },
-];
+const tickClass = (tick: LegendTick): string =>
+  tick.position <= 0
+    ? 'legend__tick legend__tick--start'
+    : tick.position >= 1
+      ? 'legend__tick legend__tick--end'
+      : 'legend__tick';
 
-const DEFINITIONS: Record<SemanticView, string> = {
-  stability: 'Lighter regions settle faster. κ = −ln|λ| / p measures attraction per iteration.',
-  multiplier:
-    'Hue and oriented stripes show rotation (arg λ); lightness shows attraction strength through |λ|.',
-  period: 'Each color category represents the exact detected attracting-cycle period p.',
+const renderScale = (scale: LegendScale): HTMLLIElement => {
+  const item = element('li', { className: 'legend__item legend__item--scale' });
+  const bar = element('span', { className: 'legend__bar' });
+  bar.style.background = scale.background;
+  const ticks = element('span', { className: 'legend__ticks' });
+  for (const tick of scale.ticks) {
+    const label = element('span', { className: tickClass(tick), text: tick.label });
+    label.style.left = `${tick.position * 100}%`;
+    ticks.append(label);
+  }
+  // The detail text states the range in words; the bar and ticks repeat it visually.
+  const graphic = element('span', {
+    className: 'legend__scale',
+    attributes: { 'aria-hidden': 'true' },
+  });
+  graphic.append(bar, ticks);
+  item.append(copyOf(scale.label, scale.detail), graphic);
+  return item;
+};
+
+const renderSwatch = (entry: LegendSwatch): HTMLLIElement => {
+  const item = element('li', {
+    className: entry.period === undefined ? 'legend__item' : 'legend__item legend__item--period',
+  });
+  if (entry.period !== undefined) item.dataset['period'] = String(entry.period);
+  const swatch = element('span', {
+    className: `legend__swatch legend__swatch--${entry.border}`,
+    attributes: { 'aria-hidden': 'true' },
+  });
+  swatch.style.background = entry.background;
+  item.append(swatch, copyOf(entry.label, entry.detail));
+  return item;
+};
+
+const renderItem = (entry: LegendItem): HTMLLIElement => {
+  switch (entry.kind) {
+    case 'scale':
+      return renderScale(entry);
+    case 'swatch':
+      return renderSwatch(entry);
+    case 'note':
+      return element('li', { className: 'legend__item legend__note', text: entry.text });
+  }
 };
 
 export function createSemanticLegend(): {
   readonly element: HTMLElement;
-  readonly update: (view: SemanticView) => void;
+  /** Shows `view`; in the period view `periodKey` is the key of the frame on screen. */
+  readonly update: (view: SemanticView, periodKey?: PeriodKey) => void;
 } {
   const root = element('section', {
     className: 'legend',
@@ -84,33 +83,19 @@ export function createSemanticLegend(): {
     text: 'Semantic legend',
     attributes: { id: 'legend-heading' },
   });
-  const definition = element('p', {
-    className: 'legend__definition',
-    text: DEFINITIONS.stability,
-  });
+  const definition = element('p', { className: 'legend__definition' });
   const list = element('ul', { className: 'legend__list' });
   root.append(heading, definition, list);
 
-  const update = (view: SemanticView): void => {
-    definition.textContent = DEFINITIONS[view];
-    const entries = [...LEGENDS[view], ...COMMON];
-    replaceChildren(
-      list,
-      entries.map((entry) => {
-        const item = element('li', { className: 'legend__item' });
-        const swatch = element('span', {
-          className: `legend__swatch legend__swatch--${entry.cue}`,
-          attributes: { 'aria-hidden': 'true' },
-        });
-        const copy = element('span', { className: 'legend__copy' });
-        copy.append(
-          element('strong', { text: entry.label }),
-          element('small', { text: entry.detail }),
-        );
-        item.append(swatch, copy);
-        return item;
-      }),
-    );
+  let shown: string | undefined;
+  const update = (view: SemanticView, periodKey?: PeriodKey): void => {
+    // Coarse and stable frames often share a key; skip identical redraws.
+    const signature = JSON.stringify([view, periodKey ?? null]);
+    if (signature === shown) return;
+    shown = signature;
+    const model = legendModel(view, periodKey);
+    definition.textContent = model.definition;
+    replaceChildren(list, model.items.map(renderItem));
   };
 
   update('stability');

@@ -190,6 +190,46 @@ const expectInflightReplay = (replayTrace: TraceView | undefined): void => {
   expect(replayStableFrame?.workerWallMs).toBeGreaterThan(0);
 };
 
+/**
+ * The period legend lists at most five periods in ascending order plus "Other
+ * periods", and every listed swatch is a colour the canvas actually drew
+ * (the legend and the raster share one palette, MI-UX-018/MI-UX-021).
+ */
+const expectPeriodLegendMatchesRaster = async (page: Page): Promise<void> => {
+  const legend = page.getByRole('region', { name: 'Semantic legend' });
+  await expect(legend.getByText('Period 1', { exact: true })).toBeVisible();
+  await expect(legend.getByText('Other periods', { exact: true })).toBeVisible();
+  const periods = (
+    await legend
+      .locator('.legend__item--period')
+      .evaluateAll((items) => items.map((item) => (item as HTMLElement).dataset['period'] ?? ''))
+  )
+    .filter((period) => period !== 'other')
+    .map(Number);
+  expect(periods.length).toBeGreaterThanOrEqual(1);
+  expect(periods.length).toBeLessThanOrEqual(5);
+  expect(periods).toEqual([...periods].sort((a, b) => a - b));
+
+  const missing = await page.evaluate(() => {
+    const canvas = document.querySelector<HTMLCanvasElement>('.explorer__canvas');
+    const context = canvas?.getContext('2d');
+    if (!canvas || !context) return ['no canvas'];
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    const drawn = new Set<string>();
+    for (let index = 0; index < data.length; index += 4) {
+      drawn.add(`${data[index]},${data[index + 1]},${data[index + 2]}`);
+    }
+    return [
+      ...document.querySelectorAll<HTMLElement>(
+        '.legend__item--period:not([data-period="other"]) .legend__swatch',
+      ),
+    ]
+      .map((swatch) => (getComputedStyle(swatch).backgroundColor.match(/\d+/g) ?? []).join(','))
+      .filter((rgb) => !drawn.has(rgb));
+  });
+  expect(missing).toEqual([]);
+};
+
 test.describe('Mandelbrot Interiority explorer', () => {
   test('first-use flow: explanations, evidence terms, interior views, and accessibility', async ({
     page,
@@ -232,22 +272,28 @@ test.describe('Mandelbrot Interiority explorer', () => {
     });
 
     await test.step('changes semantic views and updates their explanation', async () => {
+      const legend = page.getByRole('region', { name: 'Semantic legend' });
+      await expect(legend.getByText('Stability κ', { exact: true })).toBeVisible();
+      await expect(legend.locator('.legend__tick')).toHaveText(['0', '0.5', '1', '2', '∞']);
+
       await page.getByLabel('Interior view').selectOption('multiplier');
       await expect(
         page.getByText('The strength and angle of attraction around a detected cycle.'),
       ).toBeVisible();
       await expect(page.getByText(/Hue and oriented stripes show rotation/)).toBeVisible();
       await expect(page.getByText('Multiplier angle', { exact: true })).toBeVisible();
+      await expect(legend.getByText('Attraction |λ|', { exact: true })).toBeVisible();
+      await expect(legend.locator('.legend__tick').first()).toHaveText('0');
 
       await page.getByLabel('Interior view').selectOption('period');
       await expect(page.getByText('The detected attracting-cycle period.')).toBeVisible();
       await expect(
-        page.getByText(
-          'Each color category represents the exact detected attracting-cycle period p.',
-        ),
+        page.getByText(/^Up to five periods covering the most area in this view get a color/),
       ).toBeVisible();
-      await expect(page.getByText('Period 1', { exact: true })).toBeVisible();
-      await expect(page.getByText('Period 3+', { exact: true })).toBeVisible();
+      await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+        timeout: 20_000,
+      });
+      await expectPeriodLegendMatchesRaster(page);
     });
 
     await test.step('has no automated WCAG A or AA violations in primary states', async () => {
@@ -715,6 +761,35 @@ test.describe('Mandelbrot Interiority explorer', () => {
         expect(target.height).toBeGreaterThanOrEqual(44);
         expect(target.left).toBeGreaterThanOrEqual(0);
         expect(target.right).toBeLessThanOrEqual(viewport.width);
+      }
+    }
+  });
+
+  test('keeps every legend view and its scale ticks inside a 320 px phone layout', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    for (const view of ['stability', 'multiplier', 'period'] as const) {
+      await page.getByLabel('Interior view').selectOption(view);
+      await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+        timeout: 20_000,
+      });
+      await expectNoHorizontalOverflow(page, `320px ${view} legend`);
+      const legendBox = await page.locator('.legend').boundingBox();
+      expect(legendBox).not.toBeNull();
+      const parts = await page
+        .locator('.legend__tick, .legend__bar, .legend__swatch')
+        .evaluateAll((elements) =>
+          elements.map((element) => {
+            const rect = element.getBoundingClientRect();
+            return { left: rect.left, right: rect.right };
+          }),
+        );
+      for (const part of parts) {
+        expect(part.left).toBeGreaterThanOrEqual(legendBox?.x ?? 0);
+        expect(part.right).toBeLessThanOrEqual((legendBox?.x ?? 0) + (legendBox?.width ?? 0));
       }
     }
   });

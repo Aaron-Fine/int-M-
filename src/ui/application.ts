@@ -719,6 +719,9 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasContext.imageSmoothingEnabled = false;
     canvasContext.putImageData(pixels, 0, 0);
     state.frameStage = frame.stage;
+    // The period key ranks this frame (coarse and stable can differ); show
+    // the mapping of the raster on screen, never a stale one.
+    if (state.semanticView === 'period') legend.update('period', frame.periodKey);
     canvasShell.dataset['renderStage'] = frame.stage;
     canvasShell.dataset['renderRequestId'] = String(frame.requestId);
     retryRendererButton.hidden = true;
