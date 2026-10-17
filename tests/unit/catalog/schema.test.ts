@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import catalogData from '../../../catalog/components.v2.json';
 import {
+  ANNOTATION_MAX_LENGTH,
   CATALOG,
   CatalogSchemaError,
   findCatalogComponent,
   parseCatalog,
 } from '../../../src/catalog/components';
+import { COMPONENT_COUNTS, syntheticCatalog } from './synthetic-catalog';
 
 type Raw = Record<string, unknown>;
 
@@ -158,5 +160,46 @@ describe('catalog schema v2 loader', () => {
     ],
   ])('rejects %s', (_name, raw, message) => {
     expectRejected(raw, message);
+  });
+});
+
+describe('catalog annotations (ADR 0012)', () => {
+  it('loads the curated annotations and leaves the others without one', () => {
+    expect(findCatalogComponent('mi-p3-1-2')?.annotation).toMatch(/Douady rabbit/);
+    expect(findCatalogComponent('mi-p4-1-2')?.annotation).toBeUndefined();
+    expect(CATALOG.components.filter((component) => component.annotation)).toHaveLength(5);
+  });
+
+  it('accepts an annotation of exactly the maximum length, counted in characters', () => {
+    const raw = edited((_, e) => (at(e, 5)['annotation'] = '→'.repeat(ANNOTATION_MAX_LENGTH)));
+    expect(parseCatalog(raw).components[5]?.annotation).toHaveLength(ANNOTATION_MAX_LENGTH);
+  });
+
+  it.each([
+    ['a non-string annotation', 42, /annotation: must be a non-empty string/],
+    ['an empty annotation', ' ', /annotation: must be a non-empty string/],
+    ['a padded annotation', ' Padded.', /annotation: must not start or end with white space/],
+    ['a two-line annotation', 'Two\nlines.', /annotation: must not contain control characters/],
+    [
+      'an annotation over the limit',
+      'x'.repeat(ANNOTATION_MAX_LENGTH + 1),
+      /annotation: must be at most 280 characters/,
+    ],
+  ])('rejects %s', (_name, annotation, message) => {
+    expectRejected(
+      edited((_, e) => (at(e, 5)['annotation'] = annotation)),
+      message,
+    );
+  });
+});
+
+describe('catalog loader at the scale of the period ≤12 core', () => {
+  it('parses a synthetic catalog of 4,016 entries with the true count per period', () => {
+    const catalog = syntheticCatalog();
+    expect(catalog.components).toHaveLength(4016);
+    const counts = COMPONENT_COUNTS.map(
+      (_, index) => catalog.components.filter((c) => c.period === index + 1).length,
+    );
+    expect(counts).toEqual([...COMPONENT_COUNTS]);
   });
 });

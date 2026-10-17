@@ -1,13 +1,33 @@
 {
   "schemaVersion": 2,
   "license": "CC0-1.0",
-  "description": "Reviewed names and the v1 ids each canonical id keeps as an alias (ADR 0011). Keys are canonical catalog ids.",
+  "description": "Reviewed names, the v1 ids each canonical id keeps as an alias (ADR 0011), and optional annotations of at most 280 characters (ADR 0012). Keys are canonical catalog ids.",
   "entries": {
-    "mi-p1-0-1": { "label": "Main cardioid", "aliases": ["mi-p1-main"] },
-    "mi-p2-1-2": { "label": "Period-2 bulb", "aliases": ["mi-p2-basilica"] },
-    "mi-p3-1-2": { "label": "Douady rabbit", "aliases": ["mi-p3-rabbit"] },
-    "mi-p3-3-4": { "label": "Airplane", "aliases": ["mi-p3-airplane"] },
-    "mi-p3-5-6": { "label": "Co-rabbit", "aliases": ["mi-p3-corabbit"] },
+    "mi-p1-0-1": {
+      "label": "Main cardioid",
+      "aliases": ["mi-p1-main"],
+      "annotation": "Parameters with an attracting fixed point. Where the fixed point's multiplier on the boundary is e^(2πi·p/q), with p/q in lowest terms and q ≥ 2, a bulb of period q is attached."
+    },
+    "mi-p2-1-2": {
+      "label": "Period-2 bulb",
+      "aliases": ["mi-p2-basilica"],
+      "annotation": "Parameters with an attracting 2-cycle: the disk of radius 1/4 about −1. It meets the main cardioid at c = −3/4, where the rays 1/3 and 2/3 land."
+    },
+    "mi-p3-1-2": {
+      "label": "Douady rabbit",
+      "aliases": ["mi-p3-rabbit"],
+      "annotation": "The 1/3 bulb of the main cardioid. At its centre the Julia set is the Douady rabbit: three Fatou components meet at the α fixed point and at each of its preimages. Rays 1/7 and 2/7 land at its root."
+    },
+    "mi-p3-3-4": {
+      "label": "Airplane",
+      "aliases": ["mi-p3-airplane"],
+      "annotation": "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; along the real line it is the logistic map's period-3 window. Rays 3/7 and 4/7 land at its cusp, c = −7/4."
+    },
+    "mi-p3-5-6": {
+      "label": "Co-rabbit",
+      "aliases": ["mi-p3-corabbit"],
+      "annotation": "The 2/3 bulb, the complex conjugate of the rabbit's 1/3 bulb; its Julia sets are mirror images of the rabbit's. Rays 5/7 and 6/7 land at its root."
+    },
     "mi-p4-1-2": { "label": "Period-4 component 6", "aliases": ["mi-p4-06"] },
     "mi-p4-3-4": { "label": "Period-4 component 4", "aliases": ["mi-p4-04"] },
     "mi-p4-6-9": { "label": "Period-4 component 2", "aliases": ["mi-p4-02"] },

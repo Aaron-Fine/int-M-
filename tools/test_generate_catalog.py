@@ -66,6 +66,14 @@ class BuildCatalogTest(unittest.TestCase):
         self.assertEqual(rabbit["label"], "Period 3, rays 1/7 and 2/7")
         self.assertEqual(rabbit["provenance"], "generated-label")
         self.assertNotIn("aliases", rabbit)
+        self.assertNotIn("annotation", rabbit)
+
+    def test_curated_annotations_follow_the_label(self) -> None:
+        rabbit = next(e for e in self.catalog["components"] if e["id"] == "mi-p3-1-2")
+        self.assertEqual(list(rabbit)[:4], ["id", "aliases", "label", "annotation"])
+        self.assertIn("Douady rabbit", rabbit["annotation"])
+        period_four = next(e for e in self.catalog["components"] if e["id"] == "mi-p4-1-2")
+        self.assertNotIn("annotation", period_four)
 
 
 class CurationTest(unittest.TestCase):
@@ -93,6 +101,23 @@ class CurationTest(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "unique"):
             check_curation(curation, self.components())
+
+    def test_rejects_a_malformed_annotation(self) -> None:
+        for annotation, message in [
+            ("", "empty"),
+            (42, "non-text"),
+            (" leading space", "white space"),
+            ("two\nlines", "control characters"),
+            ("x" * 281, "longer than 280"),
+        ]:
+            with self.subTest(annotation=annotation):
+                curation = {"mi-p1-0-1": {"label": "Main", "annotation": annotation}}
+                with self.assertRaisesRegex(ValueError, message):
+                    check_curation(curation, self.components())
+
+    def test_accepts_an_annotation_of_the_maximum_length(self) -> None:
+        curation = {"mi-p1-0-1": {"label": "Main", "annotation": "x" * 280}}
+        check_curation(curation, self.components())
 
     def test_rejects_an_empty_label(self) -> None:
         with self.assertRaisesRegex(ValueError, "label"):

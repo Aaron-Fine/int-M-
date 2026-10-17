@@ -9,9 +9,9 @@ in all. Its schema and id scheme are recorded in
 
 - `components.v2.json` is generated; never edit it by hand. Regenerate it with
   `python3 tools/generate_catalog.py --write catalog/components.v2.json`.
-- `curation.v2.json` holds what a person reviewed: the names (labels) and the
-  v1 ids each entry keeps as aliases, keyed by canonical id. Edit it, then
-  regenerate.
+- `curation.v2.json` holds what a person reviewed: the names (labels), the v1
+  ids each entry keeps as aliases, and optional annotations, keyed by
+  canonical id. Edit it, then regenerate.
 
 ## Ids
 
@@ -31,6 +31,8 @@ because share links (ADR 0009) name them in `sel=`. Never remove an alias.
   angled steps and no ray pair).
 - `residual`: |f_c^p(0)|, the distance to the refined centre, and the
   smallest |f_c^d(0)| over proper divisors d, at the stored centre.
+- `annotation` (optional, curated): one line of at most 280 characters, shown
+  in the inspector under the entry's name (ADR 0012).
 - `method` and `provenance`: keys into the file's `methods` and `provenance`
   tables, which say how the fields were computed and which were curated.
 

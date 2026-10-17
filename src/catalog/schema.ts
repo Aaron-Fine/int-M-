@@ -10,6 +10,8 @@ import type { Complex } from '../domain/types';
 export const CATALOG_SCHEMA_VERSION_2 = 2;
 /** The generated core of PHASE2-TODO item 7 stops at period 12. */
 export const MAX_CATALOG_PERIOD = 12;
+/** The longest annotation, in characters (code points): a sentence or two (ADR 0012). */
+export const ANNOTATION_MAX_LENGTH = 280;
 
 export interface RationalAngle {
   readonly numerator: number;
@@ -37,6 +39,8 @@ export interface CatalogComponent {
   /** Earlier ids that still resolve to this entry (v1 share links). */
   readonly aliases: readonly string[];
   readonly label: string;
+  /** A short curated note about the component; optional, additive to schema v2 (ADR 0012). */
+  readonly annotation?: string;
   readonly center: Complex;
   readonly centerPrecisionDigits: number;
   readonly period: number;
@@ -233,6 +237,24 @@ const parseAliases = (value: unknown, where: string): string[] =>
             ),
       );
 
+const isControlCharacter = (character: string): boolean => {
+  const code = character.codePointAt(0) ?? 0;
+  return code < 0x20 || code === 0x7f;
+};
+
+const parseAnnotation = (value: unknown, where: string): { annotation?: string } => {
+  if (value === undefined) return {};
+  const annotation = text(value, where);
+  // Code points, as Python's len() counts them in tools/generate_catalog.py.
+  const characters = Array.from(annotation);
+  if (annotation !== annotation.trim()) fail(where, 'must not start or end with white space');
+  if (characters.some(isControlCharacter)) fail(where, 'must not contain control characters');
+  if (characters.length > ANNOTATION_MAX_LENGTH) {
+    fail(where, `must be at most ${ANNOTATION_MAX_LENGTH} characters`);
+  }
+  return { annotation };
+};
+
 const parseCombinatorics = (
   entry: Json,
   period: number,
@@ -291,6 +313,7 @@ const parseComponent = (
     id,
     aliases: parseAliases(entry['aliases'], `${where}.aliases`),
     label: text(entry['label'], `${where}.label`),
+    ...parseAnnotation(entry['annotation'], `${where}.annotation`),
     center: {
       re: finite(center['re'], `${where}.center.re`),
       im: finite(center['im'], `${where}.center.im`),
@@ -309,10 +332,13 @@ const parseComponent = (
   };
 };
 
+/** One pass with a set: the period ≤12 core has 4,016 entries (PHASE2-TODO item 7). */
 const requireUniqueNames = (components: readonly CatalogComponent[]): void => {
-  const names = components.flatMap((component) => [component.id, ...component.aliases]);
-  const repeated = names.find((name, index) => names.indexOf(name) !== index);
-  if (repeated !== undefined) fail('components', `id or alias ${repeated} is not unique`);
+  const seen = new Set<string>();
+  for (const name of components.flatMap((component) => [component.id, ...component.aliases])) {
+    if (seen.has(name)) fail('components', `id or alias ${name} is not unique`);
+    seen.add(name);
+  }
 };
 
 /** Validates a parsed catalog file against schema v2; throws CatalogSchemaError. */

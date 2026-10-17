@@ -2,6 +2,7 @@ import catalogData from '../../catalog/components.v2.json';
 import { parseCatalog, type CatalogComponent } from './schema';
 
 export {
+  ANNOTATION_MAX_LENGTH,
   catalogIdFor,
   CatalogSchemaError,
   MAX_CATALOG_PERIOD,

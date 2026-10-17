@@ -37,6 +37,8 @@ ALIAS_PATTERN = re.compile(r"^mi-[a-z0-9-]+$")
 CANONICAL_ID_SHAPE = re.compile(r"^mi-p\d+-\d+-\d+$")
 # Landing points and refined centres must agree this closely to be matched.
 MATCH_TOLERANCE = 1e-9
+# The longest curated annotation, in characters (ADR 0012; src/catalog/schema.ts).
+ANNOTATION_MAX_LENGTH = 280
 
 
 @dataclass(frozen=True)
@@ -320,6 +322,8 @@ def build_entry(
         if curated is not None
         else f"Period {period}, rays {lower}/{modulus} and {upper}/{modulus}"
     )
+    if curated is not None and "annotation" in curated:
+        entry["annotation"] = curated["annotation"]
     entry["period"] = period
     entry["center"] = {"re": binary64(stored.real), "im": binary64(stored.imaginary)}
     entry["centerPrecisionDigits"] = digits
@@ -398,6 +402,20 @@ def build_catalog(
     }
 
 
+def check_annotation(identifier: str, annotation: object) -> None:
+    """A curated annotation: one short line of text (ADR 0012)."""
+    if not isinstance(annotation, str) or not annotation.strip():
+        raise ValueError(f"{identifier} has an empty or non-text annotation")
+    if annotation != annotation.strip():
+        raise ValueError(f"{identifier} annotation must not start or end with white space")
+    if any(ord(character) < 0x20 or ord(character) == 0x7F for character in annotation):
+        raise ValueError(f"{identifier} annotation must not contain control characters")
+    if len(annotation) > ANNOTATION_MAX_LENGTH:
+        raise ValueError(
+            f"{identifier} annotation is longer than {ANNOTATION_MAX_LENGTH} characters"
+        )
+
+
 def check_curation(
     curation: dict[str, dict[str, Any]],
     components: list[dict[str, Any]],
@@ -411,6 +429,8 @@ def check_curation(
         label = curated.get("label")
         if not isinstance(label, str) or not label.strip():
             raise ValueError(f"{identifier} needs a non-empty curated label")
+        if "annotation" in curated:
+            check_annotation(identifier, curated["annotation"])
         for alias in curated.get("aliases", []):
             if not isinstance(alias, str) or not ALIAS_PATTERN.match(alias):
                 raise ValueError(f"{identifier} has a malformed alias {alias!r}")
