@@ -1079,30 +1079,26 @@ test.describe('Shareable links (MI-UX-019)', () => {
         configurable: true,
         value: { writeText: (): Promise<void> => Promise.reject(new Error('denied')) },
       });
-      // Record each address-bar write with the render stage at that moment.
-      const stages: string[] = [];
-      (window as unknown as { __urlWrites: string[] }).__urlWrites = stages;
-      const original = history.replaceState.bind(history);
-      history.replaceState = (...args: Parameters<History['replaceState']>): void => {
-        stages.push(document.querySelector('#explorer')?.getAttribute('data-render-stage') ?? '');
-        original(...args);
-      };
+      // Suppress the settled address-bar writer (its 500 ms timer), so any
+      // write in this test can only come from the failed-copy fallback.
+      const nativeSetTimeout = window.setTimeout.bind(window);
+      window.setTimeout = ((handler: TimerHandler, delay?: number, ...rest: unknown[]) =>
+        nativeSetTimeout(
+          delay === 500 ? () => undefined : handler,
+          delay,
+          ...rest,
+        )) as typeof setTimeout;
     });
     await page.goto('/');
     await page.getByRole('button', { name: 'Explore' }).click();
     await waitForStable(page);
     await page.getByRole('button', { name: 'Zoom in' }).click();
+    expect(searchParam(page, 'v')).toBeNull();
     await page.getByRole('button', { name: 'Copy link to this view' }).click();
     await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
       'Could not copy automatically. The address bar now shows the link to this view.',
     );
     expect(searchParam(page, 'v')).toBe('1');
-    // The write came from the failed copy, before the settled frame (and its 500 ms timer).
-    const writes = await page.evaluate(
-      () => (window as unknown as { __urlWrites: string[] }).__urlWrites,
-    );
-    expect(writes).toHaveLength(1);
-    expect(writes[0]).not.toBe('stable');
   });
 
   test('keeps the link notice and copy control usable in forced colors at 320 px', async ({
