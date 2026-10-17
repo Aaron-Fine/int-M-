@@ -92,6 +92,7 @@ describe('period policy product language (PR 5, plan section 4)', () => {
     expect(evidenceSourceForFlag('converged-cycle')).not.toBe('analytic');
     expect(evidenceSourceForFlag('analytic-main-cardioid')).toBe('analytic');
     expect(evidenceSourceForFlag('analytic-period-2-bulb')).toBe('analytic');
+    expect(evidenceSourceForFlag('analytic-period-3-component')).toBe('analytic');
   });
 });
 
