@@ -89,7 +89,8 @@ const STABILITY_TICKS: readonly LegendTick[] = [
 const stabilityScale = (): LegendScale => ({
   kind: 'scale',
   label: 'Stability κ',
-  detail: 'κ = −ln|λ| / p from 0 (dark, weakly attracting) to ∞ (light, a cycle center)',
+  detail:
+    'κ = −ln|λ| / p from 0 (dark, weakly attracting) to ∞ (light, a cycle center); ticks at κ = 0.5, 1, 2',
   // Position n is κ = −ln(1 − n) for period 1, i.e. |λ| = 1 − n.
   background: gradient((position) => colorForAttracting(1, 1 - position, 0, 'stability')),
   ticks: STABILITY_TICKS,
@@ -98,7 +99,8 @@ const stabilityScale = (): LegendScale => ({
 const magnitudeScale = (): LegendScale => ({
   kind: 'scale',
   label: 'Attraction |λ|',
-  detail: '|λ| from 0 (light, strongly attracting) to 1 (dark, neutral); shown at arg λ = 0',
+  detail:
+    '|λ| from 0 (light, strongly attracting) to 1 (dark, neutral); ticks at |λ| = 0.25, 0.5, 0.75; shown at arg λ = 0',
   background: gradient((position) => colorForAttracting(1, position, 0, 'multiplier')),
   ticks: [0, 0.25, 0.5, 0.75, 1].map((position) => ({ position, label: String(position) })),
 });
@@ -109,7 +111,8 @@ const ANGLE_STRIPES =
 const angleScale = (): LegendScale => ({
   kind: 'scale',
   label: 'Multiplier angle',
-  detail: 'Hue and stripe orientation represent arg λ from −π to π; shown at |λ| = 0.5',
+  detail:
+    'Hue and stripe orientation represent arg λ from −π to π; ticks at arg λ = −π/2, 0, π/2; shown at |λ| = 0.5',
   background: `${ANGLE_STRIPES}, ${gradient((position) =>
     colorForAttracting(1, 0.5, Math.PI * (2 * position - 1), 'multiplier'),
   )}`,

@@ -48,7 +48,10 @@ const renderSwatch = (entry: LegendSwatch): HTMLLIElement => {
   });
   if (entry.period !== undefined) item.dataset['period'] = String(entry.period);
   const swatch = element('span', {
-    className: `legend__swatch legend__swatch--${entry.border}`,
+    className:
+      entry.border === 'solid'
+        ? 'legend__swatch'
+        : `legend__swatch legend__swatch--${entry.border}`,
     attributes: { 'aria-hidden': 'true' },
   });
   swatch.style.background = entry.background;

@@ -771,6 +771,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    // Tick counts follow legendModel: stability has one κ scale (5 ticks); multiplier has
+    // |λ| (5 ticks) and the angle scale (5 ticks); the period view has no tick scale.
+    const expectedTicks = { stability: 5, multiplier: 10, period: 0 } as const;
     for (const view of ['stability', 'multiplier', 'period'] as const) {
       await page.getByLabel('Interior view').selectOption(view);
       await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
@@ -779,6 +782,14 @@ test.describe('Mandelbrot Interiority explorer', () => {
       await expectNoHorizontalOverflow(page, `320px ${view} legend`);
       const legendBox = await page.locator('.legend').boundingBox();
       expect(legendBox).not.toBeNull();
+      const box = legendBox!;
+      await expect(page.locator('.legend__tick')).toHaveCount(expectedTicks[view]);
+      if (view === 'period') {
+        expect(
+          await page.locator('.legend__item--period').count(),
+          'period view lists at least two period entries',
+        ).toBeGreaterThanOrEqual(2);
+      }
       const parts = await page
         .locator('.legend__tick, .legend__bar, .legend__swatch')
         .evaluateAll((elements) =>
@@ -787,9 +798,10 @@ test.describe('Mandelbrot Interiority explorer', () => {
             return { left: rect.left, right: rect.right };
           }),
         );
+      expect(parts.length, `${view} legend renders measurable parts`).toBeGreaterThan(0);
       for (const part of parts) {
-        expect(part.left).toBeGreaterThanOrEqual(legendBox?.x ?? 0);
-        expect(part.right).toBeLessThanOrEqual((legendBox?.x ?? 0) + (legendBox?.width ?? 0));
+        expect(part.left).toBeGreaterThanOrEqual(box.x);
+        expect(part.right).toBeLessThanOrEqual(box.x + box.width);
       }
     }
   });
