@@ -76,7 +76,7 @@ describe('tile-handler', () => {
     await handle(message);
 
     expect(calls).toHaveLength(1);
-    const [request, quality, stride, y0, y1, , output] = calls[0]!;
+    const [request, quality, stride, y0, y1, signal, output] = calls[0]!;
     expect(request).toEqual({ viewport: message.viewport, size: message.size, quality: BALANCED });
     expect(quality).toBe(BALANCED);
     expect(stride).toBe(1);
@@ -89,7 +89,7 @@ describe('tile-handler', () => {
       smoothIterationOrMultiplierMagnitude: message.bandOutput.smoothIterationOrMultiplierMagnitude,
       multiplierAngle: message.bandOutput.multiplierAngle,
     });
-    expect(calls[0]).toHaveLength(7);
+    expect(signal).toBeInstanceOf(AbortSignal);
   });
 
   it('handleTileClassify_postsTransferredBandForAbsoluteRows', async () => {
