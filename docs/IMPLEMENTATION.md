@@ -245,8 +245,10 @@ workstream and gate.
   frames to the bounded trace ring through one adapter (`frameDelivery`).
   Legend isolation (hover, focus or activation of a period entry) is a
   `recolor` only: it never changes the semantic cache key, the status line or
-  the URL, and Escape or a second activation clears it; a pressed isolation
-  survives coarse frames and clears only on a stable frame without its period.
+  the URL. Escape clears it from anywhere when no pointer session is active,
+  and a second activation clears it; a touch tap toggles it, and keyboard
+  focus is kept across redraws. A pressed isolation survives coarse frames
+  and clears only on a stable frame without its period.
 - Browser evidence comes from one release harness, `tools/benchmark/run-release.ts`
   (`npm run evidence:release`); `--release` runs the plan §9 protocol (branded
   stable browsers, headed, ≥22 repetitions, BCa intervals). `--compare` adds
@@ -266,8 +268,8 @@ This foundation directly supports:
 | MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity                                           |
 | MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                                                |
 | MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback                              |
-| MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices                            |
 | MI-UX-018                   | Period emphasis key ranked per frame, palette-derived legend, and legend isolation recolored outside the cache key |
+| MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices                            |
 | MI-UX-021                   | Palette floors from the Phase 1 CVD matrix, checked by Node unit tests; legend colors from the colorizer palette   |
 | Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                                                   |
 | Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI                                           |

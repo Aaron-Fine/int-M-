@@ -177,9 +177,9 @@ implementation sequence is:
    fresh renderer callback, `inflight-replay` for the retained frame of an
    active matching computation, `semantic-cache` for a completed semantic
    cache hit, and `recolor` only for a recolor path (a view-only change or a
-   period-isolation change, which never enters the semantic cache key). Do not let the
-   recorder silently infer `computed`; an absent or impossible source is a
-   protocol/test failure.
+   period-isolation change, which never enters the semantic cache key). Do not
+   let the recorder silently infer `computed`; an absent or impossible source is
+   a protocol/test failure.
 3. **Report performed work rather than infer it from source.** Capture
    `workerWallMs` from semantic-compute start through frame assembly for fresh
    computed frames. Derive `maxBandElapsedMs` and `imbalanceRatio`
