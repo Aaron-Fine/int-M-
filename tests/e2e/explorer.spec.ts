@@ -392,6 +392,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('first-use flow: explanations, evidence terms, interior views, and accessibility', async ({
     page,
   }) => {
+    // Four folded scenarios; overruns 30 s only under heavy CPU oversubscription.
+    test.slow();
     await test.step('starts with a useful, explained semantic view', async () => {
       await page.goto('/');
 
