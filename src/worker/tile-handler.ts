@@ -1,4 +1,3 @@
-import { planConjugateMirror } from '../domain';
 import { classifyRows } from '../render/classify-rows';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
@@ -48,11 +47,6 @@ export function createTileHandler(
 
   const runClassify = async (message: TileClassifyMessage, signal: AbortSignal): Promise<void> => {
     try {
-      // Pure function of viewport+size, identical to the supervisor's plan.
-      const mirrorPlan =
-        message.conjugateMirror === true
-          ? planConjugateMirror(message.viewport, message.size)
-          : undefined;
       const band = await classify(
         requestFromClassify(message),
         message.quality,
@@ -67,7 +61,6 @@ export function createTileHandler(
             message.bandOutput.smoothIterationOrMultiplierMagnitude,
           multiplierAngle: message.bandOutput.multiplierAngle,
         },
-        mirrorPlan,
       );
       if (signal.aborted) return;
       const result: TileResultMessage = {

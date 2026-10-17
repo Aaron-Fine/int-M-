@@ -8,8 +8,8 @@ import {
 
 describe('parseCompare', () => {
   it('parses a query arm on the current build', () => {
-    expect(parseCompare('mirrorOff=conjugateMirror=0', '/work')).toEqual({
-      arm: { name: 'mirrorOff', hook: true, query: 'conjugateMirror=0' },
+    expect(parseCompare('alt=quality=fast', '/work')).toEqual({
+      arm: { name: 'alt', hook: true, query: 'quality=fast' },
     });
   });
 

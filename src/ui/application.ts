@@ -548,7 +548,6 @@ export function mountApplication(host: HTMLElement): () => void {
       size,
       semanticView: state.semanticView,
       quality: quality.quality,
-      ...(benchmark.conjugateMirror === false ? { conjugateMirror: false } : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,

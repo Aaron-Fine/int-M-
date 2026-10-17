@@ -3,8 +3,6 @@ import {
   createViewportTransform,
   OrbitClassifier,
   OrbitScratch,
-  mirrorSourceOf,
-  type ConjugateMirrorPlan,
   type OrbitOptions,
   type OrbitSample,
   type RenderQuality,
@@ -110,16 +108,6 @@ export const preparedRowImaginary = (
   return transform.viewport.center.im - (sampleY + 0.5 - height / 2) * transform.unitsPerPixel;
 };
 
-const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
-  if (plan !== undefined && stride !== 1) {
-    throw new RangeError('conjugate mirroring requires stride 1');
-  }
-};
-
-/** True when the plan assigns row y a source row (it is copied, not classified). */
-const isMirroredRow = (plan: ConjugateMirrorPlan | undefined, y: number): boolean =>
-  plan !== undefined && mirrorSourceOf(plan, y) >= 0;
-
 interface RowLayout {
   readonly width: number;
   readonly height: number;
@@ -154,8 +142,7 @@ const classifyRowInto = (
 /**
  * Classifies rows [y0, y1) at the given stride. Stride 1 (the stable pass)
  * uses the two-lane triggered row kernel; coarser strides use the scalar
- * OrbitClassifier. The optional mirror plan leaves mirrored rows unwritten:
- * the caller fills them with applyConjugateMirror after every band returns.
+ * OrbitClassifier.
  */
 export async function classifyRows(
   request: DynamicsRenderRequest,
@@ -167,9 +154,7 @@ export async function classifyRows(
   // Pre-sliced output buffers (zero-copy detail): when present the band is
   // classified directly into them and nothing is allocated per call.
   output?: BandOutputBuffers,
-  mirrorPlan?: ConjugateMirrorPlan,
 ): Promise<ClassifyRowsResult> {
-  assertMirrorStride(mirrorPlan, stride);
   const { width } = request.size;
   const length = (y1 - y0) * width;
   const band: BandOutputBuffers = output ?? {
@@ -206,8 +191,6 @@ export async function classifyRows(
 
   for (let y = y0; y < y1; y += stride) {
     throwIfAborted(signal);
-    // Mirrored rows are copied later; skipping them also skips their yield.
-    if (isMirroredRow(mirrorPlan, y)) continue;
     if (rowKernel !== undefined) {
       rowKernel.classifyRow(
         realColumns,

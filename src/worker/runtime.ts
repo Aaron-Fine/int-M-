@@ -52,7 +52,6 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   viewport: message.viewport,
   size: message.size,
   ...(message.quality === undefined ? {} : { quality: message.quality }),
-  ...(message.conjugateMirror === undefined ? {} : { conjugateMirror: message.conjugateMirror }),
 });
 
 /** Classification timing describes performed work: fresh frames only. */

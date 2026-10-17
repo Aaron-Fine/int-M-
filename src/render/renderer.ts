@@ -44,15 +44,6 @@ export interface DynamicsRenderRequest {
   readonly viewport: Viewport;
   readonly size: RasterSize;
   readonly quality?: Partial<RenderQuality>;
-  /**
-   * Conjugate mirroring (performance workstream M), default ON: the stable
-   * pass classifies only one row of each exact conjugate pair of pixel rows
-   * and fills the other by copying with the multiplier angle negated. Only
-   * applies to views centered exactly on the real axis; `false` disables it
-   * (A/B measurement arm). The coarse pass is never mirrored. Output is
-   * bit-identical either way. See src/domain/conjugate-mirror.ts.
-   */
-  readonly conjugateMirror?: boolean;
 }
 
 export type SemanticStatusCode = 0 | 1 | 2;

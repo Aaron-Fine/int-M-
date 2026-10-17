@@ -57,7 +57,7 @@ describe('parseBenchmarkParams', () => {
 
   it('ignores retired renderer parameters from old URLs', () => {
     const parsed = parseBenchmarkParams(
-      '?perf=1&classifierMode=legacy-scan&perfCounters=1&bandOrder=legacy&yieldMechanism=timeout&frameOutput=legacy-merge&retiredFlag=1',
+      '?perf=1&classifierMode=legacy-scan&perfCounters=1&bandOrder=legacy&yieldMechanism=timeout&frameOutput=legacy-merge&conjugateMirror=0&retiredFlag=1',
     );
     expect(parsed).toEqual({ perfEnabled: true });
   });

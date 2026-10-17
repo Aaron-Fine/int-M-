@@ -17,12 +17,6 @@ export interface RenderMessage {
   readonly size: RasterSize;
   readonly semanticView: SemanticView;
   readonly quality?: Partial<RenderQuality>;
-  /**
-   * Conjugate-symmetry row mirroring of the stable pass, default ON; `false`
-   * disables it (`?perf=1&conjugateMirror=0`). Additive optional field:
-   * absent on the default path.
-   */
-  readonly conjugateMirror?: boolean;
 }
 
 export interface InspectMessage {

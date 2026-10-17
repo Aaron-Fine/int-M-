@@ -18,10 +18,6 @@ export const semanticRequestKey = (request: DynamicsRenderRequest): string => {
     request.size.width,
     request.size.height,
     qualityKey(quality),
-    // Mirroring is on by default and its output is designed to be
-    // bit-identical; the explicit-off marker only keeps A/B toggling from
-    // being served from the cache. Conditional: default key has no marker.
-    ...(request.conjugateMirror === false ? ['cj:0'] : []),
   ].join('|');
 };
 

@@ -31,14 +31,6 @@ export interface TileClassifyMessage {
   readonly bandOutput: TileBandOutput;
   /** Frozen packed status+period encoding of the bandOutput views. */
   readonly outputRevision: typeof PACKED_OUTPUT_REVISION;
-  /**
-   * Conjugate mirroring is in effect for this job (the supervisor sends it
-   * only when workers must skip mirrored rows in place): the worker derives
-   * the same conjugate-mirror plan from viewport+size (a pure function) and
-   * skips the mirrored rows of its band; the supervisor fills them after the
-   * last band returns. Additive optional field: absent means no skipping.
-   */
-  readonly conjugateMirror?: true;
 }
 
 export interface TileResultMessage {

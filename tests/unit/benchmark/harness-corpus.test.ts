@@ -28,20 +28,20 @@ describe('corpus pass', () => {
       `http://h/?perf=1&${view}`,
     );
     expect(urlFor('http://h', caseInfo, { name: 'plain', hook: false })).toBe(`http://h/?${view}`);
-    expect(
-      urlFor('http://h', caseInfo, { name: 'mirrorOff', hook: true, query: 'conjugateMirror=0' }),
-    ).toBe(`http://h/?perf=1&conjugateMirror=0&${view}`);
+    expect(urlFor('http://h', caseInfo, { name: 'alt', hook: true, query: 'alt=1' })).toBe(
+      `http://h/?perf=1&alt=1&${view}`,
+    );
   });
 
   it('summarizes budgets, hook overhead, parity, and a compare arm from one sample set', () => {
     const samples = Array.from({ length: 22 }, (_, repetition) =>
-      ['hook', 'plain', 'mirrorOff'].map((arm) => ({
+      ['hook', 'plain', 'alt'].map((arm) => ({
         caseId: caseInfo.id,
         repetition,
         arm,
         climate: repetition === 0 ? 'cold' : 'warm',
-        markWallMs: arm === 'mirrorOff' ? 500 : 400,
-        stableMs: arm === 'plain' ? undefined : arm === 'mirrorOff' ? 480 : 380,
+        markWallMs: arm === 'alt' ? 500 : 400,
+        stableMs: arm === 'plain' ? undefined : arm === 'alt' ? 480 : 380,
         coarseMs: arm === 'plain' ? undefined : 50,
         classifyMs: arm === 'plain' ? undefined : 300,
         hash: 'h',
@@ -51,13 +51,13 @@ describe('corpus pass', () => {
     const arms = [
       { name: 'hook', hook: true },
       { name: 'plain', hook: false },
-      { name: 'mirrorOff', hook: true, query: 'conjugateMirror=0' },
+      { name: 'alt', hook: true, query: 'alt=1' },
     ];
     const summary = summarizeCase(caseInfo, samples, arms, 11);
     expect(summary.budget).toEqual({ coarse: 'pass', stable: 'pass', stableBudgetMs: 600 });
     expect(summary.hookOverhead?.ratio).toBeCloseTo(1, 10);
     expect(summary.hashMismatches).toBe(0);
-    expect(summary.compare['mirrorOff']?.wall?.ratio).toBeCloseTo(480 / 380, 10);
+    expect(summary.compare['alt']?.wall?.ratio).toBeCloseTo(480 / 380, 10);
   });
 
   it('counts hash mismatches across arms and repetitions', () => {
@@ -90,7 +90,7 @@ describe('corpus pass', () => {
 
   it('keeps compare-arm hash differences out of parity but reports them per arm', () => {
     const samples = [0, 1].flatMap((repetition) =>
-      ['hook', 'plain', 'mirrorOff'].map((arm) => ({
+      ['hook', 'plain', 'alt'].map((arm) => ({
         caseId: caseInfo.id,
         repetition,
         arm,
@@ -99,7 +99,7 @@ describe('corpus pass', () => {
         stableMs: 1,
         coarseMs: 1,
         classifyMs: 1,
-        hash: arm === 'mirrorOff' ? 'differs' : 'h',
+        hash: arm === 'alt' ? 'differs' : 'h',
         retriedAfterStall: false,
       })),
     );
@@ -109,12 +109,12 @@ describe('corpus pass', () => {
       [
         { name: 'hook', hook: true },
         { name: 'plain', hook: false },
-        { name: 'mirrorOff', hook: true, query: 'conjugateMirror=0' },
+        { name: 'alt', hook: true, query: 'alt=1' },
       ],
       11,
     );
     expect(summary.hashMismatches).toBe(0);
-    expect(summary.compare['mirrorOff']?.hashMismatches).toBe(2);
+    expect(summary.compare['alt']?.hashMismatches).toBe(2);
   });
 
   it('rejects a render whose achieved viewport is not the corpus view', () => {

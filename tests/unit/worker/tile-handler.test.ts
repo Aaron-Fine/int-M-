@@ -54,7 +54,7 @@ const recordingHost = (): {
 };
 
 describe('tile-handler', () => {
-  it('handleTileClassify_passesRequestMirrorPlanAndBandViewsInPositionalOrder', async () => {
+  it('handleTileClassify_passesRequestAndBandViewsInPositionalOrder', async () => {
     const host = recordingHost();
     const calls: unknown[][] = [];
     const handle = createTileHandler(host, {
@@ -71,12 +71,12 @@ describe('tile-handler', () => {
         });
       },
     });
-    const message = classifyMessage({ conjugateMirror: true });
+    const message = classifyMessage();
 
     await handle(message);
 
     expect(calls).toHaveLength(1);
-    const [request, quality, stride, y0, y1, , output, mirrorPlan] = calls[0]!;
+    const [request, quality, stride, y0, y1, , output] = calls[0]!;
     expect(request).toEqual({ viewport: message.viewport, size: message.size, quality: BALANCED });
     expect(quality).toBe(BALANCED);
     expect(stride).toBe(1);
@@ -89,7 +89,7 @@ describe('tile-handler', () => {
       smoothIterationOrMultiplierMagnitude: message.bandOutput.smoothIterationOrMultiplierMagnitude,
       multiplierAngle: message.bandOutput.multiplierAngle,
     });
-    expect(mirrorPlan).toBeDefined();
+    expect(calls[0]).toHaveLength(7);
   });
 
   it('handleTileClassify_postsTransferredBandForAbsoluteRows', async () => {

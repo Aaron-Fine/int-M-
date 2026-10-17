@@ -1,6 +1,4 @@
 export * from './complex';
-export { computedPrefixRows, mirrorSourceOf, planConjugateMirror } from './conjugate-mirror';
-export type { ConjugateMirrorPlan } from './conjugate-mirror';
 export {
   classifyAnalyticInto,
   classifyInto,

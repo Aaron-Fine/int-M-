@@ -13,11 +13,6 @@ import { MAX_SCALE, MIN_SCALE, QUALITY_PROFILES, type QualityProfileId } from '.
 export interface BenchmarkParams {
   /** `?perf=1` only; enables the window.__miRenderTrace diagnostic hook. */
   readonly perfEnabled: boolean;
-  /**
-   * `?perf=1&conjugateMirror=0` only: disables the default-on mirroring of
-   * exact-conjugate pixel rows of the stable pass (A/B arm). Absent otherwise.
-   */
-  readonly conjugateMirror?: false | undefined;
   /** Validated `?view=<re>,<im>,<spanY>` viewport of exact decimal strings. */
   readonly viewport?: Viewport | undefined;
   /** Validated `?quality=` profile id; absent when missing or invalid. */
@@ -67,16 +62,9 @@ export const parseBenchmarkParams = (search: string): BenchmarkParams => {
   const params = new URLSearchParams(search);
   const result: {
     perfEnabled: boolean;
-    conjugateMirror?: false;
     viewport?: Viewport;
     qualityProfile?: QualityProfileId;
   } = { perfEnabled: params.get('perf') === '1' };
-  // The mirror switch is a strict sub-mode of the perf diagnostics: it never
-  // takes effect without ?perf=1 and adds nothing to the default path.
-  if (result.perfEnabled && params.get('conjugateMirror') === '0') {
-    result.conjugateMirror = false;
-  }
-
   const viewport = parseViewParam(params.get('view'));
   if (viewport !== undefined) result.viewport = viewport;
   const qualityProfile = params.get('quality');

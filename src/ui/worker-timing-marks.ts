@@ -32,7 +32,7 @@ export interface FrameTrace {
   readonly workerWallMs?: number | undefined;
   /**
    * The worker's classification wall for this frame (tiled stable pass:
-   * dispatch to last band with row yields subtracted, mirror fill included).
+   * dispatch to last band with row yields subtracted).
    */
   readonly classifyMs?: number | undefined;
   /**
