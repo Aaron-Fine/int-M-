@@ -1,5 +1,11 @@
 export * from './complex';
 export {
+  classifyPeriodThreeInto,
+  PERIOD_THREE_ALLOWANCE_COEFFICIENT,
+  PERIOD_THREE_ANALYTIC_REVISION,
+} from './analytic-period-three';
+export type { PeriodThreeTarget } from './analytic-period-three';
+export {
   classifyAnalyticInto,
   classifyInto,
   classifyOrbit,

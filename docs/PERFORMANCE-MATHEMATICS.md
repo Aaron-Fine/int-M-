@@ -95,13 +95,14 @@ acceptance, so adding candidate sources never weakens acceptance.
 
 ### Policy revisions
 
-| Revision               | File                                      | Governs                                                                                 |
-| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| `src-verifier-1.0.0`   | src/domain/verifier.ts                    | Acceptance. Every accepted attracting result carries it                                 |
-| `poc-verifier-1.0.0`   | poc/performance/src/verifier.ts           | PoC harness acceptance (frozen separately; values currently agree with src)             |
-| `src-checkpoint-1.0.0` | src/domain/checkpoint.ts (removed)        | Production checkpoint schedule (PR 4); removed 2026-10-16 (ADR 0007)                    |
-| `poc-checkpoint-1.0.1` | poc/performance/src/kernels/checkpoint.ts | PoC reference schedule the production port is pinned against                            |
-| `period-policy-1.0.0`  | src/domain/period-policy.ts               | Systematic/opportunistic ceilings, `maxIterations`, and the `evidenceSource` vocabulary |
+| Revision                | File                                      | Governs                                                                                      |
+| ----------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `src-verifier-1.0.0`    | src/domain/verifier.ts                    | Acceptance. Every accepted attracting result carries it                                      |
+| `poc-verifier-1.0.0`    | poc/performance/src/verifier.ts           | PoC harness acceptance (frozen separately; values currently agree with src)                  |
+| `src-checkpoint-1.0.0`  | src/domain/checkpoint.ts (removed)        | Production checkpoint schedule (PR 4); removed 2026-10-16 (ADR 0007)                         |
+| `poc-checkpoint-1.0.1`  | poc/performance/src/kernels/checkpoint.ts | PoC reference schedule the production port is pinned against                                 |
+| `period-policy-1.0.0`   | src/domain/period-policy.ts               | Systematic/opportunistic ceilings, `maxIterations`, and the `evidenceSource` vocabulary      |
+| `src-analytic-p3-1.0.0` | src/domain/analytic-period-three.ts       | The period-3 closed-form acceptance: smallest-modulus root, rounding allowance, margin (§11) |
 
 Revisions are deliberately independent: the period policy is search-budget
 vocabulary, the verifier revision is acceptance. Candidate plumbing must never
@@ -288,3 +289,173 @@ The existing period-one and period-two analytic tests are the current
 closed-form hot paths. M0/M1, N0, and F0 offer exact chart identities, but an
 alternate coordinate system earns a runtime path only after its domain,
 conversion errors, canonical output fields, and net browser cost are established.
+
+## 11. Period-3 closed form (workstream H, ADR 0010)
+
+Code: [src/domain/analytic-period-three.ts](../src/domain/analytic-period-three.ts)
+(`classifyPeriodThreeInto`, revision `src-analytic-p3-1.0.0`). Exact
+identities: [proof/IntMProof/PeriodThreeMultiplier.lean](../proof/IntMProof/PeriodThreeMultiplier.lean).
+The spike that motivated it: [WORKSTREAM-H-SPIKE-2026-10-16.md](verification/WORKSTREAM-H-SPIKE-2026-10-16.md).
+Labels as in §8: **[Lean]** checked in Lean, **[derived]** algebra checked
+with sympy, **[literature]** standard and not re-derived.
+
+### 11.1 The multipliers
+
+The period-3 dynatomic factor is
+
+```text
+Φ₃(z, c) = (f³(z) − z) / (f(z) − z)
+         = z⁶ + z⁵ + (3c+1)z⁴ + (2c+1)z³ + (3c²+3c+1)z² + (c+1)²z + G₃(c),
+G₃(c)   = c³ + 2c² + c + 1.
+```
+
+At a root z of Φ₃ the three-step multiplier is λ = (f³)′(z) = 8·z·f(z)·f²(z),
+and it is a root of
+
+```text
+M₃(λ, c) = λ² − 8(c+2)λ + 64·G₃(c)          [Lean: period3_multiplier_root]
+```
+
+The discriminant is 64(c+2)² − 256·G₃(c) = −64c²(4c+7), so with s² = 4c+7
+
+```text
+λ± = 4(c+2) ± 4i·c·s                         [Lean: period3_closedForm_roots]
+```
+
+Conversely, Res_z(Φ₃, λ − (f³)′) = M₃(λ, c)³ **[derived]**
+([multpoly.py](../poc/performance/h-p3p4/multpoly.py)): each root of M₃ is the
+multiplier of three roots of Φ₃, counted with multiplicity, that is of one
+3-cycle. Landmarks: at the airplane cusp c = −7/4, M₃ = (λ − 1)²
+**[Lean: period3_cusp]**; at a root of G₃, λ = 0 is a root
+**[Lean: period3_multiplier_zero_of_center]**.
+
+### 11.2 Exact period and uniqueness
+
+Let λ\* be the root of smaller modulus and suppose |λ\*| < 1. By the resultant
+identity of 11.1 **[derived]** some root z of Φ₃ has (f³)′(z) = λ\*. Such a z is
+not a fixed point **[Lean: period3_not_fixed_of_attracting]**: at a fixed
+root of Φ₃ the three-step multiplier is exactly 1
+**[Lean: periodThreeDynatomic_fixedPoint_multiplier]**. So f³(z) = z
+**[Lean: orbit_three_sub_self]** and f(z) ≠ z: the cycle through z has exact
+period 3, and it is attracting. A
+quadratic polynomial has at most one attracting cycle, and that cycle attracts
+the critical orbit **[literature: Fatou]**, so this is the cycle the orbit path
+would find, and the larger root belongs to the other, repelling 3-cycle. As for
+the period-2 bulb, no divisor reduction is needed: the only proper divisor,
+period 1, is excluded because its three-step multiplier would be exactly 1.
+
+The period-6 satellites of the rabbit show why the margin, not a region test,
+decides: at c = −0.1155037 + 0.8402561i, inside the rabbit's gate box,
+both roots have |λ| > 1 (the smaller is 1.0246), the closed form refuses, and
+the orbit path finds the attracting period-6 cycle (|λ₆| = 0.9015).
+
+### 11.3 Algorithm
+
+1. w = 4c + 7.
+2. s = √w, principal branch, stable form: for Re w ≥ 0,
+   Re s = √((|w| + Re w)/2) and Im s = Im w / (2 Re s) (Im s = 0 when Re s = 0);
+   otherwise |Im s| = √((|w| − Re w)/2) with the sign of Im w, and
+   Re s = |Im w| / (2|Im s|). |w| = √((Re w)² + (Im w)²).
+3. t = 4i·c·s, a = 4(c + 2), λ± = a ± t.
+4. Keep the root with the smaller squared modulus; m̂ = √(that squared modulus).
+5. Accept iff m̂ + A < 1 − attractMargin, with A = 2⁻⁴⁶·(|Re c + 2| + |Im c| + 1).
+
+The record is period 3, λ, |λ|, arg λ (0 when |λ| = 0, §5), iterations 0 and
+evidence `analytic-period-3-component`.
+
+### 11.4 Floating-point error budget
+
+Model: IEEE binary64 with round to nearest, unit roundoff u = 2⁻⁵³. ECMAScript
+evaluates each operation exactly rounded and does not contract to FMA.
+`Math.sqrt` is correctly rounded; `Math.hypot` and `Math.atan2` are
+implementation-approximated, so the accept decision uses neither (`atan2`
+only formats arg λ after acceptance). First-order bounds; the slack in A
+absorbs every O(u²) term.
+
+1. **Inputs, and Sterbenz near the cusp.** Re â = 4·fl(Re c + 2) and
+   Im â = 4·Im c (multiplying by 4 is exact), so |â − a| ≤ u|a|. In the
+   airplane box Re c ∈ [−1.770, −1.747] ⊂ [−4, −1], so Re c + 2 is exact by
+   Sterbenz and â = a. Re ŵ = fl(4 Re c + 7) and Im ŵ = 4 Im c, so
+   |ŵ − w| ≤ u|w|; in the airplane box 4 Re c ∈ [−14, −3.5], so 4 Re c + 7 is
+   exact as well. Near the cusp, where w → 0 and λ → 1, the inputs therefore
+   carry no rounding at all.
+2. **The complex square root.** |ŵ| has relative error ≤ 2u (two squares and a
+   sum: 2u in the radicand, halved by the square root, plus its own rounding).
+   The half-sum (|ŵ| + |Re ŵ|)/2 adds two non-negative numbers, so it has no
+   cancellation: ≤ 3u; its square root ≤ 2.5u; the other component costs one
+   division: ≤ 3.5u. So |ŝ − √ŵ| ≤ 3.5u|s|. Because Im ŵ = Im w exactly, √ŵ and
+   √w lie on the same side of the branch cut, and
+   |√ŵ − √w| = |ŵ − w| / |√ŵ + √w| ≤ (u/2)|s|. In total |ŝ − s| ≤ 4u|s|. Either
+   sign of s gives the same pair {a + t, a − t}, so the branch cut cannot
+   change which roots are compared.
+3. **t = 4i·c·ŝ.** A product of two complex numbers in binary64 without FMA
+   has normwise relative error ≤ √5·u **[literature: Brent, Percival and
+   Zimmermann 2007]**; the factors 4 and i are exact. So
+   |t̂ − t| ≤ (4 + √5)u|t| ≈ 6.24u|t|.
+4. **λ̂ = â ± t̂**, one rounding per component: |λ̂ − λ| ≤ u|a| + 6.24u|t| + u|λ|.
+5. **The modulus.** m̂ = |λ̂|(1 + η) with |η| ≤ 2u.
+
+Together: |λ| ≤ m̂ + E with E ≤ u|a| + 6.24u|t| + 3u, using |λ| ≤ 1 at
+acceptance. At acceptance |t| = |a − λ| ≤ |a| + 1, so E ≤ 9.24u + 7.24u|a|,
+and |a| = 4|c + 2| ≤ 4L with L = |Re c + 2| + |Im c|. Hence
+E ≤ 9.24u + 28.96u·L. The code's allowance A = 128u·(L + 1) is at least four
+times this for every L ≥ 0, which also covers the second-order terms, the
+rounding of L itself, and the rounding of the final sum and comparison
+(≤ 2u). Therefore:
+
+> **Acceptance implies |λ| < 1 − 10⁻¹² for the exact closed-form root at the
+> binary64 parameter c.**
+
+Sizes: in the rabbit box L ≤ 2.81 and A ≤ 4.9·10⁻¹⁴; in the airplane box
+L ≤ 0.26 and A ≤ 1.8·10⁻¹⁴. The worst measured |λ̂ − λ_dd| over the 19,216
+analytic pixels of the golden raster is 3.0·10⁻¹⁵ (ADR 0010).
+
+**Root selection.** The squared-modulus comparison can pick the wrong root
+only when the two moduli agree to within about 2E. Both roots cannot be
+accepted (11.2: at most one attracting cycle) unless they coincide, which
+happens only at c = 0 (λ = 8) and c = −7/4 (λ = 1), both refused. So a wrong
+pick can only occur when nothing is accepted; it never changes an answer.
+
+**No catastrophic cancellation.** λ = a ± t subtracts two numbers of size up
+to about 8.6 to produce |λ| < 1, a loss of up to three decimal digits of
+relative accuracy. It does no harm: a and t carry only O(u) relative error
+(steps 1–3 have no earlier cancellation to amplify), the decision is absolute
+(|λ| against 1 − 10⁻¹²), and the absolute error stays below 5·10⁻¹⁴, about
+twenty times inside the margin. Relative accuracy of λ is lost only near the
+centres, where |λ| ≪ 1 and arg λ carries no information; at exact 0 the
+identity rule of §5 applies.
+
+**The spike's allowance.** The prototype used 32·ε·(|a| + |t|) with
+ε = 2⁻⁵² = 2u, that is 64u(|a| + |t|), on top of the margin. It is justified:
+it exceeds the first-order bound u|a| + 6.24u|t| + 3u by about eight times
+wherever |a| + |t| ≥ 1, which holds in every gate box. It did not name the
+modulus rounding term (its slack covers it), and it needs two extra square
+roots for |a| and |t|. The production allowance is the bound derived above,
+in terms of c alone, and is about 2.3 times smaller in the rabbit box
+(4.9·10⁻¹⁴ against 1.1·10⁻¹³).
+
+**Non-finite and extreme input.** NaN propagates and every comparison with
+NaN is false, so the test refuses. Overflow (|c| ≳ 10¹⁵⁴) gives an infinite or
+NaN modulus and refuses. (Re ŵ)² + (Im ŵ)² underflows only when Re c = −7/4
+exactly and |Im c| < about 4·10⁻¹⁵⁵; there both roots are 1 ± O(10⁻⁷⁷) and the
+margin refuses whatever ŝ is.
+
+**The margin.** attractMargin = 10⁻¹² is the verifier's policy (§3):
+near-parabolic cycles stay unresolved. The allowance is added on top of it,
+so the closed form never accepts a point the policy would refuse in exact
+arithmetic. Points with 1 − 10⁻¹² − A ≤ |λ| < 1 − 10⁻¹² are refused and fall to
+the orbit path, which cannot detect them within any budget (§6): they end
+unresolved, as the policy intends.
+
+### 11.6 What is proved and what is not
+
+- **Lean (S1 in the [proof DAG](verification/LEAN-PROOF-DAG.md)):** the Φ₃
+  factorization, the multiplier quadratic, its closed-form roots, the cusp and
+  centre landmarks, and the fixed-point case with three-step multiplier 1.
+- **Not in Lean:** the resultant identity (each root of M₃ is realized by a
+  cycle; sympy-checked), Fatou uniqueness (literature), the binary64 budget of
+  11.4 (a written argument, checked numerically by the dd adjudicator in
+  `tests/unit/domain/dd-oracle.ts` and the golden-raster test), and the gate
+  containment of 11.5 (measured on a dense grid). Formalizing the resultant
+  direction is a follow-up; the binary64 budget would need the refinement work
+  the Phase 3 program describes.
