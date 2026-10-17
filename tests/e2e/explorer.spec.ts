@@ -2186,7 +2186,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     const result = await page.evaluate(() => {
       const canvas = document.querySelector<HTMLElement>('.explorer__canvas');
       const marker = document.querySelector<HTMLElement>('.catalog-marker');
-      const overlay = marker?.parentElement;
+      const overlay = document.querySelector<HTMLElement>('.catalog-overlay');
       if (!canvas || !overlay || !marker) throw new Error('canvas, overlay or marker missing');
       const before = marker.style.left;
       for (const key of ['ArrowLeft', 'Enter']) {
