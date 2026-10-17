@@ -19,10 +19,12 @@ import {
  * `?v=1&c=<re>,<im>&s=<spanY>&view=<semantic view>&q=<quality>&sel=<selection>`
  *
  * Numbers are written as the shortest decimal that reads back as the same
- * binary64 value, so a link reproduces the exact viewport. The version tag
- * covers both the field layout and their meaning: any change that would make
- * a v1 link show something else must bump it, and an unknown version is
- * rejected, never reinterpreted. This module is pure: no DOM, no history.
+ * binary64 value, so a link reproduces the exact viewport. A link restores a
+ * place and its settings, not a frozen image: the version tag bumps only when
+ * a field's meaning or parsing changes (for example a view or quality id is
+ * redefined or removed), never for rendering or palette improvements. An
+ * unknown version is rejected, never reinterpreted. This module is pure: no
+ * DOM, no history.
  */
 
 export const SHARE_SCHEMA_VERSION = '1';

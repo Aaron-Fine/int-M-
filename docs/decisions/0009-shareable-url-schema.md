@@ -33,14 +33,18 @@ A link has this form:
   characters becomes the nearest binary64 value. Extra digits are rounded
   without a notice: binary64 cannot hold them, and they are far below the
   pixel spacing at the `6,000,000×` ceiling.
-- **Version.** `v` versions both the field layout and its meaning. Version 1
-  fixes the canonical-`c` viewport with `s` as the vertical span
-  (`src/domain/viewport.ts`), the three semantic view ids, the three quality
-  profile ids and their budgets, and the catalog ids in
-  `catalog/components.v1.json`. Any change that would make a v1 link show
-  something else must bump `v`. The decoder accepts only versions it can show
+- **Version.** `v` versions the field layout and what each field means or
+  how it parses. Version 1 fixes the canonical-`c` viewport with `s` as the
+  vertical span (`src/domain/viewport.ts`), the three semantic view ids, the
+  three quality profile ids and their budgets, and the catalog ids in
+  `catalog/components.v1.json`. A link restores a place and its settings, not
+  a frozen image, so `v` bumps only when a field's meaning or parsing changes:
+  for example, when a view or quality id is redefined or removed. Rendering,
+  palette and legend improvements, such as colouring the top periods in the
+  period view, do not bump it. The decoder accepts only versions it can show
   faithfully, so an old or unknown version is rejected with a notice, never
-  reinterpreted.
+  reinterpreted. A future decoder keeps reading v1 wherever v1's meaning can
+  still be honoured.
 - **Fields.** `c` and `s` travel together. With both absent the default
   viewport applies. With one absent or malformed, the default viewport applies
   and the notice says so. A span outside the zoom bounds is clamped to the
@@ -59,11 +63,15 @@ A link has this form:
   `pushState`: the explorer does not create history entries, so Back leaves
   the explorer instead of stepping back through views, and no `popstate`
   handling is needed. The default state writes no parameters. Parameters the
-  schema does not own, such as `perf=1`, stay in the address bar.
+  schema does not own, such as `perf=1`, stay in the address bar. A link that
+  was refused or adjusted is not rewritten until the view differs from the one
+  the page opened with, so it stays in the address bar beside its notice.
 - **Copy link.** A Copy link control copies the origin, path and v1 fields,
   never `perf` or other foreign parameters, and announces the result in the
   existing feedback live region. Without clipboard access it updates the
-  address bar at once and says so.
+  address bar at once and says so. A view that cannot be encoded (a
+  non-finite centre or span, reachable only by unbounded panning) copies
+  nothing and says "Could not create a link for this view."
 - **Benchmark hook: kept separate.** `perf=1` remains an orthogonal diagnostic
   switch: a v1 link with `perf=1` restores the view and enables the hook. The
   harness's `view=<re>,<im>,<spanY>&quality=<id>` applies only when the URL has
