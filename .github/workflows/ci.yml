@@ -83,6 +83,12 @@ jobs:
       - name: Validate generated catalog
         run: npm run catalog:check
 
+      - name: Validate orbit fixtures
+        run: npm run fixtures:check
+
+      - name: Validate golden fixtures
+        run: npm run fixtures:golden:check
+
       - name: Run unit tests
         run: npm run test:unit
 

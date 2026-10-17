@@ -27,8 +27,11 @@ root="$(git rev-parse --show-toplevel)"
 # The checkout is copied into the container without node_modules (a worktree's
 # may be a symlink to the host's), installed there, and only the baselines and
 # the report are copied back.
+# :z (shared) relabels for SELinux; the host uses this checkout too, so the
+# private :Z category would lock it out.
 exec "$engine" run --rm --init --ipc=host "${user_args[@]}" \
-  --volume "$root:/src:Z" \
+  --env MI_VISUAL_CONTAINER=1 \
+  --volume "$root:/src:z" \
   "$image" \
   bash -euo pipefail -c '
     mkdir -p /tmp/work
@@ -41,7 +44,7 @@ exec "$engine" run --rm --init --ipc=host "${user_args[@]}" \
     status=0
     npx playwright test -c playwright.visual.config.ts "$@" || status=$?
     mkdir -p /src/tests/visual/__screenshots__
-    cp -R tests/visual/__screenshots__/. /src/tests/visual/__screenshots__/
+    cp -R tests/visual/__screenshots__/. /src/tests/visual/__screenshots__/ || true
     rm -rf /src/playwright-report-visual
     cp -R playwright-report-visual /src/ 2>/dev/null || true
     exit "$status"

@@ -34,9 +34,12 @@ makes every change to an output visible and deliberate.
    changed pixel (ADR 0007; ADR 0010's adjudication is the precedent). A
    changed colorized golden whose kernel golden is unchanged is a palette or
    colorizer change: the palette acceptance tests (`tests/unit/palette/`) must
-   pass, `npm run evidence:palette` is rerun and recorded under
-   `evidence/phase-2/`, and the advisory screenshots of the affected views
-   are regenerated in the same commit so the reviewer sees the pixels.
+   pass and `npm run evidence:palette` is rerun and recorded under
+   `evidence/phase-2/`. Any golden change that alters a screenshot view
+   (kernel or colorized) regenerates the affected baselines in the same
+   commit through `npm run test:visual:container`, so the reviewer sees the
+   pixels. Where the container is unavailable, the commit says the advisory
+   job will differ until the baselines are regenerated.
 4. **Record.** The commit message names the fixture, the cases that changed
    and why. The generator writes `generatedFrom` (the commit it ran on). An
    answer change (a pixel's status, period or evidence) also needs an ADR or

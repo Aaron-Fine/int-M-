@@ -10,6 +10,18 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const previewURL = 'http://127.0.0.1:4175';
 
+// Baselines are only meaningful when rendered in the pinned container, so
+// updating them is refused unless tools/run-visual-container.sh set this.
+// CI never sets it and never updates snapshots.
+const updating = process.argv.some(
+  (argument) => argument === '-u' || argument.startsWith('--update-snapshots'),
+);
+if (updating && process.env['MI_VISUAL_CONTAINER'] !== '1') {
+  throw new Error(
+    'Refusing to update screenshot baselines outside the pinned container: run npm run test:visual:container -- --update-snapshots=all',
+  );
+}
+
 export default defineConfig({
   testDir: './tests/visual',
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{arg}{ext}',
