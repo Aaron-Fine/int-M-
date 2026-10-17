@@ -1,10 +1,11 @@
 import {
+  AIRPLANE_BOX,
   classifyAnalyticInto,
   classifyPeriodThreeInto,
   createOrbitSample,
-  inPeriodThreeGate,
   ORBIT_EVIDENCE_CODE,
   OrbitScratch,
+  RABBIT_BOX,
   resolveOrbitOptions,
   TRIGGERED_SCAN_INTERVAL_FIRST,
   TRIGGERED_SCAN_INTERVAL_MAX,
@@ -39,6 +40,12 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * Hot-loop rules from orbit.ts: the lockstep loop has no calls. The rare
  * calls (verifier on a proposal, analytic closed forms on a region hit) run
  * with every double the loops carry round-tripped through `spill`.
+ * classifyRow adds no inlinable call for the period-3 path (ADR 0010): the
+ * gate is a per-row window computed from the box data before the lanes start,
+ * and only the closed form, too large for TurboFan to inline, is called.
+ * Calling inPeriodThreeGate here spent TurboFan's inlining budget, so a refill
+ * site of classifyAnalyticInto stayed a real call, and the far-exterior stable
+ * pass, where no pixel reaches the gate, ran about 10% slower.
  *
  * Lockstep shape: each lane raises an event on one of three tests, so the
  * common iteration is three compares per lane:
@@ -123,6 +130,22 @@ export class TriggeredRowKernel {
     const maxIterations = options.maxIterations;
     const maxPeriod = options.maxPeriod;
     const scanStart = Math.max(options.cycleWarmup, 2);
+    // Period-3 gate (ADR 0010), per row. The boxes' |Im c| bands are
+    // disjoint and every box lies inside the hull, so on this row
+    // inPeriodThreeGate(c, cIm) is exactly p3ReMin <= c <= p3ReMax for the box
+    // whose band holds |cIm|, and an empty window (false for every c, NaN
+    // included) when none does. Math.abs(-0) is +0, which compares as -0
+    // does. Written out, not called (see the module comment).
+    const absIm = Math.abs(cIm);
+    let p3ReMin = Number.POSITIVE_INFINITY;
+    let p3ReMax = Number.NEGATIVE_INFINITY;
+    if (absIm >= RABBIT_BOX.absImMin && absIm <= RABBIT_BOX.absImMax) {
+      p3ReMin = RABBIT_BOX.reMin;
+      p3ReMax = RABBIT_BOX.reMax;
+    } else if (absIm >= AIRPLANE_BOX.absImMin && absIm <= AIRPLANE_BOX.absImMax) {
+      p3ReMin = AIRPLANE_BOX.reMin;
+      p3ReMax = AIRPLANE_BOX.reMax;
+    }
 
     let nextX = 0;
     // Lane state. A parked lane (no pixel left) holds z = NaN with a disarmed
@@ -328,7 +351,7 @@ export class TriggeredRowKernel {
         // Analytic period-3 fast path at the first scanning iteration, as in
         // classifyTriggeredOrbitInto (ADR 0010).
         let analyticA = false;
-        if (itA === scanStart && inPeriodThreeGate(cA, cIm)) {
+        if (itA === scanStart && cA >= p3ReMin && cA <= p3ReMax) {
           spill[S_ZA_RE] = zaRe;
           spill[S_ZA_IM] = zaIm;
           spill[S_ZB_RE] = zbRe;
@@ -455,7 +478,7 @@ export class TriggeredRowKernel {
         }
       } else if (watchedB <= armB || itB === dueB) {
         let analyticB = false;
-        if (itB === scanStart && inPeriodThreeGate(cB, cIm)) {
+        if (itB === scanStart && cB >= p3ReMin && cB <= p3ReMax) {
           spill[S_ZA_RE] = zaRe;
           spill[S_ZA_IM] = zaIm;
           spill[S_ZB_RE] = zbRe;

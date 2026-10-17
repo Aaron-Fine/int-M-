@@ -469,10 +469,12 @@ The gate ([period-three-gate.ts](../src/domain/period-three-gate.ts)) holds
 the padded bounding boxes of the three components, traced from the inverse
 map in the spike. It must contain every accepted parameter, which a unit test
 checks on a 1200 × 1200 grid (11,602 accepted points, all inside) and just
-outside every box edge: it is measured, not proved. The gate test is written
-as straight-line comparisons because the kernels inline it into their outer
-loop, where a loop over the box array slowed the far-exterior stable pass by
-about 10% in Node ([ADR 0010](decisions/0010-analytic-period-three.md)).
+outside every box edge: it is measured, not proved. The scalar kernel calls
+the straight-line gate. The row kernel evaluates it once per row as a window
+on Re c, which is exact because the boxes' |Im c| bands are disjoint and lie
+inside the hull; calling the gate from the row kernel cost about 10% on the
+far-exterior stable pass in Node through TurboFan's inlining budget, though no
+pixel there reaches the gate ([ADR 0010](decisions/0010-analytic-period-three.md)).
 
 ### 11.6 What is proved and what is not
 

@@ -70,8 +70,14 @@ period 3 now and period 4 after a rigorous root-error bound.
 - The differential tests against the frozen legacy port and the PoC control
   kernel gain one documented divergence class, analytic period 3, each case
   adjudicated in `tests/unit/domain/orbit-oracle-adjudication.test.ts`.
-- A loop over the box data inside the gate cost about 10% on the far
-  exterior in Node (the gate is inlined into the row kernel's outer loop); the
-  straight-line gate does not.
+- Speed on the far exterior depends on the row kernel's code generation,
+  not on work done: no pixel there reaches iteration 24. Calling the gate from
+  `TriggeredRowKernel.classifyRow` cost about 10% on `mi-easy-exterior-heavy`
+  in Node, because the inlined gate spent TurboFan's inlining budget and left
+  a refill call to `classifyAnalyticInto` out of line. The row kernel
+  therefore evaluates the gate once per row as a window on Re c (exact: the
+  boxes' |Im c| bands are disjoint and lie inside the hull) and calls only the
+  closed form, which is too large to inline. The scalar kernel keeps the
+  straight-line gate call.
 - The browser release run in both browsers is deferred to the owner's screen
   session.

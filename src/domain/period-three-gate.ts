@@ -55,9 +55,11 @@ export const PERIOD_THREE_HULL: PeriodThreeBox = Object.freeze({
  * True when c lies in a period-3 box. NaN and infinite input give false
  * (every comparison with NaN is false; infinities fail the bounds).
  *
- * Straight-line on purpose: the kernels inline this test into their outer
- * loop, and a loop over PERIOD_THREE_BOXES there slowed the far-exterior
- * stable pass by about 10% in Node (ADR 0010, fallback-overhead evidence).
+ * Straight-line on purpose: the scalar kernel inlines this test into its
+ * orbit loop. The row kernel does not call it: it evaluates the same test
+ * once per row as a window on Re c (src/render/triggered-rows.ts), because
+ * the boxes' |Im c| bands are disjoint and every box lies inside the hull
+ * (tests/unit/domain/period-three-gate.test.ts checks both).
  */
 export const inPeriodThreeGate = (cRe: number, cIm: number): boolean => {
   const absIm = cIm < 0 ? -cIm : cIm;
