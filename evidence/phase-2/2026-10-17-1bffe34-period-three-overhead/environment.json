@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-17T18:39:55.790Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465489920,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "1bffe34a7682c076b86101ef60aead53d78aed25",
+    "algorithm": "1bffe34a7682c076b86101ef60aead53d78aed25",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "e8528ac3ac371b775e19465336bd19eafe7e62545cf5c6de4b421bece0d00628"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/environment.json --note Workstream H period 3 (ADR 0010): fallback-overhead microbenchmark, three interleaved arms (baseline, A/A control, candidate) in one Node process, pinned with taskset; directional Node evidence, not a release measurement.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Workstream H period 3 (ADR 0010): fallback-overhead microbenchmark, three interleaved arms (baseline, A/A control, candidate) in one Node process, pinned with taskset; directional Node evidence, not a release measurement."
+  ]
+}
