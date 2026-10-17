@@ -244,7 +244,8 @@ workstream and gate.
   (`cancelled`, after every nested tile worker has stopped). The UI maps
   frames to the bounded trace ring through one adapter (`frameDelivery`).
   Legend isolation (hover, focus or activation of a period entry) is a
-  `recolor` only: it never changes the semantic cache key, the status line or
+  never reclassifies: a `recolor`, or an `inflight-replay` during a
+  computation. It never changes the semantic cache key, the status line or
   the URL. Escape clears it from anywhere when no pointer session is active,
   and a second activation clears it; a touch tap toggles it, and keyboard
   focus is kept across redraws. A pressed isolation survives coarse frames
@@ -259,20 +260,20 @@ workstream and gate.
 
 This foundation directly supports:
 
-| Requirement or decision     | Foundation support                                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build                                            |
-| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests                                        |
-| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests                                                |
-| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility                                                   |
-| MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity                                           |
-| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                                                |
-| MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback                              |
-| MI-UX-018                   | Period emphasis key ranked per frame, palette-derived legend, and legend isolation recolored outside the cache key |
-| MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices                            |
-| MI-UX-021                   | Palette floors from the Phase 1 CVD matrix, checked by Node unit tests; legend colors from the colorizer palette   |
-| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                                                   |
-| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI                                           |
+| Requirement or decision     | Foundation support                                                                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build                                                                                                                     |
+| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests                                                                                                                 |
+| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests                                                                                                                         |
+| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility                                                                                                                            |
+| MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity                                                                                                                    |
+| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                                                                                                                         |
+| MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback                                                                                                       |
+| MI-UX-018                   | Period emphasis key ranked per frame, palette-derived legend, and legend isolation recolored outside the cache key                                                                          |
+| MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices                                                                                                     |
+| MI-UX-021                   | Palette floors set from the simulated minima of the Phase 1 palette (which passed the Phase 1 colour-vision sign-off), checked by Node unit tests; legend colors from the colorizer palette |
+| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                                                                                                                            |
+| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI                                                                                                                    |
 
 These entries establish the verification hooks; they do not claim that the user-visible requirement
 is satisfied before the corresponding behavior and tests exist.

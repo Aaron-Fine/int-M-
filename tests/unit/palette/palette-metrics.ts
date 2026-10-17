@@ -2,8 +2,10 @@
  * Palette acceptance metrics (owner decision Q5, MI-UX-021). Each metric is
  * the minimum CIEDE2000 difference between two sets of raster colours, taken
  * over normal vision and simulated protan, deutan and tritan vision
- * (color-science.ts). Floors come from the Phase 1 palette, whose CVD matrix
- * passed reviewer sign-off (evidence/phase-1/cvd-4fd4fdd-2026-08-29.md).
+ * (color-science.ts). Floors are set from the simulated minima of the Phase 1
+ * palette, which passed the Phase 1 colour-vision sign-off
+ * (evidence/phase-1/cvd-4fd4fdd-2026-08-29.md); for the metrics the shipped
+ * palette leaves unchanged they are regression ratchets.
  */
 import {
   colorForAttracting,

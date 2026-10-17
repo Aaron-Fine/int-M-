@@ -141,6 +141,8 @@ const summary = (data: PaletteRecord): string => {
     rule,
     ...rows,
     '',
+    'Only the period-class metrics changed from Phase 1; every other floor is a regression ratchet (the floor is the Phase 1 minimum rounded down, and the shipped value is unchanged).',
+    '',
     '## Palettes',
     '',
     ...classes,

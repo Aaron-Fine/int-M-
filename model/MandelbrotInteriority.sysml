@@ -412,11 +412,12 @@ package MandelbrotInteriority {
              * numbers, their shares of the attracting-cycle area and the
              * colors the raster uses, plus the neutral class. Each emphasized
              * period shall be identifiable without relying on hue through
-             * that legend and by isolation: hovering, focusing or activating
-             * its legend entry shall dim every pixel not of that period, with
+             * that legend and by isolation: (mouse) hovering, focusing or
+             * activating its legend entry shall dim every pixel not of that period, with
              * at least 3:1 contrast between the period and the dimmed field,
              * until the entry is released or activated again, Escape is
-             * pressed, or the interior view changes.
+             * pressed, a stable frame no longer emphasizes the period, or
+             * the interior view changes.
              */
         }
 
@@ -424,7 +425,8 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * Each semantic view's palette shall meet the declared minimum
-             * CIEDE2000 differences, set from the passing Phase 1 matrix (the
+             * CIEDE2000 differences, set from the simulated minima of the Phase 1
+             * palette, which passed the Phase 1 colour-vision sign-off (the
              * period-color floor raised to 11 for the accepted palette),
              * between the escaped and unresolved classes and among and
              * against the period-view classes under normal and simulated

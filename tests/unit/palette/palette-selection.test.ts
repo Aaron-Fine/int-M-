@@ -39,7 +39,7 @@ describe('palette floors', () => {
     }
   });
 
-  it('are met by the Phase 1 palette at the Phase 1 floors', () => {
+  it('self-consistency: the Phase 1 palette meets its own floors', () => {
     expect(failures(phase1, PHASE1_FLOORS)).toEqual([]);
   });
 
