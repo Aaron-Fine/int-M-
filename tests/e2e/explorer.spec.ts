@@ -700,6 +700,63 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.getByRole('button', { name: 'Reset' })).toBeDisabled();
   });
 
+  test('keeps keyboard focus on a catalog marker across a redraw', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const explorer = page.locator('#explorer');
+    const marker = page.getByRole('button', { name: 'Inspect Main cardioid, period 1' });
+    await expect(marker).toBeVisible({ timeout: 20_000 });
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
+    await marker.focus();
+    await expect(marker).toBeFocused();
+
+    // A resize forces a redraw: a new request, then its frames.
+    const before = Number(await explorer.getAttribute('data-render-request-id'));
+    await page.setViewportSize({ width: 1111, height: 700 });
+    await expect
+      .poll(async () => Number(await explorer.getAttribute('data-render-request-id')))
+      .toBeGreaterThan(before);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
+
+    await expect(marker).toBeFocused();
+  });
+
+  test('keeps one marker per component and the selection across redraws and toggles', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const explorer = page.locator('#explorer');
+    const markers = page.locator('.catalog-marker');
+    const cardioid = page.getByRole('button', { name: 'Inspect Main cardioid, period 1' });
+    await expect(cardioid).toBeVisible({ timeout: 20_000 });
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
+    const total = await markers.count();
+    expect(total).toBeGreaterThan(1);
+
+    await cardioid.focus();
+    await cardioid.press('Enter');
+    await expect(cardioid).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator('.catalog-marker[aria-current="true"]')).toHaveCount(1);
+
+    const before = Number(await explorer.getAttribute('data-render-request-id'));
+    await page.setViewportSize({ width: 1111, height: 700 });
+    await expect
+      .poll(async () => Number(await explorer.getAttribute('data-render-request-id')))
+      .toBeGreaterThan(before);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
+    await expect(markers).toHaveCount(total);
+    await expect(cardioid).toHaveAttribute('aria-current', 'true');
+    await expect(cardioid).toHaveClass(/catalog-marker--selected/);
+
+    const toggle = page.getByRole('button', { name: /Catalog/ });
+    await toggle.click();
+    await expect(markers).toHaveCount(0);
+    await toggle.click();
+    await expect(markers).toHaveCount(total);
+    await expect(page.locator('.catalog-marker[aria-current="true"]')).toHaveCount(1);
+  });
+
   test('Reset clears the selection from the evidence, the marker, and the address bar', async ({
     page,
   }) => {

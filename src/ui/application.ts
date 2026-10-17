@@ -924,55 +924,78 @@ export function mountApplication(host: HTMLElement): () => void {
     }
   }
 
+  /** One live button per visible catalog component, keyed by catalog id. */
+  const catalogMarkers = new Map<string, HTMLButtonElement>();
+
+  function createCatalogMarker(component: CatalogComponent): HTMLButtonElement {
+    const marker = button('', {
+      className: `catalog-marker catalog-marker--period-${component.period}`,
+      title: `${component.label}, period ${component.period}`,
+    });
+    marker.dataset['catalogId'] = component.id;
+    marker.setAttribute('aria-label', `Inspect ${component.label}, period ${component.period}`);
+    marker.append(
+      element('span', {
+        className: 'catalog-marker__dot',
+        attributes: { 'aria-hidden': 'true' },
+      }),
+      element('span', {
+        className: 'catalog-marker__label',
+        text: component.label,
+      }),
+    );
+    marker.addEventListener('pointerdown', (event) => {
+      startPointerSession(event, component);
+    });
+    marker.addEventListener('click', (event) => {
+      if (event.detail !== 0) return;
+      inspectPoint(component.center, component);
+    });
+    return marker;
+  }
+
+  /**
+   * Moves the existing buttons instead of rebuilding them on every frame. A
+   * rebuilt button drops keyboard focus and vanishes under a pointer or a
+   * test between two reads. Stale buttons are removed first so the survivors
+   * keep their order and never move (moving a focused node blurs it).
+   */
   function updateCatalogOverlay(): void {
     if (!state.catalogVisible) {
+      catalogMarkers.clear();
       catalogOverlay.replaceChildren();
       return;
     }
     const size = dimensions();
-    const markers = COMPONENT_CATALOG.flatMap((component) => {
+    const visible: HTMLButtonElement[] = [];
+    for (const component of COMPONENT_CATALOG) {
       const point = complexToPixel(state.viewport, size, component.center);
       if (point.x < 0 || point.x > size.width || point.y < 0 || point.y > size.height) {
-        return [];
+        catalogMarkers.delete(component.id);
+        continue;
       }
-      const marker = button('', {
-        className: [
-          'catalog-marker',
-          `catalog-marker--period-${component.period}`,
-          component.id === state.selectedCatalogId ? 'catalog-marker--selected' : '',
-          point.x / size.width > 0.76 ? 'catalog-marker--left-facing' : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
-        title: `${component.label}, period ${component.period}`,
-      });
-      marker.dataset['catalogId'] = component.id;
-      marker.setAttribute('aria-label', `Inspect ${component.label}, period ${component.period}`);
-      if (component.id === state.selectedCatalogId) {
-        marker.setAttribute('aria-current', 'true');
+      let marker = catalogMarkers.get(component.id);
+      if (marker === undefined) {
+        marker = createCatalogMarker(component);
+        catalogMarkers.set(component.id, marker);
       }
+      marker.classList.toggle('catalog-marker--left-facing', point.x / size.width > 0.76);
       marker.style.left = `${(point.x / size.width) * 100}%`;
       marker.style.top = `${(point.y / size.height) * 100}%`;
-      marker.append(
-        element('span', {
-          className: 'catalog-marker__dot',
-          attributes: { 'aria-hidden': 'true' },
-        }),
-        element('span', {
-          className: 'catalog-marker__label',
-          text: component.label,
-        }),
-      );
-      marker.addEventListener('pointerdown', (event) => {
-        startPointerSession(event, component);
-      });
-      marker.addEventListener('click', (event) => {
-        if (event.detail !== 0) return;
-        inspectPoint(component.center, component);
-      });
-      return [marker];
-    });
-    replaceChildren(catalogOverlay, markers);
+      visible.push(marker);
+    }
+    for (const child of [...catalogOverlay.children]) {
+      if (!visible.includes(child as HTMLButtonElement)) child.remove();
+    }
+    let cursor = catalogOverlay.firstElementChild;
+    for (const marker of visible) {
+      if (marker === cursor) {
+        cursor = cursor.nextElementSibling;
+      } else {
+        catalogOverlay.insertBefore(marker, cursor);
+      }
+    }
+    updateCatalogSelection();
   }
 
   const onDocumentKeydown = (event: KeyboardEvent): void => {
