@@ -56,4 +56,14 @@ describe('coarseIterationBudget', () => {
     }
     expect(COARSE_RAMP.deepIterations).toBeGreaterThanOrEqual(COARSE_BASE_ITERATIONS);
   });
+
+  it('is the identity min(maxIterations, 256) with the default ramp', () => {
+    for (const maxIterations of [32, 100, 256, 512, 1024]) {
+      for (const magnification of [1, 126, 1000, 2500, 50_000, MAX_MAGNIFICATION]) {
+        expect(coarseIterationBudget(maxIterations, spanAt(magnification))).toBe(
+          Math.min(maxIterations, 256),
+        );
+      }
+    }
+  });
 });

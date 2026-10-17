@@ -7,6 +7,7 @@ import {
   type SemanticView,
 } from '../domain';
 import { classifyRows } from './classify-rows';
+import { COARSE_BASE_ITERATIONS } from './coarse-budget';
 import { colorizeFrame } from './colorize';
 import { RenderCancelledError } from './render-cancelled-error';
 import {
@@ -68,7 +69,7 @@ export class CpuRenderer implements Renderer {
     const quality = resolveRenderQuality(request.quality);
     const coarseStride = Math.max(2, quality.coarseStride);
     const coarseQuality: RenderQuality = {
-      maxIterations: Math.min(quality.maxIterations, 256),
+      maxIterations: Math.min(quality.maxIterations, COARSE_BASE_ITERATIONS),
       maxPeriod: Math.min(quality.maxPeriod, 16),
       coarseStride,
     };
