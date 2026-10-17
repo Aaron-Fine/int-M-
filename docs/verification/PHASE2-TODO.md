@@ -86,6 +86,10 @@ Estimates are engineering days. They are planning figures and may overlap.
 
 ### 0. Worth doing now
 
+- [ ] **Before release:** rerun `tools/benchmark/fallback-overhead.ts` (Node)
+      after any change to `TriggeredRowKernel.classifyRow` or a V8/Node
+      upgrade; the period-3 overhead fix depends on V8 inlining heuristics
+      (ADR 0010) and the coarse (scalar) pass was never measured.
 - [ ] **Confirming release session on the mirror-free build** (owner screen
       time, about 19 minutes headed). It measures the Easy budget, now
       projected at 238 ms against 250 ms in Chrome; it is the last input to the
@@ -275,7 +279,7 @@ p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
       analytic fast path beside the period-1/2 ones, with a written error
       budget and, if practical, a Lean statement next to `PeriodThreeLocus`. Done: [ADR 0010](../decisions/0010-analytic-period-three.md), [PERFORMANCE-MATHEMATICS §11](../PERFORMANCE-MATHEMATICS.md#11-period-3-closed-form-workstream-h-adr-0010).
 - [x] Place the test so early escapers never pay it (the spike measured
-      3–8% fallback overhead on the far exterior against a 5% limit). Done: first scanning iteration, straight-line gate; Node [overhead](../../evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/summary.md) within 5%.
+      3–8% fallback overhead on the far exterior against a 5% limit). Done: first scanning iteration; straight-line gate in the scalar kernel, a per-row Re c window in the row kernel (the stable pass); Node [overhead](../../evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/summary.md) within 5%.
 - [x] Evidence codes and flags for the analytic source; regenerate the golden
       kernel fixture in the same commit, with oracle evidence for every
       changed pixel (unresolved → attracting). Done: [adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md), 19,216 changed pixels, 0 unsupported.

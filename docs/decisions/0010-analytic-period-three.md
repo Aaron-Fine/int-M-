@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-10-16
+- Amended: 2026-10-17 (owner decision on acceptance, Decision 2)
 
 ## Context
 
@@ -25,12 +26,17 @@ period 3 now and period 4 after a rigorous root-error bound.
    `proof/IntMProof/PeriodThreeMultiplier.lean`.
 2. Acceptance is the closed-form criterion the period-1 and period-2 paths
    already use (plan §4, bucket 1–2: a conservative binary64 criterion), not
-   `verifyCycleInto`: there is no cycle point to hand to the verifier. We read
+   `verifyCycleInto`: there is no cycle point to hand to the verifier.
+   **Owner decision 2026-10-17 ("Accept, like p1/p2"):** period 3 is accepted
+   by margin plus a derived allowance without the cycle verifier, as periods 1
+   and 2 are, and `MI-PERF-004` is amended to name analytic closed forms
+   (statement and status cell in `REQUIREMENTS.md`). The reading that follows
+   is the owner's ruling, not an implementer interpretation. It reads
    `MI-PERF-004`'s "common declared acceptance procedure" as the verifier
    policy's attraction margin applied to an exact multiplier, with a declared
    binary64 allowance. The plan §4 table lists periods 3–4 as "checkpoint;
    optional algebraic candidate" under the common verifier; this ADR records
-   the deviation for period 3. `VERIFIER_REVISION` does not change.
+   the owner-approved deviation for period 3. `VERIFIER_REVISION` does not change.
 3. Placement: both kernels (`classifyTriggeredOrbitInto` and
    `TriggeredRowKernel`) try it once per pixel at the first scanning
    iteration, `max(cycleWarmup, 2)` = 24, before that iteration's scan.
@@ -39,7 +45,8 @@ period 3 now and period 4 after a rigorous root-error bound.
    scanning iteration it never runs; no production budget is that small.
 4. Gate: padded bounding boxes of the three period-3 components
    (`src/domain/period-three-gate.ts`), tested by a straight-line function,
-   hull first. The gate must contain every accepted parameter (checked on a
+   hull first, in the scalar kernel. The row kernel instead evaluates a per-row
+   Re c window derived from the same boxes (see Consequences). The gate must contain every accepted parameter (checked on a
    dense grid and along every box edge), so it changes speed, not answers.
 5. Evidence: flag `analytic-period-3-component`, code 5, evidence source
    `analytic` (a closed form, like periods 1 and 2; `algebraic` stays
@@ -78,7 +85,9 @@ period 3 now and period 4 after a rigorous root-error bound.
   therefore evaluates the gate once per row as a window on Re c (exact: the
   boxes' |Im c| bands are disjoint and lie inside the hull) and calls only the
   closed form, which is too large to inline. The scalar kernel keeps the
-  straight-line gate call.
+  straight-line gate call. The fix depends on V8 inlining heuristics: rerun
+  `tools/benchmark/fallback-overhead.ts` after any change to `classifyRow` or
+  a V8 upgrade. The coarse (scalar) pass was not measured.
 - The browser release run in both browsers is deferred to the owner's screen
   session.
 - Evidence: [adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md) (every

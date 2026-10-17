@@ -474,7 +474,10 @@ the straight-line gate. The row kernel evaluates it once per row as a window
 on Re c, which is exact because the boxes' |Im c| bands are disjoint and lie
 inside the hull; calling the gate from the row kernel cost about 10% on the
 far-exterior stable pass in Node through TurboFan's inlining budget (bimodal: it appeared in some compiles and not others; the CPU-level reason is not pinned down), though no
-pixel there reaches the gate ([ADR 0010](decisions/0010-analytic-period-three.md)).
+pixel there reaches the gate ([ADR 0010](decisions/0010-analytic-period-three.md)). The fix depends on V8
+inlining heuristics; rerun `tools/benchmark/fallback-overhead.ts` after any
+change to `classifyRow` or a V8 upgrade. The coarse (scalar) pass, which keeps
+the inlined gate call, was not measured.
 
 ### 11.6 What is proved and what is not
 

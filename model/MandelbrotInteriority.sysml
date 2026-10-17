@@ -477,7 +477,9 @@ package MandelbrotInteriority {
             doc /*
              * No checkpoint, catalog, algebraic, Newton, SIMD, or subdivision
              * path shall emit attracting-cycle status without the common
-             * declared acceptance procedure; exhausted or ambiguous work
+             * declared acceptance procedure (closed-form analytic paths
+             * accept by the verifier's attraction margin with a declared
+             * binary64 allowance, ADR 0010); exhausted or ambiguous work
              * shall remain unresolved.
              */
         }

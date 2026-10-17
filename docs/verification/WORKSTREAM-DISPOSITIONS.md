@@ -134,7 +134,10 @@ dd-adjudicated ([adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-
 fallback overhead within 5% ([overhead](../../evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/summary.md)).
 Gate (plan §5, verbatim): `Targeted ≥15% or weighted ≥5%; fallback ≤5%; zero
 incorrect results`; the targeted and weighted clauses still need the browser
-release run, which is deferred to the owner's screen session. Period 4 is not
+release run, which is deferred to the owner's screen session.
+Kill (plan §5, verbatim): `Keep research-only if inversion/branch selection
+costs exceed orbit/Newton path` — not triggered: the closed form is 5–37×
+cheaper per pixel handled ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)). Period 4 is not
 started: it needs a rigorous root-error bound (Kantorovich or a cusp
 exclusion disk) before its cubic solve may accept.
 
