@@ -59,8 +59,8 @@ Estimates are engineering days. They are planning figures and may overlap.
       Add a depth-aware coarse budget or progressive stable bands; prove it
       with the 6,000,000× basilica rim in the release harness. 2–3.
 - [ ] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
-      at 8 and 16 against 4 with `npm run evidence:release -- --compare
-    name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
+      at 8 and 16 against 4 with
+      `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
 - [ ] **Memory high-water (`MI-PERF-006`).** It is the one performance
       requirement never measured in the release browsers. Add a
       per-engine high-water figure to the release harness. 1–2.
