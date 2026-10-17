@@ -26,12 +26,12 @@ merged to main. They are not an acceptance test for this branch.
   coordinates once per sampled row, using the canonical pixel-center formula.
   Repeated additions are avoided to prevent cumulative deep-zoom drift. Coarse
   sampling retains its clipped block-center mapping.
-- Stable views centered exactly at `center.im === 0` classify only the upper
-  half, including the middle row for odd heights. Conjugate rows preserve
+- Stable views centered exactly at `center.im === 0` classified only the upper
+  half (conjugate mirroring, removed 2026-10-16, ADR 0008), including the middle row for odd heights. Conjugate rows preserve
   status, period, escape smoothing, and multiplier magnitude; only the imaginary
   multiplier direction changes sign. This works for serial frames and arbitrary
-  band slices. The worker pool schedules bands over `ceil(height / 2)` and
-  mirrors results in the supervisor. Off-axis views and coarse previews retain
+  band slices. The worker pool scheduled bands over `ceil(height / 2)` and mirrored results
+  in the supervisor; that is no longer the case, and every row is classified directly. Off-axis views and coarse previews retain
   full sampling. Cancellation still checks/yields at the established row cadence.
 - Semantic frames use two Float32 multiplier direction channels in place of one
   Float64 angle channel. The raster still uses **21 bytes per pixel**. Multiplier
@@ -145,6 +145,6 @@ above is either carried, superseded, or deliberately not adopted:
 | `log2(0.5 * log2(m²))` escape smoothing            | Not adopted: not bit-identical, and 0.99× in the optimization tournament.                                                                                    |
 | Modulo-free history ring                           | Superseded: power-of-two ring with mask indexing; the triggered kernel scans only on watched-lag proposals and a doubling schedule.                          |
 | Prepared per-column / per-row coordinates          | Carried, unconditional (bit-identical to the per-pixel transform).                                                                                           |
-| Upper-half classification of real-axis views       | Carried as conjugate mirroring, on by default (`?perf=1&conjugateMirror=0` disables).                                                                        |
+| Upper-half classification of real-axis views       | Removed 2026-10-16 ([ADR 0008](../decisions/0008-remove-conjugate-mirroring.md)): every row is classified directly, with no toggle.                          |
 | Float32 multiplier-direction channels              | Not adopted: the band keeps the binary64 angle; colorization instead dropped per-pixel tuples and fmod calls (byte-identical, 1.8–2.4× faster).              |
 | Checkpoint detector behind an option               | Kept opt-in (`classifierMode: 'checkpoint'`); removed 2026-10-16 (ADR 0007).                                                                                 |

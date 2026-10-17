@@ -34,7 +34,7 @@ import type { Candidate } from './types';
 export const myFlag: Candidate = productionCandidate({
   id: 'my-flag',
   description: 'One sentence: what changes.',
-  requestOptions: { conjugateMirror: false }, // your DynamicsRenderRequest flag(s); mirroring is on by default, so this one turns it off
+  requestOptions: { quality: { maxIterations: 256, maxPeriod: 32, coarseStride: 2 } }, // any DynamicsRenderRequest option; these values are illustrative
 });
 ```
 

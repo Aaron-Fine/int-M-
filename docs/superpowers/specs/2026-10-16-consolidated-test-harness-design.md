@@ -25,7 +25,7 @@ and stop spending browser time on the slow reference kernel.
     give; no metric requires re-rendering a view in another runner.
   - The browser runs only the production renderer: no URL parameter or
     message field can select another classifier or renderer-path variant.
-    Old-build or mirroring-off arms run only on request (`--compare`).
+    Old-build or query-toggle arms run only on request (`--compare`).
   - A stall or a locked session costs at most one case, never the session.
   - The e2e suite runs against the production bundle, has no test that
     depends on the slow reference kernel, and loads the default view fewer
@@ -40,9 +40,9 @@ and stop spending browser time on the slow reference kernel.
 
 The shipped app can run only the production path: the watched-lag
 triggered kernel, two-lane row kernel, center-out bands, MessageChannel
-yields, zero-copy output, and conjugate mirroring (its default-on status is
-still an open owner decision; `?perf=1&conjugateMirror=0` stays as the one
-diagnostic toggle until it is decided).
+yields, zero-copy output, and no conjugate mirroring (removed 2026-10-16,
+ADR 0008). The browser has no renderer toggles; `?conjugateMirror=0` is
+ignored.
 
 - **Removed from the browser:** the `?classifierMode=`, `?bandOrder=`,
   `?yieldMechanism=`, and `?frameOutput=` parameters; the matching
@@ -108,7 +108,7 @@ Per engine, per corpus case (13), per repetition (rep 0 cold, then a warm count 
 - **Arms:** `hook` (`?perf=1&view=…&quality=…`, full trace) and `plain`
   (`?view=…&quality=…`, mark wall and hash only), both on the production
   default kernel. Each `--compare name=…` adds one arm: a query toggle on the
-  same build (only `conjugateMirror=0` remains) or a whole other build (`dist:<dir>`, served from its own preview server, hook on).
+  same build (none remains, ADR 0008) or a whole other build (`dist:<dir>`, served from its own preview server, hook on).
 - **Order:** arm order rotates per repetition (all arms, all positions), and
   every repetition uses a fresh browser context, so headed new-window cost
   is spread evenly (the 2026-10-16 fixed-order bias is not repeatable).
@@ -176,8 +176,8 @@ summary says so.
   rotation; each arm leads equally often over the warm repetitions),
   checkpoint merge and `--resume` selection, summary section
   assembly from fixed samples.
-- `npm run evidence:smoke`: headless end to end (2 reps, 2 cases, one
-  `--compare conjugateMirror=0`); run by hand before release sessions, not
+- `npm run evidence:smoke`: headless end to end (2 reps, 2 cases, no
+  `--compare` arm); run by hand before release sessions, not
   in wall-clock CI (plan §9).
 - Acceptance: one release session on the target laptop finishes within 30
   minutes for both browsers, and its budget, overhead, parity, and

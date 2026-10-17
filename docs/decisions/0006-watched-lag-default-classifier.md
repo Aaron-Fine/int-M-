@@ -35,7 +35,7 @@ reported answer, and the mode under `perfCounters`).
   forward walk (bit-identical to the separate walks, pinned by
   `tests/unit/domain/verifier-prefix.test.ts`).
 - The stable pass runs a two-lane row kernel (`src/render/triggered-rows.ts`),
-  bit-identical to the scalar kernel; conjugate mirroring is on by default.
+  bit-identical to the scalar kernel; conjugate mirroring is on by default (removed 2026-10-16, ADR 0008).
 
 ## Semantic argument
 
