@@ -699,17 +699,34 @@ button:disabled {
   border-radius: 0;
 }
 
-/* Period-4 markers sit closest together: their hit target is the 24px dot, so that
-   they do not cover their neighbours (WCAG 2.5.8 target size at phone widths). */
+/* Period-4 markers sit closest together. Up to about 447px wide their 44px box covers a
+   neighbour (axe target-size, WCAG 2.5.8), so below 28rem the box shrinks to the 24px dot
+   (34px still fails at 320px). The drawn diamond and its label stay where they were. */
 .catalog-marker--period-4 {
-  width: 1.5rem;
-  height: 1.5rem;
+  --p4-hit: 2.75rem;
+  /* Tips of the rotated 24px dot reach about 17px from the centre; rings start beyond them. */
+  --p4-ring: max(0.15rem, calc(1.1rem - var(--p4-hit) / 2));
+
+  width: var(--p4-hit);
+  height: var(--p4-hit);
 }
 
 .catalog-marker--period-4 .catalog-marker__dot {
-  inset: 0;
+  inset: calc((var(--p4-hit) - 1.5rem) / 2);
   border-radius: 0;
   transform: rotate(45deg);
+}
+
+.catalog-marker--period-4:focus-visible {
+  box-shadow:
+    0 0 0 var(--p4-ring) var(--surface),
+    0 0 0 calc(var(--p4-ring) + 0.15rem) var(--focus);
+}
+
+@media (max-width: 28rem) {
+  .catalog-marker--period-4 {
+    --p4-hit: 1.5rem;
+  }
 }
 
 .explorer--region-tool .catalog-marker,
@@ -758,11 +775,11 @@ button:disabled {
 }
 
 .catalog-marker--period-4 .catalog-marker__label {
-  left: 2.225rem;
+  left: calc(var(--p4-hit) / 2 + 23.6px);
 }
 
 .catalog-marker--period-4.catalog-marker--left-facing .catalog-marker__label {
-  right: 2.225rem;
+  right: calc(var(--p4-hit) / 2 + 23.6px);
   left: auto;
 }
 
@@ -1395,6 +1412,10 @@ button:disabled {
   [tabindex]:focus-visible {
     outline: 3px solid Highlight;
     outline-offset: 2px;
+  }
+
+  .catalog-marker--period-4:focus-visible {
+    outline-offset: max(2px, calc(1.1rem - var(--p4-hit) / 2));
   }
 
   .selected-point-marker {
