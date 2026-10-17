@@ -5,7 +5,6 @@ import {
   MISMATCH_LIMIT,
   type CompareResult,
   type Conversion,
-  type DistributionSummary,
   type Mismatch,
 } from './parity';
 import type { OracleResult } from './oracle';
@@ -44,40 +43,11 @@ export interface CandidateParity {
   readonly pixelsCompared: number;
   readonly conversionCount: number;
   readonly firstConversions: readonly Conversion[];
-  readonly iterationDeltas: Readonly<Record<string, DistributionSummary>>;
-  readonly evidenceChanges: Readonly<Record<string, number>>;
   readonly cases: readonly CaseParity[];
   readonly oracle: OracleResult | undefined;
 }
 
 const sum = (values: readonly number[]): number => values.reduce((a, b) => a + b, 0);
-
-const mergeSummaries = (
-  into: Record<string, DistributionSummary>,
-  from: Readonly<Record<string, DistributionSummary>> | undefined,
-): void => {
-  for (const [klass, next] of Object.entries(from ?? {})) {
-    const prior = into[klass];
-    if (prior === undefined) {
-      into[klass] = next;
-      continue;
-    }
-    const differing = prior.differing + next.differing;
-    into[klass] = {
-      compared: prior.compared + next.compared,
-      differing,
-      min: Math.min(prior.min, next.min),
-      // Percentiles cannot be merged exactly; report the worse (larger) of the cases.
-      p50: Math.max(prior.p50, next.p50),
-      p90: Math.max(prior.p90, next.p90),
-      max: Math.max(prior.max, next.max),
-      mean:
-        differing === 0
-          ? 0
-          : (prior.mean * prior.differing + next.mean * next.differing) / differing,
-    };
-  }
-};
 
 const maxStat = (
   results: readonly CompareResult[],
@@ -149,14 +119,6 @@ export const aggregateCandidate = (input: {
   const errors = input.cases.filter((entry) => entry.error !== undefined);
   const violationCount = sum(results.map((result) => result.violationCount));
   const toleranceProblems = validateTolerance(input.policy, input.tolerance);
-  const iterationDeltas: Record<string, DistributionSummary> = {};
-  const evidenceChanges: Record<string, number> = {};
-  for (const result of results) {
-    mergeSummaries(iterationDeltas, result.iterationDeltas);
-    for (const [key, count] of Object.entries(result.evidenceChanges ?? {})) {
-      evidenceChanges[key] = (evidenceChanges[key] ?? 0) + count;
-    }
-  }
   const violationsByField: Record<string, number> = {};
   for (const result of results) {
     for (const [field, stat] of Object.entries(result.fieldStats)) {
@@ -185,8 +147,6 @@ export const aggregateCandidate = (input: {
     pixelsCompared: sum(results.map((result) => result.pixels)),
     conversionCount: sum(results.map((result) => result.conversionCount)),
     firstConversions: results.flatMap((result) => result.conversions).slice(0, CONVERSION_LIMIT),
-    iterationDeltas,
-    evidenceChanges,
     cases: input.cases,
     oracle: input.oracle,
   };

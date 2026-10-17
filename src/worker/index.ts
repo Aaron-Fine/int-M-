@@ -1,7 +1,10 @@
 export type {
+  CancelAckMessage,
   CancelledMessage,
   CancelMessage,
   FrameMessage,
+  FrameProvenance,
+  FrameSource,
   InspectionMessage,
   InspectionResult,
   InspectMessage,

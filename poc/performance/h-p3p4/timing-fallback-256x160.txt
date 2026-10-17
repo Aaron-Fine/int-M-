@@ -1,0 +1,4 @@
+mi-easy-default-full             prod    6.30  null    6.26  proto    5.97 ms | proto/prod x  1.05  proto vs null   -4.6%
+mi-easy-exterior-heavy           prod    3.53  null    3.45  proto    3.71 ms | proto/prod x  0.95  proto vs null    7.8%
+mi-fallback-ambiguous-boundary   prod    8.17  null    8.11  proto    8.37 ms | proto/prod x  0.98  proto vs null    3.3%
+corpus sum (ms): prod 18.0 null 17.8 proto 18.1; saving vs prod -0.4%

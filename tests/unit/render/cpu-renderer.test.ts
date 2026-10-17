@@ -148,10 +148,6 @@ describe('CpuRenderer', () => {
         viewport: DEFAULT_VIEWPORT,
         size: { width: 16, height: 64 },
         quality: { maxIterations: 32, maxPeriod: 4, coarseStride: 8 },
-        // The default view is centered on the real axis; mirroring would skip
-        // half of the stable rows (and their yields), changing the cadence
-        // this test pins.
-        conjugateMirror: false,
       },
       new AbortController().signal,
       (frame) => {

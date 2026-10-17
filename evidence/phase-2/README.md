@@ -100,47 +100,122 @@ Generators should write to a temporary file, validate record counts/schema,
 atomically publish the final payload, then emit `artifact-index.json`, summary,
 and `manifest.sha256` last.
 
-## Stage A runs (`tools/benchmark/run-stage-a.mjs`)
+## Release sessions (`tools/benchmark/run-release.ts`)
 
-Stage A (paired legacy-scan vs checkpoint classifier evidence, plan §9) adds
-these documented evolutions to the directory contract:
+Every browser evidence run since 2026-10-16 is one release session, started
+with `npm run evidence:release` (or `node tools/benchmark/run-release.ts`
+with the same flags). The per-purpose runners that preceded it
+(`run-stage-a.mjs`, `run-operational.mjs`, `run-overhead.mjs`,
+`run-renderer-path.mjs`, `run-b-gate.mjs`, and `release-browser.mjs`) were
+retired on 2026-10-16. Run directories produced by them still carry their
+original names and summaries; they are reproducible from the commits recorded
+in their directory names and `environment.json`.
 
-- `environment.json` keeps the `capture-environment.mjs` skeleton and fills
-  the browser fields for the primary engine (Playwright Chromium), records
-  per-engine facts under an added `browsers` map (each entry carries the
-  browser build, user agent, headless state, DPR, calibrated viewport, worker
-  count, and the "automation-bundled, directional only" label), and adds a
-  `protocol` block (build mode, pairing and cold/warm interpretation,
-  out-of-scope interactions, wall metric, hash byte order).
-- `raw-observations.json` stores samples under `samplesByEngine` (one array
-  per engine; every sample is timestamp-free and carries the full opt-in
-  render-trace snapshot). A second engine run into the same directory extends
-  the arrays rather than replacing them.
-- `semantic-comparison.json` records `comparisonsByEngine`; per case ×
-  repetition it stores both hashes and their equality, with the documented
-  byte order (row-major RGBA via `getImageData`) and the honest scope note
-  (palette-inclusive proxy; no per-pixel period histogram exists in the ring).
-- `summary.md` is regenerated from the merged per-engine data on every run;
-  when content changes, the manifest is re-emitted and the change is noted in
-  the commit.
-- Each engine run ends by re-emitting `manifest.sha256` (last, per the
-  contract above); `--check` must pass before results are cited.
+Usage:
 
-Stage A is a screening-protocol run (9 paired repetitions, automation-bundled
-headless engines): it is the directional baseline record for the absolute
-latency budgets, not release-gate evidence. Release-gate evidence still needs
-the declared target hardware, branded stable Chrome and Firefox, headed runs,
-and ≥ 21 paired repetitions with BCa paired intervals.
+```
+node tools/benchmark/run-release.ts [--engines chromium,firefox] [--release]
+  [--reps N] [--cases id,...] [--compare name=<query>|name=dist:<dir>]...
+  [--skip-interactions] [--resume] [--out-dir DIR] [--interactions N]
+```
 
-`--release` runs that protocol on the machine that launches it: branded
-stable Google Chrome (launched as an ordinary process with a fresh profile and
-attached over CDP; default `flatpak run com.google.Chrome`) and branded
-Firefox (driven over WebDriver BiDi; default `/usr/bin/firefox`), both
-headed, at ≥ 22 repetitions per case (rep 0 cold, so ≥ 21 warm pairs).
-Every summary row carries 95% BCa paired intervals (`tools/benchmark/bca.ts`,
-seed recorded in `raw-observations.json`): the speed ratio as the median
-paired log-ratio and the regression cap as the median paired difference. The
-power source and ACPI platform profile are read from sysfs.
+`npm run evidence:release` is `--release`; `npm run evidence:smoke` is a
+two-repetition screening run with one `--compare` arm, written to
+`test-results/evidence-smoke/` (git-ignored) and labelled directional.
+`--release` refuses `--cases` subsets and `--skip-interactions`, so a release
+directory always covers the whole corpus and both passes.
+
+**Engines.** One session per engine (default: Chromium and Firefox). Each
+session builds the production bundle once, serves it with `vite preview` (on port 4185;
+each `dist:` compare arm gets its own preview on 4186, 4187, …), and launches
+the browser. A `--release` run refuses to start when the desktop session is
+locked (logind `LockedHint`).
+
+**Arms.** Every case runs two arms. Repetition 0 (cold) uses the declared
+order; warm repetitions rotate it on the warm index, so each arm leads equally
+often when the warm count is a multiple of the arm count:
+
+- `hook`: the query `?perf=1`, with the render-trace hook present.
+- `plain`: no hook. The per-sample RGBA hash must match `hook`.
+
+Each `--compare` arm adds a third comparison. `name=<query>` runs on the
+current build; `name=dist:<dir>` runs a separately built `dist`. Compare arms
+are paired against `hook` and are hash-checked the same way.
+
+**Repetitions.** The screening default is 9 paired repetitions. `--release`
+runs branded headed browsers (Chrome through flatpak over CDP, Firefox over
+WebDriver BiDi). Its default is 1 cold plus the smallest multiple of the arm
+count that is at least 21 warm (23 repetitions for two arms, 22 for three). An
+explicit `--reps` under `--release` must leave a warm count that is at least 21
+and a multiple of the arm count; anything else exits with an error. A first-in-
+context penalty of about 3% makes an unbalanced count bias the paired ratio.
+
+**Passes.** Each engine runs a corpus pass, then an interaction pass (`cancel`,
+`inflight-replay`, `recolor`, `semantic-cache`, `--interactions N` each, default
+50, and at least 50 under `--release`). Provenance violations are counted, and
+raced samples are reported rather than dropped. `--skip-interactions` omits the
+second pass.
+
+**Checkpoints and resume.** Each completed case is checkpointed to
+`<outDir>/.partial-<engine>.json`. Without `--resume`, an existing partial file
+stops the run, so an interrupted session is never silently overwritten. The
+partial file starts with a protocol header (release flag, repetitions, arm
+names, commit, case ids); `--resume` refuses a partial file whose header
+differs from the current flags. With `--resume`, the run continues from the
+checkpoint, and an engine whose `raw-observations.json` entry already matches
+the repetitions, release flag, commit, cases and arms (and has no incomplete
+case) is not measured again; its gates are re-evaluated from the stored
+samples. The partial file is removed once that engine's evidence is written.
+
+**Stalls.** A stalled render is retried once on a fresh context and marked
+`retriedAfterStall`. A second stall abandons that case: it is recorded as
+incomplete (stall count and reason), its remaining repetitions are skipped, the
+run continues, and the case fails the gate. If the session is locked at that
+point, the run stops with the resumable `session locked ... resume with
+--resume` error instead. Gate failures already collected are printed before
+an error ends the run.
+
+**Outputs.** The default directory is `evidence/phase-2/<date>-<commit>-release/`
+under `--release` and `evidence/phase-2/<date>-<commit>-directional/` otherwise;
+`--out-dir` overrides it. The writer (`tools/benchmark/harness/evidence.ts`) emits:
+
+- `environment.json`: the `capture-environment.mjs` skeleton plus a
+  `browsers.<engine>` entry per engine. Each entry records the label
+  (`release` or `directional`), the run scope (engines, cases, reps, arms,
+  skipped passes), the BCa `seed` and `resamples`, `powerMode` (sysfs AC and
+  platform profile), the calibrated `viewport`, and the `lockedHint` seen at
+  session start.
+- `raw-observations.json` (`schemaVersion: 1`, `byEngine`): per engine, the same
+  protocol facts plus `release`, `reps`, `commit`, `caseIds`, `arms`, every
+  sample individually (hook samples keep the stable computed frame of the render
+  trace; plain samples have none), any `incomplete` cases, the interaction
+  results and `ringBytes`. About 1 KB per hook sample as formatted (measured on a smoke run), so a
+  release session stays well under the 5 MiB threshold.
+- `summary.md`: the first lines state the label and the run scope, then one
+  section per engine; re-running one engine replaces only that engine's
+  section and the header.
+- `manifest.sha256`: emitted last by `tools/benchmark/manifest.mjs`.
+
+Paired intervals are 95% BCa intervals (`tools/benchmark/harness/stats.ts`,
+seed recorded in `environment.json` and `raw-observations.json`). The speed ratio is the median paired
+log-ratio, and the regression cap is the median paired difference.
+
+**Gates.** Any failed gate makes the run exit non-zero, with one message per
+failure:
+
+- ring retention: ring bytes above 65,536;
+- incomplete case: a case that stalled twice;
+- budget: coarse or stable frame budget failures;
+- hash mismatch between `hook` and `plain`. Compare-arm mismatches are
+  reported per arm in the summary, not gated;
+- hook overhead (release only): the pooled plain/hook lower bound must be at
+  least 1/1.05, that is, hook overhead of at most 5%. Non-release runs print
+  this as "not gated";
+- provenance violations in the interaction pass.
+
+**Headed release runs.** A `--release` session needs an unlocked desktop and
+should run under a screensaver and power inhibitor, for example
+`kde-inhibit --screenSaver --power npm run evidence:release`.
 
 ## Raw-sample discipline
 

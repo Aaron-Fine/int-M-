@@ -60,22 +60,11 @@ describe('SemanticFrameStore', () => {
     ).not.toBe(key);
   });
 
-  it('keeps the default key byte-identical and scopes it by classifier mode when present', () => {
+  it('keeps the default key free of retired classifier-mode markers', () => {
     const defaultKey = semanticRequestKey(request);
     expect(defaultKey).not.toContain('cm:');
-
-    const checkpointKey = semanticRequestKey({ ...request, classifierMode: 'checkpoint' });
-    expect(checkpointKey).not.toBe(defaultKey);
-    expect(checkpointKey).toBe(semanticRequestKey({ ...request, classifierMode: 'checkpoint' }));
-    expect(semanticRequestKey({ ...request, classifierMode: 'differential' })).not.toBe(
-      checkpointKey,
-    );
-
-    const store = new SemanticFrameStore();
-    const stable = frame('stable');
-    store.put({ ...request, classifierMode: 'checkpoint' }, stable);
-    expect(store.get(request)).toBeUndefined();
-    expect(store.get({ ...request, classifierMode: 'checkpoint' })).toBe(stable);
+    expect(defaultKey).not.toContain('pc:');
+    expect(semanticRequestKey(request)).toBe(defaultKey);
   });
 
   it('retains only stable semantic evidence', () => {

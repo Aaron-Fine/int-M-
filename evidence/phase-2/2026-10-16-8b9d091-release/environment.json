@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-16T21:46:02.320Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465489920,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "8b9d0911406b994c81b85938a5ac777bd70899b5",
+    "algorithm": "8b9d0911406b994c81b85938a5ac777bd70899b5",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-16-8b9d091-release/environment.json --note Release session (tools/benchmark/run-release.ts).",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Release session (tools/benchmark/run-release.ts)."
+  ],
+  "browsers": {
+    "chromium": {
+      "engine": "chromium",
+      "browserVersion": "155.0.8059.39",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "launchedBy": "flatpak run com.google.Chrome (CDP)",
+      "release": true,
+      "reps": 22,
+      "interactions": 50,
+      "commit": "8b9d091"
+    },
+    "firefox": {
+      "engine": "firefox",
+      "browserVersion": "157.0",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0",
+      "launchedBy": "/usr/bin/firefox (WebDriver BiDi)",
+      "release": true,
+      "reps": 22,
+      "interactions": 50,
+      "commit": "8b9d091"
+    }
+  }
+}

@@ -6,9 +6,12 @@ document; sections below refer to its numbered sections). It mirrors the plan's
 delivery sequence (§11) and records the **current status of every item** with
 evidence links. It is a status document, not a marketing document:
 
-- Nothing is "shipped". The legacy all-lag scan remains the reported
-  classifier everywhere; the default can flip only on Stage A evidence
-  (plan §9).
+- The default classifier is the watched-lag triggered scan
+  ([ADR 0006](decisions/0006-watched-lag-default-classifier.md), accepted
+  2026-10-15 on the release-protocol Stage A run in both branded browsers);
+  `legacy-scan` was the reference mode until it was removed 2026-10-16 (ADR 0007). Phase 2 closure is recorded in
+  [PHASE-2-CLOSEOUT.md](verification/PHASE-2-CLOSEOUT.md) (proposed, awaiting
+  owner approval).
 - Evidence lives in two tiers. **Release-comparable** evidence is the frozen
   corpus protocol of [PERFORMANCE-CORPUS.md](verification/PERFORMANCE-CORPUS.md)
   run on target hardware in stable branded Chrome and Firefox.
@@ -19,17 +22,17 @@ evidence links. It is a status document, not a marketing document:
 
 ## Status at a glance
 
-| Sequence item (plan §11)                                       | Workstream        | Status                                                                                                                                                                                   | Evidence                                                                                                                  |
-| -------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Step 0 — PoC harness                                           | —                 | **Landed**                                                                                                                                                                               | [poc/performance/](../poc/performance/README.md)                                                                          |
-| PR 1 — Corpus, timing, bounded observability                   | A                 | **Partially landed**: corpus, recorder, and trace schema are present; production provenance/timing propagation and cancellation quiescence are incomplete, so the A gate remains open    | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                |
-| PR 2 — Allocation-free scalar kernel                           | B                 | **Landed**; speed gate open (not measurable from the current Stage A paired arms; see [gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                            | pr2 microbench (directional)                                                                                              |
-| PR 3 — Common verifier and semantic oracle                     | C (part)          | **Landed**                                                                                                                                                                               | src/domain/verifier.ts, verifier/adjudication tests                                                                       |
-| PR 4 — Checkpoint candidates                                   | C                 | **Landed** behind the `legacy-scan` default; directional-pass-pending on the first Stage A run ([gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                  | src/domain/checkpoint.ts, pr4 bench (directional), [first Stage A run](../evidence/phase-2/2026-09-02-6f49f19/summary.md) |
-| PR 5 — Period policy buckets and product language              | D                 | **Landed**; directional-pass-pending ([gate analysis](verification/STAGE-A-GATE-ANALYSIS.md))                                                                                            | src/domain/period-policy.ts, policy tests                                                                                 |
-| Stage A — target-hardware baseline and gate runs               | A/B/C/D           | **First run complete** (screening protocol; automation-bundled Chromium + Firefox — directional); release-protocol runs pending ([gate analysis](verification/STAGE-A-GATE-ANALYSIS.md)) | [evidence/phase-2/2026-09-02-6f49f19/](../evidence/phase-2/2026-09-02-6f49f19/summary.md)                                 |
-| Conditional PRs M, O, N, E, G, F, H, I, K (+ renderer details) | M/O/N/E/G/F/H/I/K | Not started as PRs; dispositions recorded ([WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md))                                                                        | poc/performance/results/, poc/performance/browser/results/                                                                |
-| Research tracks — rigorous subdivision (J), trap-radius (L)    | J/L               | Open-ended; L has PoC oracle-gate evidence (below)                                                                                                                                       | poc/performance/src/kernels/trap.ts and results                                                                           |
+| Sequence item (plan §11)                                       | Workstream        | Status                                                                                                                                                                                                                                                     | Evidence                                                                                                                          |
+| -------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Step 0 — PoC harness                                           | —                 | **Landed**                                                                                                                                                                                                                                                 | [poc/performance/](../poc/performance/README.md)                                                                                  |
+| PR 1 — Corpus, timing, bounded observability                   | A                 | **Landed** (2026-10-15): provenance, compute identity, worker/band timing, and two-event cancellation are wired end to end; the A gate waits on the release-browser operational suite                                                                      | tools/benchmark/, PERFORMANCE-CORPUS.md, render trace ring                                                                        |
+| PR 2 — Allocation-free scalar kernel                           | B                 | **Landed**; release B gate passes in Chrome, **not met in Firefox, superseded for users by C** (owner decision 2026-10-16; the reference-kernel comparison regresses there; [closeout](verification/PHASE-2-CLOSEOUT.md#b--allocation-free-scalar-kernel)) | [b-gate evidence](../evidence/phase-2/2026-10-15-9e70551-b-gate/summary.md)                                                       |
+| PR 3 — Common verifier and semantic oracle                     | C (part)          | **Landed**                                                                                                                                                                                                                                                 | src/domain/verifier.ts, verifier/adjudication tests                                                                               |
+| PR 4 — Checkpoint candidates                                   | C                 | **Landed**; the flag and module were removed 2026-10-16 (ADR 0007); the workstream C gate closed on the watched-lag default ([closeout](verification/PHASE-2-CLOSEOUT.md#c--reduce-the-lag-scan-cost-realized-as-the-watched-lag-kernel))                  | pr4 bench (directional; module removed, ADR 0007), [first Stage A run](../evidence/phase-2/2026-09-02-6f49f19/summary.md)         |
+| PR 5 — Period policy buckets and product language              | D                 | **Landed**; gate passes ([closeout](verification/PHASE-2-CLOSEOUT.md#d--period-policy-and-product-language))                                                                                                                                               | src/domain/period-policy.ts, policy tests                                                                                         |
+| Stage A — target-hardware baseline and gate runs               | A/B/C/D           | **Release protocol complete** (branded Chrome 155 and Firefox 157, headed, target laptop, 21 warm pairs, BCa)                                                                                                                                              | [evidence/phase-2/2026-10-11-59926c5-watched-lag-release/](../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md) |
+| Conditional PRs M, O, N, E, G, F, H, I, K (+ renderer details) | M/O/N/E/G/F/H/I/K | Final dispositions (owner-approved 2026-10-16; M removed, ADR 0008; F a product candidate; H adopted after its spike) in the [closeout](verification/PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions)                                              | poc/performance/results/, poc/performance/browser/results/                                                                        |
+| Research tracks — rigorous subdivision (J), trap-radius (L)    | J/L               | Open-ended; L has PoC oracle-gate evidence (below)                                                                                                                                                                                                         | poc/performance/src/kernels/trap.ts and results                                                                                   |
 
 ## Recovery audit update (2026-09-02)
 
@@ -38,7 +41,7 @@ full repository check passes (formatting, strict lint, all TypeScript
 projects, generated-data checks, 357 unit tests, and the production build).
 The browser suite passes 31 tests in Chromium and Firefox with one
 Firefox-only recovery test skipped and no failures. These checks support
-continued development behind the existing `legacy-scan` default; they do not
+continued development on the triggered-scan default (ADR 0006); they do not
 replace the release benchmark protocol.
 
 The audit confirms the following status:
@@ -114,7 +117,7 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
 - Transplantation and trap pass the oracle gate with large savings where they
   fire; both keep their conditional/research standing (below).
 
-### PR 1 — Corpus, timing, and bounded observability (workstream A; partially landed)
+### PR 1 — Corpus, timing, and bounded observability (workstream A; landed)
 
 - Frozen corpus v1: [tools/benchmark/corpus.v1.json](../tools/benchmark/corpus.v1.json)
   with validator (`validate-corpus.ts`, CI-run), environment capture
@@ -130,15 +133,34 @@ plus `run-manifest.json`, harness revision `poc-harness-1.0.0`, corpus seed
   defines the normative run directory layout.
 
 Workstream A gate (plan §5, quoted): `Reproducible runs in stable Chrome and Firefox; cache/replay/cancel sources distinguishable`. The corpus and evidence
-tooling are landed, but the production observability path is not complete:
-`FrameDelivery` defines the intended metadata while `FrameMessage` and
-`presentFrame` do not carry or supply it. The first Stage A run exists
+tooling are landed, and the production observability path is complete as of
+2026-10-15 (the completion plan below, steps 1–6): every `FrameMessage`
+carries a required provenance set where the delivery is made, and the
+application maps it to the ring through the single `frameDelivery` adapter. The first Stage A run exists
 ([2026-09-02-6f49f19](../evidence/phase-2/2026-09-02-6f49f19/summary.md),
 screening protocol, automation-bundled engines — directional), and the
 release-protocol runs on stable branded browsers (including the
 cache/replay/cancel suite, out of scope for the first pass) remain.
 
 #### Observability integration completion plan
+
+**Status (2026-10-15): implemented.** Steps 1–5 are in
+`src/worker/protocol.ts` (`FrameProvenance`, `cancel-ack`/`cancelled`),
+`src/worker/runtime.ts` (monotonic `computeId`, source set per delivery
+branch, quiescence after `Renderer.quiesce`), `src/worker/tile-pool.ts`
+(`quiesce`: child drain, pool reset at the deadline), and
+`src/ui/worker-timing-marks.ts` (bounded cancelling set, `frameDelivery`).
+Every delivery colorizes in this architecture, so `colorizeMs` is recorded
+on every source; classification timing (`classifyMs`, `workerWallMs`, band
+fields) only on computed frames. Step 6 tests: `tests/unit/worker/runtime.test.ts`
+(provenance per path, ack-then-quiescence), `tests/unit/worker/tile-pool.test.ts`
+(quiescence waits for every child), `src/ui/worker-timing-marks.test.ts`
+(lifecycle, bounds, invariants, adapter), and the browser test
+`render traces carry delivery provenance and two-event cancellation timing`
+(both engines). The release-browser distributions and the overhead pair come from
+`npm run evidence:release` (`tools/benchmark/run-release.ts`).
+
+The plan as written:
 
 Treat provenance as part of the worker protocol, not as a UI inference. The
 implementation sequence is:
@@ -223,12 +245,14 @@ behind), and the current Stage A paired arms both run the post-PR-2 kernel,
 so the gate needs dedicated browser evidence ([gate
 analysis](verification/STAGE-A-GATE-ANALYSIS.md)).
 
-`tools/benchmark/run-b-gate.mjs` requires an explicit two-build `--dist`
-argument. For a gate run, create a disposable detached worktree at the pinned
-pre-PR-2 commit `a6e1838`, build its `dist`, pass
-`baseline=<worktree>/dist,current=dist`, and remove the worktree after the
-evidence manifest is verified. The runner intentionally has no default
-session or `/tmp` worktree dependency.
+The B gate is dispositioned (see the
+[closeout](verification/PHASE-2-CLOSEOUT.md#b--allocation-free-scalar-kernel)).
+Re-running it needs `run-b-gate.mjs` from `0e960ea`; the retired runner and
+`view-chain.mjs` are gone from the tree. `npm run evidence:release --compare
+baseline=dist:<dir>` cannot drive it: the `a6e1838` build has no `?view=`,
+`?perf=1` or `__miRenderTrace`, so the harness stops with "arm baseline
+reported no viewport". `--compare` is for builds that carry the current URL
+contract.
 
 ### PR 3 — Common verifier and semantic oracle (landed)
 
@@ -241,9 +265,9 @@ analytic fast paths migrated to verifier-gated acceptance; every
 legacy-vs-verifier divergence is adjudicated by the double-double oracle
 (`tests/unit/domain/orbit-oracle-adjudication.test.ts`).
 
-### PR 4 — Checkpoint candidates (workstream C; landed behind the legacy-scan default)
+### PR 4 — Checkpoint candidates (workstream C; history: removed 2026-10-16, ADR 0007)
 
-[src/domain/checkpoint.ts](../src/domain/checkpoint.ts) (revision
+`src/domain/checkpoint.ts` (removed; revision
 `src-checkpoint-1.0.0`) ports the PoC's `poc-checkpoint-1.0.1` schedule:
 power-of-two interval doubling capped at the systematic ceiling, doubling
 rejection re-arm against the same retained state, the oracle-matched
@@ -251,8 +275,8 @@ rejected-candidate budget (64), interval-exhaustion rolls evaluated
 independently of the proposal branch, and the default-on verifier-gated
 exhaustion scan. It is reachable through the versioned
 `OrbitOptions.classifierMode` (`'legacy-scan'` default | `'checkpoint'` |
-`'differential'`); differential mode runs both kernels per pixel, reports the
-legacy answer, and counts disagreements into a preallocated record.
+`'differential'`) while it existed; differential mode ran both kernels per pixel.
+The modes and the checkpoint module were removed 2026-10-16 (ADR 0007).
 
 Committed directional evidence
 ([poc/performance/results/pr4/pr4-bench.json](../poc/performance/results/pr4/pr4-bench.json),
@@ -276,8 +300,9 @@ release-gate case ≥2× in both automation-bundled engines (3.66×–16.88×
 Chromium, 6.00×–27.31× Firefox) with zero median-level regression flags —
 directional-pass-pending, not a gate decision; the comparison-reduction and
 weighted-median percentages remain Node-only, and **the release-comparable
-gate decision waits on the release-protocol Stage A runs**. Until then the
-legacy scan stays the reported default.
+gate decision waits on the release-protocol Stage A runs**. Update
+(2026-10-15): the gate closed on the watched-lag default rather than on this
+schedule; see the [closeout](verification/PHASE-2-CLOSEOUT.md).
 
 ### PR 5 — Period policy buckets and product language (workstream D; landed)
 
@@ -295,7 +320,7 @@ policy is test-pinned so raising it cannot alter classification outcomes,
 
 Workstream D gate (plan §5, quoted): `Higher-period verified hits display without raising the quality barrier; no guarantee ambiguity`.
 
-## Stage A — target-hardware baseline and gate runs (first run complete; release protocol pending)
+## Stage A — target-hardware baseline and gate runs (release protocol complete)
 
 Stage A is the benchmark-contract execution of plan §9 on the declared target
 laptop class: production bundle, stable branded Chrome and Firefox, frozen
@@ -309,9 +334,18 @@ Chromium and Firefox, production bundle, full frozen corpus at the shipping
 raster, with the paired semantic comparison. It is the directional baseline
 record for the absolute latency budgets, and the per-gate evidence analysis
 lives in [STAGE-A-GATE-ANALYSIS.md](verification/STAGE-A-GATE-ANALYSIS.md).
-**No gate that depends on Stage A is decided**: release-gate cases still need
-≥21 paired repetitions with BCa intervals, branded stable browsers, headed, on
-the declared target hardware (plan §9).
+The **release-protocol run** followed
+([evidence/phase-2/2026-10-11-59926c5-watched-lag-release/](../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md)):
+branded Chrome 155 (2026-10-11) and Firefox 157 (2026-10-15), headed, on the
+target laptop, 21 warm pairs per case with 95% BCa paired intervals, the
+previous default against the watched-lag default. The decisions below are
+recorded in [PHASE-2-CLOSEOUT.md](verification/PHASE-2-CLOSEOUT.md).
+Release sessions now run as one command, `npm run evidence:release`
+(`tools/benchmark/run-release.ts`). It renders each corpus view once per arm and
+takes the budgets, hook overhead, parity, and interaction distributions from
+that one session. Old-build or query-toggle arms run only with `--compare`.
+The first such session took 18 minutes on the target laptop
+([evidence/phase-2/2026-10-16-8b9d091-release/](../evidence/phase-2/2026-10-16-8b9d091-release/summary.md)).
 
 Stage A decisions that nothing else may preempt:
 
@@ -320,16 +354,16 @@ Stage A decisions that nothing else may preempt:
 2. The workstream C gate percentages above, at release-comparable repetition
    counts, plus the matched-budget detection analysis on the stratified
    holdouts (plan §4).
-3. Whether the `classifierMode` default may flip away from `legacy-scan`
+3. (Resolved by ADR 0006 and ADR 0007.) Whether the `classifierMode` default may flip away from `legacy-scan`
    (plan §9 semantic-change rules; unresolved-rate increase ≤0.1 percentage
    point unless oracle-supported).
    Proposed flip to the watched-lag `triggered-scan`:
    [ADR 0006](decisions/0006-watched-lag-default-classifier.md) (bit-identical
-   to legacy on the corpus). Release protocol: the branded-Chrome half
-   passed ([evidence](../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md));
-   the branded-Firefox half is pending.
+   to legacy on the corpus). Release protocol passed in both branded
+   browsers; the ADR is accepted (2026-10-15).
 4. The frozen absolute coarse/stable latency budgets and the declared
-   user-facing hard-view budget (plan §9, program-level success).
+   user-facing hard-view budget (plan §9, program-level success): approved in
+   the [closeout](verification/PHASE-2-CLOSEOUT.md#latency-budgets-approved-2026-10-16).
 
 ## Conditional workstreams — current evidence state
 
@@ -342,17 +376,17 @@ exact next evidence need — live in
 the per-gate evidence analysis (workstreams B, C, D, K, E, N, M, L) in
 [STAGE-A-GATE-ANALYSIS.md](verification/STAGE-A-GATE-ANALYSIS.md).
 
-| WS  | Deliverable (short)                                  | Current status and evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| --- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M   | Conjugate symmetry mirroring                         | **Borderline — do not implement dispatch dedup yet** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([conjugate-mirror.json](../poc/performance/browser/results/conjugate-mirror.json)): full-over-half+mirror wall ratio 1.574 (easy default) and 1.653 (symmetric hard view), mirror fill ~4 ms median; cross-run 1.57–2.04× easy / 1.65–1.77× hard ([PoC browser README](../poc/performance/browser/README.md)) — the committed easy median is **below** the ≥1.6× bar, run-sensitive, one browser, headless. Semantic parity exact (0/131,072 per view). The harness parity variant is specified but not implemented (PoC README roadmap). |
-| O   | Cross-profile semantic carryover                     | Not started; no PoC measurement. Disposition in [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| N   | Cost-weighted static banding                         | **Recommend kill-or-scope-limit** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([coarse-cost.json](../poc/performance/browser/results/coarse-cost.json)): the skew gate fires on all three measured views (1.21/1.89/3.30), equal-cost banding helps the hard views (1.89→1.08, 3.30→2.09) but **worsens the interior-heavy easy view 1.21→1.59** with weak estimate-vs-actual correlation (r = 0.29) — the plan's kill criterion directionally fired on that view class.                                                                                                                                                                    |
-| E   | Dynamic microbands (+ zero-copy, yields, band order) | Microbands not attempted. Renderer-path details have directional browser measurements: zero-copy transfer 0.2 ms vs 26.8 ms copy roundtrip at 1024×640 ([zero-copy-transfer.json](../poc/performance/browser/results/zero-copy-transfer.json)); MessageChannel yields remove the ~4 ms nested-timer clamp ([yield-ab.json](../poc/performance/browser/results/yield-ab.json)); band-order control behaves as specified ([band-order.json](../poc/performance/browser/results/band-order.json)). N is attempted before E whenever E's skew gate fires.                                                                                                                                                |
-| G   | Catalog/session/adjacent-pixel Newton candidates     | Not started as a PR. PoC directional evidence is strong on raster-coherent content ([summary.json](../poc/performance/results/summary.json) grids; PoC README "PR 4 design inputs"): transplantation chains 255/255 hits at 0.004× checkpoint comparisons on coherent grids and improves weak-attraction detection; the multiplier-map guard refused 100% of attempts on the coarse anchor-2 grid with zero wrong results.                                                                                                                                                                                                                                                                           |
-| F   | Reproducible period-12 core and runtime shards       | **Deferred by default** per plan rev 3/4 (workstream F disposition) and [ADR 0004](decisions/0004-catalog-disposition.md). The reopening gate does **not** fire on current evidence: matched-budget detection shows zero checkpoint-only and zero legacy-only detections on every stratum ([pr4-bench.json](../poc/performance/results/pr4/pr4-bench.json)), and the measured seeding gains come from adjacent-pixel/session seeds (G's independent sources), not from a generated catalog ([WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)).                                                                                                                                  |
-| H   | p3/p4 algebraic experiment                           | Not started; no PoC measurement.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| I   | Wasm SIMD backend                                    | Not started. Conditions and the scalar-Wasm stepping-stone gate are recorded in [ADR 0005](decisions/0005-conditional-wasm-simd-backend.md); direction accepted, work not begun.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| K   | Worker pool sizing                                   | **Hold for the declared ≥8-core target class** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([pool-sizing.json](../poc/performance/browser/results/pool-sizing.json)): on the 8-core test machine the 126× hard case improves from the 4-worker cap to 0.840× median wall at 8 workers (0.892× at 6) — below the ≥20% bar — and earlier committed runs measured 0.985×/0.864× and 0.69×/0.58× ([PoC browser README](../poc/performance/browser/README.md)): the >4-worker verdict is run-sensitive, one browser. Gate needs ≥20% on a ≥8-core class in both browsers, plus the easy <3% and memory checks (unmeasured).                      |
+| WS  | Deliverable (short)                                  | Current status and evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M   | Conjugate symmetry mirroring                         | **Removed 2026-10-16** (owner decision, [ADR 0008](decisions/0008-remove-conjugate-mirroring.md)). Release run classifier ratio on the default view was 1.39× Chrome and 1.24× Firefox, below the ≥1.6× gate.                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| O   | Cross-profile semantic carryover                     | Not started; no PoC measurement. Disposition in [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| N   | Cost-weighted static banding                         | **Recommend kill-or-scope-limit** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([coarse-cost.json](../poc/performance/browser/results/coarse-cost.json)): the skew gate fires on all three measured views (1.21/1.89/3.30), equal-cost banding helps the hard views (1.89→1.08, 3.30→2.09) but **worsens the interior-heavy easy view 1.21→1.59** with weak estimate-vs-actual correlation (r = 0.29) — the plan's kill criterion directionally fired on that view class.                                                                                                                                               |
+| E   | Dynamic microbands (+ zero-copy, yields, band order) | Microbands not attempted. Renderer-path details have directional browser measurements: zero-copy transfer 0.2 ms vs 26.8 ms copy roundtrip at 1024×640 ([zero-copy-transfer.json](../poc/performance/browser/results/zero-copy-transfer.json)); MessageChannel yields remove the ~4 ms nested-timer clamp ([yield-ab.json](../poc/performance/browser/results/yield-ab.json)); band-order control behaves as specified ([band-order.json](../poc/performance/browser/results/band-order.json)). N is attempted before E whenever E's skew gate fires.                                                                                                                           |
+| G   | Catalog/session/adjacent-pixel Newton candidates     | Not started as a PR. PoC directional evidence is strong on raster-coherent content ([summary.json](../poc/performance/results/summary.json) grids; PoC README "PR 4 design inputs"): transplantation chains 255/255 hits at 0.004× checkpoint comparisons on coherent grids and improves weak-attraction detection; the multiplier-map guard refused 100% of attempts on the coarse anchor-2 grid with zero wrong results.                                                                                                                                                                                                                                                      |
+| F   | Reproducible period-12 core and runtime shards       | **Deferred by default** per plan rev 3/4 (workstream F disposition) and [ADR 0004](decisions/0004-catalog-disposition.md). The reopening gate does **not** fire on current evidence: matched-budget detection (checkpoint kernel, removed 2026-10-16 per ADR 0007) shows zero checkpoint-only and zero legacy-only detections on every stratum ([pr4-bench.json](../poc/performance/results/pr4/pr4-bench.json)), and the measured seeding gains come from adjacent-pixel/session seeds (G's independent sources), not from a generated catalog ([WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)).                                                        |
+| H   | p3/p4 algebraic experiment                           | Not started; no PoC measurement.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| I   | Wasm SIMD backend                                    | Not started. Conditions and the scalar-Wasm stepping-stone gate are recorded in [ADR 0005](decisions/0005-conditional-wasm-simd-backend.md); direction accepted, work not begun.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| K   | Worker pool sizing                                   | **Hold for the declared ≥8-core target class** (see [WORKSTREAM-DISPOSITIONS.md](verification/WORKSTREAM-DISPOSITIONS.md)). Browser PoC directional ([pool-sizing.json](../poc/performance/browser/results/pool-sizing.json)): on the 8-core test machine the 126× hard case improves from the 4-worker cap to 0.840× median wall at 8 workers (0.892× at 6) — below the ≥20% bar — and earlier committed runs measured 0.985×/0.864× and 0.69×/0.58× ([PoC browser README](../poc/performance/browser/README.md)): the >4-worker verdict is run-sensitive, one browser. Gate needs ≥20% on a ≥8-core class in both browsers, plus the easy <3% and memory checks (unmeasured). |
 
 Ship gates, quoted from plan §5: M — `≥1.6× classifier on real-axis-symmetric easy cases in both browsers with semantic parity under the tolerance policy; no corpus case beyond the normative regression cap`. O — `Paired profile-upgrade stable time ≤1.25× the unresolved-pixel share of a full recompute on corpus cases; carried pixels preserved exactly; any revision mismatch forces a full recompute`. N — `Attempted before E whenever E's skew gate (baseline slowest/mean elapsed >1.2) fires. Ships if hard paired median/p90 ≥10% better with easy <3% slower — E's bar at lower complexity. If N meets the bar, E is killed with retained evidence`. E — `Only if baseline slowest/mean elapsed >1.2; hard paired median/p90 ≥10% better with adequate samples; easy <3% slower`. G — `≥90% eligible attempts converge in ≤3 corrections; failures <3% overhead; targeted ≥20%, weighted ≥10%; transplant hit rate and wasted-attempt overhead reported per view`. F — `Evidence gate first: C and the Newton PoC must quantify seed value that checkpoint detection alone cannot provide. If attempted: counts, residuals, divisor exclusions and conjugate closure verified independently`. H — `Targeted ≥15% or weighted ≥5%; fallback ≤5%; zero incorrect results`. I — `Classifier ≥1.5× and end-to-end ≥1.25× in both browsers; no hard case >10% slower`. K —
 `Hard-view wall-clock ≥20% better on a ≥8-core target class in both browsers; easy views <3% slower; memory within the versioned budget`.

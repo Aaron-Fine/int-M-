@@ -27,15 +27,10 @@ import type { SemanticFrame as SemanticFrameLike } from '../../../src/render';
 const BALANCED: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 const SMALL_QUALITY: RenderQuality = { maxIterations: 32, maxPeriod: 4, coarseStride: 8 };
 
-// DEFAULT_VIEWPORT is centered on the real axis, so mirroring (default on)
-// would halve the dispatched bands; these tests pin the unmirrored band
-// schedule (mirrored scheduling is covered in conjugate-mirror.test.ts).
-const requestOf = (width: number, height: number, bandOrder?: 'legacy') => ({
+const requestOf = (width: number, height: number) => ({
   viewport: DEFAULT_VIEWPORT,
   size: { width, height },
   quality: BALANCED,
-  conjugateMirror: false,
-  ...(bandOrder === undefined ? {} : { bandOrder }),
 });
 
 class FakeTileWorker implements TileWorkerHandle {
@@ -243,32 +238,6 @@ describe('createTilePool', () => {
     expect([...frameWords(frame)].every((word) => unpackStatus(word) === 1)).toBe(true);
   });
 
-  it('dispatches top-to-bottom when the legacy diagnostic order is requested', async () => {
-    const workers: FakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new FakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const pending = pool.classifyStable(
-      requestOf(4, 6, 'legacy'),
-      BALANCED,
-      new AbortController().signal,
-    );
-
-    expect(classifyPosts(workers[0]!).map((post) => post.jobId)).toEqual([0]);
-    expect(classifyPosts(workers[1]!).map((post) => post.jobId)).toEqual([1]);
-    for (const jobId of [0, 1, 2, 3, 4, 5]) {
-      answerJobId(workers, jobId, 1);
-    }
-    await pending;
-    expect(classifyPosts(workers[0]!).map((post) => post.jobId)).toEqual([0, 2, 4]);
-    expect(classifyPosts(workers[1]!).map((post) => post.jobId)).toEqual([1, 3, 5]);
-  });
-
   it('reports per-band completion elapsed on the merged frame timing', async () => {
     const workers: FakeTileWorker[] = [];
     const pool = createTilePool({
@@ -286,58 +255,6 @@ describe('createTilePool', () => {
     for (const elapsed of frame.timing?.bandsElapsedMs ?? []) {
       expect(elapsed).toBeGreaterThanOrEqual(0);
       expect(Number.isFinite(elapsed)).toBe(true);
-    }
-  });
-
-  it('createTilePool_tiled_threadsClassifierModeIntoTileMessages', async () => {
-    const workers: FakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new FakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const request = requestOf(6, 4);
-
-    const settled = pool
-      .classifyStable(request, SMALL_QUALITY, new AbortController().signal, 'checkpoint')
-      .then(() => undefined);
-    await Promise.resolve();
-    replyAll(workers, 1);
-    await settled;
-
-    const withMode = workers.flatMap((worker) => classifyPosts(worker));
-    expect(withMode.length).toBeGreaterThan(0);
-    for (const message of withMode) {
-      expect(message.classifierMode).toBe('checkpoint');
-    }
-  });
-
-  it('createTilePool_tiled_omitsClassifierModeByDefault', async () => {
-    const workers: FakeTileWorker[] = [];
-    const pool = createTilePool({
-      workerCount: 2,
-      factory: () => {
-        const worker = new FakeTileWorker();
-        workers.push(worker);
-        return worker;
-      },
-    });
-    const request = requestOf(6, 4);
-
-    const settled = pool
-      .classifyStable(request, SMALL_QUALITY, new AbortController().signal)
-      .then(() => undefined);
-    await Promise.resolve();
-    replyAll(workers, 1);
-    await settled;
-
-    const messages = workers.flatMap((worker) => classifyPosts(worker));
-    expect(messages.length).toBeGreaterThan(0);
-    for (const message of messages) {
-      expect(message).not.toHaveProperty('classifierMode');
     }
   });
 
@@ -560,6 +477,80 @@ describe('createTilePool', () => {
     });
     replyAll(workers, 1);
     await second;
+  });
+
+  it('quiesce_resolvesOnlyAfterEveryCancelledChildSettles', async () => {
+    const workers: FakeTileWorker[] = [];
+    const factory = vi.fn(() => {
+      const worker = new FakeTileWorker();
+      workers.push(worker);
+      return worker;
+    });
+    const pool = createTilePool({ workerCount: 2, factory });
+    const controller = new AbortController();
+    const job = pool.classifyStable(requestOf(4, 6), BALANCED, controller.signal);
+    const outstanding = workers.map((worker) => classifyPosts(worker)[0]!);
+    controller.abort();
+    await expect(job).rejects.toBeInstanceOf(RenderCancelledError);
+
+    let quiesced = false;
+    const quiescence = pool.quiesce?.().then(() => {
+      quiesced = true;
+    });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 20);
+    });
+    expect(quiesced).toBe(false);
+
+    workers[0]!.emit(cancelled(outstanding[0]!));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(quiesced).toBe(false);
+    workers[1]!.emit(cancelled(outstanding[1]!));
+    await quiescence;
+    expect(quiesced).toBe(true);
+    expect(workers.every((worker) => !worker.terminated)).toBe(true);
+  });
+
+  it('quiesce_afterTheNextJobStarted_neitherWaitsOnNorResetsTheRunningJob', async () => {
+    const workers: FakeTileWorker[] = [];
+    const factory = vi.fn(() => {
+      const worker = new FakeTileWorker();
+      workers.push(worker);
+      return worker;
+    });
+    const pool = createTilePool({ workerCount: 2, factory });
+    const first = new AbortController();
+    const firstJob = pool.classifyStable(requestOf(4, 6), BALANCED, first.signal);
+    const firstPosts = workers.map((worker) => classifyPosts(worker)[0]!);
+    first.abort();
+    await expect(firstJob).rejects.toBeInstanceOf(RenderCancelledError);
+    for (const classify of firstPosts) {
+      workers[classify.jobId % workers.length]!.emit(cancelled(classify));
+    }
+    const second = pool.classifyStable(requestOf(4, 6), BALANCED, new AbortController().signal);
+    await vi.waitFor(() => {
+      expect(classifyPosts(workers[0]!)).toHaveLength(2);
+    });
+
+    // The cancelled job's children have all stopped; quiescence must not
+    // wait for, or reset the pool under, the job that is now running.
+    let quiesced = false;
+    const quiescence = pool.quiesce?.().then(() => {
+      quiesced = true;
+    });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(quiesced).toBe(true);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 300);
+    });
+    expect(workers.every((worker) => !worker.terminated)).toBe(true);
+    replyAll(workers, 1);
+    await expect(second).resolves.toBeDefined();
+    await quiescence;
   });
 
   it('aggregates child yield timing onto the merged frame', async () => {

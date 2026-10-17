@@ -7,7 +7,7 @@
  * per-band elapsed arrays) and reports the mean ring call cost per frame,
  * per request, and per snapshot. Label: directional — Node/V8 timings
  * approximate but do not replace browser evidence; the paired end-to-end
- * overhead benchmark (tools/benchmark/run-overhead.mjs) bounds the same
+ * overhead benchmark (tools/benchmark/run-release.ts) bounds the same
  * budget behaviorally in the target browser.
  *
  * Usage: npm run bench:recorder
@@ -16,6 +16,7 @@ import { performance } from 'node:perf_hooks';
 import process from 'node:process';
 import {
   createRenderTraceRing,
+  frameDelivery,
   RENDER_TRACE_RING_CAPACITY,
 } from '../../src/ui/worker-timing-marks';
 import type { FrameDelivery } from '../../src/ui/worker-timing-marks';
@@ -32,6 +33,7 @@ const stableFrame = (requestId: number): FrameMessage => ({
   type: 'frame',
   requestId,
   stage: 'stable',
+  provenance: { source: 'computed', computeId: requestId + 1, workerWallMs: 1210 },
   width: 1024,
   height: 640,
   rgba: new Uint8ClampedArray(4),
@@ -58,14 +60,9 @@ const coarseFrame = (requestId: number): FrameMessage => ({
   },
 });
 
-const computedDelivery = (): FrameDelivery => ({
-  requestToPresentMs: 33.2,
-  colorizeMs: 8,
-  bandsElapsedMs: stableFrame(0).workerTiming?.bandsElapsedMs,
-  mergeCpuMs: 1.2,
-  yieldWaitMs: 2.5,
-  yieldCount: 40,
-});
+// The production protocol-to-trace adapter, so its mapping cost is included.
+const computedDelivery = (): FrameDelivery => frameDelivery(stableFrame(0), 33.2);
+const coarseDelivery = (): FrameDelivery => frameDelivery(coarseFrame(0), 16.6);
 
 const summary = (requestId: number) => ({
   requestId,
@@ -115,7 +112,7 @@ const perRequestUs =
       timeOps(MEASURED_REQUESTS, (index) => {
         const requestId = index % CAPACITY;
         ring.beginRequest(summary(requestId));
-        ring.recordFrame(coarseFrame(requestId), { requestToPresentMs: 16.6 });
+        ring.recordFrame(coarseFrame(requestId), coarseDelivery());
         ring.recordFrame(stableFrame(requestId), computedDelivery());
       }) / 3
     );
@@ -126,7 +123,7 @@ const snapshotPerTraceUs = (() => {
   const ring = createRenderTraceRing();
   for (let requestId = 0; requestId < RENDER_TRACE_RING_CAPACITY; requestId += 1) {
     ring.beginRequest(summary(requestId));
-    ring.recordFrame(coarseFrame(requestId), { requestToPresentMs: 16.6 });
+    ring.recordFrame(coarseFrame(requestId), coarseDelivery());
     ring.recordFrame(stableFrame(requestId), computedDelivery());
   }
   return (
@@ -142,7 +139,7 @@ const result = {
   schemaVersion: 1,
   measurement: 'render-trace-ring recorder cost per frame/request/snapshot',
   label:
-    'directional Node/V8 microbenchmark of the production ring; browser-side overhead is bounded end-to-end by tools/benchmark/run-overhead.mjs',
+    'directional Node/V8 microbenchmark of the production ring; browser-side overhead is bounded end-to-end by tools/benchmark/run-release.ts',
   worstShape: {
     framesPerRequest: 2,
     bandsElapsedMsLength: BANDS,

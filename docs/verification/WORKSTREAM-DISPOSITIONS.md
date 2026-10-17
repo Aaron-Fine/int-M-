@@ -1,5 +1,10 @@
 # Conditional workstream dispositions — Phase 2 performance
 
+> **Closeout (2026-10-15).** Proposed final dispositions, including the
+> release-protocol measurement of M, are in
+> [PHASE-2-CLOSEOUT.md](PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions).
+> The working records below remain the evidence each disposition cites.
+
 Recorded dispositions for every conditional workstream of plan §5, as
 required by the final Phase 2 exit criteria ("every conditional experiment
 has a recorded accept/reject disposition"). Dispositions cite committed
@@ -30,7 +35,7 @@ directional-pass-pending, D is directional-pass-pending — records in
 | J   | Rigorous subdivision (research)  | **Not started** (research track; gate quoted below)                            |
 | K   | Worker pool sizing               | **Hold** for the declared ≥8-core target class before any PR                   |
 | L   | Trap-radius early accept         | **Research-only**; PoC oracle gate passed directionally                        |
-| M   | Conjugate symmetry mirroring     | **Borderline — do not implement yet**; repeated runs + release engines first   |
+| M   | Conjugate symmetry mirroring     | **Removed 2026-10-16** (owner decision, ADR 0008)                              |
 | N   | Cost-weighted static banding     | **Recommend kill-or-scope-limit**; kill criterion fired on the easy class      |
 | O   | Cross-profile semantic carryover | **Not started**; no PoC measurement                                            |
 
@@ -185,6 +190,8 @@ on weak-attraction strata`. The |λ| ≥ 0.99 regime is unmeasured (no grid seed
 reaches it).
 
 ## Workstream M — conjugate symmetry mirroring
+
+**2026-10-16: removed** (owner decision, ADR 0008); the analysis below is history.
 
 Disposition: **borderline — do not implement dispatch dedup yet**. The
 committed PoC run

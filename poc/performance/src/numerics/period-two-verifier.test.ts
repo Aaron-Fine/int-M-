@@ -104,71 +104,42 @@ function insertAfter(source: string, pattern: string | RegExp, addition: string)
 // Execute the actual source at the pilot's seed, without the renderer's
 // analytic fast path or candidate-proposal loop. Observe intermediate frames
 // as well as acceptance so wide margins cannot hide arithmetic drift.
-function sourceVerifier(kind: 'inline' | 'reference'): (c: Complex) => SourceTrace {
-  const file = kind === 'inline' ? 'orbit.ts' : 'verifier.ts';
+function sourceVerifier(): (c: Complex) => SourceTrace {
+  const file = 'verifier.ts';
   const source = readFileSync(new URL(`../../../../src/domain/${file}`, import.meta.url), 'utf8');
-  let block: string;
-  if (kind === 'reference') {
-    const ast = ts.createSourceFile(file, source, ts.ScriptTarget.ES2023, true);
-    const declarations = ast.statements
-      .filter(ts.isVariableStatement)
-      .flatMap((s) => s.declarationList.declarations);
-    const initializer = declarations.find(
-      (d) => d.name.getText(ast) === 'verifyCycleInto',
-    )?.initializer;
-    if (
-      initializer === undefined ||
-      !ts.isArrowFunction(initializer) ||
-      !ts.isBlock(initializer.body)
-    ) {
-      throw new Error('Missing production verifier body');
-    }
-    block = initializer.body.getText(ast).slice(1, -1);
-  } else {
-    const startMarker = 'const scale = Math.max(1, Math.abs(zRe), Math.abs(zIm));';
-    const endMarker = '\n      return;';
-    const start = source.indexOf(startMarker);
-    const end = source.indexOf(endMarker, start);
-    expect(start).toBeGreaterThan(0);
-    expect(end).toBeGreaterThan(start);
-    expect(source.indexOf(startMarker, start + 1)).toBe(-1);
-    block = source.slice(start, end + endMarker.length);
+  const ast = ts.createSourceFile(file, source, ts.ScriptTarget.ES2023, true);
+  const declarations = ast.statements
+    .filter(ts.isVariableStatement)
+    .flatMap((s) => s.declarationList.declarations);
+  const initializer = declarations.find(
+    (d) => d.name.getText(ast) === 'verifyCycleInto',
+  )?.initializer;
+  if (
+    initializer === undefined ||
+    !ts.isArrowFunction(initializer) ||
+    !ts.isBlock(initializer.body)
+  ) {
+    throw new Error('Missing production verifier body');
   }
-  const state = kind === 'inline' ? 'cycle' : 'z';
-  const derivative = 'derivative';
-  const candidateAssignment = kind === 'inline' ? 'cycleRe = nextCycleRe;' : 'zRe = nextRe;';
+  let block = initializer.body.getText(ast).slice(1, -1);
   block = insertAfter(
     block,
-    candidateAssignment,
-    `trace.closureSteps.push({ value: { re: ${state}Re, im: ${state}Im }, multiplier: { re: ${derivative}Re, im: ${derivative}Im } });`,
+    'zRe = nextRe;',
+    'trace.closureSteps.push({ value: { re: zRe, im: zIm }, multiplier: { re: derivativeRe, im: derivativeIm } });',
   );
-  const squareName = kind === 'inline' ? 'closureSquared' : 'residualSquared';
   block = insertAfter(
     block,
-    new RegExp(`const ${squareName} =[^;]+;`),
-    `trace.closureSquared = ${squareName};`,
+    /const residualSquared =[^;]+;/,
+    'trace.closureSquared = residualSquared;',
   );
-  if (kind === 'inline') {
-    block = insertAfter(
-      block,
-      'walkRe = nextWalkRe;',
-      'trace.divisorSteps.push({ value: { re: walkRe, im: walkIm }, multiplier: { re: walkDerivativeRe, im: walkDerivativeIm } });',
-    );
-    block = insertAfter(
-      block,
-      /const divisorResidualSquared =[^;]+;/,
-      'trace.divisorSquared = divisorResidualSquared;',
-    );
-  } else {
-    // The reference verifier reads each proper divisor's frame off the prefix
-    // of its forward walk (the divisor walk is that prefix), so the divisor
-    // trace is the walk state where the prefix residual is evaluated.
-    block = insertAfter(
-      block,
-      /const prefixSquared =[^;]+;/,
-      'trace.divisorSquared = prefixSquared; trace.divisorSteps.push({ value: { re: zRe, im: zIm }, multiplier: { re: derivativeRe, im: derivativeIm } });',
-    );
-  }
+  // The verifier reads each proper divisor's frame off the prefix of its
+  // forward walk (the divisor walk is that prefix), so the divisor trace is
+  // the walk state where the prefix residual is evaluated.
+  block = insertAfter(
+    block,
+    /const prefixSquared =[^;]+;/,
+    'trace.divisorSquared = prefixSquared; trace.divisorSteps.push({ value: { re: zRe, im: zIm }, multiplier: { re: derivativeRe, im: derivativeIm } });',
+  );
   const program = `
     return function(c) {
       const cRe = c.re, cIm = c.im, zRe = 0, zIm = 0;
@@ -180,13 +151,13 @@ function sourceVerifier(kind: 'inline' | 'reference'): (c: Complex) => SourceTra
       const finishAttractingCycle = (_out, ...fields) => { out.value = fields; };
       function run() { for (let once = 0; once < 1; once++) { ${block} } }
       const code = run();
-      const fields = ${kind === 'inline' ? 'out.value' : 'code === VERIFIER_VERDICT.accepted ? [out.period, out.multiplierRe, out.multiplierIm, out.iterations, out.evidence, out.multiplierMagnitude] : null'};
+      const fields = code === VERIFIER_VERDICT.accepted ? [out.period, out.multiplierRe, out.multiplierIm, out.iterations, out.evidence, out.multiplierMagnitude] : null;
       return { ...trace, fields };
     };
   `;
   const js = ts.transpileModule(program, { compilerOptions: { target: ts.ScriptTarget.ES2023 } });
-  // Only committed repository source is executed; this tests the actual inline
-  // block without adding a production seam or duplicating its implementation.
+  // Only committed repository source is executed; this tests the actual
+  // verifyCycleInto block without adding a production seam.
   // eslint-disable-next-line @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call
   return new Function(
     'TAU_CLOSURE_SCALED',
@@ -238,9 +209,8 @@ describe('bounded period-two verifier correctness pilot', () => {
     }
   });
 
-  it('compares actual reference/inline intermediate frames and accepted output/provenance', () => {
-    const inline = sourceVerifier('inline');
-    const reference = sourceVerifier('reference');
+  it('traces the production verifyCycleInto frames and matches its accepted output/provenance', () => {
+    const reference = sourceVerifier();
     for (const c of parameters) {
       const out: verifier.VerifierCycleTarget = {
         status: 0,
@@ -266,13 +236,12 @@ describe('bounded period-two verifier correctness pilot', () => {
       ];
       const audited = auditPeriodTwoVerifier(c);
       if (audited.status !== 'audited') throw new Error('Unexpected refusal');
-      for (const observed of [inline(c), reference(c)]) {
-        expect(observed.fields).toEqual(fields);
-        expect(observed.closureSquared).toBe(audited.certificate.closure.computedResidualSquared);
-        expect(observed.divisorSquared).toBe(audited.certificate.divisor.computedResidualSquared);
-        expect(observed.closureSteps).toEqual(audited.certificate.closure.steps);
-        expect(observed.divisorSteps).toEqual(audited.certificate.divisor.steps);
-      }
+      const observed = reference(c);
+      expect(observed.fields).toEqual(fields);
+      expect(observed.closureSquared).toBe(audited.certificate.closure.computedResidualSquared);
+      expect(observed.divisorSquared).toBe(audited.certificate.divisor.computedResidualSquared);
+      expect(observed.closureSteps).toEqual(audited.certificate.closure.steps);
+      expect(observed.divisorSteps).toEqual(audited.certificate.divisor.steps);
       expect(out.multiplierAngle).toBe(0);
       expect(verifier.stabilityExponentOf(out.multiplierMagnitude, out.period)).toBe(Infinity);
     }

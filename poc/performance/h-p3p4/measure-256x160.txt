@@ -1,0 +1,16 @@
+raster 256x160, median of 9 reps (Node v24.19.0)
+id                               prof     %esc  %unr  %p1  %p2  %p3  %p4  %oth | %p34px %p34iter %p34time | ns/px all  ns/px p34  meanIt p34 | rowK mism
+mi-easy-default-full             Balanced 84.8  0.5 11.8  2.0  0.4  0.2  0.3 |   0.6    11.7      6.1 |       116       1173      160.5 | 0
+mi-easy-exterior-heavy           Balanced 100.0  0.0  0.0  0.0  0.0  0.0  0.0 |   0.0     0.0      0.0 |        85          -          - | 0
+mi-easy-main-cardioid            Balanced  0.0  0.0 100.0  0.0  0.0  0.0  0.0 |   0.0     0.0      0.0 |        87          -          - | 0
+mi-easy-period2-bulb             Balanced  0.0  0.0  0.0 100.0  0.0  0.0  0.0 |   0.0       -      0.0 |        45          -          - | 0
+mi-hard-rabbit-boundary          Balanced 63.7  6.5 12.5  0.0 15.6  0.0  1.7 |  15.6    32.4     29.4 |       510        963      164.8 | 0
+mi-hard-supplied-126x            Detailed 83.4  3.1  0.0  0.0  0.0 11.1  2.4 |  11.1    31.8     32.0 |       588       1702      272.7 | 0
+mi-hard-supplied-609x            Detailed 94.5  0.9  0.0  0.0  0.0  3.7  0.9 |   3.7    23.6     22.7 |       260       1594      249.5 | 0
+mi-hard-supplied-13x             Detailed 72.1  2.3 15.6  0.0  0.0  8.9  1.1 |   8.9    33.9     31.8 |       453       1619      263.0 | 0
+mi-fallback-unknown-high-period  Balanced 91.5  8.5  0.0  0.0  0.0  0.0  0.0 |   0.0     0.0      0.0 |      1361          -          - | 0
+mi-fallback-weak-attraction      Balanced  0.0  2.6  0.0  0.0 97.4  0.0  0.0 |  97.4    96.7     95.8 |      2313       2276      410.6 | 0
+mi-fallback-ambiguous-boundary   Balanced 96.8  0.9  2.0  0.0  0.0  0.0  0.3 |   0.0     0.0      0.0 |       180          -          - | 0
+mi-fallback-budget-exhaustion    Balanced 66.2 30.4  0.0  0.0  0.0  0.0  3.4 |   0.0     0.0      0.0 |      1635          -          - | 0
+mi-scale-6mx-basilica-rim        Balanced  0.0 50.0  0.0 50.0  0.0  0.0  0.0 |   0.0     0.0      0.0 |      1377          -          - | 0
+corpus total: all 369.0 ms, p3/p4 pixels 113.2 ms => 30.69% (sum-of-times weighting)

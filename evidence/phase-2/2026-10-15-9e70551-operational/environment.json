@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-15T23:35:37.499Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465489920,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "9e70551a6817151f76b3481c25a0d03f248202db",
+    "algorithm": "9e70551a6817151f76b3481c25a0d03f248202db",
+    "catalog": "ae252c0e2207b5261c6bffbccb4b9705c87d7818e6ac594d27992bd1cb229758",
+    "verifier": "aa240b771c38df2c2b61b7a7aae1ec42a1cb0ea03ab0a2b9927f5e55cd0c7c34"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-15-9e70551-operational/environment.json --note Operational suite (firefox); production bundle via vite build + vite preview.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Operational suite (firefox); production bundle via vite build + vite preview.",
+    "Browser facts filled by tools/benchmark/run-operational.mjs (firefox run)."
+  ],
+  "browsers": {
+    "chromium": {
+      "build": "155.0.8059.39",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "headed": true,
+      "powerMode": "AC, platform profile balanced",
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1397,
+        "height": 773
+      },
+      "automation": "Playwright 1.63.0 driving branded stable Google Chrome, headed: flatpak run com.google.Chrome (CDP)",
+      "label": "release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥50 interactions per distribution",
+      "sourceTreeDirty": true
+    },
+    "firefox": {
+      "build": "157.0",
+      "engine": "Mozilla/5.0 (X11; Linux x86_64; rv:157.0) Gecko/20100101 Firefox/157.0",
+      "headed": true,
+      "powerMode": "AC, platform profile balanced",
+      "devicePixelRatio": 1,
+      "viewport": {
+        "width": 1382,
+        "height": 764
+      },
+      "automation": "Playwright 1.63.0 driving branded stable Firefox, headed: /usr/bin/firefox (WebDriver BiDi)",
+      "label": "release protocol (plan §9): branded stable browser, headed, declared target hardware, ≥50 interactions per distribution",
+      "sourceTreeDirty": true
+    }
+  },
+  "protocol": {
+    "buildMode": "vite build (production bundle) served by vite preview; dev server never used",
+    "raster": "shipping-1024x640",
+    "interactionsPerDistribution": 50,
+    "classifierMode": "production default (no classifierMode parameter)",
+    "distributions": {
+      "cancel": "mi-hard-supplied-126x at Detailed: a zoom key press after each coarse frame cancels the in-flight request; cancelAckMs and childQuiescenceMs from the main-thread cancel request",
+      "inflight-replay": "mi-hard-supplied-126x at Detailed: an interior-view change after each coarse frame; the replayed coarse frame's requestToPresentMs",
+      "recolor": "mi-hard-supplied-126x at Detailed, stable: interior-view cycle; requestToPresentMs and colorizeMs",
+      "semantic-cache": "mi-easy-default-full at Balanced, stable: Reset key; requestToPresentMs and colorizeMs"
+    },
+    "p95Rule": "nearest-rank p95 reported only with at least 40 observations (plan §9)"
+  }
+}

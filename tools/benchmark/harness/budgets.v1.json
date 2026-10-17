@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "revision": "budgets-1.0.0",
+  "approved": "2026-10-16",
+  "source": "docs/verification/PHASE-2-CLOSEOUT.md#latency-budgets-approved-2026-10-16",
+  "coarseMedianMs": 100,
+  "stableMedianMsByClass": { "Easy": 250, "Hard known": 600, "Fallback": 1500, "Scale": 1500 }
+}

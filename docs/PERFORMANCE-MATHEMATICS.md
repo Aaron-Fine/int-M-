@@ -99,7 +99,7 @@ acceptance, so adding candidate sources never weakens acceptance.
 | ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------- |
 | `src-verifier-1.0.0`   | src/domain/verifier.ts                    | Acceptance. Every accepted attracting result carries it                                 |
 | `poc-verifier-1.0.0`   | poc/performance/src/verifier.ts           | PoC harness acceptance (frozen separately; values currently agree with src)             |
-| `src-checkpoint-1.0.0` | src/domain/checkpoint.ts                  | Production checkpoint schedule (PR 4)                                                   |
+| `src-checkpoint-1.0.0` | src/domain/checkpoint.ts (removed)        | Production checkpoint schedule (PR 4); removed 2026-10-16 (ADR 0007)                    |
 | `poc-checkpoint-1.0.1` | poc/performance/src/kernels/checkpoint.ts | PoC reference schedule the production port is pinned against                            |
 | `period-policy-1.0.0`  | src/domain/period-policy.ts               | Systematic/opportunistic ceilings, `maxIterations`, and the `evidenceSource` vocabulary |
 
@@ -136,7 +136,12 @@ compatibility contract). PoC artifacts encode the same rule:
 `summary.json` `metricNotes` states that JSON `null` encodes `+Infinity` for
 κ. This rule is versioned with the tolerance policy.
 
-## 6. Brent-inspired approximate checkpointing
+## 6. Brent-inspired approximate checkpointing (removed 2026-10-16, ADR 0007)
+
+> History. The checkpoint kernel was removed on 2026-10-16
+> ([ADR 0007](decisions/0007-remove-reference-kernels.md)); the production
+> classifier is the watched-lag scan in §6a. The text below records the design
+> as it was evaluated.
 
 The plan (§4 callout) defines the boundary precisely, and it is worth restating
 because the name invites overclaiming. In Brent's 1980 cycle-detection
@@ -149,8 +154,8 @@ cycle-length candidate with O(μ + L) evaluations.
 This project borrows only that exponentially spaced checkpoint schedule. For
 the complex orbit, an attracting cycle converges asymptotically and normally
 does **not** repeat exactly in binary64. So the kernel
-([src/domain/checkpoint.ts](../src/domain/checkpoint.ts), revision
-`src-checkpoint-1.0.0`) compares the current `z_n` with the retained
+(`src/domain/checkpoint.ts`, revision `src-checkpoint-1.0.0`, removed
+2026-10-16) compares the current `z_n` with the retained
 checkpoint `z_k` at the permissive `tauCandidate`; when proximity fires with
 lag `q = n − k` inside the systematic ceiling, `(z_n, q)` is **proposed** to
 the common verifier. A hit may be the primitive period `p`, a multiple `k·p`
@@ -175,6 +180,36 @@ roughly as `n ≈ n_transient + p · log(τ/e_0) / log|λ|`, which grows without
 bound as `|λ| → 1`. A maximum period therefore does not guarantee detection
 without an adequate iteration and verification budget — which is exactly what
 the unresolved state is for.
+
+### 6a. Watched-lag triggered scan (the only classifier since ADR 0006)
+
+The production default ([src/domain/orbit-triggered.ts](../src/domain/orbit-triggered.ts),
+[ADR 0006](decisions/0006-watched-lag-default-classifier.md)) reaches the same
+goal as §6 without approximate checkpoints. The reference lag scan tests every
+lag `1 ≤ q ≤ min(maxPeriod, n − 1)` at every iteration `n` after warmup with
+the proposal test `|z_n − z_{n−q}|² ≤ τ_scan²` and sends each hit to the
+common verifier. The watched-lag kernel runs that **same full scan** only at
+selected iterations: on the first scanning iteration, then after gaps of
+16, 32, 64, 128, 128, … iterations, on the last budgeted iteration, and
+whenever the watched lag fires. A full scan also records the argmin lag
+`w = argmin_q |z_n − z_{n−q}|` (the distances are computed anyway); on every
+other iteration the kernel evaluates only `|z_n − z_{n−w}|`, the reference
+proposal test at the single lag `w`.
+
+Argument (empirical equality, not a proof): each full scan is the reference
+scan of its iteration (same history ring, same ascending lags, same
+verifier), and the reference kernel returns at its first accepting iteration,
+so the watched-lag kernel accepts at the same iteration as the reference or
+later, never earlier and never with a result the reference would not give at
+that iteration. A later acceptance needs a proposal at a non-watched lag on
+an iteration with no scheduled scan. The watched lag is the nearest return
+of the previous full scan, so once an orbit settles its period (or a
+multiple) is the lag being watched; an adversarial search near deep component
+centers found no divergence at the shipping profiles (135,720 runs).
+Measured: zero status, period, or multiplier differences on every
+frozen-corpus pixel at the shipping raster, and all 572
+release-protocol stable-canvas hash pairs equal. Fires are uncapped; a cap
+was found to lose acceptances and removed (ADR 0006).
 
 ## 7. Conditioning guard for Newton and transplantation
 
@@ -208,16 +243,16 @@ Copied from plan §10 and mapped to this repository. The label column is
 normative wording discipline: anything not in the first rows must not be
 described as proven or certified.
 
-| Label                             | Plan §10 examples                                                     | In this repository                                                                                                                                                      |
-| --------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mathematical identity/theorem     | Center counts, derivative recurrences                                 | The §1 formulas; the exact-period center-count recurrence of plan §6 (relevant to the deferred F generator, ADR 0004)                                                   |
-| Closed form evaluated in binary64 | Main cardioid and period-2 bulb tests                                 | The analytic fast paths in src/domain/orbit.ts (mirrored in src/domain/checkpoint.ts); verifier-gated since PR 3 (attraction margin, fall-through to the orbit walk)    |
-| Symbolically exact object         | Integer center factors and low-period relations                       | Not built. Specified for the F generator (exact integer-polynomial division of center factors), deferred per ADR 0004                                                   |
-| Certified numerical result        | Disjoint interval/ball root enclosures                                | None in the implementation. The double-double oracle is a higher-precision floating reference, not a certified enclosure                                                |
-| Floating validated result         | Closure, primitive-period reduction, `\|λ\|` margin                   | The common verifier, src/domain/verifier.ts (`src-verifier-1.0.0`) — the only path that emits attracting status                                                         |
-| Heuristic candidate               | Checkpoint lag, catalog proximity, local chart predictor              | Checkpoint proposals (src/domain/checkpoint.ts; propose only); PoC de-guess/neighbor kernels; catalog proximity deferred with F (ADR 0004). Explicitly not proof status |
-| Experimental                      | p3/p4 acceleration, Koenigs/Böttcher coordinates, rigorous block fill | Workstream H (not started); workstream J (not started); trap-radius early accept (poc/performance/src/kernels/trap.ts — research-only, oracle-gated on the PoC corpus)  |
-| Rejected unsafe shortcut          | Stable fill from matching corners/edges                               | Rejected per plan §6 spatial subdivision analysis; subdivision may drive only the coarse preview, and J's kill condition forbids corner/edge agreement as stable proof  |
+| Label                             | Plan §10 examples                                                     | In this repository                                                                                                                                                                                                                                                   |
+| --------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mathematical identity/theorem     | Center counts, derivative recurrences                                 | The §1 formulas; the exact-period center-count recurrence of plan §6 (relevant to the deferred F generator, ADR 0004)                                                                                                                                                |
+| Closed form evaluated in binary64 | Main cardioid and period-2 bulb tests                                 | The analytic fast paths in src/domain/orbit.ts (previously mirrored in the checkpoint module, removed 2026-10-16, ADR 0007); verifier-gated since PR 3 (attraction margin, fall-through to the orbit walk)                                                           |
+| Symbolically exact object         | Integer center factors and low-period relations                       | Not built. Specified for the F generator (exact integer-polynomial division of center factors), deferred per ADR 0004                                                                                                                                                |
+| Certified numerical result        | Disjoint interval/ball root enclosures                                | None in the implementation. The double-double oracle is a higher-precision floating reference, not a certified enclosure                                                                                                                                             |
+| Floating validated result         | Closure, primitive-period reduction, `\|λ\|` margin                   | The common verifier, src/domain/verifier.ts (`src-verifier-1.0.0`) — the only path that emits attracting status                                                                                                                                                      |
+| Heuristic candidate               | Checkpoint lag, catalog proximity, local chart predictor              | Watched-lag and full-scan proposals (src/domain/orbit-triggered.ts, the default; checkpoint proposals were removed 2026-10-16, ADR 0007); PoC de-guess/neighbor kernels; catalog proximity deferred with F (ADR 0004). All propose only; explicitly not proof status |
+| Experimental                      | p3/p4 acceleration, Koenigs/Böttcher coordinates, rigorous block fill | Workstream H (not started); workstream J (not started); trap-radius early accept (poc/performance/src/kernels/trap.ts — research-only, oracle-gated on the PoC corpus)                                                                                               |
+| Rejected unsafe shortcut          | Stable fill from matching corners/edges                               | Rejected per plan §6 spatial subdivision analysis; subdivision may drive only the coarse preview, and J's kill condition forbids corner/edge agreement as stable proof                                                                                               |
 
 ## 9. What is not claimed
 

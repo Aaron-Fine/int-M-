@@ -24,8 +24,8 @@ file only turns the flag on.
 ## Minimal candidate
 
 Most candidates wrap the production renderer with a request option. The helper
-`productionCandidate` does the rendering, unpacking, colorizing, diagnostics and
-counters for you (see `checkpoint.ts`, the worked example):
+`productionCandidate` does the rendering, unpacking, colorizing and diagnostics
+for you (the worked example is the baseline in `baseline.ts`):
 
 ```ts
 import { productionCandidate } from './support';
@@ -34,16 +34,20 @@ import type { Candidate } from './types';
 export const myFlag: Candidate = productionCandidate({
   id: 'my-flag',
   description: 'One sentence: what changes.',
-  requestOptions: { conjugateMirror: true }, // your DynamicsRenderRequest flag(s)
-  diagnosticMode: 'checkpoint', // optional: classifier mode for iteration/evidence diagnostics
+  requestOptions: { quality: { maxIterations: 256, maxPeriod: 32, coarseStride: 2 } }, // any DynamicsRenderRequest option (illustrative; a quality change alters pixels, so the parity gate will report it)
 });
 ```
 
-If your flag is an `OrbitOptions` / `classifierMode` value, `diagnosticMode`
-makes the untimed iteration/evidence diagnostics use the same kernel. If your
-flag is not reachable through `DynamicsRenderRequest`, implement `Candidate`
-yourself: call your production entry point inside `render(spec)` and return a
-`RenderedFrame` (see `types.ts`; `support.ts` has the unpacking helpers).
+The baseline is the production `CpuRenderer` with default options, so a
+candidate that changes only `requestOptions` is compared against the kernel
+that ships. If your flag is not reachable through `DynamicsRenderRequest`,
+implement `Candidate` yourself: call your production entry point inside
+`render(spec)` and return a `RenderedFrame` (see `types.ts`; `support.ts` has
+the unpacking helpers).
+
+The candidate registry (`index.ts`) is currently empty: the reference-kernel
+candidates were removed with ADR 0007. `--include-demo` candidates are the
+only ones the judge exercises until a new candidate is registered.
 
 ## The contract (`types.ts`)
 
@@ -52,7 +56,6 @@ interface Candidate {
   id: string;
   description: string;
   render(spec: CaseRenderSpec): RenderedFrame | Promise<RenderedFrame>;
-  counters?(): Record<string, number>; // free-form keys
   certificates?(): ReadonlyMap<number, unknown> | Record<string, unknown>;
   reset?(): void;
   tolerance?: FieldTolerancePolicy;
@@ -72,14 +75,10 @@ interface Candidate {
   work you want counted inside `render`; do put your real algorithm there.
 - The "stability" view is derived by the production colorizer from the stored
   magnitude; it is checked through the RGBA buffer, not as a separate field.
-- `spec.diagnostics` is true only in the untimed parity pass: fill `iterations`
-  and `evidence` and expose `certificates()` then. `spec.collectCounters` is
-  true only in one untimed pass after the timed repetitions: switch on
-  instrumentation there. **Timed renders never see either flag**, so
-  instrumentation cannot slow your timing; never rely on counters being on.
-- `counters()` reports the counters of the last render. Keys are yours
-  (`lagComparisons`, `verifierCalls`, `certificationAttempts`, `newtonSteps`,
-  ...). The report shows every counter that differs from baseline's same key.
+- `spec.diagnostics` is true only in the untimed parity pass: expose
+  `certificates()` then. **Timed renders never see the flag**, so diagnostic
+  work cannot slow your timing. There are no per-render counters: the counting
+  kernel was removed with ADR 0007.
 - `reset()` is called before each case; clear caches that could leak work
   between cases. A candidate may keep a warm cache within a timed series only
   if production would too; the judge renders the same case ABBA repeatedly, so
@@ -124,7 +123,7 @@ acceptance, certified neighbor transplant). Rules, per **baseline** status:
 1. Baseline **attracting**: the candidate must also accept, with identical
    status and period. Magnitude and direction may differ only within the
    declared tolerance (the candidate may report lambda at a refined cycle
-   point). `iterations`/`evidence` may differ; their distribution is reported.
+   point). `iterations`/`evidence` may differ and are not compared.
 2. Baseline **escaped**: bit-identical on every field. No smooth tolerance.
 3. Baseline **unresolved**: may stay unresolved (exact), or the candidate may
    accept it. Every such conversion is counted, the first 20 are listed

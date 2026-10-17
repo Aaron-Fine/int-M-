@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "raster": {
+    "width": 160,
+    "height": 100
+  },
+  "kernel": "watched-lag triggered scan (ADR 0006)",
+  "generatedFrom": "8b12ecd",
+  "cases": {
+    "mi-easy-default-full": "7295839917547b7fa70a503dc8c7bac2b7ed9a1f60add51e598d30597378e445",
+    "mi-easy-exterior-heavy": "3f8596a646e7d4887c25c76234ccc9944dcc9844c9935ef8cd92d81fcaceb7d0",
+    "mi-easy-main-cardioid": "342668b663fde4a6e930af066d2f8c3e64822d78798552b258ca0ef139ecd5a7",
+    "mi-easy-period2-bulb": "ca312108a5a59a2e14bc8cae71afa53f89654cc0807a7cfc2a9a6194bf416ec9",
+    "mi-hard-rabbit-boundary": "4e0b5f2f2583d0b849ef8f2db43866576bef4b9349f58ac77da423c3e15254f1",
+    "mi-hard-supplied-126x": "5a75864029cc7e269e78973757664be204da5671b1d7855fa776ba6479d8bf65",
+    "mi-hard-supplied-609x": "7967eee4c4accb12df85f38b25425109314091a9df21c143091706c9b1afc570",
+    "mi-hard-supplied-13x": "6684daeff67fd034151ed69c58b254f96794b7f2c015e0411317ec3523a3fe72",
+    "mi-fallback-unknown-high-period": "96950886f392452275fae4a57f63a72d764b5d9c0604e0308eb9163a30452768",
+    "mi-fallback-weak-attraction": "ee57b030988900fdb4e52a0a4306d35fd560cf6aef18e975a8eb4d7a2edfa353",
+    "mi-fallback-ambiguous-boundary": "fadd77794202b309ff634c25c7702069a6522c6d54fd3e46131c919214199e5a",
+    "mi-fallback-budget-exhaustion": "4cb8cb865fad961e346e63d96d5dec40e695716b29e1221275fc402f55cb72d9",
+    "mi-scale-6mx-basilica-rim": "db3d8cce5e832f0f74c2b65b192cca966711c92f65817b970ce01f9522cc6513"
+  }
+}

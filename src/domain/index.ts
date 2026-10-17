@@ -1,6 +1,4 @@
 export * from './complex';
-export { computedPrefixRows, mirrorSourceOf, planConjugateMirror } from './conjugate-mirror';
-export type { ConjugateMirrorPlan } from './conjugate-mirror';
 export {
   classifyAnalyticInto,
   classifyInto,
@@ -19,23 +17,6 @@ export {
   TRIGGERED_SCAN_INTERVAL_FIRST,
   TRIGGERED_SCAN_INTERVAL_MAX,
 } from './orbit-triggered';
-export {
-  CHECKPOINT_CANDIDATE_BUDGET,
-  CHECKPOINT_REVISION,
-  classifyCheckpointInto,
-  createCheckpointMetrics,
-  createDifferentialStats,
-  recordDifferentialInto,
-  resetCheckpointMetrics,
-  resetDifferentialStats,
-} from './checkpoint';
-export type { CheckpointMetrics, DifferentialStats } from './checkpoint';
-export {
-  classifyIntoInstrumented,
-  createLegacyScanCounters,
-  resetLegacyScanCounters,
-} from './orbit-instrumented';
-export type { LegacyScanCounters } from './orbit-instrumented';
 export { PERIOD_BUCKET_COUNT, PERIOD_BUCKET_LABELS, periodBucketIndex } from './period-buckets';
 export {
   defaultPeriodPolicyFor,
@@ -67,7 +48,6 @@ export {
 export type { Rgba } from './semantic';
 export type {
   AttractingCycleOrbitResult,
-  ClassifierMode,
   Complex,
   EscapedOrbitResult,
   EvidenceFlag,
@@ -81,7 +61,6 @@ export type {
   UnresolvedOrbitResult,
   Viewport,
 } from './types';
-export { CLASSIFIER_MODES } from './types';
 export {
   clampViewport,
   complexToPixel,

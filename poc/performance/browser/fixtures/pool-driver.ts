@@ -3,8 +3,10 @@ import type { DynamicsRenderRequest } from '../../../../src/render/renderer';
 import type { RenderQuality } from '../../../../src/domain';
 import type {
   SupervisorToTileMessage,
+  TileBandOutput,
   TileToSupervisorMessage,
 } from '../../../../src/worker/tile-protocol';
+import { PACKED_OUTPUT_REVISION } from '../../../../src/render/packed-semantic';
 import type { PoolBandSample } from './microbench-api';
 
 /** One classify run through the driver, without the runner-set bookkeeping. */
@@ -54,6 +56,18 @@ interface RunState {
   resolve: (state: RunState) => void;
   reject: (error: Error) => void;
 }
+
+/** Band-sized output views the worker classifies into (one row span per band). */
+const bandOutputFor = (y0: number, y1: number, width: number): TileBandOutput => {
+  const pixels = (y1 - y0) * width;
+  return {
+    y0,
+    y1,
+    packedStatusPeriod: new Uint32Array(pixels),
+    smoothIterationOrMultiplierMagnitude: new Float64Array(pixels),
+    multiplierAngle: new Float64Array(pixels),
+  };
+};
 
 export class TileWorkerSet {
   readonly #workers: Worker[] = [];
@@ -136,6 +150,8 @@ export class TileWorkerSet {
         y0: band.y0,
         y1: band.y1,
         quality,
+        bandOutput: bandOutputFor(band.y0, band.y1, request.size.width),
+        outputRevision: PACKED_OUTPUT_REVISION,
       };
       worker.postMessage(message);
     }

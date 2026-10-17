@@ -3,11 +3,6 @@ import {
   createViewportTransform,
   OrbitClassifier,
   OrbitScratch,
-  resolveOrbitOptions,
-  type ClassifierMode,
-  type ConjugateMirrorPlan,
-  mirrorSourceOf,
-  type DifferentialStats,
   type OrbitOptions,
   type OrbitSample,
   type RenderQuality,
@@ -15,20 +10,10 @@ import {
 } from '../domain';
 import { RenderCancelledError } from './render-cancelled-error';
 import { TriggeredRowKernel } from './triggered-rows';
-import { packStatusPeriod, unpackStatus } from './packed-semantic';
-import {
-  createPerfCounters,
-  perfCountersFromCheckpointMetrics,
-  type MutablePerfCounters,
-  type PerfCounters,
-} from './perf-counters';
+import { packStatusPeriod } from './packed-semantic';
 import type { DynamicsRenderRequest, SemanticBand, SemanticStageTiming } from './renderer';
 import { shouldYieldToEventLoop, yieldMaskForQuality } from './yield-policy';
-import {
-  createYieldScheduler,
-  defaultRowYieldScheduler,
-  type YieldMechanism,
-} from './yield-scheduler';
+import { defaultRowYieldScheduler } from './yield-scheduler';
 
 const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) {
@@ -51,18 +36,6 @@ export interface BandOutputBuffers {
 
 export interface ClassifyRowsResult extends SemanticBand {
   readonly timing: SemanticStageTiming;
-  /**
-   * Differential-mode disagreement record (classifierMode 'differential'
-   * only): both kernels ran per pixel, the legacy answer filled the band
-   * channels, and the divergences were counted here. Undefined otherwise.
-   */
-  readonly differential?: DifferentialStats;
-  /**
-   * Opt-in diagnostics counters (plan §8, `?perf=1&perfCounters=1` only):
-   * one preallocated record per band. Undefined — and never allocated —
-   * unless the caller opted in.
-   */
-  readonly counters?: PerfCounters;
 }
 
 /**
@@ -102,41 +75,6 @@ const writeSampleToBand = (
 };
 
 /**
- * The two-lane triggered row kernel: the default classifier mode
- * ('triggered-scan', explicit or by default) at stride 1 (the stable pass)
- * without counters. Bit-identical to the scalar triggered kernel.
- */
-const createTriggeredRowKernel = (
-  hasCounters: boolean,
-  classifierMode: ClassifierMode | undefined,
-  stride: number,
-  orbitOptions: Partial<OrbitOptions>,
-): TriggeredRowKernel | undefined =>
-  !hasCounters && classifierMode === 'triggered-scan' && stride === 1
-    ? new TriggeredRowKernel(orbitOptions)
-    : undefined;
-
-/**
- * Optional switches for classifyRows, grouped in ONE object so new experiment
- * flags do not grow the positional parameter list. Every field defaults to
- * off; an absent object (or absent fields) runs the default path.
- */
-export interface ClassifyRowsOptions {
-  /**
-   * Opt-in diagnostics counters (plan §8). Absent — never even allocated —
-   * unless the caller opted in; with it, the classifier selects the
-   * instrumented kernel variant OUTSIDE the raster loop.
-   */
-  readonly perfCounters?: boolean;
-  /**
-   * Conjugate-mirror plan (workstream M experiment): rows with a source row
-   * are left untouched here (the caller fills them with applyConjugateMirror
-   * once every band has returned). Stride-1 only.
-   */
-  readonly mirrorPlan?: ConjugateMirrorPlan | undefined;
-}
-
-/**
  * Prepared real coordinates: entry x holds
  * the real part of the sampled column for the grid column x, using the exact
  * pixel-center expression of createViewportTransform.pixelToComplexInto with
@@ -170,29 +108,6 @@ export const preparedRowImaginary = (
   return transform.viewport.center.im - (sampleY + 0.5 - height / 2) * transform.unitsPerPixel;
 };
 
-/**
- * The classifier mode to hand to OrbitClassifier; undefined = the default
- * ('triggered-scan'). The counters vocabulary is the legacy scan's (the
- * instrumented kernel only mirrors it), so counters with no explicit mode
- * select 'legacy-scan' here instead of the triggered default. This is not
- * silent: it is the mode the counters describe. An explicit 'triggered-scan'
- * with counters still throws in OrbitClassifier.
- */
-const requestedClassifierMode = (
-  classifierMode: ClassifierMode | undefined,
-  hasCounters: boolean,
-): ClassifierMode | undefined => classifierMode ?? (hasCounters ? 'legacy-scan' : undefined);
-
-const assertMirrorStride = (plan: ConjugateMirrorPlan | undefined, stride: number): void => {
-  if (plan !== undefined && stride !== 1) {
-    throw new RangeError('conjugate mirroring requires stride 1');
-  }
-};
-
-/** True when the plan assigns row y a source row (it is copied, not classified). */
-const isMirroredRow = (plan: ConjugateMirrorPlan | undefined, y: number): boolean =>
-  plan !== undefined && mirrorSourceOf(plan, y) >= 0;
-
 interface RowLayout {
   readonly width: number;
   readonly height: number;
@@ -224,6 +139,11 @@ const classifyRowInto = (
   }
 };
 
+/**
+ * Classifies rows [y0, y1) at the given stride. Stride 1 (the stable pass)
+ * uses the two-lane triggered row kernel; coarser strides use the scalar
+ * OrbitClassifier.
+ */
 export async function classifyRows(
   request: DynamicsRenderRequest,
   quality: RenderQuality,
@@ -231,23 +151,10 @@ export async function classifyRows(
   y0: number,
   y1: number,
   signal: AbortSignal,
-  // Versioned classifier mode (PR 4). Optional: absent means the
-  // DEFAULT_ORBIT_OPTIONS mode ('triggered-scan'), except with perfCounters,
-  // where it means 'legacy-scan' (see below).
-  classifierMode?: ClassifierMode,
-  // Yield mechanism (renderer-path detail): 'message-channel' replaces the
-  // nested setTimeout(0) row yields whose budget was largely the 4 ms
-  // nested-timer clamp; 'timeout' is the paired-evidence measurement arm.
-  yieldMechanism?: YieldMechanism,
   // Pre-sliced output buffers (zero-copy detail): when present the band is
   // classified directly into them and nothing is allocated per call.
   output?: BandOutputBuffers,
-  // Optional experiment/diagnostic switches (perfCounters, mirrorPlan);
-  // absent = the default path.
-  options?: ClassifyRowsOptions,
 ): Promise<ClassifyRowsResult> {
-  const { perfCounters, mirrorPlan } = options ?? {};
-  assertMirrorStride(mirrorPlan, stride);
   const { width } = request.size;
   const length = (y1 - y0) * width;
   const band: BandOutputBuffers = output ?? {
@@ -262,54 +169,28 @@ export async function classifyRows(
   ) {
     throw new RangeError('band output buffers must match the band size');
   }
-  // One preallocated counters record per band, created only on opt-in; the
-  // legacy/differential kernels write their fields into it directly (it is a
-  // structural superset of the kernel sink), while checkpoint mode reads the
-  // kernel's own metrics below.
-  const counters: MutablePerfCounters | undefined =
-    perfCounters === true ? createPerfCounters() : undefined;
-  const requestedMode = requestedClassifierMode(classifierMode, counters !== undefined);
   const orbitOptions: Partial<OrbitOptions> = {
     maxIterations: quality.maxIterations,
     maxPeriod: quality.maxPeriod,
-    ...(requestedMode === undefined ? {} : { classifierMode: requestedMode }),
   };
-  // Concrete mode after defaults (undefined requestedMode = the default).
-  const resolvedMode = resolveOrbitOptions(orbitOptions).classifierMode;
-  const classifier = new OrbitClassifier(
-    orbitOptions,
-    new OrbitScratch(quality.maxPeriod),
-    ...(counters === undefined ? [] : [counters]),
-  );
+  const classifier = new OrbitClassifier(orbitOptions, new OrbitScratch(quality.maxPeriod));
+  const rowKernel = stride === 1 ? new TriggeredRowKernel(orbitOptions) : undefined;
   // Per-band working state: the classification loop below allocates nothing
   // per pixel (plan workstream B) — scalars in, band channels out.
   const sample = createOrbitSample();
   const viewportTransform = createViewportTransform(request.viewport, request.size);
-  const rowKernel = createTriggeredRowKernel(
-    counters !== undefined,
-    resolvedMode,
-    stride,
-    orbitOptions,
-  );
   // Prepared coordinates: real parts once per column, one imaginary value per
   // sampled row (bit-identical to the per-pixel viewport transform).
   const realColumns = new Float64Array(width);
   prepareRealColumns(viewportTransform, width, stride, realColumns);
   const yieldRowMask = yieldMaskForQuality(quality.maxIterations);
-  // The 'timeout' arm is the paired-evidence measurement arm; it is created
-  // per call because its pending set must not outlive the band.
-  const rowYields =
-    yieldMechanism === 'timeout'
-      ? createYieldScheduler({ mechanism: 'timeout' })
-      : defaultRowYieldScheduler();
+  const rowYields = defaultRowYieldScheduler();
   const wallStarted = nowMs();
   let yieldWaitMs = 0;
   let yieldCount = 0;
 
   for (let y = y0; y < y1; y += stride) {
     throwIfAborted(signal);
-    // Mirrored rows are copied later; skipping them also skips their yield.
-    if (isMirroredRow(mirrorPlan, y)) continue;
     if (rowKernel !== undefined) {
       rowKernel.classifyRow(
         realColumns,
@@ -331,9 +212,8 @@ export async function classifyRows(
 
     if (shouldYieldToEventLoop(y, stride, yieldRowMask)) {
       const yieldStarted = nowMs();
-      // MessageChannel port yield by default: no 4 ms nested-timer clamp, so
-      // cancellation preempts between kernels on the same (or sooner)
-      // schedule as the previous setTimeout(0) yields.
+      // MessageChannel port yield: no 4 ms nested-timer clamp, so
+      // cancellation preempts between kernels promptly.
       await rowYields.yieldToEventLoop();
       yieldWaitMs += nowMs() - yieldStarted;
       yieldCount += 1;
@@ -341,23 +221,6 @@ export async function classifyRows(
   }
 
   throwIfAborted(signal);
-  // exactOptionalPropertyTypes: build the optional fields via narrowed
-  // conditional spreads so keys are absent (not undefined) in the default.
-  const differentialStats = classifierMode === 'differential' ? classifier.differentialStats : null;
-  const countersResult =
-    counters === undefined
-      ? undefined
-      : assembleCounters(
-          counters,
-          classifier,
-          classifierMode,
-          band,
-          width,
-          stride,
-          y0,
-          y1,
-          mirrorPlan,
-        );
   return {
     y0,
     y1,
@@ -369,63 +232,5 @@ export async function classifyRows(
       yieldWaitMs,
       yieldCount,
     },
-    ...(differentialStats === null ? {} : { differential: differentialStats }),
-    ...(countersResult === undefined ? {} : { counters: countersResult }),
   };
 }
-
-/**
- * Opt-in counters assembly (plan §8), run once per band after classification.
- * With a mirror plan, the counters and differential-mode stats count only the
- * computed (non-mirrored) rows: mirrored rows are copied after classification
- * and are never classified, so they add nothing here.
- * Status totals come from one pass over the band's written cells; the
- * reported kernel's counters were either written into the sink directly
- * (legacy/differential instrumented scan) or live in the checkpoint kernel's
- * own preallocated record.
- */
-const assembleCounters = (
-  counters: MutablePerfCounters,
-  classifier: OrbitClassifier,
-  classifierMode: ClassifierMode | undefined,
-  band: BandOutputBuffers,
-  width: number,
-  stride: number,
-  y0: number,
-  y1: number,
-  mirrorPlan: ConjugateMirrorPlan | undefined,
-): PerfCounters => {
-  // Status totals over the classified cells: block origins of the sampled
-  // grid (stride-folded cells on the coarse pass, every pixel at stride 1).
-  // Unwritten words are never read (a zero word is not a valid status).
-  const packed = band.packedStatusPeriod;
-  // Mirrored rows are not classified here (their words are still unwritten
-  // zeros), so the status totals and kernel counters cover computed pixels.
-  for (let y = y0; y < y1; y += stride) {
-    if (isMirroredRow(mirrorPlan, y)) continue;
-    const rowOffset = (y - y0) * width;
-    for (let x = 0; x < width; x += stride) {
-      const word = packed[rowOffset + x];
-      if (word === undefined) continue;
-      const status = unpackStatus(word);
-      if (status === 1) counters.escaped += 1;
-      else if (status === 2) counters.attracting += 1;
-      else counters.unresolved += 1;
-    }
-  }
-  const checkpointMetrics = classifier.checkpointMetrics;
-  if (classifierMode === 'checkpoint' && checkpointMetrics !== null) {
-    // Checkpoint mode: the schedule's counters live in its own record (the
-    // legacy sink above is untouched); map them into the flat vocabulary.
-    const mapped = perfCountersFromCheckpointMetrics(checkpointMetrics);
-    mapped.escaped = counters.escaped;
-    mapped.attracting = counters.attracting;
-    mapped.unresolved = counters.unresolved;
-    return mapped;
-  }
-  // Legacy-scan / differential: the instrumented scan wrote the reported
-  // kernel's counters straight into the sink. Checkpoint-side metrics
-  // accumulated by the differential's second kernel are intentionally
-  // NOT merged (they would mix the two kernels' comparison totals).
-  return counters;
-};

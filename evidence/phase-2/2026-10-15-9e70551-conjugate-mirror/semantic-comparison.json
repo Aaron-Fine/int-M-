@@ -1,0 +1,5158 @@
+{
+  "schemaVersion": 1,
+  "method": {
+    "algorithm": "sha-256",
+    "byteOrder": "row-major RGBA, 4 bytes per pixel, read via getImageData(0, 0, width, height) from canvas.explorer__canvas after the computed stable frame is presented",
+    "scope": "palette-inclusive proxy over the final RGBA raster; renderer-path arms must be hash-identical (semantic results are unchanged by scheduling, yield, transfer, and packed-layout changes)"
+  },
+  "comparisons": [
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-default-full",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "direct",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-exterior-heavy",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        },
+        {
+          "variant": "direct",
+          "hash": "278f9a8cd22686dafbaed7cda33558c9bb3e3219293ae9bed623b62c15c98a0d"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-main-cardioid",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        },
+        {
+          "variant": "direct",
+          "hash": "86ea9c1296327ac3d7d06425b36b72985f54d45fe0c90df8b4f1e4376d2abc21"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-easy-period2-bulb",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        },
+        {
+          "variant": "direct",
+          "hash": "41c7ef67da400a7d637c53dad791942e6283a392cdaa7451b711999ae660bc00"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-rabbit-boundary",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "direct",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-126x",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "direct",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-609x",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        },
+        {
+          "variant": "direct",
+          "hash": "a8bc5f776c7fdd5796e91d0ceff3e370a904c49677eb1b75b82af9685c6ae7d5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-hard-supplied-13x",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "direct",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-unknown-high-period",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        },
+        {
+          "variant": "direct",
+          "hash": "070082750a51591571bb9021502fa575e1a5ddeec60302587376d2a614001b29"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-weak-attraction",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "direct",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        },
+        {
+          "variant": "direct",
+          "hash": "792e1b0b27e86ba5b3a0d840fcbff3ad68fc187626aeda53e0fa72824b7499ed"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "direct",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 0,
+      "climate": "cold",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 1,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 2,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 3,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 4,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 5,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 6,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 7,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 8,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 9,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 10,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 11,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 12,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 13,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 14,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 15,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 16,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 17,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 18,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 19,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 20,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "m-conjugate-mirror",
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "dist": "feature",
+      "repetition": 21,
+      "climate": "warm",
+      "arms": [
+        {
+          "variant": "mirror",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        },
+        {
+          "variant": "direct",
+          "hash": "a6d407e626f2e2d9262582af4879280dd5f33a2f32c376b87fe218f954c73745"
+        }
+      ],
+      "equal": true
+    }
+  ]
+}
