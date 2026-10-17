@@ -91,6 +91,83 @@ const expectNoHorizontalOverflow = async (page: Page, context: string): Promise<
   );
 };
 
+interface InspectionHold {
+  /** Holds back every inspection reply that the renderer sends from now on. */
+  readonly start: () => Promise<void>;
+  /** How many replies are currently held back. */
+  readonly held: () => Promise<number>;
+  /** Delivers the held replies to the page, in arrival order. */
+  readonly release: () => Promise<void>;
+}
+
+interface InspectionHoldState {
+  active: boolean;
+  readonly held: (() => void)[];
+}
+
+type HoldGlobal = typeof globalThis & { __miInspectionHold?: InspectionHoldState };
+
+/**
+ * Lets a test delay the renderer's inspection reply on purpose. Call it before
+ * `page.goto`: it wraps the page's worker `message` listeners so that, once
+ * started, `inspection` messages wait until `release`. Nothing else is held,
+ * and no timer is involved.
+ */
+const holdInspectionReplies = async (page: Page): Promise<InspectionHold> => {
+  await page.addInitScript(() => {
+    const state: InspectionHoldState = { active: false, held: [] };
+    (globalThis as HoldGlobal).__miInspectionHold = state;
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- invoked only via original.call(this, ...)
+    const original = Worker.prototype.addEventListener;
+    Worker.prototype.addEventListener = function (
+      this: Worker,
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+      options?: boolean | AddEventListenerOptions,
+    ): void {
+      if (type !== 'message') {
+        original.call(this, type, listener, options);
+        return;
+      }
+      const deliver = (event: Event): void => {
+        if (typeof listener === 'function') listener.call(this, event);
+        else listener.handleEvent(event);
+      };
+      original.call(
+        this,
+        type,
+        (event: Event) => {
+          const data = (event as MessageEvent<{ type?: string } | null>).data;
+          if (state.active && data?.type === 'inspection') {
+            state.held.push(() => {
+              deliver(event);
+            });
+            return;
+          }
+          deliver(event);
+        },
+        options,
+      );
+    } as typeof Worker.prototype.addEventListener;
+  });
+  return {
+    start: () =>
+      page.evaluate(() => {
+        const state = (globalThis as HoldGlobal).__miInspectionHold;
+        if (state) state.active = true;
+      }),
+    held: () =>
+      page.evaluate(() => (globalThis as HoldGlobal).__miInspectionHold?.held.length ?? 0),
+    release: () =>
+      page.evaluate(() => {
+        const state = (globalThis as HoldGlobal).__miInspectionHold;
+        if (!state) return;
+        state.active = false;
+        for (const deliverHeld of state.held.splice(0)) deliverHeld();
+      }),
+  };
+};
+
 interface TraceView {
   readonly requestId: number | string;
   readonly computeId?: number | undefined;
@@ -564,6 +641,34 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByRole('button', { name: 'Reset' }).click();
     await expect(marker).toBeHidden();
     await expect(page.locator('#selected-point-status')).toHaveText('No point selected.');
+  });
+
+  test('ignores an inspection reply that arrives after Reset', async ({ page }) => {
+    const hold = await holdInspectionReplies(page);
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    const status = page.locator('#selected-point-status');
+    const resetButton = page.getByRole('button', { name: 'Reset' });
+    await canvas.focus();
+    await canvas.press('+');
+    await expect(resetButton).toBeEnabled();
+
+    await hold.start();
+    await canvas.press('Enter');
+    await expect(status).toContainText('Computing evidence');
+    await expect.poll(hold.held).toBe(1);
+
+    await resetButton.click();
+    await expect(status).toHaveText('No point selected.');
+    await hold.release();
+
+    // The held reply has now run through the page's message handler.
+    await expect(status).toHaveText('No point selected.');
+    await expect(page.locator('.selected-point-marker')).toBeHidden();
+    await expect(
+      page.getByRole('region', { name: 'Point evidence' }).locator('.inspector__classification'),
+    ).toHaveCount(0);
   });
 
   test('automatically recovers once and offers manual retry after persistent failure', async ({

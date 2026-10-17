@@ -804,6 +804,8 @@ export function mountApplication(host: HTMLElement): () => void {
     };
     delete state.selectedPoint;
     delete state.selectedCatalogId;
+    // A reply for the point just cleared must not re-select it (ids start at 1).
+    state.activeInspectionRequestId = 0;
     inspector.clear();
     selectedPointStatus.textContent = 'No point selected.';
     clearPresentationPreview();
