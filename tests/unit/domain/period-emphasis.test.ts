@@ -18,9 +18,9 @@ describe('period emphasis key', () => {
     const key = buildPeriodKey(
       histogram([
         [1, 9000],
-        [2, 4000],
+        [2, 300],
         [3, 50],
-        [4, 300],
+        [4, 4000],
         [5, 7],
         [8, 120],
         [16, 60],
@@ -30,7 +30,7 @@ describe('period emphasis key', () => {
     expect(PERIOD_EMPHASIS_LIMIT).toBe(5);
     expect(key.emphasized.map((entry) => entry.period)).toEqual([1, 2, 4, 8, 16]);
     expect(key.emphasized.map((entry) => entry.color)).toEqual(PERIOD_EMPHASIS_PALETTE);
-    expect(key.emphasized.map((entry) => entry.pixelCount)).toEqual([9000, 4000, 300, 120, 60]);
+    expect(key.emphasized.map((entry) => entry.pixelCount)).toEqual([9000, 300, 4000, 120, 60]);
     expect(key.otherPeriodCount).toBe(2);
     expect(key.otherPixelCount).toBe(57);
     expect(key.attractingPixelCount).toBe(13537);
@@ -91,7 +91,7 @@ describe('period emphasis key', () => {
     });
   });
 
-  it('ranks a period above any classifier ceiling like any other period', () => {
+  it('ranks PACK_PERIOD_MAX like any other period', () => {
     const key = buildPeriodKey(
       histogram([
         [1, 5],
@@ -101,5 +101,38 @@ describe('period emphasis key', () => {
 
     expect(key.emphasized.map((entry) => entry.period)).toEqual([1, PACK_PERIOD_MAX]);
     expect(colorForPeriod(PACK_PERIOD_MAX, key)).toEqual(PERIOD_EMPHASIS_PALETTE[1]);
+  });
+
+  it('ranks a period past PACK_PERIOD_MAX deterministically, without throwing', () => {
+    const entries: readonly (readonly [number, number])[] = [
+      [PACK_PERIOD_MAX + 1, 9],
+      [1, 5],
+    ];
+    const forward = buildPeriodKey(histogram(entries));
+    const reverse = buildPeriodKey(histogram([...entries].reverse()));
+
+    expect(forward.emphasized.map((entry) => entry.period)).toEqual([1, PACK_PERIOD_MAX + 1]);
+    expect(colorForPeriod(PACK_PERIOD_MAX + 1, forward)).toEqual(PERIOD_EMPHASIS_PALETTE[1]);
+    expect(reverse).toEqual(forward);
+  });
+
+  it('ignores keys that are not integers of at least 1, even with the largest area', () => {
+    const key = buildPeriodKey(
+      histogram([
+        [0, 100000],
+        [-2, 90000],
+        [1.5, 80000],
+        [Number.NaN, 70000],
+        [Number.POSITIVE_INFINITY, 60000],
+        [1, 5],
+        [2, 9],
+      ]),
+    );
+
+    expect(key.emphasized.map((entry) => entry.period)).toEqual([1, 2]);
+    expect(key.emphasized.map((entry) => entry.color)).toEqual(PERIOD_EMPHASIS_PALETTE.slice(0, 2));
+    expect(key.otherPeriodCount).toBe(0);
+    expect(key.attractingPixelCount).toBe(14);
+    expect(colorForPeriod(0, key)).toEqual(OTHER_PERIODS_COLOR);
   });
 });

@@ -18,13 +18,13 @@ export const PERIOD_EMPHASIS_LIMIT = 5;
  * in the order assigned to ascending emphasized periods. Selected against
  * the palette floors in tests/unit/palette (palette-selection.test.ts).
  */
-export const PERIOD_EMPHASIS_PALETTE: readonly Rgba[] = [
-  [240, 228, 66, 255],
-  [86, 180, 233, 255],
-  [204, 121, 167, 255],
-  [213, 94, 0, 255],
-  [0, 114, 178, 255],
-];
+export const PERIOD_EMPHASIS_PALETTE: readonly Rgba[] = Object.freeze([
+  Object.freeze([240, 228, 66, 255] as const),
+  Object.freeze([86, 180, 233, 255] as const),
+  Object.freeze([204, 121, 167, 255] as const),
+  Object.freeze([213, 94, 0, 255] as const),
+  Object.freeze([0, 114, 178, 255] as const),
+]);
 
 /** The single neutral for every period that is not emphasized (Paul Tol's grey). */
 export const OTHER_PERIODS_COLOR: Rgba = [187, 187, 187, 255];
@@ -55,6 +55,8 @@ export const EMPTY_PERIOD_KEY: PeriodKey = Object.freeze({
   attractingPixelCount: 0,
 });
 
+const isPeriodKey = (period: number): boolean => Number.isInteger(period) && period >= 1;
+
 type HistogramEntry = readonly [period: number, pixelCount: number];
 
 /** Most pixels first; equal areas go to the lower period. */
@@ -67,11 +69,13 @@ const sumPixels = (entries: readonly HistogramEntry[]): number =>
 /**
  * Ranks a frame's period histogram (period -> attracting pixel count): the
  * PERIOD_EMPHASIS_LIMIT largest areas are emphasized and coloured in ascending
- * period order. Periods with a zero or negative count are ignored.
+ * period order. Keys that are not integers >= 1 (0, negatives, fractions, NaN,
+ * infinities) and counts that are not positive are ignored, so they neither
+ * take a colour nor count as other periods.
  */
 export const buildPeriodKey = (histogram: ReadonlyMap<number, number>): PeriodKey => {
   const ranked = [...histogram.entries()]
-    .filter(([, pixelCount]) => pixelCount > 0)
+    .filter(([period, pixelCount]) => isPeriodKey(period) && pixelCount > 0)
     .sort(byAreaThenPeriod);
   const chosen = ranked.slice(0, PERIOD_EMPHASIS_LIMIT).sort((a, b) => a[0] - b[0]);
   const rest = ranked.slice(PERIOD_EMPHASIS_LIMIT);
