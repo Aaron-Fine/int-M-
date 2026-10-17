@@ -138,8 +138,8 @@ Estimates are engineering days. They are planning figures and may overlap.
       last completed trace is the cached computation, and prints the trace ring
       if `originComputeId` ever disagrees with `computeId` again; the coarse and
       stable order test waits for the presented marks it reads; the folded
-      first-use flow is marked slow. The full suite passed `--repeat-each 3
-    --workers 8` beside eight busy loops (log kept in the scratchpad). Not
+      first-use flow is marked slow. The full suite passed
+      `--repeat-each 3 --workers 8` beside eight busy loops (log kept in the scratchpad). Not
       run: `--repeat-each 5` on a quiet machine.
 - [x] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
