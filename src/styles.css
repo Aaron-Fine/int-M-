@@ -808,8 +808,9 @@ button:disabled {
   left: auto;
 }
 
-/* The policy hides a label that would cover another label or marker; hover and focus show it. */
-.catalog-marker--label-hidden:not(:hover, :focus-visible) .catalog-marker__label {
+/* The policy hides a label that would cover another label or marker; hover, focus and selection show it. */
+.catalog-marker--label-hidden:not(:hover, :focus-visible, .catalog-marker--selected)
+  .catalog-marker__label {
   display: none;
 }
 

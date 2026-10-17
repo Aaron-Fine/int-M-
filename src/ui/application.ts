@@ -813,7 +813,7 @@ export function mountApplication(host: HTMLElement): () => void {
     inspector.clear();
     selectedPointStatus.textContent = 'No point selected.';
     clearPresentationPreview();
-    updateCatalogSelection();
+    updateCatalogOverlay();
     updateCoordinateReadout();
     showFeedback('Full-set view restored.');
     scheduleRender(true);
@@ -909,7 +909,7 @@ export function mountApplication(host: HTMLElement): () => void {
       point: complexPoint,
       quality: currentQualityProfile().quality,
     } satisfies MainToWorkerMessage);
-    updateCatalogSelection();
+    updateCatalogOverlay();
     updateSelectedPointMarker();
     scheduleUrlWrite();
   }
@@ -978,6 +978,7 @@ export function mountApplication(host: HTMLElement): () => void {
       return;
     }
     const rect = canvasStack.getBoundingClientRect();
+    // The 1 px floor only matters before layout, while the canvas is 0x0.
     const plan = planMarkers({
       index: catalogIndex,
       viewport: state.viewport,

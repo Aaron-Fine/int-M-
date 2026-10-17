@@ -864,6 +864,30 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
+  test('keeps the label of a selected marker whose label the density policy hid', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    const hidden = page.locator('.catalog-marker--label-hidden').first();
+    await expect(hidden).toHaveCount(1);
+    const id = await hidden.getAttribute('data-catalog-id');
+    await hidden.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator(`.catalog-marker[data-catalog-id="${id}"]`)).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.mouse.move(2, 2);
+    const label = page.locator(`.catalog-marker[data-catalog-id="${id}"] .catalog-marker__label`);
+    await expect(label).toBeVisible();
+  });
+
   test('Reset clears the selection from the evidence, the marker, and the address bar', async ({
     page,
   }) => {
