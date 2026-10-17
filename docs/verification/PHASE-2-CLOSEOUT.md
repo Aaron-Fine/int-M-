@@ -227,13 +227,17 @@ waiting for.
   with the order alternated the builds are indistinguishable (0.98×–1.10×,
   no flags; [evidence](../../evidence/phase-2/2026-10-16-9e70551-build-check-alternating/summary.md)).
   The biased record is kept and marked superseded.
-- **Deep-view first frame (product follow-up).** On deep views near parabolic
-  points (for example the 6,000,000× basilica rim) the coarse frame's reduced
-  budget (≤256 iterations) leaves much of the image unresolved, so the screen
-  shows mostly the unresolved texture until the stable frame. With the
-  production kernel that lasts about 0.3–0.6 s; under the legacy reference
-  mode it lasted the whole multi-second pass. Progressive stable bands or a
-  depth-aware coarse budget would address it; neither is in Phase 2 scope.
+- **Deep-view first frame (product follow-up, re-diagnosed 2026-10-16).** On
+  the 6,000,000× basilica rim much of the screen shows the unresolved texture.
+  The first reading blamed the coarse frame's ≤256-iteration budget. The
+  [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) shows otherwise:
+  the coarse pass already resolves every pixel there that the stable pass
+  resolves, and the unresolved left half is period-4 interior with |λ| within
+  5e-6 of 1 that the stable pass also leaves unresolved
+  ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
+  The fix is H's analytic period-4 path, not a deeper coarse budget. A real
+  coarse-budget gap exists at the 2,500× Feigenbaum view (20.2% of resolvable
+  pixels unresolved at 256, 4.8% at 512); it is recorded in PHASE2-TODO.
 
 - **Release session harness.** One command, `npm run evidence:release`,
   now produces the release evidence: budgets, hook overhead, hook/plain

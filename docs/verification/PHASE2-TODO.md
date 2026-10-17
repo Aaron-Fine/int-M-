@@ -79,12 +79,16 @@ Estimates are engineering days. They are planning figures and may overlap.
       "Phase 2 performance closed" approval.
 - [ ] **Merge PR #25** (owner). This also clears the Dependabot `source-map-js`
       alert on `main`.
-- [ ] **Deep-view first frame.** On deep views near parabolic points the
-      coarse frame's ≤256-iteration budget leaves most of the image
-      unresolved until the stable frame
-      ([closeout finding](PHASE-2-CLOSEOUT.md#findings-from-the-release-runs)).
-      Add a depth-aware coarse budget or progressive stable bands; prove it
-      with the 6,000,000× basilica rim in the release harness. 2–3.
+- [x] **Deep-view first frame: re-diagnosed, no coarse change.** The
+      [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) found that the
+      6,000,000× view's unresolved half is period-4 interior the stable pass
+      also misses; H's period-4 path (item 8) is the fix. The depth ramp
+      (`src/render/coarse-budget.ts`) stays unwired at today's 256.
+- [ ] **Coarse budget at the Feigenbaum view (optional).** At 2,500× the
+      coarse frame leaves 20.2% of resolvable pixels unresolved (4.8% at a
+      512 budget); 126× leaves 6.5%. A depth ramp starting at 1,000× would not
+      reach them. Decide whether a per-view or per-profile coarse budget is
+      worth its coarse-frame time; measure with the study script's Part 2.
 - [ ] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
       at 8 and 16 against 4 with
       `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
@@ -245,7 +249,8 @@ p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
       changed pixel (unresolved → attracting).
 - [ ] A release-harness run in both browsers.
 - [ ] **Period 4, after a rigorous root-error bound** (Kantorovich, or a cusp
-      exclusion disk): the cubic solve inside the component boxes.
+      exclusion disk): the cubic solve inside the component boxes. This also
+      resolves the unresolved half of the 6,000,000× basilica-rim view.
 
 **Done when:** the hard views gain as the spike measured, in the browsers, and
 every changed pixel is adjudicated against the oracle.
