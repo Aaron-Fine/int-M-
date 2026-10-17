@@ -74,10 +74,13 @@ period 3 now and period 4 after a rigorous root-error bound.
   not on work done: no pixel there reaches iteration 24. Calling the gate from
   `TriggeredRowKernel.classifyRow` cost about 10% on `mi-easy-exterior-heavy`
   in Node, because the inlined gate spent TurboFan's inlining budget and left
-  a refill call to `classifyAnalyticInto` out of line. The row kernel
+  a refill call to `classifyAnalyticInto` out of line. The effect appeared in some compiles and not others (bimodal); the CPU-level reason is not pinned down, and the inlining account is the working explanation. The row kernel
   therefore evaluates the gate once per row as a window on Re c (exact: the
   boxes' |Im c| bands are disjoint and lie inside the hull) and calls only the
   closed form, which is too large to inline. The scalar kernel keeps the
   straight-line gate call.
 - The browser release run in both browsers is deferred to the owner's screen
   session.
+- Evidence: [adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md) (every
+  changed pixel, 0 unsupported) and [fallback overhead](../../evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/summary.md)
+  (Node, directional).

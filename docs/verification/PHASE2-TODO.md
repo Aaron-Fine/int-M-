@@ -271,15 +271,15 @@ its size budget, and is displayed like the curated markers.
 **Trace:** `MI-PERF-001`, plan §3 answer-change rule. **Estimate:** p3 3–4;
 p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
 
-- [ ] **Period 3:** add the closed form λ = 4(c+2) ± 4i·c·√(4c+7) as an
+- [x] **Period 3:** add the closed form λ = 4(c+2) ± 4i·c·√(4c+7) as an
       analytic fast path beside the period-1/2 ones, with a written error
-      budget and, if practical, a Lean statement next to `PeriodThreeLocus`.
-- [ ] Place the test so early escapers never pay it (the spike measured
-      3–8% fallback overhead on the far exterior against a 5% limit).
-- [ ] Evidence codes and flags for the analytic source; regenerate the golden
+      budget and, if practical, a Lean statement next to `PeriodThreeLocus`. Done: [ADR 0010](../decisions/0010-analytic-period-three.md), [PERFORMANCE-MATHEMATICS §11](../PERFORMANCE-MATHEMATICS.md#11-period-3-closed-form-workstream-h-adr-0010).
+- [x] Place the test so early escapers never pay it (the spike measured
+      3–8% fallback overhead on the far exterior against a 5% limit). Done: first scanning iteration, straight-line gate; Node [overhead](../../evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/summary.md) within 5%.
+- [x] Evidence codes and flags for the analytic source; regenerate the golden
       kernel fixture in the same commit, with oracle evidence for every
-      changed pixel (unresolved → attracting).
-- [ ] A release-harness run in both browsers.
+      changed pixel (unresolved → attracting). Done: [adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md), 19,216 changed pixels, 0 unsupported.
+- [ ] A release-harness run in both browsers. Deferred to the owner's screen session (headed release harness).
 - [ ] **Period 4, after a rigorous root-error bound** (Kantorovich, or a cusp
       exclusion disk): the cubic solve inside the component boxes. This also
       resolves the unresolved half of the 6,000,000× basilica-rim view.
