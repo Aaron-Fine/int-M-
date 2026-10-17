@@ -17,7 +17,9 @@ import {
   SELECTED_PERIOD_PALETTE_ID,
 } from '../tests/unit/palette/palette-candidates';
 import { TEXT_OVERLAYS, worstOverlayContrast } from '../tests/unit/palette/overlay-contrast';
+import { ISOLATION_DIM_FACTOR } from '../src/domain';
 import {
+  ISOLATION_CONTRAST_FLOOR,
   LABEL_CONTRAST_FLOOR,
   PALETTE_FLOORS,
   PHASE1_FLOORS,
@@ -30,6 +32,7 @@ import {
   MULTIPLIER_MAGNITUDE_STEPS,
   phase1PaletteSpec,
   shippedPaletteSpec,
+  worstIsolationContrast,
   type PaletteSpec,
 } from '../tests/unit/palette/palette-metrics';
 
@@ -88,6 +91,12 @@ const record = (commit: string) => ({
       pass: worst >= LABEL_CONTRAST_FLOOR,
     };
   }),
+  isolation: {
+    dimFactor: ISOLATION_DIM_FACTOR,
+    worstContrast: Number(worstIsolationContrast(ISOLATION_DIM_FACTOR).toFixed(2)),
+    floor: ISOLATION_CONTRAST_FLOOR,
+    pass: worstIsolationContrast(ISOLATION_DIM_FACTOR) >= ISOLATION_CONTRAST_FLOOR,
+  },
   palettes: palettes().map((palette) => ({
     id: palette.id,
     description: palette.description,
@@ -144,6 +153,10 @@ const summary = (data: PaletteRecord): string => {
       (overlay) =>
         `- \`${overlay.selector}\`: ${overlay.worstContrast.toFixed(2)}:1${overlay.pass ? '' : ' ✗'}`,
     ),
+    '',
+    '## Period isolation',
+    '',
+    `Legend isolation dims every other pixel to ${data.isolation.dimFactor} of its value. Worst contrast of an isolated emphasized colour against any dimmed colour, over the four visions: ${data.isolation.worstContrast.toFixed(2)}:1 (floor ${data.isolation.floor}:1)${data.isolation.pass ? '' : ' ✗'}.`,
     '',
   ].join('\n');
 };

@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { dimColor } from '../../../src/domain';
 import { composite, contrastRatio, type Rgb } from './color-science';
 import { shippedPaletteSpec } from './palette-metrics';
 
@@ -45,7 +46,7 @@ const parseCssColor = (value: string): CssColor => {
 /** Every colour the raster can show under an overlay, plus the white bound. */
 const rasterColors = (): readonly Rgb[] => {
   const spec = shippedPaletteSpec();
-  return [
+  const undimmed: readonly Rgb[] = [
     [255, 255, 255],
     ...spec.escaped.stability,
     ...spec.escaped.multiplier,
@@ -53,6 +54,14 @@ const rasterColors = (): readonly Rgb[] => {
     ...spec.multiplierStripePairs.flat(),
     ...spec.periodClasses,
   ];
+  // Legend isolation (MI-UX-018) dims every period-view pixel but the isolated period's.
+  const dimmed = [...spec.periodClasses, ...spec.escaped.period, ...spec.unresolvedCells].map(
+    (color): Rgb => {
+      const [r, g, b] = dimColor([color[0], color[1], color[2], 255]);
+      return [r, g, b];
+    },
+  );
+  return [...undimmed, ...dimmed];
 };
 
 /** The lowest text contrast of `selector` over any raster colour. */

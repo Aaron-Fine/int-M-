@@ -5,6 +5,7 @@ import {
   colorForAttracting,
   colorForEscaped,
   colorForUnresolved,
+  dimColor,
   EMPTY_PERIOD_KEY,
   modulateForMultiplierAngle,
   OTHER_PERIODS_COLOR,
@@ -61,7 +62,11 @@ const referenceHistogram = (frame: SemanticFrame): Map<number, number> => {
   return counts;
 };
 
-const referenceColorize = (frame: SemanticFrame, view: SemanticView): Uint8ClampedArray => {
+const referenceColorize = (
+  frame: SemanticFrame,
+  view: SemanticView,
+  isolatedPeriod?: number,
+): Uint8ClampedArray => {
   const { width } = frame.size;
   const rgba = new Uint8ClampedArray(width * frame.size.height * 4);
   const periodKey =
@@ -82,7 +87,11 @@ const referenceColorize = (frame: SemanticFrame, view: SemanticView): Uint8Clamp
         view,
         periodKey,
       );
-      rgba.set(color, (y * width + x) * 4);
+      const dimmed =
+        view === 'period' &&
+        isolatedPeriod !== undefined &&
+        !(unpackStatus(word) === 2 && unpackPeriod(word) === isolatedPeriod);
+      rgba.set(dimmed ? dimColor(color) : color, (y * width + x) * 4);
     }
   }
   return rgba;
@@ -261,5 +270,76 @@ describe('period view emphasis', () => {
       { period: PACK_PERIOD_MAX, color: PERIOD_EMPHASIS_PALETTE[0], pixelCount: 2 },
     ]);
     expect(pixelAt(raster.rgba, 1)).toEqual(PERIOD_EMPHASIS_PALETTE[0]);
+  });
+});
+
+describe('period isolation', () => {
+  // Areas: p1 6, p2 5, p3 4, p4 3, p5 2, p6 1, p7 1; then escaped and unresolved.
+  const isolationFrame = (): SemanticFrame =>
+    syntheticFrame(4, [
+      ...[1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 7].map(
+        (period) => [2, period] as const,
+      ),
+      [1, 0],
+      [0, 0],
+    ]);
+
+  it('keeps the isolated period and dims every other pixel with dimColor', () => {
+    const frame = isolationFrame();
+    const raster = new CpuRenderer().colorize(frame, 'period', 3);
+
+    expect(raster.isolatedPeriod).toBe(3);
+    expect(pixelAt(raster.rgba, 11)).toEqual(PERIOD_EMPHASIS_PALETTE[2]);
+    expect(pixelAt(raster.rgba, 0)).toEqual(dimColor(PERIOD_EMPHASIS_PALETTE[0] ?? [0, 0, 0, 0]));
+    expect(pixelAt(raster.rgba, 20)).toEqual(dimColor(OTHER_PERIODS_COLOR));
+    expect(raster.rgba).toEqual(referenceColorize(frame, 'period', 3));
+  });
+
+  it('isolates by period, not by colour: one grey period stays, the other grey dims', () => {
+    const raster = new CpuRenderer().colorize(isolationFrame(), 'period', 6);
+
+    expect(pixelAt(raster.rgba, 20)).toEqual(OTHER_PERIODS_COLOR);
+    expect(pixelAt(raster.rgba, 21)).toEqual(dimColor(OTHER_PERIODS_COLOR));
+  });
+
+  it('leaves the period key unchanged: isolation is a palette input', () => {
+    const renderer = new CpuRenderer();
+    const frame = isolationFrame();
+
+    expect(renderer.colorize(frame, 'period', 3).periodKey).toEqual(
+      renderer.colorize(frame, 'period').periodKey,
+    );
+  });
+
+  it('ignores isolation outside the period view', () => {
+    const renderer = new CpuRenderer();
+    const frame = isolationFrame();
+    for (const view of ['stability', 'multiplier'] as const) {
+      const raster = renderer.colorize(frame, view, 3);
+      expect(raster).not.toHaveProperty('isolatedPeriod');
+      expect(raster.rgba).toEqual(renderer.colorize(frame, view).rgba);
+    }
+  });
+
+  it('matches the reference on a rendered frame', async () => {
+    const renderer = new CpuRenderer();
+    const frames: SemanticFrame[] = [];
+    await renderer.render(
+      {
+        viewport: { center: { re: -0.75, im: 0 }, spanY: 2.5 },
+        size: { width: 97, height: 61 },
+        quality: { maxIterations: 256, maxPeriod: 16, coarseStride: 8 },
+      },
+      new AbortController().signal,
+      (frame) => {
+        frames.push(frame);
+      },
+    );
+    const stable = frames.at(-1);
+    expect(stable).toBeDefined();
+    if (stable === undefined) return;
+    expect(colorizeFrame(stable, 'period', undefined, 2)).toEqual(
+      referenceColorize(stable, 'period', 2),
+    );
   });
 });

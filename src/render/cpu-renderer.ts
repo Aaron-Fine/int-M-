@@ -101,17 +101,19 @@ export class CpuRenderer implements Renderer {
     });
   }
 
-  public colorize(frame: SemanticFrame, view: SemanticView): RasterFrame {
+  public colorize(frame: SemanticFrame, view: SemanticView, isolatedPeriod?: number): RasterFrame {
     // The period view ranks this frame's own histogram (PLAN §8, Q1), so a
     // recolor of a cached frame reproduces the key without reclassifying.
     const periodKey = view === 'period' ? buildPeriodKey(periodHistogram(frame)) : undefined;
-    const rgba = colorizeFrame(frame, view, periodKey);
+    const isolated = periodKey === undefined ? undefined : isolatedPeriod;
+    const rgba = colorizeFrame(frame, view, periodKey, isolated);
     return {
       stage: frame.stage,
       size: frame.size,
       rgba,
       progress: frame.progress,
       ...(periodKey === undefined ? {} : { periodKey }),
+      ...(isolated === undefined ? {} : { isolatedPeriod: isolated }),
     };
   }
 }

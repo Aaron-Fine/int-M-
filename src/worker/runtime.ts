@@ -31,6 +31,8 @@ interface ActiveRender {
   readonly startedAt: number;
   requestId: RequestId;
   semanticView: SemanticView;
+  /** Period isolation of this computation's deliveries (a palette input). */
+  isolatedPeriod: number | undefined;
   lastFrame?: SemanticFrame;
 }
 
@@ -40,6 +42,8 @@ interface CachedOrigin {
   readonly computeId: number;
   /** The semantic view the cached frame was most recently delivered in. */
   view: SemanticView;
+  /** The period isolation it was most recently delivered with. */
+  isolatedPeriod: number | undefined;
 }
 
 const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage => ({
@@ -122,6 +126,7 @@ export class RenderWorkerRuntime {
     requestId: RequestId,
     frame: SemanticFrame,
     view: SemanticView,
+    isolatedPeriod: number | undefined,
     origin: {
       readonly source: FrameProvenance['source'];
       readonly active?: ActiveRender;
@@ -129,7 +134,11 @@ export class RenderWorkerRuntime {
     },
   ): void {
     const colorizeStarted = performance.now();
-    const raster = this.#renderer.colorize(frame, view);
+    // Renderers that predate isolation see the two-argument call unchanged.
+    const raster =
+      isolatedPeriod === undefined
+        ? this.#renderer.colorize(frame, view)
+        : this.#renderer.colorize(frame, view, isolatedPeriod);
     const colorizeMs = performance.now() - colorizeStarted;
     const computed = origin.source === 'computed';
     const workerTiming = frameTiming(frame, colorizeMs, computed);
@@ -152,6 +161,7 @@ export class RenderWorkerRuntime {
       progress: raster.progress,
       workerTiming,
       ...(raster.periodKey === undefined ? {} : { periodKey: raster.periodKey }),
+      ...(raster.isolatedPeriod === undefined ? {} : { isolatedPeriod: raster.isolatedPeriod }),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }
@@ -165,9 +175,15 @@ export class RenderWorkerRuntime {
       if (this.#activeRender !== undefined && this.#activeRender.key !== key) {
         this.#activeRender.controller.abort();
       }
-      const source = cachedOrigin.view === message.semanticView ? 'semantic-cache' : 'recolor';
+      // Isolation is a palette input like the view: changing it recolors.
+      const source =
+        cachedOrigin.view === message.semanticView &&
+        cachedOrigin.isolatedPeriod === message.isolatedPeriod
+          ? 'semantic-cache'
+          : 'recolor';
       cachedOrigin.view = message.semanticView;
-      this.#postFrame(message.requestId, cached, message.semanticView, {
+      cachedOrigin.isolatedPeriod = message.isolatedPeriod;
+      this.#postFrame(message.requestId, cached, message.semanticView, message.isolatedPeriod, {
         source,
         computeId: cachedOrigin.computeId,
       });
@@ -181,11 +197,18 @@ export class RenderWorkerRuntime {
     ) {
       this.#activeRender.requestId = message.requestId;
       this.#activeRender.semanticView = message.semanticView;
+      this.#activeRender.isolatedPeriod = message.isolatedPeriod;
       if (this.#activeRender.lastFrame !== undefined) {
-        this.#postFrame(message.requestId, this.#activeRender.lastFrame, message.semanticView, {
-          source: 'inflight-replay',
-          computeId: this.#activeRender.computeId,
-        });
+        this.#postFrame(
+          message.requestId,
+          this.#activeRender.lastFrame,
+          message.semanticView,
+          message.isolatedPeriod,
+          {
+            source: 'inflight-replay',
+            computeId: this.#activeRender.computeId,
+          },
+        );
       }
       return;
     }
@@ -199,6 +222,7 @@ export class RenderWorkerRuntime {
       startedAt: performance.now(),
       requestId: message.requestId,
       semanticView: message.semanticView,
+      isolatedPeriod: message.isolatedPeriod,
     };
     this.#activeRender = active;
 
@@ -214,9 +238,10 @@ export class RenderWorkerRuntime {
             key: active.key,
             computeId: active.computeId,
             view: active.semanticView,
+            isolatedPeriod: active.isolatedPeriod,
           };
         }
-        this.#postFrame(active.requestId, frame, active.semanticView, {
+        this.#postFrame(active.requestId, frame, active.semanticView, active.isolatedPeriod, {
           source: 'computed',
           active,
           computeId: active.computeId,

@@ -15,7 +15,7 @@ import { modulateForMultiplierDirection } from '../../../src/domain/semantic';
 import type { SemanticFrame } from '../../../src/render';
 import { colorizeFrame } from '../../../src/render/colorize';
 import { packStatusPeriod } from '../../../src/render/packed-semantic';
-import { deltaE, type Rgb, type Vision, VISIONS } from './color-science';
+import { contrastRatio, deltaE, simulate, type Rgb, type Vision, VISIONS } from './color-science';
 
 export const METRIC_NAMES = [
   'escaped-vs-unresolved/stability',
@@ -283,3 +283,36 @@ export const shippedPaletteSpec = (): PaletteSpec => ({
   multiplierStripePairs: shippedStripePairs(),
   periodClasses: shippedPeriodClasses(),
 });
+
+/**
+ * Lowest WCAG contrast between an isolated emphasized colour and any other
+ * period-view colour dimmed by `factor` (legend isolation, MI-UX-018), over
+ * normal and simulated protan, deutan and tritan vision.
+ */
+export const worstIsolationContrast = (factor: number): number => {
+  const spec = shippedPaletteSpec();
+  const emphasized = spec.periodClasses.slice(0, 5);
+  const surroundings: readonly Rgb[] = [
+    ...spec.periodClasses,
+    ...spec.escaped.period,
+    ...spec.unresolvedCells,
+  ];
+  const dim = (color: Rgb): Rgb => [
+    Math.round(color[0] * factor),
+    Math.round(color[1] * factor),
+    Math.round(color[2] * factor),
+  ];
+  let worst = Number.POSITIVE_INFINITY;
+  for (const isolated of emphasized) {
+    for (const other of surroundings) {
+      if (other === isolated) continue;
+      for (const vision of VISIONS) {
+        worst = Math.min(
+          worst,
+          contrastRatio(simulate(isolated, vision), simulate(dim(other), vision)),
+        );
+      }
+    }
+  }
+  return worst;
+};

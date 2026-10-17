@@ -926,3 +926,121 @@ describe('RenderWorkerRuntime period key delivery', () => {
     expect(periodsOf(frames[2])).toEqual([5]);
   });
 });
+
+describe('RenderWorkerRuntime period isolation', () => {
+  type FrameOut = Extract<WorkerToMainMessage, { type: 'frame' }>;
+  const framesOf = (messages: readonly WorkerToMainMessage[]): FrameOut[] =>
+    messages.filter((message): message is FrameOut => message.type === 'frame');
+  const cpu = new CpuRenderer();
+  const size = { width: 2, height: 2 };
+  const viewport = { center: { re: 0, im: 0 }, spanY: 3 };
+
+  /** Top row period 3, bottom row period 7. */
+  const twoPeriodFrame = (stage: SemanticFrame['stage'] = 'stable'): SemanticFrame => ({
+    ...semanticFrame(size, stage),
+    bands: [
+      {
+        y0: 0,
+        y1: size.height,
+        packedStatusPeriod: Uint32Array.of(
+          packStatusPeriod(2, 3),
+          packStatusPeriod(2, 3),
+          packStatusPeriod(2, 7),
+          packStatusPeriod(2, 7),
+        ),
+        smoothIterationOrMultiplierMagnitude: new Float64Array(4).fill(0.5),
+        multiplierAngle: new Float64Array(4),
+      },
+    ],
+  });
+
+  const period = (isolatedPeriod?: number) =>
+    ({
+      type: 'render',
+      semanticView: 'period',
+      viewport,
+      size,
+      ...(isolatedPeriod === undefined ? {} : { isolatedPeriod }),
+    }) as const;
+
+  it('recolors the cached frame for each isolation change without reclassifying', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const render = vi.fn(
+      async (
+        _request: DynamicsRenderRequest,
+        _signal: AbortSignal,
+        onFrame: SemanticFrameConsumer,
+      ) => {
+        await onFrame(twoPeriodFrame());
+      },
+    );
+    const colorize = vi.fn((frame: SemanticFrame, view: SemanticView, isolated?: number) =>
+      cpu.colorize(frame, view, isolated),
+    );
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      {
+        inspect: () => ({ status: 'unresolved', iterations: 1, evidence: ['iteration-limit'] }),
+        render,
+        colorize,
+      },
+    );
+
+    await runtime.handle({ ...period(), requestId: 1 });
+    await runtime.handle({ ...period(7), requestId: 2 });
+    await runtime.handle({ ...period(7), requestId: 3 });
+    await runtime.handle({ ...period(), requestId: 4 });
+
+    expect(render).toHaveBeenCalledOnce();
+    expect(colorize.mock.calls.map((call) => call[2])).toEqual([undefined, 7, 7, undefined]);
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'recolor',
+      'semantic-cache',
+      'recolor',
+    ]);
+    expect(frames.map((frame) => frame.isolatedPeriod)).toEqual([undefined, 7, 7, undefined]);
+    // The period key and the semantic cache key ignore isolation.
+    for (const frame of frames) expect(frame.periodKey).toEqual(frames[0]?.periodKey);
+    // Period 3 (top row) is dimmed only while period 7 is isolated.
+    expect(frames[1]?.rgba[0]).toBeLessThan(frames[0]?.rgba[0] ?? 0);
+    expect([...(frames[1]?.rgba.slice(8, 12) ?? [])]).toEqual([
+      ...(frames[0]?.rgba.slice(8, 12) ?? []),
+    ]);
+    expect(frames[3]?.rgba).toEqual(frames[0]?.rgba);
+  });
+
+  it('applies an isolation sent during a computation to its replay and later frames', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      {
+        inspect: () => ({ status: 'unresolved', iterations: 1, evidence: ['iteration-limit'] }),
+        render: async (_request, _signal, onFrame) => {
+          await onFrame(twoPeriodFrame('coarse'));
+          await gate;
+          await onFrame(twoPeriodFrame());
+        },
+        colorize: (frame, view, isolated) => cpu.colorize(frame, view, isolated),
+      },
+    );
+
+    const first = runtime.handle({ ...period(), requestId: 'a' });
+    await Promise.resolve();
+    await runtime.handle({ ...period(3), requestId: 'b' });
+    release();
+    await first;
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => [frame.provenance.source, frame.isolatedPeriod])).toEqual([
+      ['computed', undefined],
+      ['inflight-replay', 3],
+      ['computed', 3],
+    ]);
+  });
+});

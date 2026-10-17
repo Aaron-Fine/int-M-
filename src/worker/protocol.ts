@@ -18,6 +18,11 @@ export interface RenderMessage {
   readonly size: RasterSize;
   readonly semanticView: SemanticView;
   readonly quality?: Partial<RenderQuality>;
+  /**
+   * Period view only: dim every pixel not of this period (legend isolation,
+   * MI-UX-018). A palette input: never part of the semantic cache key.
+   */
+  readonly isolatedPeriod?: number;
 }
 
 export interface InspectMessage {
@@ -60,10 +65,10 @@ export interface WorkerFrameTiming {
  *   `computeId` (a rebound in-flight computation keeps its ID).
  * - `inflight-replay`: the retained last frame of an active matching
  *   computation, re-delivered to a new request.
- * - `semantic-cache`: a completed cached frame in the semantic view it was
- *   last delivered in.
+ * - `semantic-cache`: a completed cached frame in the semantic view and
+ *   period isolation it was last delivered in.
  * - `recolor`: a completed cached frame delivered in a different semantic
- *   view (the view-only recolor path).
+ *   view or period isolation (the palette-only recolor path).
  */
 export type FrameSource = 'computed' | 'semantic-cache' | 'inflight-replay' | 'recolor';
 
@@ -96,6 +101,8 @@ export interface FrameMessage {
    * ranked from this delivery's own semantic frame (PLAN §8, MI-UX-018).
    */
   readonly periodKey?: PeriodKey;
+  /** Period view only: the period the raster leaves undimmed. */
+  readonly isolatedPeriod?: number;
 }
 
 export interface InspectionResult {

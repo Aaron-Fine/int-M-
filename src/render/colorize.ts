@@ -1,5 +1,6 @@
 import {
   buildPeriodKey,
+  dimChannel,
   EMPTY_PERIOD_KEY,
   ESCAPE_BAND_RATE,
   OTHER_PERIODS_COLOR,
@@ -192,10 +193,18 @@ const writeUnresolved = (
   writeGray(rgba, offset, alternate ? UNRESOLVED_DARK : UNRESOLVED_LIGHT);
 };
 
+/** dimColor of src/domain, in place: the pixel is not of the isolated period. */
+const dimPixel = (rgba: Uint8ClampedArray, offset: number): void => {
+  rgba[offset] = dimChannel(rgba[offset] ?? 0);
+  rgba[offset + 1] = dimChannel(rgba[offset + 1] ?? 0);
+  rgba[offset + 2] = dimChannel(rgba[offset + 2] ?? 0);
+};
+
 /**
  * Colorizes `frame` in `view`. The period view draws with `periodKey`, which
  * defaults to the frame's own ranking; pass the key you report so the legend
- * and the raster cannot disagree.
+ * and the raster cannot disagree. With `isolatedPeriod` (period view only)
+ * every pixel that is not an attracting cycle of that period is dimmed.
  */
 export const colorizeFrame = (
   frame: SemanticFrame,
@@ -203,11 +212,17 @@ export const colorizeFrame = (
   periodKey: PeriodKey = view === 'period'
     ? buildPeriodKey(periodHistogram(frame))
     : EMPTY_PERIOD_KEY,
+  isolatedPeriod?: number,
 ): Uint8ClampedArray<ArrayBuffer> => {
   const { width } = frame.size;
   const rgba = new Uint8ClampedArray(width * frame.size.height * 4);
   const stride = frame.sampleStride;
   const periodColors = periodColorLookup(periodKey);
+  // -1 never matches a packed word: no isolation.
+  const isolatedWord =
+    view === 'period' && isolatedPeriod !== undefined
+      ? (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | isolatedPeriod
+      : -1;
   // Bands partition the raster rows exactly, so iterating bands in order
   // covers every pixel once.
   for (const band of frame.bands) {
@@ -240,6 +255,7 @@ export const colorizeFrame = (
       } else {
         writeUnresolved(rgba, offset, x, y, stride);
       }
+      if (isolatedWord !== -1 && word !== isolatedWord) dimPixel(rgba, offset);
       x += 1;
       if (x === width) {
         x = 0;

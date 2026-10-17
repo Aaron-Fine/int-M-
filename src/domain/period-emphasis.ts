@@ -95,3 +95,24 @@ export const buildPeriodKey = (histogram: ReadonlyMap<number, number>): PeriodKe
 /** The colour of an attracting-cycle pixel of `period` under `key`. */
 export const colorForPeriod = (period: number, key: PeriodKey): Rgba =>
   key.emphasized.find((entry) => entry.period === period)?.color ?? OTHER_PERIODS_COLOR;
+
+/**
+ * Isolating a period from the legend (MI-UX-018) keeps that period's pixels
+ * and scales every channel of every other pixel by this factor. 0.12 is the
+ * largest step of 0.02 at which the darkest emphasized colour (blue, under
+ * simulated deutan vision) keeps 3:1 non-text contrast (WCAG 2.2 SC 1.4.11)
+ * against every dimmed raster colour; the 0.18 of the cue experiment gives
+ * 2.6:1 (tests/unit/palette/isolation-contrast.test.ts).
+ */
+export const ISOLATION_DIM_FACTOR = 0.12;
+
+/** One dimmed channel value. */
+export const dimChannel = (value: number): number => Math.round(value * ISOLATION_DIM_FACTOR);
+
+/** A colour as it is drawn around an isolated period. */
+export const dimColor = (color: Rgba): Rgba => [
+  dimChannel(color[0]),
+  dimChannel(color[1]),
+  dimChannel(color[2]),
+  color[3],
+];

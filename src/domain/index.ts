@@ -41,7 +41,10 @@ export type { VerifierVerdict, VerifierVerdictCode, VerifierCycleTarget } from '
 export {
   buildPeriodKey,
   colorForPeriod,
+  dimChannel,
+  dimColor,
   EMPTY_PERIOD_KEY,
+  ISOLATION_DIM_FACTOR,
   OTHER_PERIODS_COLOR,
   PERIOD_EMPHASIS_LIMIT,
   PERIOD_EMPHASIS_PALETTE,
