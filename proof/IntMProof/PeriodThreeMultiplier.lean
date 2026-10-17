@@ -76,8 +76,8 @@ theorem period3_closedForm_roots (c s l : ℂ) (hs : s * s = 4 * c + 7) :
     linear_combination (-16 * c ^ 2) * hs + (16 * c ^ 2 * s ^ 2) * I_sq
   rw [hfac, mul_eq_zero, sub_eq_zero, sub_eq_zero]
 
-/-- Superattracting identity: at a primitive period-three centre `0` is a
-root of `M₃`. -/
+/-- Superattracting identity: at a primitive period-three centre (a root of
+`periodThreeFactor`, see `critical_minimalPeriod_three_iff`) `0` is a root of `M₃`. -/
 theorem period3_multiplier_zero_of_center {c : ℂ} (hc : periodThreeFactor c = 0) :
     periodThreeMultiplierPolynomial c 0 = 0 := by
   simp [periodThreeMultiplierPolynomial, hc]
@@ -97,8 +97,7 @@ theorem periodThreeDynatomic_fixedPoint {c z : ℂ} (hfix : quadratic c z = z)
   linear_combination hΦ -
     (c ^ 2 + c * (2 * z ^ 2 + 2 * z + 2) + z ^ 4 + 2 * z ^ 3 + 3 * z ^ 2 + 4 * z + 1) * hfix
 
-/-- Such a point's three-step multiplier is exactly `1`, so any root of `M₃`
-with modulus below `1` belongs to a cycle of exact period three. -/
+/-- Such a point's three-step multiplier is exactly `1`. -/
 theorem periodThreeDynatomic_fixedPoint_multiplier {c z : ℂ} (hfix : quadratic c z = z)
     (hΦ : periodThreeDynatomic c z = 0) :
     (derivative (seedPolynomial c 3)).eval z = 1 := by
@@ -109,5 +108,13 @@ theorem periodThreeDynatomic_fixedPoint_multiplier {c z : ℂ} (hfix : quadratic
     exact hfix
   rw [period3_seedDerivative, h1, h2]
   linear_combination (2 * z - 1) * h
+
+/-- A `Φ₃` root whose three-step multiplier has modulus below `1` is not a fixed
+point, hence has exact period three. -/
+theorem period3_not_fixed_of_attracting {c z : ℂ} (hΦ : periodThreeDynatomic c z = 0)
+    (hatt : ‖(derivative (seedPolynomial c 3)).eval z‖ < 1) : quadratic c z ≠ z := by
+  intro hfix
+  rw [periodThreeDynatomic_fixedPoint_multiplier hfix hΦ, norm_one] at hatt
+  exact lt_irrefl _ hatt
 
 end IntMProof

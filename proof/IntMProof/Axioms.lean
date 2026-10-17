@@ -517,6 +517,10 @@ import IntMProof.GuardPolicyCounterexample
 #guard_msgs in
 #print axioms IntMProof.periodThreeDynatomic_fixedPoint_multiplier
 
+/-- info: 'IntMProof.period3_not_fixed_of_attracting' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period3_not_fixed_of_attracting
+
 /-- info: 'IntMProof.rationalOrbit_embed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.rationalOrbit_embed
