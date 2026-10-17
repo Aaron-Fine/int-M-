@@ -68,6 +68,13 @@ Estimates are engineering days. They are planning figures and may overlap.
   the passing Phase 1 CVD matrix, checked by unit tests.
 - **Q6:** Deterministic hashes of colorized frames in unit tests are the gate;
   browser screenshots are advisory.
+- **Palette (2026-10-17):** Okabe–Ito for the five emphasized periods, grey
+  `#BBBBBB` for the rest. The non-hue cue is being chosen from a rendered
+  experiment ([cue trials](https://claude.ai/artifact/HonnuCvzVG8wBKYkdk8ESW));
+  the experiment recommends a texture per rank plus isolate-on-legend-focus.
+- **Workstream H acceptance (2026-10-17):** period 3 is accepted by margin and
+  a derived rounding allowance, like periods 1 and 2, without the cycle
+  verifier; ADR 0010 records it and `MI-PERF-004` names analytic closed forms.
 - **Workstream H:** adopt period 3 now and period 4 after a rigorous error
   bound ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)); item 8 below.
 
@@ -94,10 +101,10 @@ Estimates are engineering days. They are planning figures and may overlap.
 - [ ] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
       at 8 and 16 against 4 with
       `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
-- [ ] **Memory high-water (`MI-PERF-006`).** It is the one performance
+- [ ] **Memory high-water (`MI-PERF-006`).** Harness pass landed 2026-10-17 (main-thread JS heap in Chromium; `retained` and Firefox not measured headless); stays open until a measured `retained` figure from branded Chrome and an owner decision on the Firefox gap. It is the one performance
       requirement never measured in the release browsers. Add a
       per-engine high-water figure to the release harness. 1–2.
-- [ ] **Corpus rationale corrections.** `mi-fallback-weak-attraction` is
+- [x] **Corpus rationale corrections.** `mi-fallback-weak-attraction` is
       period 3 (|λ| 0.848–0.902), not period 6. The left half of
       `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
       exterior ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
@@ -107,7 +114,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       "Airplane, period 3"), found while planning item 3. Enlarge the hit
       target without changing the drawn marker, and add axe to the 320 px
       reflow test. 0.5–1.
-- [ ] **E2E in-flight replay.** Assert an `inflight-replay` frame naming the
+- [x] **E2E in-flight replay.** Assert an `inflight-replay` frame naming the
       active computation in the browser provenance test (final-review M6). 0.5.
 
 ### 1. Palette acceptance (PLAN item: tune palettes and legends)
