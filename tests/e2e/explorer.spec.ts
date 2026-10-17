@@ -1005,6 +1005,117 @@ test.describe('Shareable links (MI-UX-019)', () => {
     }
   });
 
+  test('copies a link to the current view from the keyboard and announces it', async ({
+    page,
+    context,
+  }) => {
+    await page.addInitScript(() => {
+      const copied: string[] = [];
+      Object.defineProperty(window, '__copiedLinks', { value: copied });
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: (text: string): Promise<void> => {
+            copied.push(text);
+            return Promise.resolve();
+          },
+        },
+      });
+    });
+    await page.goto('/?perf=1');
+    await page.getByRole('button', { name: 'Explore' }).click();
+    await waitForStable(page);
+    await page.getByLabel('Interior view').selectOption('multiplier');
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    await canvas.focus();
+    await canvas.press('+');
+    await waitForStable(page);
+
+    const copy = page.getByRole('button', { name: 'Copy link to this view' });
+    await copy.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
+      'Link to this view copied.',
+    );
+    const copied = await page.evaluate(
+      () => (window as unknown as { __copiedLinks: string[] }).__copiedLinks,
+    );
+    expect(copied).toHaveLength(1);
+    const link = new URL(copied[0] ?? '');
+    expect(link.searchParams.get('perf')).toBeNull();
+    expect(link.searchParams.get('v')).toBe('1');
+    expect(link.searchParams.get('view')).toBe('multiplier');
+
+    const magnification = (await page.getByLabel('Magnification').textContent()) ?? '';
+    const reopened = await context.newPage();
+    await reopened.goto(link.toString());
+    await waitForStable(reopened);
+    await expect(reopened.getByLabel('Interior view')).toHaveValue('multiplier');
+    await expect(reopened.getByLabel('Magnification')).toHaveText(magnification);
+  });
+
+  test('explains a failed copy and puts the link in the address bar', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: (): Promise<void> => Promise.reject(new Error('denied')) },
+      });
+    });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore' }).click();
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await page.getByRole('button', { name: 'Copy link to this view' }).click();
+    await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
+      'Could not copy automatically. The address bar now shows the link to this view.',
+    );
+    expect(searchParam(page, 'v')).toBe('1');
+  });
+
+  test('keeps the link notice and copy control usable in forced colors at 320 px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.emulateMedia({ forcedColors: 'active' });
+    await page.goto('/?v=9');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const notice = page.getByRole('status', { name: 'Link notice' });
+    await expect(notice).toContainText('This link uses format version 9');
+    await expect(notice).toHaveCSS('border-top-style', 'solid');
+    // Non-colour cue: the thick leading edge survives forced colours.
+    expect(
+      await notice.evaluate((element) =>
+        Number.parseFloat(getComputedStyle(element).borderLeftWidth),
+      ),
+    ).toBeGreaterThanOrEqual(4);
+    await expectNoHorizontalOverflow(page, '320 px link notice');
+
+    const copy = page.getByRole('button', { name: 'Copy link to this view' });
+    for (const target of [notice.getByRole('button', { name: 'Dismiss link notice' }), copy]) {
+      const box = await target.boundingBox();
+      expect(box).not.toBeNull();
+      if (box) {
+        expect(box.height).toBeGreaterThanOrEqual(44);
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(320);
+      }
+    }
+
+    for (let step = 0; step < 20; step += 1) {
+      if (await copy.evaluate((element) => element === document.activeElement)) break;
+      await page.keyboard.press('Tab');
+    }
+    await expect(copy).toBeFocused();
+    await expect
+      .poll(() => copy.evaluate((element) => element.matches(':focus-visible')))
+      .toBe(true);
+    const focusStyle = await copy.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { style: style.outlineStyle, width: Number.parseFloat(style.outlineWidth) };
+    });
+    expect(focusStyle.style).not.toBe('none');
+    expect(focusStyle.width).toBeGreaterThanOrEqual(3);
+  });
+
   test('keeps the benchmark harness view and quality parameters working', async ({ page }) => {
     await page.goto('/?view=-1,0,0.5&quality=quick');
     await expect(page.getByLabel('Quality')).toHaveValue('quick');

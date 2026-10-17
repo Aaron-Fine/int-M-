@@ -20,7 +20,12 @@ import {
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { createSemanticLegend } from './semantic-legend';
-import { addressBarSearch, isEncodableShareState, resolveStartupState } from './share-link';
+import {
+  addressBarSearch,
+  isEncodableShareState,
+  resolveStartupState,
+  shareLink,
+} from './share-link';
 import type { ShareSelection, ShareState } from './share-state';
 import {
   DEFAULT_VIEWPORT,
@@ -259,6 +264,12 @@ export function mountApplication(host: HTMLElement): () => void {
     title: 'Restore the full-set view (0)',
   });
   setIcon(resetButton, 'reset', 'Reset');
+  const copyLinkButton = button('', {
+    className: 'icon-button',
+    title: 'Copy a link to this view',
+  });
+  setIcon(copyLinkButton, 'link', 'Copy link');
+  copyLinkButton.setAttribute('aria-label', 'Copy link to this view');
   const zoomOutButton = button('', {
     className: 'icon-button icon-button--compact',
     title: 'Zoom out (−)',
@@ -374,7 +385,7 @@ export function mountApplication(host: HTMLElement): () => void {
     attributes: { role: 'group', 'aria-label': 'Zoom controls' },
   });
   zoomGroup.append(zoomOutButton, zoomInButton);
-  controlActions.append(pointerToolGroup, catalogToggle, zoomGroup, resetButton);
+  controlActions.append(pointerToolGroup, catalogToggle, zoomGroup, resetButton, copyLinkButton);
   controls.append(controlFields, controlActions);
 
   const canvasShell = element('section', {
@@ -516,6 +527,31 @@ export function mountApplication(host: HTMLElement): () => void {
       if (state.frameStage !== 'stable') return;
       replaceAddressBar();
     }, URL_WRITE_DELAY_MS);
+  }
+
+  /**
+   * Copies the v1 link for the current view. The shared link never carries
+   * `perf` or foreign parameters. Without clipboard access (an insecure
+   * origin, a denied permission) the address bar is brought up to date
+   * instead, so the link is still one step away.
+   */
+  async function copyShareLink(): Promise<void> {
+    const shareState = currentShareState();
+    // A non-finite view cannot be encoded: say so instead of throwing.
+    if (!isEncodableShareState(shareState)) {
+      showFeedback('Could not create a link for this view.');
+      return;
+    }
+    const link = shareLink(window.location.origin, window.location.pathname, shareState);
+    try {
+      await navigator.clipboard.writeText(link);
+      showFeedback('Link to this view copied.');
+    } catch {
+      replaceAddressBar();
+      showFeedback(
+        'Could not copy automatically. The address bar now shows the link to this view.',
+      );
+    }
   }
 
   /** Applies the link's notice and selection; needs the worker client. */
@@ -963,6 +999,9 @@ export function mountApplication(host: HTMLElement): () => void {
   });
 
   resetButton.addEventListener('click', resetView);
+  copyLinkButton.addEventListener('click', () => {
+    void copyShareLink();
+  });
   zoomInButton.addEventListener('click', () => zoom('in'));
   zoomOutButton.addEventListener('click', () => zoom('out'));
 

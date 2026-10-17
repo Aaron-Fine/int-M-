@@ -10,6 +10,7 @@ export const ICONS = {
   pan: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V6a1.5 1.5 0 0 1 3 0v4-6a1.5 1.5 0 0 1 3 0v6-4a1.5 1.5 0 0 1 3 0v7.5A6.5 6.5 0 0 1 11.5 20H10a6 6 0 0 1-5.3-3.2L3 13.5A1.5 1.5 0 0 1 5.7 12L8 15"/></svg>',
   region:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><path d="M9 9h6v6H9z"/></svg>',
+  link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
 } as const;
 
 export function setIcon(target: HTMLElement, icon: keyof typeof ICONS, label?: string): void {
