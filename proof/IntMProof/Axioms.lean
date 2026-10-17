@@ -481,6 +481,42 @@ import IntMProof.GuardPolicyCounterexample
 #guard_msgs in
 #print axioms IntMProof.periodThreeFactor_slope_ne_zero
 
+/-- info: 'IntMProof.orbit_three_sub_self' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_three_sub_self
+
+/-- info: 'IntMProof.periodThreeDynatomic_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodThreeDynatomic_eq_zero
+
+/-- info: 'IntMProof.period3_seedDerivative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period3_seedDerivative
+
+/-- info: 'IntMProof.period3_multiplier_root' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period3_multiplier_root
+
+/-- info: 'IntMProof.period3_closedForm_roots' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period3_closedForm_roots
+
+/-- info: 'IntMProof.period3_multiplier_zero_of_center' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period3_multiplier_zero_of_center
+
+/-- info: 'IntMProof.period3_cusp' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period3_cusp
+
+/-- info: 'IntMProof.periodThreeDynatomic_fixedPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodThreeDynatomic_fixedPoint
+
+/-- info: 'IntMProof.periodThreeDynatomic_fixedPoint_multiplier' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodThreeDynatomic_fixedPoint_multiplier
+
 /-- info: 'IntMProof.rationalOrbit_embed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.rationalOrbit_embed
