@@ -38,7 +38,7 @@ describe('orbit classification', () => {
     }
   });
 
-  it('detects an attracting period-three component numerically', () => {
+  it('recognizes the period-three rabbit centre analytically', () => {
     const result = classifyOrbit(
       { re: -0.1225611668766536, im: 0.7448617666197442 },
       { maxIterations: 256, maxPeriod: 8, cycleWarmup: 6 },
@@ -47,7 +47,9 @@ describe('orbit classification', () => {
     expect(result.status).toBe('attracting-cycle');
     if (result.status === 'attracting-cycle') {
       expect(result.period).toBe(3);
-      expect(result.evidence).toEqual(['converged-cycle']);
+      expect(result.evidence).toEqual(['analytic-period-3-component']);
+      expect(result.evidenceSource).toBe('analytic');
+      expect(result.iterations).toBe(0);
       expect(result.multiplierMagnitude).toBeLessThan(1);
       expect(result.multiplierAngle).toBeGreaterThanOrEqual(-Math.PI);
       expect(result.multiplierAngle).toBeLessThanOrEqual(Math.PI);

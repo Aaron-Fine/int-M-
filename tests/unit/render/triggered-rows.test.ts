@@ -24,6 +24,10 @@ const VIEWS: readonly Viewport[] = [
   { center: { re: -1.25, im: 0 }, spanY: 4.1666666666666667e-7 },
   { center: { re: 0.3, im: 0.008 }, spanY: 0.02 },
   { center: { re: 0.1, im: 0.05 }, spanY: 0.2 },
+  // Period-3 gate boxes (ADR 0010): the airplane, its cusp, and the rabbit rim.
+  { center: { re: -1.7548776662466927, im: 0 }, spanY: 0.03 },
+  { center: { re: -1.75, im: 0 }, spanY: 1e-6 },
+  { center: { re: -0.0458, im: 0.6923 }, spanY: 0.002 },
 ];
 
 const OPTION_SETS: readonly Partial<OrbitOptions>[] = [

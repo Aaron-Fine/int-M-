@@ -89,6 +89,7 @@ describe('control kernel parity with OrbitClassifier', () => {
     it(`agrees on status, iterations, and evidence, and on period except documented non-primitive legacy multiples (${profile.label})`, () => {
       const classifier = new OrbitClassifier(profile.options);
       let reduced = 0;
+      let analyticPeriodThree = 0;
 
       for (const point of samplePoints()) {
         const production = classifier.classify({ re: point.cRe, im: point.cIm });
@@ -111,6 +112,24 @@ describe('control kernel parity with OrbitClassifier', () => {
         // fields legitimately differ; everywhere else parity is exact.
         // Every divergence is adjudicated against the dd oracle in
         // tests/unit/domain/orbit-oracle-adjudication.test.ts.
+        // ADR 0010: the analytic period-3 path answers instead of the lag
+        // scan (closed-form multiplier, iterations 0). The legacy control
+        // found the same primitive period, possibly as a multiple, or ran
+        // out of budget; every such pixel is checked against the dd period-3
+        // cycle in tests/unit/domain/orbit-oracle-adjudication.test.ts.
+        if (
+          production.status === 'attracting-cycle' &&
+          production.evidence[0] === 'analytic-period-3-component'
+        ) {
+          expect(production.period).toBe(3);
+          if (control.status === 'attracting') {
+            expect(control.period % 3).toBe(0);
+          } else {
+            expect(control.status).toBe('unresolved');
+          }
+          analyticPeriodThree += 1;
+          continue;
+        }
         const productionFields = comparableFields(production);
         const controlFields = comparableFields(control);
         expect(controlFields['status']).toBe(productionFields['status']);
@@ -137,6 +156,8 @@ describe('control kernel parity with OrbitClassifier', () => {
       // scan reports as 8/12: the documented reduction class must be present
       // and is exactly what the oracle adjudication covers.
       expect(reduced).toBeGreaterThan(0);
+      // The sample's three rabbit-stratum points take the analytic path.
+      expect(analyticPeriodThree).toBe(3);
     });
   }
 

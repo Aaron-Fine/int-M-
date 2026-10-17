@@ -68,6 +68,30 @@ const stripResultMetadata = (
  * except the primitive-period reduction of non-primitive legacy multiples.
  */
 const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void => {
+  if (
+    production.status === 'attracting-cycle' &&
+    production.evidence[0] === 'analytic-period-3-component'
+  ) {
+    // Documented divergence (ADR 0010; every one adjudicated against the dd
+    // period-3 cycle in orbit-oracle-adjudication.test.ts): the closed-form
+    // period-3 path answers instead of the lag scan. Legacy either found the
+    // same primitive period (possibly as a multiple, with an orbit-product
+    // multiplier) or ran out of budget; it never escaped or found another
+    // period.
+    expect(production.period).toBe(3);
+    expect(production.iterations).toBe(0);
+    if (legacy.status === 'attracting-cycle') {
+      expect(legacy.period % 3).toBe(0);
+      if (legacy.period === 3) {
+        expect(
+          Math.abs(production.multiplierMagnitude - legacy.multiplierMagnitude),
+        ).toBeLessThanOrEqual(LEGACY_PERIOD_THREE_MAGNITUDE_TOLERANCE);
+      }
+    } else {
+      expect(legacy.status).toBe('unresolved');
+    }
+    return;
+  }
   if (production.status === 'attracting-cycle' && legacy.status === 'attracting-cycle') {
     if (production.period === legacy.period) {
       expect(stripResultMetadata(production)).toEqual(legacy);
@@ -81,6 +105,14 @@ const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void 
   }
   expect(stripResultMetadata(production)).toEqual(legacy);
 };
+
+/**
+ * Largest |lambda| difference allowed between the closed-form period-3
+ * multiplier and the legacy orbit product. The orbit product is the
+ * inaccurate side (about 1e-8 on the golden raster, 2.2e-6 in the H spike);
+ * the dd adjudication pins the closed form itself to 1e-12.
+ */
+const LEGACY_PERIOD_THREE_MAGNITUDE_TOLERANCE = 1e-5;
 
 const PROFILES: readonly { readonly label: string; readonly options: Partial<OrbitOptions> }[] = [
   { label: 'quick', options: { maxIterations: 256, maxPeriod: 16 } },

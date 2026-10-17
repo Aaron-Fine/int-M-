@@ -1,6 +1,8 @@
 import {
   classifyAnalyticInto,
+  classifyPeriodThreeInto,
   createOrbitSample,
+  inPeriodThreeGate,
   ORBIT_EVIDENCE_CODE,
   OrbitScratch,
   resolveOrbitOptions,
@@ -25,8 +27,9 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  *
  * Per pixel, a lane performs exactly the operations of
  * classifyTriggeredOrbitInto in the same order (the analytic prologue, the
- * step, the escape test, the ring store, the watched-lag test, the full scans
- * with their argmin, and the canonical verifier call), so every result is
+ * step, the escape test, the ring store, the watched-lag test, the period-3
+ * closed form at the first scanning iteration, the full scans with their
+ * argmin, and the canonical verifier call), so every result is
  * bit-identical to the scalar kernel; tests/unit/render/triggered-rows.test.ts
  * pins that. Two harmless reorderings: the ring store happens before the
  * escape test (an escaped pixel's last slot is never read: a lane's next
@@ -322,47 +325,17 @@ export class TriggeredRowKernel {
           dueA = Math.min(scheduledA, maxIterations);
         }
       } else if (watchedA <= armA || itA === dueA) {
-        if (itA === scheduledA) {
-          scheduledA = itA + intervalA;
-          intervalA = Math.min(2 * intervalA, TRIGGERED_SCAN_INTERVAL_MAX);
-        }
-        // Full scan of lane A: the legacy lag scan of this iteration.
-        const currentSlot = ((itA - 1) & mask) << 2;
-        const largestPeriod = Math.min(maxPeriod, itA - 1);
-        let nearestLag = 1;
-        let nearestSquared = Number.POSITIVE_INFINITY;
-        let accepted = false;
-        for (let period = 1; period <= largestPeriod; period += 1) {
-          const previousSlot = (currentSlot - (period << 2)) & ((mask << 2) | 3);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
-          const distanceRe = zaRe - ring[previousSlot]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
-          const distanceIm = zaIm - ring[previousSlot + 1]!;
-          const distanceSquared = distanceRe * distanceRe + distanceIm * distanceIm;
-          if (distanceSquared < nearestSquared) {
-            nearestSquared = distanceSquared;
-            nearestLag = period;
-          }
-          if (distanceSquared > toleranceSquared) {
-            continue;
-          }
+        // Analytic period-3 fast path at the first scanning iteration, as in
+        // classifyTriggeredOrbitInto (ADR 0010).
+        let analyticA = false;
+        if (itA === scanStart && inPeriodThreeGate(cA, cIm)) {
           spill[S_ZA_RE] = zaRe;
           spill[S_ZA_IM] = zaIm;
           spill[S_ZB_RE] = zbRe;
           spill[S_ZB_IM] = zbIm;
           spill[S_CA] = cA;
           spill[S_CB] = cB;
-          spill[S_NEAREST] = nearestSquared;
-          const verdict = verifyCycleInto(
-            cA,
-            cIm,
-            zaRe,
-            zaIm,
-            period,
-            itA,
-            ORBIT_EVIDENCE_CODE.convergedCycle,
-            out,
-          );
+          analyticA = classifyPeriodThreeInto(cA, cIm, out);
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
           zaRe = spill[S_ZA_RE]!;
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
@@ -375,27 +348,89 @@ export class TriggeredRowKernel {
           cA = spill[S_CA]!;
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
           cB = spill[S_CB]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          nearestSquared = spill[S_NEAREST]!;
-          if (verdict === VERIFIER_VERDICT.accepted) {
-            accepted = true;
-            break;
-          }
         }
-        const o = offset + xA;
-        if (accepted) {
+        if (analyticA) {
+          const o = offset + xA;
           packed[o] = ATTRACTING_BASE | out.period;
           primary[o] = out.multiplierMagnitude;
           angle[o] = out.multiplierAngle;
           pendingA = true;
-        } else if (itA === maxIterations) {
-          packed[o] = UNRESOLVED_WORD;
-          primary[o] = 0;
-          angle[o] = 0;
-          pendingA = true;
         } else {
-          watchA = nearestLag;
-          dueA = Math.min(scheduledA, maxIterations);
+          if (itA === scheduledA) {
+            scheduledA = itA + intervalA;
+            intervalA = Math.min(2 * intervalA, TRIGGERED_SCAN_INTERVAL_MAX);
+          }
+          // Full scan of lane A: the legacy lag scan of this iteration.
+          const currentSlot = ((itA - 1) & mask) << 2;
+          const largestPeriod = Math.min(maxPeriod, itA - 1);
+          let nearestLag = 1;
+          let nearestSquared = Number.POSITIVE_INFINITY;
+          let accepted = false;
+          for (let period = 1; period <= largestPeriod; period += 1) {
+            const previousSlot = (currentSlot - (period << 2)) & ((mask << 2) | 3);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
+            const distanceRe = zaRe - ring[previousSlot]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
+            const distanceIm = zaIm - ring[previousSlot + 1]!;
+            const distanceSquared = distanceRe * distanceRe + distanceIm * distanceIm;
+            if (distanceSquared < nearestSquared) {
+              nearestSquared = distanceSquared;
+              nearestLag = period;
+            }
+            if (distanceSquared > toleranceSquared) {
+              continue;
+            }
+            spill[S_ZA_RE] = zaRe;
+            spill[S_ZA_IM] = zaIm;
+            spill[S_ZB_RE] = zbRe;
+            spill[S_ZB_IM] = zbIm;
+            spill[S_CA] = cA;
+            spill[S_CB] = cB;
+            spill[S_NEAREST] = nearestSquared;
+            const verdict = verifyCycleInto(
+              cA,
+              cIm,
+              zaRe,
+              zaIm,
+              period,
+              itA,
+              ORBIT_EVIDENCE_CODE.convergedCycle,
+              out,
+            );
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaRe = spill[S_ZA_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaIm = spill[S_ZA_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbRe = spill[S_ZB_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbIm = spill[S_ZB_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cA = spill[S_CA]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cB = spill[S_CB]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            nearestSquared = spill[S_NEAREST]!;
+            if (verdict === VERIFIER_VERDICT.accepted) {
+              accepted = true;
+              break;
+            }
+          }
+          const o = offset + xA;
+          if (accepted) {
+            packed[o] = ATTRACTING_BASE | out.period;
+            primary[o] = out.multiplierMagnitude;
+            angle[o] = out.multiplierAngle;
+            pendingA = true;
+          } else if (itA === maxIterations) {
+            packed[o] = UNRESOLVED_WORD;
+            primary[o] = 0;
+            angle[o] = 0;
+            pendingA = true;
+          } else {
+            watchA = nearestLag;
+            dueA = Math.min(scheduledA, maxIterations);
+          }
         }
       }
 
@@ -419,46 +454,15 @@ export class TriggeredRowKernel {
           dueB = Math.min(scheduledB, maxIterations);
         }
       } else if (watchedB <= armB || itB === dueB) {
-        if (itB === scheduledB) {
-          scheduledB = itB + intervalB;
-          intervalB = Math.min(2 * intervalB, TRIGGERED_SCAN_INTERVAL_MAX);
-        }
-        const currentSlot = (((itB - 1) & mask) << 2) + 2;
-        const largestPeriod = Math.min(maxPeriod, itB - 1);
-        let nearestLag = 1;
-        let nearestSquared = Number.POSITIVE_INFINITY;
-        let accepted = false;
-        for (let period = 1; period <= largestPeriod; period += 1) {
-          const previousSlot = (currentSlot - (period << 2)) & ((mask << 2) | 3);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
-          const distanceRe = zbRe - ring[previousSlot]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
-          const distanceIm = zbIm - ring[previousSlot + 1]!;
-          const distanceSquared = distanceRe * distanceRe + distanceIm * distanceIm;
-          if (distanceSquared < nearestSquared) {
-            nearestSquared = distanceSquared;
-            nearestLag = period;
-          }
-          if (distanceSquared > toleranceSquared) {
-            continue;
-          }
+        let analyticB = false;
+        if (itB === scanStart && inPeriodThreeGate(cB, cIm)) {
           spill[S_ZA_RE] = zaRe;
           spill[S_ZA_IM] = zaIm;
           spill[S_ZB_RE] = zbRe;
           spill[S_ZB_IM] = zbIm;
           spill[S_CA] = cA;
           spill[S_CB] = cB;
-          spill[S_NEAREST] = nearestSquared;
-          const verdict = verifyCycleInto(
-            cB,
-            cIm,
-            zbRe,
-            zbIm,
-            period,
-            itB,
-            ORBIT_EVIDENCE_CODE.convergedCycle,
-            out,
-          );
+          analyticB = classifyPeriodThreeInto(cB, cIm, out);
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
           zaRe = spill[S_ZA_RE]!;
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
@@ -471,27 +475,88 @@ export class TriggeredRowKernel {
           cA = spill[S_CA]!;
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
           cB = spill[S_CB]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          nearestSquared = spill[S_NEAREST]!;
-          if (verdict === VERIFIER_VERDICT.accepted) {
-            accepted = true;
-            break;
-          }
         }
-        const o = offset + xB;
-        if (accepted) {
+        if (analyticB) {
+          const o = offset + xB;
           packed[o] = ATTRACTING_BASE | out.period;
           primary[o] = out.multiplierMagnitude;
           angle[o] = out.multiplierAngle;
           pendingB = true;
-        } else if (itB === maxIterations) {
-          packed[o] = UNRESOLVED_WORD;
-          primary[o] = 0;
-          angle[o] = 0;
-          pendingB = true;
         } else {
-          watchB = nearestLag;
-          dueB = Math.min(scheduledB, maxIterations);
+          if (itB === scheduledB) {
+            scheduledB = itB + intervalB;
+            intervalB = Math.min(2 * intervalB, TRIGGERED_SCAN_INTERVAL_MAX);
+          }
+          const currentSlot = (((itB - 1) & mask) << 2) + 2;
+          const largestPeriod = Math.min(maxPeriod, itB - 1);
+          let nearestLag = 1;
+          let nearestSquared = Number.POSITIVE_INFINITY;
+          let accepted = false;
+          for (let period = 1; period <= largestPeriod; period += 1) {
+            const previousSlot = (currentSlot - (period << 2)) & ((mask << 2) | 3);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
+            const distanceRe = zbRe - ring[previousSlot]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
+            const distanceIm = zbIm - ring[previousSlot + 1]!;
+            const distanceSquared = distanceRe * distanceRe + distanceIm * distanceIm;
+            if (distanceSquared < nearestSquared) {
+              nearestSquared = distanceSquared;
+              nearestLag = period;
+            }
+            if (distanceSquared > toleranceSquared) {
+              continue;
+            }
+            spill[S_ZA_RE] = zaRe;
+            spill[S_ZA_IM] = zaIm;
+            spill[S_ZB_RE] = zbRe;
+            spill[S_ZB_IM] = zbIm;
+            spill[S_CA] = cA;
+            spill[S_CB] = cB;
+            spill[S_NEAREST] = nearestSquared;
+            const verdict = verifyCycleInto(
+              cB,
+              cIm,
+              zbRe,
+              zbIm,
+              period,
+              itB,
+              ORBIT_EVIDENCE_CODE.convergedCycle,
+              out,
+            );
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaRe = spill[S_ZA_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaIm = spill[S_ZA_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbRe = spill[S_ZB_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbIm = spill[S_ZB_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cA = spill[S_CA]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cB = spill[S_CB]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            nearestSquared = spill[S_NEAREST]!;
+            if (verdict === VERIFIER_VERDICT.accepted) {
+              accepted = true;
+              break;
+            }
+          }
+          const o = offset + xB;
+          if (accepted) {
+            packed[o] = ATTRACTING_BASE | out.period;
+            primary[o] = out.multiplierMagnitude;
+            angle[o] = out.multiplierAngle;
+            pendingB = true;
+          } else if (itB === maxIterations) {
+            packed[o] = UNRESOLVED_WORD;
+            primary[o] = 0;
+            angle[o] = 0;
+            pendingB = true;
+          } else {
+            watchB = nearestLag;
+            dueB = Math.min(scheduledB, maxIterations);
+          }
         }
       }
     }

@@ -54,7 +54,7 @@ const main = async (): Promise<void> => {
   const fixture = {
     schemaVersion: 1,
     raster: GOLDEN_RASTER,
-    kernel: 'watched-lag triggered scan (ADR 0006)',
+    kernel: 'watched-lag triggered scan (ADR 0006) with the analytic period-3 path (ADR 0010)',
     generatedFrom: commit,
     cases,
   };

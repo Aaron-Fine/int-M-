@@ -244,21 +244,24 @@ Copied from plan §10 and mapped to this repository. The label column is
 normative wording discipline: anything not in the first rows must not be
 described as proven or certified.
 
-| Label                             | Plan §10 examples                                                     | In this repository                                                                                                                                                                                                                                                   |
-| --------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mathematical identity/theorem     | Center counts, derivative recurrences                                 | The §1 formulas; the exact-period center-count recurrence of plan §6 (relevant to the deferred F generator, ADR 0004)                                                                                                                                                |
-| Closed form evaluated in binary64 | Main cardioid and period-2 bulb tests                                 | The analytic fast paths in src/domain/orbit.ts (previously mirrored in the checkpoint module, removed 2026-10-16, ADR 0007); verifier-gated since PR 3 (attraction margin, fall-through to the orbit walk)                                                           |
-| Symbolically exact object         | Integer center factors and low-period relations                       | Not built. Specified for the F generator (exact integer-polynomial division of center factors), deferred per ADR 0004                                                                                                                                                |
-| Certified numerical result        | Disjoint interval/ball root enclosures                                | None in the implementation. The double-double oracle is a higher-precision floating reference, not a certified enclosure                                                                                                                                             |
-| Floating validated result         | Closure, primitive-period reduction, `\|λ\|` margin                   | The common verifier, src/domain/verifier.ts (`src-verifier-1.0.0`) — the only path that emits attracting status                                                                                                                                                      |
-| Heuristic candidate               | Checkpoint lag, catalog proximity, local chart predictor              | Watched-lag and full-scan proposals (src/domain/orbit-triggered.ts, the default; checkpoint proposals were removed 2026-10-16, ADR 0007); PoC de-guess/neighbor kernels; catalog proximity deferred with F (ADR 0004). All propose only; explicitly not proof status |
-| Experimental                      | p3/p4 acceleration, Koenigs/Böttcher coordinates, rigorous block fill | Workstream H (not started); workstream J (not started); trap-radius early accept (poc/performance/src/kernels/trap.ts — research-only, oracle-gated on the PoC corpus)                                                                                               |
-| Rejected unsafe shortcut          | Stable fill from matching corners/edges                               | Rejected per plan §6 spatial subdivision analysis; subdivision may drive only the coarse preview, and J's kill condition forbids corner/edge agreement as stable proof                                                                                               |
+| Label                             | Plan §10 examples                                                     | In this repository                                                                                                                                                                                                                                                                                                                                      |
+| --------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mathematical identity/theorem     | Center counts, derivative recurrences                                 | The §1 formulas; the exact-period center-count recurrence of plan §6 (relevant to the deferred F generator, ADR 0004)                                                                                                                                                                                                                                   |
+| Closed form evaluated in binary64 | Main cardioid and period-2 bulb tests                                 | The analytic fast paths in src/domain/orbit.ts (previously mirrored in the checkpoint module, removed 2026-10-16, ADR 0007); verifier-gated since PR 3 (attraction margin, fall-through to the orbit walk). The period-3 closed form (§11, src/domain/analytic-period-three.ts, ADR 0010) adds a derived binary64 rounding allowance to the same margin |
+| Symbolically exact object         | Integer center factors and low-period relations                       | Not built. Specified for the F generator (exact integer-polynomial division of center factors), deferred per ADR 0004                                                                                                                                                                                                                                   |
+| Certified numerical result        | Disjoint interval/ball root enclosures                                | None in the implementation. The double-double oracle is a higher-precision floating reference, not a certified enclosure                                                                                                                                                                                                                                |
+| Floating validated result         | Closure, primitive-period reduction, `\|λ\|` margin                   | The common verifier, src/domain/verifier.ts (`src-verifier-1.0.0`) — the only path that emits attracting status                                                                                                                                                                                                                                         |
+| Heuristic candidate               | Checkpoint lag, catalog proximity, local chart predictor              | Watched-lag and full-scan proposals (src/domain/orbit-triggered.ts, the default; checkpoint proposals were removed 2026-10-16, ADR 0007); PoC de-guess/neighbor kernels; catalog proximity deferred with F (ADR 0004). All propose only; explicitly not proof status                                                                                    |
+| Experimental                      | p3/p4 acceleration, Koenigs/Böttcher coordinates, rigorous block fill | Workstream H period 4 (not started; period 3 shipped, §11); workstream J (not started); trap-radius early accept (poc/performance/src/kernels/trap.ts — research-only, oracle-gated on the PoC corpus)                                                                                                                                                  |
+| Rejected unsafe shortcut          | Stable fill from matching corners/edges                               | Rejected per plan §6 spatial subdivision analysis; subdivision may drive only the coarse preview, and J's kill condition forbids corner/edge agreement as stable proof                                                                                                                                                                                  |
 
 ## 9. What is not claimed
 
 - Candidate generation is not proof (plan invariant 1): checkpoints, catalogs,
-  charts, algebra, and Newton only propose; the verifier decides.
+  charts, algebra, and Newton only propose; the verifier decides. The closed
+  forms for periods 1, 2 and 3 are the plan's bucket 1–2 exception: they
+  accept directly under the same attraction margin, with a derived binary64
+  allowance for period 3 (§11, ADR 0010).
 - The tolerance values of §3 are engineering policy with recorded provenance,
   not mathematical facts; "certified" is reserved for interval/ball or
   equivalent proof and does not describe any current acceptance path.
@@ -285,8 +288,8 @@ For a fixed seed, the first new series coefficient obeys
 [Phase 3 program](verification/PHASE-3-PROOF-PROGRAM.md#optional-performance-math-packets)
 sets the numerical and measurement gates.
 
-The existing period-one and period-two analytic tests are the current
-closed-form hot paths. M0/M1, N0, and F0 offer exact chart identities, but an
+The period-one, period-two and period-three (§11) analytic tests are the
+current closed-form hot paths. M0/M1, N0, and F0 offer exact chart identities, but an
 alternate coordinate system earns a runtime path only after its domain,
 conversion errors, canonical output fields, and net browser cost are established.
 
@@ -448,6 +451,28 @@ so the closed form never accepts a point the policy would refuse in exact
 arithmetic. Points with 1 − 10⁻¹² − A ≤ |λ| < 1 − 10⁻¹² are refused and fall to
 the orbit path, which cannot detect them within any budget (§6): they end
 unresolved, as the policy intends.
+
+### 11.5 Placement and gate
+
+Both kernels, [orbit-triggered.ts](../src/domain/orbit-triggered.ts) and the
+two-lane [triggered-rows.ts](../src/render/triggered-rows.ts), try the closed
+form once per pixel at the first scanning iteration, `max(cycleWarmup, 2)` =
+24, before that iteration's full scan. A pixel that escapes earlier, inside
+the gate or not, never reaches it (c = −0.2 + 0.66i escapes at iteration 24
+and stays escaped: the escape test comes first). The record depends on c
+alone, so it is bit-identical to a test before the loop, in both kernels and
+in both passes. With `maxIterations` below the first scanning iteration the
+test never runs and the pixel stays unresolved, as the orbit path would leave
+it; no production budget is that small.
+
+The gate ([period-three-gate.ts](../src/domain/period-three-gate.ts)) holds
+the padded bounding boxes of the three components, traced from the inverse
+map in the spike. It must contain every accepted parameter, which a unit test
+checks on a 1200 × 1200 grid (11,602 accepted points, all inside) and just
+outside every box edge: it is measured, not proved. The gate test is written
+as straight-line comparisons because the kernels inline it into their outer
+loop, where a loop over the box array slowed the far-exterior stable pass by
+about 10% in Node ([ADR 0010](decisions/0010-analytic-period-three.md)).
 
 ### 11.6 What is proved and what is not
 

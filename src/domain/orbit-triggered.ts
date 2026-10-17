@@ -1,4 +1,6 @@
+import { classifyPeriodThreeInto } from './analytic-period-three';
 import type { OrbitSample, OrbitScratch } from './orbit';
+import { inPeriodThreeGate } from './period-three-gate';
 import { VERIFIER_VERDICT, verifyCycleInto } from './verifier';
 import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
 
@@ -60,8 +62,10 @@ const SPILL_NEAREST = 2;
 
 /**
  * Orbit loop of the triggered kernel, from z = 0. The caller has already
- * handled the analytic fast paths. `scratch` must have power-of-two capacity
- * of at least maxPeriod + 1 (OrbitScratch guarantees it).
+ * handled the period-1 and period-2 analytic fast paths; the period-3 one
+ * runs inside the loop at the first scanning iteration (ADR 0010). `scratch`
+ * must have power-of-two capacity of at least maxPeriod + 1 (OrbitScratch
+ * guarantees it).
  */
 export const classifyTriggeredOrbitInto = (
   cRe: number,
@@ -122,6 +126,22 @@ export const classifyTriggeredOrbitInto = (
     const fired = watchRe * watchRe + watchIm * watchIm <= toleranceSquared;
     if (!fired && iteration !== due && iteration !== maxIterations) {
       continue;
+    }
+    // Analytic period-3 fast path (ADR 0010): once per pixel, at the first
+    // scanning iteration and before its full scan. A pixel that escapes
+    // earlier never reaches this test. The closed form depends on c alone,
+    // so its record is the same wherever it runs. The orbit doubles
+    // round-trip through the spill across the call (hot-loop rule).
+    if (iteration === scanStart && inPeriodThreeGate(cRe, cIm)) {
+      spill[SPILL_Z_RE] = zRe;
+      spill[SPILL_Z_IM] = zIm;
+      if (classifyPeriodThreeInto(cRe, cIm, out)) {
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+      zRe = spill[SPILL_Z_RE]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+      zIm = spill[SPILL_Z_IM]!;
     }
     if (iteration === due) {
       due = iteration + interval;

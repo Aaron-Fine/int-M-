@@ -144,7 +144,10 @@ const finishAttractingCycle = (
  * attracting record and returns true when c lies in the main cardioid or the
  * period-2 bulb with a multiplier inside the attraction margin; returns false
  * (record untouched) otherwise, including margin-adjacent points, which fall
- * through to the orbit loop.
+ * through to the orbit loop. The period-3 closed form
+ * (src/domain/analytic-period-three.ts) is not tried here: it runs inside the
+ * orbit loop at the first scanning iteration, so pixels that escape early
+ * never pay for it (ADR 0010).
  */
 export const classifyAnalyticInto = (cRe: number, cIm: number, out: OrbitSample): boolean => {
   // Analytic fast paths (closed form): main cardioid and period-2 bulb.
@@ -296,6 +299,13 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  * 5. Frozen acceptance. Closure acceptance no longer scales with
  *    OrbitOptions.cycleTolerance, which remains the proposal gate only.
  *    With the default 1e-10 the numeric bounds equal the legacy ones.
+ * 6. Analytic period 3 (ADR 0010). At the first scanning iteration the
+ *    kernels try the period-3 closed form (src/domain/analytic-period-three.ts)
+ *    inside padded component boxes. It accepts with iterations 0 and the
+ *    closed-form multiplier, so pixels the legacy scan left unresolved become
+ *    attracting period 3, and period-3 pixels carry the closed-form multiplier
+ *    instead of the orbit product. Every such answer is checked against the
+ *    dd period-3 cycle in tests/unit/domain/orbit-oracle-adjudication.test.ts.
  *
  * Every accepted attracting result carries the verifier revision at the rich
  * boundary (AttractingCycleOrbitResult.verifierRevision).

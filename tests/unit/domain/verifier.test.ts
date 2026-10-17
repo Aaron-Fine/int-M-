@@ -314,7 +314,9 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
     let accepted = 0;
     for (const point of acceptedPoints) {
       classifyInto(point.re, point.im, options, scratch, sample);
-      if (sample.status !== 2) {
+      // Only lag-scan acceptances replay through the verifier; the analytic
+      // period-3 path (ADR 0010) has no cycle start to replay.
+      if (sample.status !== 2 || sample.evidence !== ORBIT_EVIDENCE_CODE.convergedCycle) {
         continue;
       }
       accepted += 1;
