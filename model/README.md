@@ -16,7 +16,8 @@ features.
 - `Architecture` — the proposed main-thread UI, rendering worker, numerical
   services, catalog, and offline generation toolchain;
 - `UserExperienceRequirements` — sixteen active baselined Phase 1 UX
-  requirements plus the retained OBE `MI-UX-014` requirement;
+  requirements, the Phase 2 shareable-state requirement `MI-UX-019`, and the
+  retained OBE `MI-UX-014` requirement;
 - `PerformanceRequirements` — the eight Phase 2 performance requirements
   `MI-PERF-001`…`MI-PERF-008`, worded as in
   [REQUIREMENTS.md](../docs/verification/REQUIREMENTS.md#phase-2-performance-requirements);

@@ -390,6 +390,17 @@ package MandelbrotInteriority {
              * rejected.
              */
         }
+
+        requirement <'MI-UX-019'> ShareableState {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The viewport (exact decimal centre and span), semantic view,
+             * quality profile, and selection shall be encoded in a versioned
+             * URL and restored on load. Malformed or out-of-range values
+             * shall fall back to defaults with a notice, and an older version
+             * shall never be reinterpreted silently.
+             */
+        }
     }
 
 
@@ -510,6 +521,8 @@ package MandelbrotInteriority {
                 by app.uiShell;
             satisfy UserExperienceRequirements::RendererRecoveryAndFallback
                 by app.uiShell.rendererLifecycle;
+            satisfy UserExperienceRequirements::ShareableState
+                by app.uiShell;
         }
 
         part perfSatisfactionContext {
@@ -557,13 +570,15 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * Exercise pointer and keyboard navigation, point and
-             * area-selection zoom, cancellation, reset, and both boundaries
-             * of the permitted zoom range.
+             * area-selection zoom, cancellation, reset, both boundaries of
+             * the permitted zoom range, and shareable links: round trip,
+             * copy, malformed fields, and unknown or missing versions.
              */
             objective navigationInteraction {
                 verify UserExperienceRequirements::ResponsiveNavigation;
                 verify UserExperienceRequirements::RestoreDefaultView;
                 verify UserExperienceRequirements::ZoomBoundFeedback;
+                verify UserExperienceRequirements::ShareableState;
             }
         }
 

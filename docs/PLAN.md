@@ -261,7 +261,8 @@ The period view will not assign dozens of equally prominent categorical colors. 
 ### 8.1 UX requirements and traceability
 
 The active normative first-release UX requirements are `MI-UX-001` through
-`MI-UX-013` and `MI-UX-015` through `MI-UX-017` in
+`MI-UX-013`, `MI-UX-015` through `MI-UX-017`, and the Phase 2 `MI-UX-019`
+(shareable versioned links) in
 [the SysML v2 system model](../model/MandelbrotInteriority.sysml).
 `MI-UX-014` is retained as OBE and superseded by `MI-UX-017` rather than
 reusing its identifier. The active requirements cover the first-use render and

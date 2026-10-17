@@ -131,6 +131,15 @@ implying fixed sub-raster precision at the full-set view while allowing appropri
 coordinates at higher magnification. Catalog source coordinates remain stored independently at
 their canonical data precision.
 
+Shareable links follow [ADR 0009](decisions/0009-shareable-url-schema.md). `src/ui/share-state.ts`
+is the pure v1 codec and `src/ui/share-link.ts` its application boundary: startup precedence, the
+address-bar query, the copied link, and the notice text. The UI reads the address once at mount,
+records a settled view with `history.replaceState` 500 ms after a stable frame (never during a
+pointer session or while a render is pending), and copies only the v1 fields through the Copy link
+control. The benchmark parameters in `src/ui/benchmark-params.ts` stay separate: `perf=1` is
+orthogonal to a share link, and `view=<re>,<im>,<spanY>&quality=` applies only to a URL without
+share fields.
+
 ## Testing boundaries
 
 - Verification is layered. Pure domain mathematics uses deterministic inputs
@@ -156,6 +165,11 @@ their canonical data precision.
   document overflow, keep the canvas at its compact aspect ratio, bound the first-use guide to the
   visual viewport, and enforce 44 CSS-pixel primary control targets. The 320 CSS-pixel state check
   also covers selected evidence, long fact values, persistent renderer failure, and manual retry.
+- Shareable links: unit tests pin the codec (exact round trip, every malformed field, clamping,
+  versions) and the startup precedence over the benchmark parameters; browser tests in both engines
+  cover the round trip, copy link, malformed and unknown-version links, and the harness parameters.
+  Copy tests stub `navigator.clipboard` with `page.addInitScript`, because Playwright cannot grant
+  clipboard permissions in Firefox.
 - Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
   intended for reuse belong under CC0-1.0; application tests remain GPL-3.0-only.
 - Performance assertions should use broad budgets and recorded hardware context. Avoid making CI
@@ -239,17 +253,18 @@ workstream and gate.
 
 This foundation directly supports:
 
-| Requirement or decision     | Foundation support                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build               |
-| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests           |
-| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests                   |
-| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility                      |
-| MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity              |
-| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                   |
-| MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback |
-| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                      |
-| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI              |
+| Requirement or decision     | Foundation support                                                                      |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| MI-UX-001 through MI-UX-006 | Vite entry point, first-use browser-test boundary, and production build                 |
+| MI-UX-007 through MI-UX-009 | Main-thread/worker separation, point/area navigation, and interaction tests             |
+| MI-UX-010 through MI-UX-012 | Semantic boundary, adaptive labels, definitions, and evidence tests                     |
+| MI-UX-013                   | Explicit worker progress, error, and cancellation responsibility                        |
+| MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity                |
+| MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                     |
+| MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback   |
+| MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices |
+| Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                        |
+| Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI                |
 
 These entries establish the verification hooks; they do not claim that the user-visible requirement
 is satisfied before the corresponding behavior and tests exist.

@@ -175,19 +175,24 @@ what its colour means numerically.
 
 ### 3. Shareable versioned URLs
 
-**Trace:** proposed `MI-UX-019`. **Estimate:** 3–4. **Needs:** Q2.
+**Trace:** `MI-UX-019`. **Estimate:** 3–4. **Needs:** Q2.
 
-- [ ] A short ADR for the URL schema.
-- [ ] A pure `encodeState`/`decodeState` module: versioned, exact decimals,
+- [x] A short ADR for the URL schema
+      ([ADR 0009](../decisions/0009-shareable-url-schema.md)).
+- [x] A pure `encodeState`/`decodeState` module: versioned, exact decimals,
       clamped to the zoom bounds, and falling back to the default view with a
-      visible notice on a malformed or unknown-version URL; unit tests.
-- [ ] Wire it into `application.ts`: restore on load, debounced
+      visible notice on a malformed or unknown-version URL; unit tests
+      (`src/ui/share-state.ts`, `src/ui/share-link.ts`).
+- [x] Wire it into `application.ts`: restore on load, debounced
       `replaceState` once a view settles.
-- [ ] A keyboard-operable "copy link" control with a live-region
+- [x] A keyboard-operable "copy link" control with a live-region
       announcement.
-- [ ] E2E in both engines: round trip, malformed URLs, version mismatch.
-- [ ] Keep the benchmark `?perf=1` hook separate, or fold it in, and record
-      which.
+- [x] E2E in both engines: round trip, malformed URLs, version mismatch.
+- [x] Keep the benchmark `?perf=1` hook separate, or fold it in, and record
+      which. Kept separate (ADR 0009): `perf=1` is orthogonal to a share
+      link, and the harness's `view=<re>,<im>,<spanY>&quality=` still applies
+      to a URL without share fields, so `--compare` against earlier builds
+      keeps working.
 
 **Done when:** a copied link reopens the same view, semantic view, quality
 profile and selection, and an old or broken link degrades visibly, never
@@ -293,7 +298,8 @@ item lands:
 - `MI-UX-019` Shareable state: the viewport (exact decimal centre and span),
   semantic view, quality profile and selection are encoded in a versioned URL
   and restored on load; malformed or out-of-range values fall back to defaults
-  with a notice; an older version is never reinterpreted silently.
+  with a notice; an older version is never reinterpreted silently. Added
+  2026-10-16 with item 3.
 - `MI-UX-020` Catalog navigation: every catalog entry is reachable and
   selectable by keyboard and by a list, with zoom-to-entry, annotation text,
   and a bounded marker count.

@@ -46,6 +46,18 @@ row. A blank row is not a pass. Use the
 | Tritanopia simulation                                                       | Pass    | Pass   | Exact-candidate matrix and reviewer sign-off                           |
 | Unresolved, selected, escaped, and catalog states remain distinguishable    | Pass    | Pass   | Exact-candidate matrix and reviewer sign-off                           |
 
+## Phase 2 UX requirements
+
+Added as each [Phase 2 TODO](PHASE2-TODO.md) item lands, continuing the
+`MI-UX` numbering. As above, test names are stable references into
+`tests/e2e/explorer.spec.ts`, and **Implemented** means the behavior and its
+automated evidence exist while some evidence needed to close the requirement
+is still outstanding.
+
+| Requirement                 | Requirement text                                                                                                                                                                                                                                                                          | State           | Automated evidence                                                                                                                                                                                                                                                                                                       | Remaining evidence                                                                                              |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `MI-UX-019` Shareable state | The viewport (exact decimal centre and span), semantic view, quality profile, and selection shall be encoded in a versioned URL and restored on load; malformed or out-of-range values shall fall back to defaults with a notice; an older version shall never be reinterpreted silently. | **Implemented** | `Shareable links (MI-UX-019)` browser scenarios in Firefox and Chromium (round trip, copy link, failed copy, malformed fields, zoom clamp, unknown and missing versions, harness parameters, forced colors at 320 px); `share-state` and `share-link` unit suites; [ADR 0009](../decisions/0009-shareable-url-schema.md) | Screen-reader announcement of the link notice and the copy confirmation in the next manual accessibility record |
+
 ## Phase 2 performance requirements
 
 Added per the Phase 2 performance plan §10. The requirement text and primary
