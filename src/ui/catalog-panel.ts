@@ -60,6 +60,8 @@ export function createCatalogPanel(options: {
     const summary = element('summary', { className: 'catalog-group__summary' });
     summary.append(
       element('span', { text: `Period ${group.period}` }),
+      // Keeps the period and the count apart in the accessible name.
+      element('span', { className: 'visually-hidden', text: ', ' }),
       element('span', {
         className: 'catalog-group__count',
         text: countText(group.components.length),

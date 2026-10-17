@@ -735,6 +735,8 @@ button:disabled {
 }
 
 .catalog-marker__label {
+  /* The dot is the target: a selected label may cover neighbours but must not catch their clicks. */
+  pointer-events: none;
   position: absolute;
   top: 50%;
   left: 2.85rem;

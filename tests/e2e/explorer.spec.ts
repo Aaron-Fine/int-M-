@@ -855,6 +855,18 @@ test.describe('Mandelbrot Interiority explorer', () => {
       }),
     );
     expect(boxes.length).toBeGreaterThan(0);
+    // The point at each marker's centre belongs to that marker, never to a neighbour's label.
+    const misses = await page.locator('.catalog-marker').evaluateAll((markers) =>
+      markers.flatMap((marker) => {
+        const { left, top, width, height } = marker.getBoundingClientRect();
+        const x = left + width / 2;
+        const y = top + height / 2;
+        if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return [];
+        const hit = document.elementFromPoint(x, y);
+        return marker.contains(hit) ? [] : [marker.getAttribute('data-catalog-id')];
+      }),
+    );
+    expect(misses).toEqual([]);
     expect(boxes.length).toBeLessThanOrEqual(40);
     for (const [index, a] of boxes.entries()) {
       expect(a.width).toBeGreaterThanOrEqual(24);
@@ -864,6 +876,25 @@ test.describe('Mandelbrot Interiority explorer', () => {
         expect(apart, `marker boxes ${JSON.stringify([a, b])} overlap`).toBe(true);
       }
     }
+  });
+
+  test('resolves the airplane marker centre to the airplane with it selected', async ({ page }) => {
+    // The v1 alias mi-p4-01 resolves to Period-4 component 1, id mi-p4-7-8.
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&sel=mi-p4-01');
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    const airplane = page.locator('.catalog-marker[data-catalog-id="mi-p3-3-4"]');
+    await expect(airplane).toBeVisible();
+    await expect(page.locator('.catalog-marker--selected')).toHaveAttribute(
+      'data-catalog-id',
+      'mi-p4-7-8',
+    );
+    const hit = await airplane.evaluate((marker) => {
+      const { left, top, width, height } = marker.getBoundingClientRect();
+      return marker.contains(document.elementFromPoint(left + width / 2, top + height / 2));
+    });
+    expect(hit).toBe(true);
   });
 
   test('keeps the label of a selected marker whose label the density policy hid', async ({
@@ -2003,13 +2034,13 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       await page.keyboard.press('Tab');
     }
     expect(visited).toEqual([
-      'summary:Period 11 component',
+      'summary:Period 1, 1 component',
       'button:Main cardioid',
-      'summary:Period 21 component',
+      'summary:Period 2, 1 component',
       'button:Period-2 bulb',
-      'summary:Period 33 components',
+      'summary:Period 3, 3 components',
       ...ENTRY_ORDER.slice(2, 5).map((label) => `button:${label}`),
-      'summary:Period 46 components',
+      'summary:Period 4, 6 components',
       ...ENTRY_ORDER.slice(5).map((label) => `button:${label}`),
       'summary:About periods, rays and addresses',
     ]);
