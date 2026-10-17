@@ -6,6 +6,14 @@ export {
 } from './analytic-period-three';
 export type { PeriodThreeTarget } from './analytic-period-three';
 export {
+  AIRPLANE_BOX,
+  inPeriodThreeGate,
+  PERIOD_THREE_BOXES,
+  PERIOD_THREE_HULL,
+  RABBIT_BOX,
+} from './period-three-gate';
+export type { PeriodThreeBox } from './period-three-gate';
+export {
   classifyAnalyticInto,
   classifyInto,
   classifyOrbit,

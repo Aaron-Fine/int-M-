@@ -1,0 +1,99 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  classifyPeriodThreeInto,
+  createOrbitSample,
+  inPeriodThreeGate,
+  PERIOD_THREE_BOXES,
+  PERIOD_THREE_HULL,
+} from '../../../src/domain';
+
+/**
+ * The gate decides only whether the closed form is tried, so it must
+ * contain every parameter the closed form accepts (ADR 0010). Measured on a
+ * dense grid and along every box edge; not a proof.
+ */
+describe('period-3 gate', () => {
+  it('has a hull equal to the bounding box of its boxes', () => {
+    expect(PERIOD_THREE_HULL.reMin).toBe(Math.min(...PERIOD_THREE_BOXES.map((b) => b.reMin)));
+    expect(PERIOD_THREE_HULL.reMax).toBe(Math.max(...PERIOD_THREE_BOXES.map((b) => b.reMax)));
+    expect(PERIOD_THREE_HULL.absImMin).toBe(0);
+    expect(PERIOD_THREE_HULL.absImMax).toBe(Math.max(...PERIOD_THREE_BOXES.map((b) => b.absImMax)));
+  });
+
+  it('agrees with a plain loop over PERIOD_THREE_BOXES on a grid', () => {
+    const inAnyBox = (re: number, im: number): boolean =>
+      PERIOD_THREE_BOXES.some(
+        (box) =>
+          re >= box.reMin &&
+          re <= box.reMax &&
+          Math.abs(im) >= box.absImMin &&
+          Math.abs(im) <= box.absImMax,
+      );
+    for (let i = 0; i < 400; i += 1) {
+      const re = -2 + (2.2 * (i + 0.5)) / 400;
+      for (let j = 0; j < 400; j += 1) {
+        const im = -1.1 + (2.2 * (j + 0.5)) / 400;
+        expect(inPeriodThreeGate(re, im)).toBe(inAnyBox(re, im));
+      }
+    }
+  });
+
+  it('contains the three period-3 centres and is conjugation-symmetric', () => {
+    expect(inPeriodThreeGate(-1.7548776662466927, 0)).toBe(true);
+    expect(inPeriodThreeGate(-0.12256116687665362, 0.7448617666197442)).toBe(true);
+    expect(inPeriodThreeGate(-0.12256116687665362, -0.7448617666197442)).toBe(true);
+    expect(inPeriodThreeGate(-0.1205, 0.8268)).toBe(inPeriodThreeGate(-0.1205, -0.8268));
+  });
+
+  it('rejects NaN and infinite parameters and the far exterior', () => {
+    expect(inPeriodThreeGate(Number.NaN, 0.7)).toBe(false);
+    expect(inPeriodThreeGate(-0.1, Number.NaN)).toBe(false);
+    expect(inPeriodThreeGate(Number.NEGATIVE_INFINITY, 0)).toBe(false);
+    expect(inPeriodThreeGate(-0.1, Number.POSITIVE_INFINITY)).toBe(false);
+    expect(inPeriodThreeGate(2.5, 1)).toBe(false);
+  });
+
+  it('contains every parameter the closed form accepts on a dense grid', () => {
+    const sample = createOrbitSample();
+    let accepted = 0;
+    const steps = 1200;
+    for (let i = 0; i < steps; i += 1) {
+      const re = -2.1 + (2.7 * (i + 0.5)) / steps;
+      for (let j = 0; j < steps; j += 1) {
+        const im = -1.3 + (2.6 * (j + 0.5)) / steps;
+        if (classifyPeriodThreeInto(re, im, sample)) {
+          accepted += 1;
+          if (!inPeriodThreeGate(re, im)) {
+            throw new Error(`accepted outside the gate at ${re} + ${im}i`);
+          }
+        }
+      }
+    }
+    // The three period-3 components on this 1200 x 1200 grid.
+    expect(accepted).toBe(11602);
+  });
+
+  it('refuses the closed form just outside every box edge', () => {
+    const sample = createOrbitSample();
+    const samples = 4000;
+    for (const box of PERIOD_THREE_BOXES) {
+      const reStep = (box.reMax - box.reMin) / samples;
+      const imStep = (box.absImMax - box.absImMin) / samples;
+      for (let k = 0; k <= samples; k += 1) {
+        const re = box.reMin + k * reStep;
+        const absIm = box.absImMin + k * imStep;
+        const outside: (readonly [number, number])[] = [
+          [re, box.absImMax + 1e-9],
+          [box.reMin - 1e-9, absIm],
+          [box.reMax + 1e-9, absIm],
+        ];
+        if (box.absImMin > 0) outside.push([re, box.absImMin - 1e-9]);
+        for (const [cRe, cIm] of outside) {
+          expect(classifyPeriodThreeInto(cRe, cIm, sample)).toBe(false);
+          expect(classifyPeriodThreeInto(cRe, -cIm, sample)).toBe(false);
+        }
+      }
+    }
+  });
+});
