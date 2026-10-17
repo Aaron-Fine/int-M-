@@ -1034,6 +1034,9 @@ button:disabled {
 }
 
 .catalog-glossary summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   color: var(--accent-strong);
   font-weight: 700;

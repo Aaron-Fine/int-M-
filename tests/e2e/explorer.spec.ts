@@ -1964,7 +1964,9 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await expect(airplane).toHaveAttribute('aria-current', 'true');
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
     await expect(pointEvidence.getByRole('heading', { name: 'Airplane' })).toBeVisible();
-    await expect(pointEvidence.locator('.inspector__annotation')).toContainText('period-3 window');
+    await expect(pointEvidence.locator('.inspector__annotation')).toHaveText(
+      "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; along the real line it is the logistic map's period-3 window. Rays 3/7 and 4/7 land at its cusp, c = −7/4.",
+    );
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
     });
@@ -1975,6 +1977,13 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await expect
       .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
       .toBe('mi-p3-3-4');
+
+    // A placeholder entry has no annotation, so the inspector shows none.
+    await panel.getByRole('button', { name: 'Period-4 component 2', exact: true }).click();
+    await expect(
+      pointEvidence.getByRole('heading', { name: 'Period-4 component 2' }),
+    ).toBeVisible();
+    await expect(pointEvidence.locator('.inspector__annotation')).toHaveCount(0);
   });
 
   test('reaches every entry by Tab, grouped by period in catalog order', async ({ page }) => {
@@ -2118,6 +2127,10 @@ test.describe('Catalog panel (MI-UX-020)', () => {
         return { right, height };
       }),
     );
+    const glossaryHeight = await panel
+      .locator('.catalog-glossary summary')
+      .evaluate((summary) => summary.getBoundingClientRect().height);
+    expect(glossaryHeight).toBeGreaterThanOrEqual(44);
     expect(entries).toHaveLength(11);
     for (const entry of entries) {
       expect(entry.height).toBeGreaterThanOrEqual(44);
