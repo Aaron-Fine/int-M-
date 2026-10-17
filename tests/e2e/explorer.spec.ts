@@ -1042,6 +1042,22 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
+  test('has no automated WCAG violations at 320 px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    // The guide fades out for 150 ms: axe must not sample it half transparent.
+    await expect(page.locator('.guidance')).toBeHidden();
+    // Catalog markers appear with the first frame and are redrawn until the stable one.
+    await expect(page.getByRole('button', { name: 'Inspect Airplane, period 3' })).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expectNoAccessibilityViolations(page);
+  });
+
   test('keeps every legend view and its scale ticks inside a 320 px phone layout', async ({
     page,
   }) => {

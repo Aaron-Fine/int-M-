@@ -699,7 +699,15 @@ button:disabled {
   border-radius: 0;
 }
 
+/* Period-4 markers sit closest together: their hit target is the 24px dot, so that
+   they do not cover their neighbours (WCAG 2.5.8 target size at phone widths). */
+.catalog-marker--period-4 {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .catalog-marker--period-4 .catalog-marker__dot {
+  inset: 0;
   border-radius: 0;
   transform: rotate(45deg);
 }
@@ -746,6 +754,15 @@ button:disabled {
 
 .catalog-marker--left-facing .catalog-marker__label {
   right: 2.85rem;
+  left: auto;
+}
+
+.catalog-marker--period-4 .catalog-marker__label {
+  left: 2.225rem;
+}
+
+.catalog-marker--period-4.catalog-marker--left-facing .catalog-marker__label {
+  right: 2.225rem;
   left: auto;
 }
 
