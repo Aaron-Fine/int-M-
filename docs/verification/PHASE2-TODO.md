@@ -123,7 +123,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       headless run and passed alone (2026-10-16/17, all while other agents
       loaded the laptop): Firefox "pans from a catalog marker…", Chromium
       "marks and describes arbitrary … points", Firefox "catalog markers are
-      keyboard-selectable" (each two to four times by 2026-10-17); and Chromium "render traces carry delivery provenance…" once, at the in-flight replay assertion (`originComputeId` 4 against an expected 2). Rerun the suite on a quiet machine with
+      keyboard-selectable" (each two to four times by 2026-10-17); and Chromium "render traces carry delivery provenance…" once, at the recolor assertion (`originComputeId` 4 against an expected 2). Rerun the suite on a quiet machine with
       `--repeat-each 5`; fix any test that still fails (waits on fixed
       timeouts rather than state). 0.5–1. Root cause found for the Chromium
       one (2026-10-17): `resetView` in `src/ui/application.ts` does not
@@ -134,19 +134,27 @@ Estimates are engineering days. They are planning figures and may overlap.
       Done 2026-10-17: Reset now invalidates the pending inspection and ends a
       drag in progress; the catalog overlay keeps its marker buttons across
       redraws (the cause of both Firefox flakes and of lost keyboard focus);
-      the provenance test waits for the settled request instead of assuming the
-      last completed trace is the cached computation, and prints the trace ring
-      if `originComputeId` ever disagrees with `computeId` again; the coarse and
-      stable order test waits for the presented marks it reads; the folded
-      first-use flow is marked slow. The full suite passed
-      `--repeat-each 3 --workers 8` beside eight busy loops (log kept in the scratchpad). Not
-      run: `--repeat-each 5` on a quiet machine.
+      the provenance flake was not reproduced. Probable cause: the page closes a
+      render trace in a `requestAnimationFrame` after it sets
+      `data-render-stage="stable"`, so the test could read the ring before the
+      newest trace closed and take an older computed trace as the cached one.
+      The test now waits for the settled request's own trace, and prints the
+      trace ring from both the recolor and the in-flight replay assertions; the
+      coarse and stable order test waits for the presented marks of the request
+      on screen; the folded first-use flow is marked slow. The full suite
+      passed `--repeat-each 3 --workers 8` beside eight busy loops (225 passed,
+      3 skipped, 0 failed, both engines). Not run: `--repeat-each 5` on a quiet
+      machine (substituted by the loaded run; owner to confirm).
 - [x] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
       "Airplane, period 3"), found while planning item 3. Enlarge the hit
       target without changing the drawn marker, and add axe to the 320 px
       reflow test. 0.5–1.
-      Done 2026-10-17: period-4 markers use their 24px dot as the hit target; the 320/375/430 px reflow test now runs axe.
+      Done 2026-10-17: below 28rem (448 px) period-4 markers use their 24px dot
+      as the hit target; above it they keep 44 px (axe fails at 440 px with the
+      44 px box and passes at 448 px). Their focus ring clears the diamond tips.
+      axe runs at 320, 375 and 430 px, each in its own single-viewport test (kept
+      out of the multi-viewport reflow test, which would exceed 30 s under load).
 - [x] **E2E in-flight replay.** Assert an `inflight-replay` frame naming the
       active computation in the browser provenance test (final-review M6). 0.5.
 

@@ -212,12 +212,17 @@ const tracesWith = async (page: Page, outcome: string): Promise<TraceView | unde
 
 /**
  * Waits until nothing is in flight: the newest closed trace is the request on
- * screen, it completed, and its last frame is stable. Returns the computation
- * the worker's semantic cache then holds, which is what a recolor reports as
- * `originComputeId`. That is the request's own compute, or the origin it
- * reused. It is not the last trace that computed: a later computation can
- * finish in the worker after the page dropped its frames as stale, and then
- * the cache holds that one.
+ * screen, it completed, and its last frame is stable. Returns that trace's
+ * `computeId`, the computation the worker's semantic cache then holds, which is
+ * what a recolor reports as `originComputeId`.
+ *
+ * Why not just take the last completed trace: the page sets
+ * `data-render-stage="stable"` synchronously, but records the frame, and so
+ * closes the trace, in a later requestAnimationFrame. A test that read the ring
+ * on that signal could still see an older completed trace (for example compute
+ * 2) while the cache already held the on-screen compute (4). That is the
+ * probable cause of the one unreproduced "4 against an expected 2" failure; the
+ * settled request's own trace is the cached computation.
  */
 const settledOriginComputeId = async (page: Page): Promise<number> => {
   const newest = async (): Promise<{ trace: TraceView | undefined; onScreen: string | null }> => ({
@@ -238,23 +243,27 @@ const settledOriginComputeId = async (page: Page): Promise<number> => {
     )
     .toBe(true);
   const { trace } = await newest();
-  const origin = trace?.computeId ?? trace?.frames.at(-1)?.originComputeId;
+  const origin = trace?.computeId;
   if (origin === undefined)
     throw new Error(`settled trace names no computation: ${JSON.stringify(trace)}`);
   return origin;
 };
 
-/** The latest trace is a one-frame recolor of `originComputeId`, with no compute fields. */
+/**
+ * The latest trace is a one-frame recolor of `originComputeId`, with no compute fields.
+ * A mismatch prints the whole trace ring.
+ */
 const expectRecolorOf = async (page: Page, originComputeId: number | undefined): Promise<void> => {
   await expect
     .poll(async () => (await renderTraces(page)).at(-1)?.frames[0]?.source, { timeout: 10_000 })
     .toBe('recolor');
-  const recolorTrace = (await renderTraces(page)).at(-1);
+  const ring = await renderTraces(page);
+  const recolorTrace = ring.at(-1);
   expect(recolorTrace?.outcome).toBe('completed');
   expect(recolorTrace?.computeId).toBeUndefined();
   expect(recolorTrace?.frames).toHaveLength(1);
   const [frame] = recolorTrace?.frames ?? [];
-  expect(frame?.originComputeId).toBe(originComputeId);
+  expect(frame?.originComputeId, `trace ring: ${JSON.stringify(ring)}`).toBe(originComputeId);
   expect(frame?.workerWallMs).toBeUndefined();
   expect(frame?.colorizeMs).toBeGreaterThanOrEqual(0);
 };
@@ -867,11 +876,19 @@ test.describe('Mandelbrot Interiority explorer', () => {
     );
 
     // The presented marks are written in a requestAnimationFrame after the status text changes,
-    // so the startup render's marks can still be pending here. Wait for the last of them, or they
-    // would land after the clear below and be read as this request's marks.
-    await page.waitForFunction(
-      () => performance.getEntriesByName('mi:stable-presented').length > 0,
-    );
+    // so the startup render's marks can still be pending here. Wait for the stable mark of the
+    // request on screen, or it would land after the clear below and be read as this request's.
+    await page.waitForFunction(() => {
+      const id = Number(
+        document.querySelector('#explorer')?.getAttribute('data-render-request-id'),
+      );
+      return performance
+        .getEntriesByName('mi:stable-presented')
+        .some(
+          (entry) =>
+            ((entry as PerformanceMark).detail as { requestId?: number } | null)?.requestId === id,
+        );
+    });
 
     await page.evaluate(() => {
       for (const name of [
@@ -1104,21 +1121,28 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
-  test('has no automated WCAG violations at 320 px', async ({ page }) => {
-    await page.setViewportSize({ width: 320, height: 568 });
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Explore', exact: true }).click();
-    // The guide fades out for 150 ms: axe must not sample it half transparent.
-    await expect(page.locator('.guidance')).toBeHidden();
-    // Catalog markers appear with the first frame and are redrawn until the stable one.
-    await expect(page.getByRole('button', { name: 'Inspect Airplane, period 3' })).toBeVisible({
-      timeout: 20_000,
+  // One viewport per test: the multi-viewport reflow test above would exceed 30 s with axe in it.
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 375, height: 667 },
+    { width: 430, height: 932 },
+  ]) {
+    test(`has no automated WCAG violations at ${viewport.width} px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto('/');
+      await page.getByRole('button', { name: 'Explore', exact: true }).click();
+      // The guide fades out for 150 ms: axe must not sample it half transparent.
+      await expect(page.locator('.guidance')).toBeHidden();
+      // Catalog markers appear with the first frame and are redrawn until the stable one.
+      await expect(page.getByRole('button', { name: 'Inspect Airplane, period 3' })).toBeVisible({
+        timeout: 20_000,
+      });
+      await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+        timeout: 20_000,
+      });
+      await expectNoAccessibilityViolations(page);
     });
-    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
-      timeout: 20_000,
-    });
-    await expectNoAccessibilityViolations(page);
-  });
+  }
 
   test('keeps every legend view and its scale ticks inside a 320 px phone layout', async ({
     page,
