@@ -1011,6 +1011,50 @@ describe('RenderWorkerRuntime period isolation', () => {
     expect(frames[3]?.rgba).toEqual(frames[0]?.rgba);
   });
 
+  it('keeps the semantic-cache provenance for an isolation that cannot change the raster', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const colorize = vi.fn((frame: SemanticFrame, view: SemanticView, isolated?: number) =>
+      cpu.colorize(frame, view, isolated),
+    );
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      {
+        inspect: () => ({ status: 'unresolved', iterations: 1, evidence: ['iteration-limit'] }),
+        render: async (_request, _signal, onFrame) => {
+          await onFrame(twoPeriodFrame());
+        },
+        colorize,
+      },
+    );
+
+    await runtime.handle({ ...period(), requestId: 1 });
+    // Out of range, fractional and zero periods isolate nothing.
+    await runtime.handle({ ...period(0), requestId: 2 });
+    await runtime.handle({ ...period(2.5), requestId: 3 });
+    await runtime.handle({ ...period(1e9), requestId: 4 });
+    // Isolation only exists in the period view.
+    await runtime.handle({ ...period(), semanticView: 'multiplier', requestId: 5 });
+    await runtime.handle({ ...period(7), semanticView: 'multiplier', requestId: 6 });
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'semantic-cache',
+      'semantic-cache',
+      'semantic-cache',
+      'recolor',
+      'semantic-cache',
+    ]);
+    expect(frames.map((frame) => frame.isolatedPeriod)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
   it('applies an isolation sent during a computation to its replay and later frames', async () => {
     let release: () => void = () => undefined;
     const gate = new Promise<void>((resolve) => {

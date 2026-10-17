@@ -8,6 +8,7 @@ import {
   type SemanticFrame,
 } from '../render';
 import type { SemanticView } from '../domain';
+import { validIsolatedPeriod } from '../render/colorize';
 import type {
   FrameProvenance,
   MainToWorkerMessage,
@@ -75,6 +76,14 @@ const frameTiming = (
     ...(timing?.mergeCpuMs === undefined ? {} : { mergeCpuMs: timing.mergeCpuMs }),
   };
 };
+
+/**
+ * The isolation that can change the raster: only the period view isolates, and
+ * only a valid period. Anything else draws the same pixels, so it must not
+ * change a frame's provenance.
+ */
+const effectiveIsolation = (message: RenderMessage): number | undefined =>
+  message.semanticView === 'period' ? validIsolatedPeriod(message.isolatedPeriod) : undefined;
 
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;
@@ -169,6 +178,7 @@ export class RenderWorkerRuntime {
   async #render(message: RenderMessage): Promise<void> {
     const request = dynamicsRequest(message);
     const key = semanticRequestKey(request);
+    const isolated = effectiveIsolation(message);
     const cached = this.#semanticStore.get(request);
     const cachedOrigin = this.#cachedOrigin;
     if (cached !== undefined && cachedOrigin?.key === key) {
@@ -177,13 +187,12 @@ export class RenderWorkerRuntime {
       }
       // Isolation is a palette input like the view: changing it recolors.
       const source =
-        cachedOrigin.view === message.semanticView &&
-        cachedOrigin.isolatedPeriod === message.isolatedPeriod
+        cachedOrigin.view === message.semanticView && cachedOrigin.isolatedPeriod === isolated
           ? 'semantic-cache'
           : 'recolor';
       cachedOrigin.view = message.semanticView;
-      cachedOrigin.isolatedPeriod = message.isolatedPeriod;
-      this.#postFrame(message.requestId, cached, message.semanticView, message.isolatedPeriod, {
+      cachedOrigin.isolatedPeriod = isolated;
+      this.#postFrame(message.requestId, cached, message.semanticView, isolated, {
         source,
         computeId: cachedOrigin.computeId,
       });
@@ -197,13 +206,13 @@ export class RenderWorkerRuntime {
     ) {
       this.#activeRender.requestId = message.requestId;
       this.#activeRender.semanticView = message.semanticView;
-      this.#activeRender.isolatedPeriod = message.isolatedPeriod;
+      this.#activeRender.isolatedPeriod = isolated;
       if (this.#activeRender.lastFrame !== undefined) {
         this.#postFrame(
           message.requestId,
           this.#activeRender.lastFrame,
           message.semanticView,
-          message.isolatedPeriod,
+          isolated,
           {
             source: 'inflight-replay',
             computeId: this.#activeRender.computeId,
@@ -222,7 +231,7 @@ export class RenderWorkerRuntime {
       startedAt: performance.now(),
       requestId: message.requestId,
       semanticView: message.semanticView,
-      isolatedPeriod: message.isolatedPeriod,
+      isolatedPeriod: isolated,
     };
     this.#activeRender = active;
 
