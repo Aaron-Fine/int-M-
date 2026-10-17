@@ -123,6 +123,102 @@
       }
     },
     {
+      "id": "period-three-weak-attraction-centre",
+      "parameter": {
+        "re": "-0.1205",
+        "im": "0.8268"
+      },
+      "classificationBudget": {
+        "maxIterations": 4096,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 1486,
+        "cycleClosureResidualSquared": "8.0318313008562903010237346286494672239479981356005003525073675532634321516145225E-61",
+        "multiplier": {
+          "re": "-0.87467751818668860448058196704238286587559907476260586709754277907499717016878041",
+          "im": "-0.04004509961793428740411437317654950486689297681394320591167096012151629149218975",
+          "magnitude": "0.87559372475174538293782753988933973555268728529414890080374574269801235993895567"
+        }
+      }
+    },
+    {
+      "id": "period-three-airplane-near-cusp",
+      "parameter": {
+        "re": "-1.750001",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 32768,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 11923,
+        "cycleClosureResidualSquared": "9.9445884942538329313354509904661604939374502461824334174629506750091065547345992E-61",
+        "multiplier": {
+          "re": "0.98599599199999999999999998843375629057745831223952899281185171198777951934828655",
+          "im": "-0E-941850",
+          "magnitude": "0.98599599199999999999999998843375629057745831223952899281185171198777951934828655"
+        }
+      }
+    },
+    {
+      "id": "period-three-rabbit-rim",
+      "parameter": {
+        "re": "-0.046545032326946937",
+        "im": "0.69276818807760281"
+      },
+      "classificationBudget": {
+        "maxIterations": 65536,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 19672,
+        "cycleClosureResidualSquared": "9.9358858697760557597584619171080118905021768025891825008297054794755681827563926E-61",
+        "multiplier": {
+          "re": "0.53489928280945830041269565043075490714572602587766124303396438466650990114745432",
+          "im": "0.83305627495981753709976100711578960111157620512826017827082794241447164708258230",
+          "magnitude": "0.98999999999999998551930414171104174315013125758076851977456336048011301087435682"
+        }
+      }
+    },
+    {
+      "id": "period-six-rabbit-satellite",
+      "parameter": {
+        "re": "-0.1155037469844854",
+        "im": "0.8402560718860035"
+      },
+      "classificationBudget": {
+        "maxIterations": 16384,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 6,
+        "settledAfterIterations": 3547,
+        "cycleClosureResidualSquared": "9.5215262682816629798616770568859303478592259147216728354417191531249533846765165E-61",
+        "multiplier": {
+          "re": "0.90149878564250468779286584247445739216971421344243349956306589057179682559161557",
+          "im": "0.00063558704192878595310023841463641412304307002198715182629946637238459538876599",
+          "magnitude": "0.90149900969762495019813751639313837981577776438155287733170369685765602546321019"
+        }
+      }
+    },
+    {
       "id": "parabolic-boundary-minus-three-quarters",
       "parameter": {
         "re": "-0.75",

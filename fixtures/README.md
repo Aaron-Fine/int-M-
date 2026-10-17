@@ -5,7 +5,11 @@ the binary64 TypeScript classifier. It covers:
 
 - an escaped point;
 - exact period-one and period-two centers;
-- ordinary off-center period-three and period-four attracting points; and
+- ordinary off-center period-three and period-four attracting points;
+- period-three points near the airplane cusp, near the rabbit's boundary
+  (|λ| = 0.99) and at the weak-attraction corpus centre, which the analytic
+  period-3 path answers (ADR 0010), and a period-six point of the rabbit's
+  satellite inside that path's gate box, which it must not answer; and
 - a known parabolic boundary point that must remain unresolved within the
   declared finite budget.
 
