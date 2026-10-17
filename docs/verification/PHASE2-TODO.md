@@ -109,6 +109,13 @@ Estimates are engineering days. They are planning figures and may overlap.
       `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
       exterior ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
       Correct the rationale text only; the frozen view parameters stay. 0.5.
+- [ ] **E2E flake watch.** Three different tests each failed once in a full
+      headless run and passed alone (2026-10-16/17, all while other agents
+      loaded the laptop): Firefox "pans from a catalog marker…", Chromium
+      "marks and describes arbitrary … points", Firefox "catalog markers are
+      keyboard-selectable". Rerun the suite on a quiet machine with
+      `--repeat-each 5`; fix any test that still fails (waits on fixed
+      timeouts rather than state). 0.5–1.
 - [ ] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
       "Airplane, period 3"), found while planning item 3. Enlarge the hit
