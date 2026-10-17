@@ -768,3 +768,161 @@ describe('RenderWorkerRuntime delivery provenance and cancellation lifecycle', (
     ]);
   });
 });
+
+describe('RenderWorkerRuntime period key delivery', () => {
+  type FrameOut = Extract<WorkerToMainMessage, { type: 'frame' }>;
+  const framesOf = (messages: readonly WorkerToMainMessage[]): FrameOut[] =>
+    messages.filter((message): message is FrameOut => message.type === 'frame');
+  const cpu = new CpuRenderer();
+  const size = { width: 2, height: 2 };
+  const viewportA = { center: { re: 0, im: 0 }, spanY: 3 };
+  const viewportB = { center: { re: -1, im: 0 }, spanY: 1 };
+
+  /** Every pixel attracting with `period`. */
+  const uniformFrame = (
+    period: number,
+    stage: SemanticFrame['stage'] = 'stable',
+  ): SemanticFrame => ({
+    ...semanticFrame(size, stage),
+    bands: [
+      {
+        y0: 0,
+        y1: size.height,
+        packedStatusPeriod: new Uint32Array(4).fill(packStatusPeriod(2, period)),
+        smoothIterationOrMultiplierMagnitude: new Float64Array(4).fill(0.5),
+        multiplierAngle: new Float64Array(4),
+      },
+    ],
+  });
+
+  /** Viewport A classifies as period 3, viewport B as period 7. */
+  const renderer = (): Renderer => ({
+    inspect: () => ({ status: 'unresolved', iterations: 1, evidence: ['iteration-limit'] }),
+    render: async (request, _signal, onFrame) => {
+      await onFrame(uniformFrame(request.viewport.spanY === 3 ? 3 : 7));
+    },
+    colorize: (frame, view) => cpu.colorize(frame, view),
+  });
+
+  const periodsOf = (frame: FrameOut | undefined): readonly number[] | undefined =>
+    frame?.periodKey?.emphasized.map((entry) => entry.period);
+
+  it('sends the key of the delivered frame on computed, cache and recolor deliveries', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer());
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 1,
+      semanticView: 'stability',
+      viewport: viewportA,
+      size,
+    });
+    await runtime.handle({
+      type: 'render',
+      requestId: 2,
+      semanticView: 'period',
+      viewport: viewportA,
+      size,
+    });
+    await runtime.handle({
+      type: 'render',
+      requestId: 3,
+      semanticView: 'period',
+      viewport: viewportA,
+      size,
+    });
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'recolor',
+      'semantic-cache',
+    ]);
+    expect(frames[0]).not.toHaveProperty('periodKey');
+    expect(periodsOf(frames[1])).toEqual([3]);
+    expect(frames[2]?.periodKey).toEqual(frames[1]?.periodKey);
+  });
+
+  it('ranks the new frame, not the previous view, when a recolor follows a pan', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer());
+
+    await runtime.handle({
+      type: 'render',
+      requestId: 1,
+      semanticView: 'period',
+      viewport: viewportA,
+      size,
+    });
+    await runtime.handle({
+      type: 'render',
+      requestId: 2,
+      semanticView: 'stability',
+      viewport: viewportB,
+      size,
+    });
+    await runtime.handle({
+      type: 'render',
+      requestId: 3,
+      semanticView: 'period',
+      viewport: viewportB,
+      size,
+    });
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'computed',
+      'recolor',
+    ]);
+    expect(periodsOf(frames[0])).toEqual([3]);
+    expect(periodsOf(frames[2])).toEqual([7]);
+  });
+
+  it('replays the retained coarse frame with that frame’s own key', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      {
+        ...renderer(),
+        render: async (_request, _signal, onFrame) => {
+          await onFrame(uniformFrame(2, 'coarse'));
+          await gate;
+          await onFrame(uniformFrame(5));
+        },
+      },
+    );
+
+    const first = runtime.handle({
+      type: 'render',
+      requestId: 'a',
+      semanticView: 'stability',
+      viewport: viewportA,
+      size,
+    });
+    await Promise.resolve();
+    await runtime.handle({
+      type: 'render',
+      requestId: 'b',
+      semanticView: 'period',
+      viewport: viewportA,
+      size,
+    });
+    release();
+    await first;
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => [frame.provenance.source, frame.stage])).toEqual([
+      ['computed', 'coarse'],
+      ['inflight-replay', 'coarse'],
+      ['computed', 'stable'],
+    ]);
+    expect(periodsOf(frames[1])).toEqual([2]);
+    expect(periodsOf(frames[2])).toEqual([5]);
+  });
+});

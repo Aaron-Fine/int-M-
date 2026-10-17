@@ -151,6 +151,7 @@ export class RenderWorkerRuntime {
       rgba: raster.rgba,
       progress: raster.progress,
       workerTiming,
+      ...(raster.periodKey === undefined ? {} : { periodKey: raster.periodKey }),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }

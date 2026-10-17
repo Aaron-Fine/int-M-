@@ -1,6 +1,7 @@
 import type {
   Complex,
   OrbitResult,
+  PeriodKey,
   RasterSize,
   RenderQuality,
   SemanticView,
@@ -90,6 +91,11 @@ export interface FrameMessage {
   readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   readonly progress: number;
   readonly workerTiming?: WorkerFrameTiming;
+  /**
+   * Period view only: the period-to-color mapping the raster was drawn with,
+   * ranked from this delivery's own semantic frame (PLAN §8, MI-UX-018).
+   */
+  readonly periodKey?: PeriodKey;
 }
 
 export interface InspectionResult {
