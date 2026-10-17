@@ -288,3 +288,26 @@ Proof-of-concept results (the `poc/performance/` harness) land in
 repetition counts, and are explicitly labeled **directional**: Node/V8
 approximates but does not replace controlled browser evidence, and PoC results
 feed corpus and gate choices rather than close requirements.
+
+## Palette acceptance (`MI-UX-021`)
+
+Palette evidence is computed, not measured in a browser.
+`npm run evidence:palette -- <directory>` (`tools/palette_metrics.ts`) writes:
+
+- `palette-metrics.json`: the method (CIEDE2000; Machado, Oliveira and
+  Fernandes 2009 simulation at severity 1.0; the sampling grid), the floors
+  (`tests/unit/palette/palette-floors.ts`), and for each palette every
+  metric's value under normal, protan, deutan and tritan vision with its
+  minimum and pass flag; once the palette ships, also the worst contrast of
+  each text overlay over the raster and of an isolated period against the
+  dimmed field around it.
+- `summary.md`: the same as tables.
+
+Directories are named `<date>-<commit>-palette-selection` (the candidate
+comparison that chose the period palette) and `<date>-<commit>-palette` (the
+shipped palette, with a browser record of the axe and end-to-end run). Format
+both files with `npx prettier --write <directory>`, then emit
+`manifest.sha256` with `node tools/benchmark/manifest.mjs <directory>`. No
+screenshots are committed: the numeric matrix replaces the Phase 1 screenshot
+matrix (tier 1 above), and browser screenshots are advisory (owner decision
+Q6).

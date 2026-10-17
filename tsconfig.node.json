@@ -32,6 +32,7 @@
     "tools/benchmark/recorder-cost.ts",
     "tools/benchmark/harness/**/*.ts",
     "tools/benchmark/run-release.ts",
-    "tools/generate_kernel_golden.ts"
+    "tools/generate_kernel_golden.ts",
+    "tools/palette_metrics.ts"
   ]
 }
