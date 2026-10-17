@@ -243,18 +243,24 @@ provenance, and a unit test guards the file.
 
 ### 5. Semantic and image regression tests
 
-**Trace:** proposed `MI-VER-UX-001`; PLAN §7. **Estimate:** 4–5. **Needs:**
+**Trace:** `MI-VER-UX-006` (proposed as `MI-VER-UX-001`); PLAN §7. **Estimate:** 4–5. **Needs:**
 Q6; after items 1–2 to avoid churn.
 
-- [ ] A policy note: which fixtures are golden, who regenerates them, and how
-      a reviewed change is recorded.
-- [ ] Colorized-buffer goldens per view (default plus two zoomed views) in
-      unit tests.
-- [ ] Browser screenshot baselines for 3 views × 2 engines in the pinned
-      Playwright container, as advisory checks or a gate per Q6.
-- [ ] UI-state baselines: catalog overlay and a selected marker.
-- [ ] Document every fixture in `fixtures/README.md` and wire the checks into
-      `npm run check`.
+- [x] A policy note: which fixtures are golden, who regenerates them, and how
+      a reviewed change is recorded. Done:
+      [fixtures/README.md](../../fixtures/README.md#golden-fixture-policy).
+- [x] Colorized-buffer goldens per view (default plus two zoomed views) in
+      unit tests. Done: `fixtures/colorized-golden.v1.json`,
+      `tests/unit/render/colorized-golden.test.ts`.
+- [x] Browser screenshot baselines for 3 views × 2 engines in the pinned
+      Playwright container, as advisory checks or a gate per Q6. Done:
+      advisory, `tests/visual/` with its own configuration
+      (`npm run test:visual:container`) and a non-gating CI job.
+- [x] UI-state baselines: catalog overlay and a selected marker (advisory,
+      `tests/visual/`).
+- [x] Document every fixture in `fixtures/README.md` and wire the checks into
+      `npm run check` (`catalog:test`, `fixtures:golden:check`; the golden
+      unit tests run in `test:unit`).
 
 **Done when:** a change to any view's pixels fails a test unless its golden
 is regenerated in the same reviewed commit.
@@ -337,9 +343,11 @@ item lands:
   monotonicity and distinguishability thresholds under normal and simulated
   colour vision, and the legend derives from the rendered palette. Added with
   item 1.
-- `MI-VER-UX-001` Image regression: each semantic view has committed goldens
-  for the default and two zoomed views, with a documented tolerance and
-  update procedure.
+- `MI-VER-UX-006` Image regression (proposed as `MI-VER-UX-001`, which the
+  SysML model already uses for the first-use verification case): each
+  semantic view has committed goldens for the default and two zoomed views,
+  with a documented tolerance and update procedure. Added 2026-10-17 with
+  item 5.
 
 ## Not in Phase 2
 

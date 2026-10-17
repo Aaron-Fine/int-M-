@@ -25,7 +25,8 @@ features.
 - `RequirementSatisfaction` — proposed allocation of those requirements to
   logical components; and
 - `Verification` — grouped verification cases that cover every active UX
-  requirement and every performance requirement (`MI-VER-PERF-001`…`005`).
+  requirement and every performance requirement (`MI-VER-PERF-001`…`005`),
+  and the Phase 2 image-regression objective `MI-VER-UX-006`.
 
 The active requirements are normative for Phase 1. `MI-UX-014` is retained as
 OBE for identifier and decision-history continuity; `MI-UX-017` replaces it

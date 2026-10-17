@@ -109,6 +109,8 @@ production performance.
   that comparison. Escape smoothing changed by at most `1.43e-14`.
 - Frozen digests generated from the reference commit are retained in
   `fixtures/orbit-raster-regression.v1.json` and tested against the default kernel.
+  (Retired 2026-10-17: superseded by the kernel golden, ADR 0007; see
+  [fixtures/README.md](../../fixtures/README.md#retired-fixtures).)
 - Tests cover scratch wraps/resets, omitted raster logs/angles, exact canonical
   deep-zoom coordinates, clipped coarse samples, arbitrary band merges,
   Float32 direction error, cancellation, five-buffer tile transfer, and actual

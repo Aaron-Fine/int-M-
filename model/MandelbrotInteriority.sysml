@@ -672,6 +672,23 @@ package MandelbrotInteriority {
             }
         }
 
+        verification def <'MI-VER-UX-006'> ImageRegressionTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Each semantic view shall have committed goldens for the
+             * default view and two zoomed views, with a documented tolerance
+             * and update procedure. Unit tests hash the colorized frame bytes
+             * of every semantic view (zero tolerance, the gate); browser
+             * screenshots in the pinned Playwright container are advisory.
+             */
+            objective imageRegression {
+                verify UserExperienceRequirements::TruthfulIntermediateResults;
+                verify UserExperienceRequirements::NonColorStateDistinction;
+                verify UserExperienceRequirements::PeriodViewEmphasis;
+                verify UserExperienceRequirements::PaletteAcceptance;
+            }
+        }
+
         verification def <'MI-VER-PERF-001'> BenchmarkAndObservabilityTest {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
