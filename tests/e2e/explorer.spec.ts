@@ -148,6 +148,48 @@ const expectRecolorOf = async (page: Page, originComputeId: number | undefined):
   expect(frame?.colorizeMs).toBeGreaterThanOrEqual(0);
 };
 
+/**
+ * In-flight replay: change the interior view while a coarse frame is the active
+ * computation. The worker replays the retained coarse frame and the same
+ * computation delivers the stable frame. The stable frame can win the race, so
+ * retry (bounded) until a trace opens with an inflight-replay frame. Each attempt
+ * picks a view that differs from the previous one.
+ */
+const findInflightReplayTrace = async (page: Page): Promise<TraceView | undefined> => {
+  const replayViews = ['period', 'stability'] as const;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await page.getByLabel('Interactive Mandelbrot set').press(attempt % 2 === 0 ? '+' : '-');
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'coarse', {
+      timeout: 10_000,
+    });
+    await page.getByLabel('Interior view').selectOption(replayViews[attempt % 2] ?? 'period');
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 10_000,
+    });
+    const replayTrace = (await renderTraces(page)).find(
+      (trace) => trace.frames[0]?.source === 'inflight-replay',
+    );
+    if (replayTrace !== undefined) return replayTrace;
+  }
+  return undefined;
+};
+
+/** The replay trace is one completed request: a coarse replay of the active computation, then its stable frame. */
+const expectInflightReplay = (replayTrace: TraceView | undefined): void => {
+  expect(replayTrace).toBeDefined();
+  const [replayFrame, replayStableFrame] = replayTrace?.frames ?? [];
+  expect(replayTrace?.outcome).toBe('completed');
+  expect(replayFrame?.stage).toBe('coarse');
+  expect(replayFrame?.originComputeId).toBeGreaterThan(0);
+  expect(replayFrame?.originComputeId).toBe(replayTrace?.computeId);
+  expect(replayFrame?.workerWallMs).toBeUndefined();
+  expect(replayFrame?.colorizeMs).toBeGreaterThanOrEqual(0);
+  expect(replayStableFrame?.stage).toBe('stable');
+  expect(replayStableFrame?.source).toBe('computed');
+  expect(replayStableFrame?.originComputeId).toBeUndefined();
+  expect(replayStableFrame?.workerWallMs).toBeGreaterThan(0);
+};
+
 test.describe('Mandelbrot Interiority explorer', () => {
   test('first-use flow: explanations, evidence terms, interior views, and accessibility', async ({
     page,
@@ -569,6 +611,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
 
     await page.getByLabel('Interior view').selectOption('multiplier');
     await expectRecolorOf(page, computedTrace?.computeId);
+
+    const replayTrace = await findInflightReplayTrace(page);
+    expectInflightReplay(replayTrace);
   });
   test('preserves focus and non-color state cues in forced colors', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
