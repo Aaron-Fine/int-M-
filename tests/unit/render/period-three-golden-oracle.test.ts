@@ -20,7 +20,7 @@ import { ddPeriodThreeCycle } from '../domain/dd-oracle';
  * raster is checked against the dd period-3 cycle (no closed form). This is
  * a superset of the pixels the change moved: unresolved -> attracting p3, and
  * attracting p3 with the closed-form multiplier instead of the orbit product
- * (evidence/phase-2/<date>-<commit>-period-three-adjudication/).
+ * (evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/).
  */
 const EXPECTED_ANALYTIC_PIXELS: Readonly<Record<string, number>> = {
   'mi-easy-default-full': 96,
