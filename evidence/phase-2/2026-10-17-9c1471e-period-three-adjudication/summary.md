@@ -5,7 +5,7 @@ Plan §3: a changed answer ships only when the oracle supports it; ADR 0007:
 an intended kernel change regenerates the golden fixture with oracle evidence
 for the changed pixels.
 
-- **Before:** `8c100ed` (kernels without the period-3 path). **After:** `9c1471e`.
+- **Before:** `8c100ed` (kernels without the period-3 path). **After:** `9c1471e` (the after dump was taken at `6854097`, which records `afterCommit` in the JSON files; `src/` and the kernel tools are identical to `9c1471e`: the only difference is `tools/generate_orbit_fixtures.py`, which the classifier does not use).
 - **Raster:** the golden raster, 160×100, every frozen-corpus case at its
   profile (`tools/kernel_pixel_dump.ts`).
 - **Oracle:** `ddPeriodThreeCycle` (`tests/unit/domain/dd-oracle.ts`): a
