@@ -10,11 +10,12 @@ import { ORBIT_EVIDENCE_CODE } from './types';
  *   lambda = 4(c + 2) +- 4i c sqrt(4c + 7).
  *
  * A quadratic polynomial has at most one attracting cycle, so the root of
- * smallest modulus decides. A root with |lambda| < 1 belongs to a cycle of
- * exact period 3: a fixed point that is also a period-3 root has three-step
- * multiplier exactly 1 (proof/IntMProof/PeriodThreeMultiplier.lean). The
- * derivation and the binary64 error budget are in
- * docs/PERFORMANCE-MATHEMATICS.md section 11.
+ * smallest modulus decides. Each root is the multiplier of a 3-cycle (the
+ * resultant identity, derived with sympy, not in Lean). A root with
+ * |lambda| < 1 belongs to a cycle of exact period 3: an attracting Phi_3 root
+ * is not a fixed point (Lean: period3_not_fixed_of_attracting in
+ * proof/IntMProof/PeriodThreeMultiplier.lean). The derivation and the binary64
+ * error budget are in docs/PERFORMANCE-MATHEMATICS.md section 11.
  *
  * Acceptance: |lambda_hat| + allowance < 1 - attractMargin, where the
  * allowance bounds the binary64 error of lambda_hat and of its modulus for
@@ -51,7 +52,7 @@ export const classifyPeriodThreeInto = (
   out: PeriodThreeTarget,
 ): boolean => {
   // w = 4c + 7. 4 * cRe and 4 * cIm are exact; for cRe in [-3.5, -0.875]
-  // (the airplane component) 4 * cRe + 7 is exact as well (Sterbenz).
+  // (which contains the airplane box) 4 * cRe + 7 is exact as well (Sterbenz).
   const wRe = 4 * cRe + 7;
   const wIm = 4 * cIm;
   // s = sqrt(w), principal branch, in the stable form: the larger component

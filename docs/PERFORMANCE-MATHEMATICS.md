@@ -340,7 +340,8 @@ root of Φ₃ the three-step multiplier is exactly 1
 period 3, and it is attracting. A
 quadratic polynomial has at most one attracting cycle, and that cycle attracts
 the critical orbit **[literature: Fatou]**, so this is the cycle the orbit path
-would find, and the larger root belongs to the other, repelling 3-cycle. As for
+would find, and the larger root belongs to the other, repelling 3-cycle **[literature:
+Fatou–Shishikura: at most one non-repelling cycle]**. As for
 the period-2 bulb, no divisor reduction is needed: the only proper divisor,
 period 1, is excluded because its three-step multiplier would be exactly 1.
 
@@ -396,7 +397,8 @@ absorbs every O(u²) term.
 5. **The modulus.** m̂ = |λ̂|(1 + η) with |η| ≤ 2u.
 
 Together: |λ| ≤ m̂ + E with E ≤ u|a| + 6.24u|t| + 3u, using |λ| ≤ 1 at
-acceptance. At acceptance |t| = |a − λ| ≤ |a| + 1, so E ≤ 9.24u + 7.24u|a|,
+acceptance. (The use of |λ| ≤ 1 is not circular: acceptance requires m̂ < 1,
+so |λ̂| < 1 + 2u, and the extra O(u) in |λ| only enters terms of order u².) At acceptance |t| = |a − λ| ≤ |a| + 1, so E ≤ 9.24u + 7.24u|a|,
 and |a| = 4|c + 2| ≤ 4L with L = |Re c + 2| + |Im c|. Hence
 E ≤ 9.24u + 28.96u·L. The code's allowance A = 128u·(L + 1) is at least four
 times this for every L ≥ 0, which also covers the second-order terms, the
@@ -406,7 +408,7 @@ rounding of L itself, and the rounding of the final sum and comparison
 > **Acceptance implies |λ| < 1 − 10⁻¹² for the exact closed-form root at the
 > binary64 parameter c.**
 
-Sizes: in the rabbit box L ≤ 2.81 and A ≤ 4.9·10⁻¹⁴; in the airplane box
+Sizes: in the rabbit box L ≤ 2.816 and A ≤ 5.4·10⁻¹⁴; in the airplane box
 L ≤ 0.26 and A ≤ 1.8·10⁻¹⁴. The worst measured |λ̂ − λ_dd| over the 19,216
 analytic pixels of the golden raster is 3.0·10⁻¹⁵ (ADR 0010).
 
@@ -431,8 +433,8 @@ it exceeds the first-order bound u|a| + 6.24u|t| + 3u by about eight times
 wherever |a| + |t| ≥ 1, which holds in every gate box. It did not name the
 modulus rounding term (its slack covers it), and it needs two extra square
 roots for |a| and |t|. The production allowance is the bound derived above,
-in terms of c alone, and is about 2.3 times smaller in the rabbit box
-(4.9·10⁻¹⁴ against 1.1·10⁻¹³).
+in terms of c alone, and is about 2.4 times smaller in the rabbit box
+(5.4·10⁻¹⁴ against 1.3·10⁻¹³).
 
 **Non-finite and extreme input.** NaN propagates and every comparison with
 NaN is false, so the test refuses. Overflow (|c| ≳ 10¹⁵⁴) gives an infinite or

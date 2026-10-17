@@ -14,17 +14,22 @@ import {
  * Analytic period-3 fast path (ADR 0010). Expected multipliers are mpmath
  * values (50 digits) of the closed form at the binary64 parameter shown,
  * computed for docs/superpowers/plans/2026-10-16-analytic-period-three.md;
- * the boundary points come from the inverse map lambda = r e^{i}, continued
- * from the rabbit centre.
+ * the boundary points come from the inverse map lambda = r e^{i theta}
+ * (theta = 1 rad), continued from the rabbit centre.
  */
 
 const SENTINEL = -7;
 
 const sentinelSample = (): OrbitSample => ({
   ...createOrbitSample(),
-  status: 0,
+  status: SENTINEL as OrbitSample['status'],
+  iterations: SENTINEL,
+  evidence: SENTINEL,
   period: SENTINEL,
+  multiplierRe: SENTINEL,
+  multiplierIm: SENTINEL,
   multiplierMagnitude: SENTINEL,
+  multiplierAngle: SENTINEL,
 });
 
 const accept = (re: number, im: number): OrbitSample => {
@@ -41,8 +46,7 @@ const refuse = (re: number, im: number): void => {
   const sample = sentinelSample();
   expect(classifyPeriodThreeInto(re, im, sample)).toBe(false);
   // A refusal leaves the record untouched.
-  expect(sample.period).toBe(SENTINEL);
-  expect(sample.multiplierMagnitude).toBe(SENTINEL);
+  expect(sample).toEqual(sentinelSample());
 };
 
 describe('classifyPeriodThreeInto', () => {
@@ -95,19 +99,29 @@ describe('classifyPeriodThreeInto', () => {
     expect(Math.abs(sample.multiplierIm - -0.04004509961793429)).toBeLessThan(1e-14);
   });
 
-  it('refuses a period-6 satellite of the rabbit inside the gate box', () => {
-    // On the segment from the rabbit's 1/2 root to the period-6 centre:
-    // |lambda_3| = 1.0246 (repelling), |lambda_6| = 0.9015.
-    const satellite = { re: -0.1155037469844854, im: 0.8402560718860035 };
-    refuse(satellite.re, satellite.im);
-    const result = classifyOrbit(satellite, { maxIterations: 4096, maxPeriod: 8 });
-    expect(result).toMatchObject({ status: 'attracting-cycle', period: 6 });
-    // The period-6 centre itself.
-    refuse(-0.11341865594943658, 0.860569472501573);
-    expect(classifyOrbit({ re: -0.11341865594943658, im: 0.860569472501573 })).toMatchObject({
-      status: 'attracting-cycle',
-      period: 6,
-    });
+  it('pins the rounding allowance: refuses a point only the allowance rejects', () => {
+    // On Re c = -1/8 near the rabbit root: |lambda_hat| = 0.999999999998999 is
+    // below 1 - 1e-12, but |lambda_hat| + A (A = 5.0e-14) is not.
+    refuse(-0.125, 0.6495190528384253);
+  });
+
+  it('pins the rounding allowance: accepts when the modulus plus allowance just fits', () => {
+    // Found by bisection on Re c = -1/8, Im c in [0.6495190528384253, +1e-9]:
+    // the smallest accepted Im c. |lambda_hat| = 0.9999999999989493, and
+    // |lambda_hat| + A = 0.99999999999900 is just below 1 - 1e-12.
+    const sample = accept(-0.125, 0.6495190528384301);
+    expect(Math.abs(sample.multiplierMagnitude - 0.9999999999989493)).toBeLessThan(1e-13);
+  });
+
+  it('refuses the main cardioid, the period-2 bulb and points outside M', () => {
+    refuse(0, 0); // double root lambda = 8
+    refuse(-1, 0); // period-2 bulb
+    refuse(1, 0);
+    refuse(-2.5, 0);
+  });
+
+  it('refuses the rabbit root c = -1/8 + (3 sqrt 3 / 8) i, where lambda = 1', () => {
+    refuse(-0.125, (3 * Math.sqrt(3)) / 8);
   });
 
   it('gives the conjugate parameter the conjugate multiplier, bit for bit', () => {
@@ -138,13 +152,30 @@ describe('classifyPeriodThreeInto', () => {
     }
   });
 
-  it('keeps the classifier honest on NaN and infinite parameters', () => {
-    expect(classifyOrbit({ re: Number.NaN, im: 0 }).status).toBe('unresolved');
-    expect(classifyOrbit({ re: Number.POSITIVE_INFINITY, im: 0 }).status).toBe('escaped');
-  });
-
   it('documents the allowance coefficient (2^-46 = 128 u) and the revision', () => {
     expect(PERIOD_THREE_ALLOWANCE_COEFFICIENT).toBe(128 * 2 ** -53);
     expect(PERIOD_THREE_ANALYTIC_REVISION).toBe('src-analytic-p3-1.0.0');
+  });
+});
+
+describe('orbit path agreement near period-3 refusals', () => {
+  it('refuses a period-6 satellite of the rabbit inside the gate box', () => {
+    // On the segment from the rabbit's 1/2 root to the period-6 centre:
+    // |lambda_3| = 1.0246 (repelling), |lambda_6| = 0.9015.
+    const satellite = { re: -0.1155037469844854, im: 0.8402560718860035 };
+    refuse(satellite.re, satellite.im);
+    const result = classifyOrbit(satellite, { maxIterations: 4096, maxPeriod: 8 });
+    expect(result).toMatchObject({ status: 'attracting-cycle', period: 6 });
+    // The period-6 centre itself.
+    refuse(-0.11341865594943658, 0.860569472501573);
+    expect(classifyOrbit({ re: -0.11341865594943658, im: 0.860569472501573 })).toMatchObject({
+      status: 'attracting-cycle',
+      period: 6,
+    });
+  });
+
+  it('keeps the classifier honest on NaN and infinite parameters', () => {
+    expect(classifyOrbit({ re: Number.NaN, im: 0 }).status).toBe('unresolved');
+    expect(classifyOrbit({ re: Number.POSITIVE_INFINITY, im: 0 }).status).toBe('escaped');
   });
 });
