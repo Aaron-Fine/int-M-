@@ -81,7 +81,8 @@ export const resolveStartupState = (search: string): StartupState => {
 
 /**
  * The address-bar query for `state`: every parameter the schema does not own
- * (for example `perf=1`), in its original order, followed by the v1 fields.
+ * (for example `perf=1`), in original order but re-serialised (`%20` becomes
+ * `+`, a bare `flag` becomes `flag=`), followed by the v1 fields.
  * Returns "" or a string starting with "?", comparable to `location.search`.
  */
 export const addressBarSearch = (currentSearch: string, state: ShareState): string => {

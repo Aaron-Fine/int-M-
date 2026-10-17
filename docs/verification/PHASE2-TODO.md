@@ -179,7 +179,7 @@ what its colour means numerically.
 
 - [x] A short ADR for the URL schema
       ([ADR 0009](../decisions/0009-shareable-url-schema.md)).
-- [x] A pure `encodeState`/`decodeState` module: versioned, exact decimals,
+- [x] A pure `encodeShareState`/`decodeShareState` module: versioned, exact decimals,
       clamped to the zoom bounds, and falling back to the default view with a
       visible notice on a malformed or unknown-version URL; unit tests
       (`src/ui/share-state.ts`, `src/ui/share-link.ts`).
