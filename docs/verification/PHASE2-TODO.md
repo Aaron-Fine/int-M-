@@ -72,6 +72,12 @@ Estimates are engineering days. They are planning figures and may overlap.
   `#BBBBBB` for the rest. The non-hue cue is being chosen from a rendered
   experiment ([cue trials](https://claude.ai/artifact/HonnuCvzVG8wBKYkdk8ESW));
   the experiment recommends a texture per rank plus isolate-on-legend-focus.
+- **Non-hue cue (2026-10-17):** isolate on legend focus only (option E). The
+  owner rejected in-raster textures because they would conflict with the
+  stripes that already carry meaning (the multiplier view). Focusing or
+  hovering a legend entry dims every other period; the legend lists the
+  periods in ascending order with exact numbers, and the point inspector
+  states the exact period.
 - **Workstream H acceptance (2026-10-17):** period 3 is accepted by margin and
   a derived rounding allowance, like periods 1 and 2, without the cycle
   verifier; ADR 0010 records it and `MI-PERF-004` names analytic closed forms.
