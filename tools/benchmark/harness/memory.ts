@@ -49,7 +49,7 @@ export const MEMORY_TABLE_HEADERS: readonly string[] = [
   'Status',
   'High-water',
   'At case',
-  'Samples',
+  'Cases',
   'Basis',
 ];
 
@@ -59,11 +59,18 @@ export const notMeasured = (reason: string): MemoryFigure => ({ status: 'not mea
 export const memoryPassFailure = (error: unknown): MemoryFigure =>
   notMeasured(`memory pass failed: ${error instanceof Error ? error.message : String(error)}`);
 
-/** The maximum valid reading; readings that are not finite non-negative numbers are dropped. */
+/**
+ * The maximum over every case run. A reading that is not a finite
+ * non-negative number counts as a failed case: when any case lacks a valid
+ * reading the figure is "not measured", because a maximum over only some
+ * cases would pass for a complete one. `casesRun` defaults to the readings
+ * given (no case known to be missing).
+ */
 export const summarizeReadings = (
   label: string,
   readings: readonly MemoryReading[],
   emptyReason: string,
+  casesRun: number = readings.length,
 ): MemoryFigure => {
   const valid = readings.filter((reading) => Number.isFinite(reading.bytes) && reading.bytes >= 0);
   let best: MemoryReading | undefined;
@@ -71,6 +78,11 @@ export const summarizeReadings = (
     if (best === undefined || reading.bytes > best.bytes) best = reading;
   }
   if (best === undefined) return notMeasured(emptyReason);
+  if (valid.length < casesRun) {
+    return notMeasured(
+      `only ${valid.length} of ${casesRun} cases produced a valid reading (${emptyReason})`,
+    );
+  }
   return {
     status: 'measured',
     label,
@@ -95,6 +107,17 @@ export const notRecordedMemory = (): EngineMemory => ({
   retained: notMeasured('not recorded in this evidence file'),
 });
 
+const SKIPPED_REASON = 'skipped (--skip-memory)';
+
+/** The memory pass was not run (--skip-memory). */
+export const skippedMemory = (): EngineMemory => ({
+  jsHeap: notMeasured(SKIPPED_REASON),
+  retained: notMeasured(SKIPPED_REASON),
+});
+
+export const isMemorySkipped = (memory: EngineMemory | undefined): boolean =>
+  memory?.jsHeap.status === 'not measured' && memory.jsHeap.reason === SKIPPED_REASON;
+
 export const formatMiB = (bytes: number): string => `${(bytes / (1024 * 1024)).toFixed(1)} MiB`;
 
 const rowOf = (name: string, figure: MemoryFigure): string[] =>
@@ -110,6 +133,6 @@ const rowOf = (name: string, figure: MemoryFigure): string[] =>
     : [name, 'not measured', 'n/a', 'n/a', '0', figure.reason];
 
 export const memoryRows = (memory: EngineMemory): string[][] => [
-  rowOf('JS heap (main thread)', memory.jsHeap),
+  rowOf('JS heap (main thread only, lower bound)', memory.jsHeap),
   rowOf('Retained after stable (all workers)', memory.retained),
 ];

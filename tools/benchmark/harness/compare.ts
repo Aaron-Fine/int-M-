@@ -14,6 +14,22 @@ export interface Compare {
 /** Key of the cross-origin-isolated build in `Session.baseUrls`; not usable as a compare name. */
 const RESERVED_ARM_NAME = 'isolated';
 
+/**
+ * Compare dists take preview ports 4185 + 1 + index, and the isolated build
+ * sits at 4205, so at most 19 fit.
+ */
+export const MAX_COMPARE_DISTS = 19;
+
+/** Throws when more compare dists are given than there are free preview ports. */
+export const assertCompareDistLimit = (compares: readonly Compare[]): void => {
+  const dists = compares.filter((compare) => compare.dist !== undefined).length;
+  if (dists > MAX_COMPARE_DISTS) {
+    throw new Error(
+      `at most ${MAX_COMPARE_DISTS} --compare name=dist:<dir> arms fit the preview ports; got ${dists}`,
+    );
+  }
+};
+
 /** Parses `name=<query>` or `name=dist:<dir>`; a relative dir resolves against `cwd`. */
 export const parseCompare = (spec: string, cwd: string): Compare => {
   const eq = spec.indexOf('=');

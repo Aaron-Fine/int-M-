@@ -9,7 +9,7 @@
  *
  *   node tools/benchmark/run-release.ts [--engines chromium,firefox] [--release]
  *     [--reps N] [--cases id,...] [--compare name=<query>|name=dist:<dir>]...
- *     [--skip-interactions] [--resume] [--out-dir DIR] [--interactions N]
+ *     [--skip-interactions] [--skip-memory] [--resume] [--out-dir DIR] [--interactions N]
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -18,12 +18,19 @@ import process from 'node:process';
 import { parseArgs } from 'node:util';
 import type { Page } from '@playwright/test';
 import { BUDGETS } from './harness/budgets.ts';
-import { parseCompare, type Compare, type CompareDist } from './harness/compare.ts';
+import {
+  assertCompareDistLimit,
+  parseCompare,
+  type Compare,
+  type CompareDist,
+} from './harness/compare.ts';
 import { writeEvidence } from './harness/evidence.ts';
 import {
   MEMORY_TABLE_HEADERS,
+  isMemorySkipped,
   memoryRows,
   notRecordedMemory,
+  skippedMemory,
   type EngineMemory,
 } from './harness/memory.ts';
 import { runMemoryPass } from './harness/passes/memory.ts';
@@ -81,6 +88,7 @@ interface RunContext {
   reps: number;
   interactions: number;
   skipInteractions: boolean;
+  skipMemory: boolean;
   selected: CorpusCase[];
   hardCase: CorpusCase;
   arms: ArmSpec[];
@@ -201,7 +209,9 @@ const runEngine = async (engine: Engine, ctx: RunContext): Promise<EngineRun> =>
       ? undefined
       : await runInteractionPass(session, ctx.interactions);
     const ringBytes = await ringBytesAfterRecolors(session, ctx.hardCase);
-    const memory = await runMemoryPass(session, engine, ctx.selected);
+    const memory = ctx.skipMemory
+      ? skippedMemory()
+      : await runMemoryPass(session, engine, ctx.selected);
     return {
       samples,
       incomplete,
@@ -329,7 +339,9 @@ const interactionSection = (engine: Engine, run: EngineRun): string =>
     : `## ${engine} — interactions\n\n${interactionTable(summarizeInteractions(run.interactionResults))}\n\nHonesty notes: cancel and inflight-replay rows count only samples that won their race; raced samples are reported, not dropped. Violations count every provenance check that failed.`;
 
 const memorySection = (engine: Engine, run: EngineRun): string =>
-  `## ${engine} — memory (MI-PERF-006)\n\n${table(MEMORY_TABLE_HEADERS, memoryRows(run.memory))}\n\nHonesty note: informational, not a gate. A figure is the maximum over one fresh page per case; "not measured" means the engine exposes no honest measurement, and no proxy is substituted. Definitions: evidence/phase-2/README.md, "Memory high-water".`;
+  isMemorySkipped(run.memory)
+    ? `## ${engine} — memory (MI-PERF-006)\n\nSkipped (--skip-memory).`
+    : `## ${engine} — memory (MI-PERF-006)\n\n${table(MEMORY_TABLE_HEADERS, memoryRows(run.memory))}\n\nHonesty note: informational, not a gate. A figure is the maximum over one fresh page per case; "not measured" means no honest figure was obtained, and the reason column says why (unsupported engine, unavailable API, or a failed measurement). No proxy is substituted. Definitions: evidence/phase-2/README.md, "Memory high-water".`;
 
 const compareSection = (engine: Engine, compare: Compare, summaries: CaseSummary[]): string =>
   `## ${engine} — compare ${compare.arm.name}\n\n${table(
@@ -457,6 +469,7 @@ const finishedEngine = (ctx: RunContext, engine: Engine): EngineRun | undefined 
     JSON.stringify(entry['caseIds']) === JSON.stringify(ctx.selected.map((c) => c.id)) &&
     JSON.stringify(entry['arms']) === JSON.stringify(ctx.arms.map((a) => a.name)) &&
     (entry['interactions'] === null) === ctx.skipInteractions &&
+    isMemorySkipped(entry['memory'] as EngineMemory | undefined) === ctx.skipMemory &&
     Array.isArray(entry['incomplete']) &&
     entry['incomplete'].length === 0;
   if (!same) return undefined;
@@ -484,6 +497,7 @@ const parseCli = () =>
       cases: { type: 'string' },
       compare: { type: 'string', multiple: true, default: [] },
       'skip-interactions': { type: 'boolean', default: false },
+      'skip-memory': { type: 'boolean', default: false },
       resume: { type: 'boolean', default: false },
       'out-dir': { type: 'string' },
       interactions: { type: 'string' },
@@ -526,6 +540,7 @@ const buildContext = (values: Cli, engines: Engine[]): RunContext => {
   const hardCase = allCases.find((caseInfo) => caseInfo.id === 'mi-hard-supplied-126x');
   if (hardCase === undefined) die('corpus is missing mi-hard-supplied-126x');
   const compares = values.compare.map((spec) => parseCompare(spec, process.cwd()));
+  assertCompareDistLimit(compares);
   const arms: ArmSpec[] = [
     { name: 'hook', hook: true },
     { name: 'plain', hook: false },
@@ -539,6 +554,7 @@ const buildContext = (values: Cli, engines: Engine[]): RunContext => {
     ? path.resolve(process.cwd(), values['out-dir'])
     : path.join(repoRoot, `evidence/phase-2/${today()}-${commit}-${labelOf(release)}`);
   const skipInteractions = values['skip-interactions'];
+  const skipMemory = values['skip-memory'];
   return {
     release,
     resume: values.resume,
@@ -548,11 +564,15 @@ const buildContext = (values: Cli, engines: Engine[]): RunContext => {
       allCases: values.cases === undefined,
       reps,
       arms: arms.map((arm) => arm.name),
-      skippedPasses: skipInteractions ? ['interactions'] : [],
+      skippedPasses: [
+        ...(skipInteractions ? ['interactions'] : []),
+        ...(skipMemory ? ['memory'] : []),
+      ],
     },
     reps,
     interactions,
     skipInteractions,
+    skipMemory,
     selected,
     hardCase,
     arms,

@@ -291,11 +291,21 @@ export const startSession = async (options: {
     // performance.measureUserAgentSpecificMemory(). The headers are applied
     // to a separate copy of the same build so the timing passes are never
     // served isolated.
+    // A start failure (a busy port, say) leaves `isolated` unset, which the
+    // memory pass records as "not measured"; it must not abort the session.
     if (options.engine === 'chromium') {
-      baseUrls['isolated'] = await serve(repoRoot, ISOLATED_PREVIEW_PORT, undefined, {
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
-      });
+      try {
+        baseUrls['isolated'] = await serve(repoRoot, ISOLATED_PREVIEW_PORT, undefined, {
+          'Cross-Origin-Opener-Policy': 'same-origin',
+          'Cross-Origin-Embedder-Policy': 'require-corp',
+        });
+      } catch (error) {
+        process.stderr.write(
+          `[session] isolated preview server failed to start (${
+            error instanceof Error ? error.message : String(error)
+          }); the retained-memory figure will be not measured\n`,
+        );
+      }
     }
 
     const launched = await launchEvidenceBrowser(

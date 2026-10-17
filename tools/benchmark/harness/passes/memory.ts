@@ -27,6 +27,13 @@ import { waitForStage } from './interactions.ts';
 
 const POLL_MS = 50;
 const STEP_TIMEOUT_MS = 2 * 60_000;
+/**
+ * Per-call bound on performance.measureUserAgentSpecificMemory(). Chrome may
+ * defer the result to the next garbage collection and forces one after about
+ * 20 s, so 30 s allows that plus margin; past it the figure degrades to "not
+ * measured (timed out)" instead of stalling an owner's release session.
+ */
+export const RETAINED_TIMEOUT_MS = 30_000;
 const PLAIN_ARM = { name: 'plain', hook: false } as const;
 
 const log = (message: string): void => {
@@ -78,7 +85,22 @@ const measureJsHeap = async (session: Session, caseInfo: CorpusCase): Promise<Me
 
 type Retained = { readonly bytes: number } | { readonly error: string };
 
-const readRetained = (page: Page): Promise<Retained> =>
+const readRetained = async (page: Page): Promise<Retained> => {
+  let timer: NodeJS.Timeout | undefined;
+  const timedOut = new Promise<Retained>((resolve) => {
+    timer = setTimeout(
+      () => resolve({ error: `timed out after ${RETAINED_TIMEOUT_MS / 1000} s` }),
+      RETAINED_TIMEOUT_MS,
+    );
+  });
+  try {
+    return await Promise.race([readRetainedUnbounded(page), timedOut]);
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+const readRetainedUnbounded = (page: Page): Promise<Retained> =>
   page.evaluate(async (): Promise<Retained> => {
     const scope = globalThis as typeof globalThis & {
       crossOriginIsolated?: boolean;
@@ -128,8 +150,9 @@ export const runMemoryPass = async (
   const heapReadings: MemoryReading[] = [];
   const retainedReadings: MemoryReading[] = [];
   let retainedReason = 'no readings';
-  // A failed case makes that figure "not measured": a maximum over fewer
-  // cases than the corpus would pass for a complete one.
+  // A failed case (a throw, a NaN reading or an error string) makes that
+  // figure "not measured": a maximum over fewer cases than were run would
+  // pass for a complete one.
   let heapFailure: MemoryFigure | undefined;
   let retainedFailure: MemoryFigure | undefined;
   for (const [index, caseInfo] of cases.entries()) {
@@ -152,11 +175,16 @@ export const runMemoryPass = async (
   return {
     jsHeap:
       heapFailure ??
-      summarizeReadings(JS_HEAP_LABEL, heapReadings, 'CDP returned no JSHeapUsedSize'),
+      summarizeReadings(
+        JS_HEAP_LABEL,
+        heapReadings,
+        'CDP returned no JSHeapUsedSize',
+        cases.length,
+      ),
     retained:
       retainedFailure ??
       (retainedReadings.length === 0
         ? notMeasured(`measureUserAgentSpecificMemory: ${retainedReason}`)
-        : summarizeReadings(RETAINED_LABEL, retainedReadings, retainedReason)),
+        : summarizeReadings(RETAINED_LABEL, retainedReadings, retainedReason, cases.length)),
   };
 };

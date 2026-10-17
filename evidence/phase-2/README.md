@@ -106,7 +106,11 @@ and `manifest.sha256` last.
 `summary.md` (section `<engine> — memory (MI-PERF-006)`), in
 `environment.json` and in `raw-observations.json` (key `memory`). The figures
 are informational: they are not gates. Each is the maximum over one fresh page
-per corpus case, and each carries the label of what it measures.
+per corpus case, and each carries the label of what it measures. A figure is
+reported only when every case run produced a valid reading; if any case threw,
+timed out, returned an error or read NaN, the figure is "not measured" (a
+maximum over only some cases would pass for a complete one). The summary's
+`Cases` column counts the cases that contributed, not polls.
 
 | Engine   | Figure     | What it is                                                                                                                                                                                                                                       |
 | -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -120,15 +124,33 @@ even on a cross-origin-isolated page, so `retained` read "not measured" there.
 Whether branded headed Chrome supports it is unverified until the next release
 session. A failure while measuring (a navigation timeout, say) also degrades
 that figure to "not measured" with the error, and does not discard the engine
-run.
+run. Each `retained` call is bounded at 30 s (Chrome may defer the result to
+a garbage collection it forces after about 20 s); past that the figure reads
+"not measured (timed out)".
+
+The pass opens two fresh pages per case (32 for the full corpus). Expected
+added duration: roughly a minute or two headless, from page loads and the
+~50 ms polling. In branded Chrome, if `measureUserAgentSpecificMemory`
+works, each `retained` call may wait for a garbage collection, up to the 30 s
+bound, which is up to about 16 minutes more per session across 32 cases
+(unverified; time one pass before the confirming session). `--skip-memory`
+omits the pass for directional runs; the summary lists `memory` under skipped
+passes and the section reads "Skipped (--skip-memory)". `--release` allows it
+but a session that skips memory records no figure.
 
 When Chromium's `retained` figure is "not measured", the reason is recorded
-(for example, the page was not cross-origin isolated). Evidence written before
-this pass existed reloads under `--resume` as "not recorded in this evidence
-file". A real peak across workers needs per-worker heap sampling or an
-engine-level memory report; neither is available in both engines, so
-`MI-PERF-006` remains partial until an owner-run release session records these
-figures.
+(for example, the page was not cross-origin isolated). A resumed engine's
+evidence is kept as written; an engine recorded before this pass existed has
+no memory section. A real peak across workers needs per-worker heap sampling
+or an engine-level memory report; neither is available in both engines.
+
+**What recording these figures does not establish.** The `jsHeap` figure
+alone does not evidence `MI-PERF-006`: it is main thread only and excludes the
+worker heaps and ArrayBuffer backing stores where the semantic frames live.
+`MI-PERF-006` stays Partial until (b) a measured `retained` figure is recorded
+from branded Chrome, and (c) the owner accepts the permanent Firefox gap
+("not measured") as a documented limitation. A release session that records
+only `jsHeap` does not change its status.
 
 ## Release sessions (`tools/benchmark/run-release.ts`)
 
@@ -146,7 +168,7 @@ Usage:
 ```
 node tools/benchmark/run-release.ts [--engines chromium,firefox] [--release]
   [--reps N] [--cases id,...] [--compare name=<query>|name=dist:<dir>]...
-  [--skip-interactions] [--resume] [--out-dir DIR] [--interactions N]
+  [--skip-interactions] [--skip-memory] [--resume] [--out-dir DIR] [--interactions N]
 ```
 
 `npm run evidence:release` is `--release`; `npm run evidence:smoke` is a

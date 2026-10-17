@@ -7,7 +7,9 @@ import {
   memoryPassFailure,
   memoryRows,
   notMeasured,
+  isMemorySkipped,
   notRecordedMemory,
+  skippedMemory,
   summarizeReadings,
   unsupportedEngineMemory,
 } from '../../../tools/benchmark/harness/memory.ts';
@@ -34,22 +36,34 @@ describe('summarizeReadings', () => {
     });
   });
 
-  it('drops missing, non-finite and negative readings instead of reporting them', () => {
-    const figure = summarizeReadings(
-      RETAINED_LABEL,
-      [
-        { caseId: 'nan', bytes: Number.NaN },
-        { caseId: 'inf', bytes: Number.POSITIVE_INFINITY },
-        { caseId: 'neg', bytes: -5 },
-        { caseId: 'ok', bytes: 7 * MIB },
-      ],
-      'none',
-    );
-    expect(figure).toMatchObject({
+  it('never reports a maximum over only some cases: an invalid reading makes the figure not measured', () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, -5]) {
+      const figure = summarizeReadings(
+        RETAINED_LABEL,
+        [
+          { caseId: 'bad', bytes: bad },
+          { caseId: 'ok', bytes: 7 * MIB },
+        ],
+        'API unavailable',
+      );
+      expect(figure.status).toBe('not measured');
+      expect(figure.status === 'not measured' && figure.reason).toContain('1 of 2 cases');
+      expect(JSON.stringify(figure)).not.toMatch(/highWaterBytes/);
+    }
+  });
+
+  it('treats a case with no reading at all as a failure when the case count is given', () => {
+    const readings = [
+      { caseId: 'a', bytes: 5 * MIB },
+      { caseId: 'b', bytes: 6 * MIB },
+    ];
+    const partial = summarizeReadings(JS_HEAP_LABEL, readings, 'none', 3);
+    expect(partial.status).toBe('not measured');
+    expect(partial.status === 'not measured' && partial.reason).toContain('2 of 3 cases');
+    expect(summarizeReadings(JS_HEAP_LABEL, readings, 'none', 2)).toMatchObject({
       status: 'measured',
-      highWaterBytes: 7 * MIB,
-      atCaseId: 'ok',
-      samples: 1,
+      highWaterBytes: 6 * MIB,
+      samples: 2,
     });
   });
 
@@ -88,6 +102,17 @@ describe('engine defaults', () => {
   });
 });
 
+describe('skipped memory pass', () => {
+  it('is recognizable as skipped and distinct from other not-measured figures', () => {
+    const memory = skippedMemory();
+    expect(memory.jsHeap.status).toBe('not measured');
+    expect(isMemorySkipped(memory)).toBe(true);
+    expect(isMemorySkipped(unsupportedEngineMemory('firefox'))).toBe(false);
+    expect(isMemorySkipped(notRecordedMemory())).toBe(false);
+    expect(isMemorySkipped(undefined)).toBe(false);
+  });
+});
+
 describe('formatMiB and memoryRows', () => {
   it('formats bytes as MiB with one decimal', () => {
     expect(formatMiB(1.5 * MIB)).toBe('1.5 MiB');
@@ -102,7 +127,7 @@ describe('formatMiB and memoryRows', () => {
     expect(rows).toHaveLength(2);
     for (const row of rows) expect(row).toHaveLength(MEMORY_TABLE_HEADERS.length);
     expect(rows[0]).toEqual([
-      'JS heap (main thread)',
+      'JS heap (main thread only, lower bound)',
       'measured',
       '12.0 MiB',
       'hard',

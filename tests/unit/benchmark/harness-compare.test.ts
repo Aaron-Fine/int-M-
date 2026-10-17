@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_COMPARE_DISTS,
+  assertCompareDistLimit,
   assertServes,
   parseCompare,
   servedRoot,
@@ -29,6 +31,24 @@ describe('parseCompare', () => {
   it('rejects the reserved isolated name', () => {
     expect(() => parseCompare('isolated=quality=fast', '/w')).toThrow(/reserved/);
     expect(() => parseCompare('isolated=dist:./d', '/w')).toThrow(/reserved/);
+  });
+});
+
+describe('assertCompareDistLimit', () => {
+  const dist = (index: number) => parseCompare(`d${index}=dist:./d${index}`, '/work');
+
+  it('accepts the 19 dists that fit the preview ports and ignores query arms', () => {
+    const dists = Array.from({ length: MAX_COMPARE_DISTS }, (_, index) => dist(index));
+    expect(() => assertCompareDistLimit(dists)).not.toThrow();
+    const queries = Array.from({ length: 25 }, (_, index) =>
+      parseCompare(`q${index}=a=b`, '/work'),
+    );
+    expect(() => assertCompareDistLimit(queries)).not.toThrow();
+  });
+
+  it('rejects a 20th dist, which would collide with the isolated build port', () => {
+    const dists = Array.from({ length: MAX_COMPARE_DISTS + 1 }, (_, index) => dist(index));
+    expect(() => assertCompareDistLimit(dists)).toThrow(/at most 19/);
   });
 });
 
