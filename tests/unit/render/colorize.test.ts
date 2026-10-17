@@ -321,6 +321,31 @@ describe('period isolation', () => {
     }
   });
 
+  it.each([-1, 0, 1.5, Number.NaN, PACK_PERIOD_MAX + 1])(
+    'treats out-of-range isolated period %s as no isolation',
+    (isolated) => {
+      const renderer = new CpuRenderer();
+      const frame = isolationFrame();
+      const raster = renderer.colorize(frame, 'period', isolated);
+      expect(raster).not.toHaveProperty('isolatedPeriod');
+      expect(raster.rgba).toEqual(renderer.colorize(frame, 'period').rgba);
+      expect(colorizeFrame(frame, 'period', undefined, isolated)).toEqual(
+        colorizeFrame(frame, 'period'),
+      );
+    },
+  );
+
+  it('dims every pixel when the isolated period is absent from the frame', () => {
+    const frame = isolationFrame();
+    const raster = new CpuRenderer().colorize(frame, 'period', 9);
+    const plain = new CpuRenderer().colorize(frame, 'period').rgba;
+    expect(raster.isolatedPeriod).toBe(9);
+    for (let pixel = 0; pixel < plain.length / 4; pixel += 1) {
+      const base = pixelAt(plain, pixel);
+      expect(pixelAt(raster.rgba, pixel)).toEqual(dimColor(base as unknown as Rgba));
+    }
+  });
+
   it('matches the reference on a rendered frame', async () => {
     const renderer = new CpuRenderer();
     const frames: SemanticFrame[] = [];

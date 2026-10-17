@@ -9,7 +9,13 @@ import {
   type Rgba,
   type SemanticView,
 } from '../domain';
-import { PACK_PERIOD_BITS, PACK_STATUS_CODES, unpackPeriod, unpackStatus } from './packed-semantic';
+import {
+  PACK_PERIOD_BITS,
+  PACK_PERIOD_MAX,
+  PACK_STATUS_CODES,
+  unpackPeriod,
+  unpackStatus,
+} from './packed-semantic';
 import type { SemanticFrame } from './renderer';
 
 /**
@@ -193,6 +199,12 @@ const writeUnresolved = (
   writeGray(rgba, offset, alternate ? UNRESOLVED_DARK : UNRESOLVED_LIGHT);
 };
 
+/** The period if it can isolate anything (an integer in [1, PACK_PERIOD_MAX]), else undefined. */
+export const validIsolatedPeriod = (period: number | undefined): number | undefined =>
+  period !== undefined && Number.isInteger(period) && period >= 1 && period <= PACK_PERIOD_MAX
+    ? period
+    : undefined;
+
 /** dimColor of src/domain, in place: the pixel is not of the isolated period. */
 const dimPixel = (rgba: Uint8ClampedArray, offset: number): void => {
   rgba[offset] = dimChannel(rgba[offset] ?? 0);
@@ -219,9 +231,10 @@ export const colorizeFrame = (
   const stride = frame.sampleStride;
   const periodColors = periodColorLookup(periodKey);
   // -1 never matches a packed word: no isolation.
+  const validIsolated = validIsolatedPeriod(isolatedPeriod);
   const isolatedWord =
-    view === 'period' && isolatedPeriod !== undefined
-      ? (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | isolatedPeriod
+    view === 'period' && validIsolated !== undefined
+      ? (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | validIsolated
       : -1;
   // Bands partition the raster rows exactly, so iterating bands in order
   // covers every pixel once.

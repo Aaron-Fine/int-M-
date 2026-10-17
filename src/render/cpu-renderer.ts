@@ -9,7 +9,7 @@ import {
 } from '../domain';
 import { classifyRows } from './classify-rows';
 import { COARSE_BASE_ITERATIONS } from './coarse-budget';
-import { colorizeFrame, periodHistogram } from './colorize';
+import { colorizeFrame, periodHistogram, validIsolatedPeriod } from './colorize';
 import { RenderCancelledError } from './render-cancelled-error';
 import {
   resolveRenderQuality,
@@ -105,7 +105,7 @@ export class CpuRenderer implements Renderer {
     // The period view ranks this frame's own histogram (PLAN §8, Q1), so a
     // recolor of a cached frame reproduces the key without reclassifying.
     const periodKey = view === 'period' ? buildPeriodKey(periodHistogram(frame)) : undefined;
-    const isolated = periodKey === undefined ? undefined : isolatedPeriod;
+    const isolated = periodKey === undefined ? undefined : validIsolatedPeriod(isolatedPeriod);
     const rgba = colorizeFrame(frame, view, periodKey, isolated);
     return {
       stage: frame.stage,
