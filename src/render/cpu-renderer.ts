@@ -1,4 +1,5 @@
 import {
+  buildPeriodKey,
   classifyOrbit,
   validateRasterSize,
   type Complex,
@@ -8,7 +9,7 @@ import {
 } from '../domain';
 import { classifyRows } from './classify-rows';
 import { COARSE_BASE_ITERATIONS } from './coarse-budget';
-import { colorizeFrame } from './colorize';
+import { colorizeFrame, periodHistogram } from './colorize';
 import { RenderCancelledError } from './render-cancelled-error';
 import {
   resolveRenderQuality,
@@ -101,12 +102,16 @@ export class CpuRenderer implements Renderer {
   }
 
   public colorize(frame: SemanticFrame, view: SemanticView): RasterFrame {
-    const rgba = colorizeFrame(frame, view);
+    // The period view ranks this frame's own histogram (PLAN §8, Q1), so a
+    // recolor of a cached frame reproduces the key without reclassifying.
+    const periodKey = view === 'period' ? buildPeriodKey(periodHistogram(frame)) : undefined;
+    const rgba = colorizeFrame(frame, view, periodKey);
     return {
       stage: frame.stage,
       size: frame.size,
       rgba,
       progress: frame.progress,
+      ...(periodKey === undefined ? {} : { periodKey }),
     };
   }
 }

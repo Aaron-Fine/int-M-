@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildPeriodKey,
   colorForAttracting,
   colorForEscaped,
   colorForOrbit,
   modulateForMultiplierAngle,
+  OTHER_PERIODS_COLOR,
+  PERIOD_EMPHASIS_PALETTE,
   type OrbitResult,
   type SemanticView,
 } from '../../../src/domain';
@@ -83,6 +86,20 @@ describe('semantic coloring', () => {
       };
       expect(colorForEscaped(escaped.smoothIteration, view)).toEqual(colorForOrbit(escaped, view));
     }
+  });
+
+  it('colours the period view from the period key, neutral without one', () => {
+    const key = buildPeriodKey(
+      new Map([
+        [3, 10],
+        [1, 40],
+      ]),
+    );
+
+    expect(colorForOrbit(attracting, 'period', key)).toEqual(PERIOD_EMPHASIS_PALETTE[1]);
+    expect(colorForAttracting(1, 0.5, 0, 'period', key)).toEqual(PERIOD_EMPHASIS_PALETTE[0]);
+    expect(colorForAttracting(2, 0.5, 0, 'period', key)).toEqual(OTHER_PERIODS_COLOR);
+    expect(colorForOrbit(attracting, 'period')).toEqual(OTHER_PERIODS_COLOR);
   });
 
   it('modulates multiplier-view lightness along the argument direction', () => {

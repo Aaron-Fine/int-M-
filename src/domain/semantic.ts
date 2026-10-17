@@ -1,3 +1,4 @@
+import { colorForPeriod, EMPTY_PERIOD_KEY, type PeriodKey } from './period-emphasis';
 import type { OrbitResult, SemanticView } from './types';
 
 export type Rgba = readonly [red: number, green: number, blue: number, alpha: number];
@@ -29,9 +30,26 @@ const hslToRgba = (hue: number, saturation: number, lightness: number): Rgba => 
   ];
 };
 
-const escapeBand = (smoothIteration: number): number => (((smoothIteration * 0.037) % 1) + 1) % 1;
+/** Escaped shading cycles once every 1 / ESCAPE_BAND_RATE smooth iterations (about 27). */
+export const ESCAPE_BAND_RATE = 0.037;
+
+const escapeBand = (smoothIteration: number): number =>
+  (((smoothIteration * ESCAPE_BAND_RATE) % 1) + 1) % 1;
 
 export const colorForUnresolved = (): Rgba => [96, 96, 96, 255];
+
+/** The unresolved checker texture offsets the unresolved gray by this in alternate cells. */
+export const UNRESOLVED_TEXTURE_OFFSET = 12;
+
+/** The two cells of the unresolved checker texture: [darker, lighter]. */
+export const unresolvedTextureColors = (): readonly [Rgba, Rgba] => {
+  const [red, green, blue, alpha] = colorForUnresolved();
+  const offset = UNRESOLVED_TEXTURE_OFFSET;
+  return [
+    [red - offset, green - offset, blue - offset, alpha],
+    [red + offset, green + offset, blue + offset, alpha],
+  ];
+};
 
 export const colorForEscaped = (smoothIteration: number, view: SemanticView): Rgba => {
   const band = escapeBand(smoothIteration);
@@ -42,15 +60,20 @@ export const colorForEscaped = (smoothIteration: number, view: SemanticView): Rg
   return hslToRgba(210 + 35 * band, 0.55, 0.12 + 0.16 * band);
 };
 
+/**
+ * Attracting-cycle colour. The period view colours by the frame's period key
+ * (period-emphasis.ts); without one every period is the neutral "other".
+ */
 export const colorForAttracting = (
   period: number,
   multiplierMagnitude: number,
   multiplierAngle: number,
   view: SemanticView,
+  periodKey: PeriodKey = EMPTY_PERIOD_KEY,
 ): Rgba => {
   switch (view) {
     case 'period':
-      return hslToRgba((period * 137.508) % 360, 0.72, 0.54);
+      return colorForPeriod(period, periodKey);
     case 'multiplier':
       return hslToRgba(
         ((multiplierAngle / (2 * Math.PI)) * 360 + 360) % 360,
@@ -103,7 +126,11 @@ export const modulateForMultiplierDirection = (
   ];
 };
 
-export const colorForOrbit = (result: OrbitResult, view: SemanticView): Rgba => {
+export const colorForOrbit = (
+  result: OrbitResult,
+  view: SemanticView,
+  periodKey: PeriodKey = EMPTY_PERIOD_KEY,
+): Rgba => {
   if (result.status === 'unresolved') {
     return colorForUnresolved();
   }
@@ -115,5 +142,6 @@ export const colorForOrbit = (result: OrbitResult, view: SemanticView): Rgba => 
     result.multiplierMagnitude,
     result.multiplierAngle,
     view,
+    periodKey,
   );
 };

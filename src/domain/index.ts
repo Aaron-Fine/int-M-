@@ -52,7 +52,10 @@ export {
   colorForEscaped,
   colorForOrbit,
   colorForUnresolved,
+  ESCAPE_BAND_RATE,
   modulateForMultiplierAngle,
+  UNRESOLVED_TEXTURE_OFFSET,
+  unresolvedTextureColors,
 } from './semantic';
 export type { Rgba } from './semantic';
 export type {

@@ -1,16 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildPeriodKey,
   colorForAttracting,
   colorForEscaped,
   colorForUnresolved,
+  EMPTY_PERIOD_KEY,
   modulateForMultiplierAngle,
+  OTHER_PERIODS_COLOR,
+  PERIOD_EMPHASIS_PALETTE,
+  type PeriodKey,
   type Rgba,
   type SemanticView,
 } from '../../../src/domain';
 import { CpuRenderer, type SemanticFrame } from '../../../src/render';
-import { colorizeFrame } from '../../../src/render/colorize';
-import { packStatusPeriod, unpackPeriod, unpackStatus } from '../../../src/render/packed-semantic';
+import { colorizeFrame, periodHistogram } from '../../../src/render/colorize';
+import {
+  PACK_PERIOD_MAX,
+  packStatusPeriod,
+  unpackPeriod,
+  unpackStatus,
+} from '../../../src/render/packed-semantic';
 
 /**
  * Reference: the per-pixel tuple colorizer that colorizeFrame replaced
@@ -25,10 +35,11 @@ const referencePixel = (
   y: number,
   stride: number,
   view: SemanticView,
+  periodKey: PeriodKey,
 ): Rgba => {
   if (status === 1) return colorForEscaped(smooth, view);
   if (status === 2) {
-    const color = colorForAttracting(period, smooth, angle, view);
+    const color = colorForAttracting(period, smooth, angle, view, periodKey);
     return view === 'multiplier' ? modulateForMultiplierAngle(color, x, y, angle) : color;
   }
   const color = colorForUnresolved();
@@ -37,9 +48,24 @@ const referencePixel = (
   return [color[0] + offset, color[1] + offset, color[2] + offset, color[3]];
 };
 
+/** Reference histogram: one map update per attracting pixel. */
+const referenceHistogram = (frame: SemanticFrame): Map<number, number> => {
+  const counts = new Map<number, number>();
+  for (const band of frame.bands) {
+    for (const word of band.packedStatusPeriod) {
+      if (unpackStatus(word) !== 2) continue;
+      const period = unpackPeriod(word);
+      counts.set(period, (counts.get(period) ?? 0) + 1);
+    }
+  }
+  return counts;
+};
+
 const referenceColorize = (frame: SemanticFrame, view: SemanticView): Uint8ClampedArray => {
   const { width } = frame.size;
   const rgba = new Uint8ClampedArray(width * frame.size.height * 4);
+  const periodKey =
+    view === 'period' ? buildPeriodKey(referenceHistogram(frame)) : EMPTY_PERIOD_KEY;
   for (const band of frame.bands) {
     for (let index = 0; index < band.packedStatusPeriod.length; index += 1) {
       const word = band.packedStatusPeriod[index] ?? 0;
@@ -54,6 +80,7 @@ const referenceColorize = (frame: SemanticFrame, view: SemanticView): Uint8Clamp
         y,
         frame.sampleStride,
         view,
+        periodKey,
       );
       rgba.set(color, (y * width + x) * 4);
     }
@@ -85,6 +112,7 @@ describe('colorizeFrame', () => {
         },
       );
       for (const frame of frames) {
+        expect(periodHistogram(frame)).toEqual(referenceHistogram(frame));
         for (const view of views) {
           expect(colorizeFrame(frame, view)).toEqual(referenceColorize(frame, view));
           compared += 1;
@@ -92,7 +120,7 @@ describe('colorizeFrame', () => {
       }
     }
     expect(compared).toBe(18);
-  });
+  }, 30_000);
 
   it('matches on synthetic extremes of every channel', () => {
     const width = 64;
@@ -141,9 +169,97 @@ describe('colorizeFrame', () => {
         ],
         progress: 1,
       } as unknown as SemanticFrame;
+      expect(periodHistogram(frame)).toEqual(referenceHistogram(frame));
       for (const view of ['stability', 'multiplier', 'period'] as const) {
         expect(colorizeFrame(frame, view)).toEqual(referenceColorize(frame, view));
       }
     }
+  });
+});
+
+/** A one-band stable frame from per-pixel [status, period] pairs. */
+const syntheticFrame = (
+  width: number,
+  pixels: readonly (readonly [0 | 1 | 2, number])[],
+): SemanticFrame => {
+  const length = pixels.length;
+  const packed = new Uint32Array(length);
+  pixels.forEach(([status, period], index) => {
+    packed[index] = packStatusPeriod(status, status === 2 ? period : 0);
+  });
+  return {
+    stage: 'stable',
+    size: { width, height: length / width },
+    sampleStride: 1,
+    bands: [
+      {
+        y0: 0,
+        y1: length / width,
+        packedStatusPeriod: packed,
+        smoothIterationOrMultiplierMagnitude: new Float64Array(length).fill(0.5),
+        multiplierAngle: new Float64Array(length),
+      },
+    ],
+    progress: 1,
+  };
+};
+
+const pixelAt = (rgba: Uint8ClampedArray, index: number): readonly number[] => [
+  ...rgba.slice(index * 4, index * 4 + 4),
+];
+
+describe('period view emphasis', () => {
+  it('colours the five largest periods in ascending order and every other period neutral', () => {
+    // Areas: p1 6, p2 5, p3 4, p4 3, p5 2, p6 1, p7 1 pixels; then 2 escaped.
+    const layout: (readonly [0 | 1 | 2, number])[] = [
+      ...[1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 7].map(
+        (period) => [2, period] as const,
+      ),
+      [1, 0],
+      [1, 0],
+    ];
+    const frame = syntheticFrame(4, layout);
+    const raster = new CpuRenderer().colorize(frame, 'period');
+
+    expect(raster.periodKey?.emphasized.map((entry) => entry.period)).toEqual([1, 2, 3, 4, 5]);
+    expect(raster.periodKey?.otherPeriodCount).toBe(2);
+    expect(pixelAt(raster.rgba, 0)).toEqual(PERIOD_EMPHASIS_PALETTE[0]);
+    expect(pixelAt(raster.rgba, 6)).toEqual(PERIOD_EMPHASIS_PALETTE[1]);
+    expect(pixelAt(raster.rgba, 19)).toEqual(PERIOD_EMPHASIS_PALETTE[4]);
+    expect(pixelAt(raster.rgba, 20)).toEqual(OTHER_PERIODS_COLOR);
+    expect(pixelAt(raster.rgba, 21)).toEqual(OTHER_PERIODS_COLOR);
+  });
+
+  it('reports no key outside the period view', () => {
+    const frame = syntheticFrame(2, [
+      [2, 1],
+      [2, 2],
+    ]);
+    const renderer = new CpuRenderer();
+
+    expect(renderer.colorize(frame, 'stability')).not.toHaveProperty('periodKey');
+    expect(renderer.colorize(frame, 'multiplier')).not.toHaveProperty('periodKey');
+  });
+
+  it('reports an empty key for a frame with no attracting-cycle pixels', () => {
+    const frame = syntheticFrame(2, [
+      [1, 0],
+      [0, 0],
+    ]);
+
+    expect(new CpuRenderer().colorize(frame, 'period').periodKey).toEqual(EMPTY_PERIOD_KEY);
+  });
+
+  it('colours a period beyond the classifier ceiling from the palette', () => {
+    const frame = syntheticFrame(2, [
+      [2, PACK_PERIOD_MAX],
+      [2, PACK_PERIOD_MAX],
+    ]);
+    const raster = new CpuRenderer().colorize(frame, 'period');
+
+    expect(raster.periodKey?.emphasized).toEqual([
+      { period: PACK_PERIOD_MAX, color: PERIOD_EMPHASIS_PALETTE[0], pixelCount: 2 },
+    ]);
+    expect(pixelAt(raster.rgba, 1)).toEqual(PERIOD_EMPHASIS_PALETTE[0]);
   });
 });

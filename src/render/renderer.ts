@@ -1,6 +1,7 @@
 import type {
   Complex,
   OrbitResult,
+  PeriodKey,
   RasterSize,
   RenderQuality,
   SemanticView,
@@ -38,6 +39,8 @@ export interface RasterFrame {
   /** Complete row-major RGBA raster, including for the coarse preview. */
   readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   readonly progress: number;
+  /** Period view only: the period-to-color mapping this raster was drawn with. */
+  readonly periodKey?: PeriodKey;
 }
 
 export interface DynamicsRenderRequest {
