@@ -5,7 +5,16 @@
  * (color-science.ts). Floors come from the Phase 1 palette, whose CVD matrix
  * passed reviewer sign-off (evidence/phase-1/cvd-4fd4fdd-2026-08-29.md).
  */
-import type { SemanticView } from '../../../src/domain';
+import {
+  colorForAttracting,
+  ESCAPE_BAND_RATE,
+  type Rgba,
+  type SemanticView,
+} from '../../../src/domain';
+import { modulateForMultiplierDirection } from '../../../src/domain/semantic';
+import type { SemanticFrame } from '../../../src/render';
+import { colorizeFrame } from '../../../src/render/colorize';
+import { packStatusPeriod } from '../../../src/render/packed-semantic';
 import { deltaE, type Rgb, type Vision, VISIONS } from './color-science';
 
 export const METRIC_NAMES = [
@@ -180,3 +189,97 @@ export const hexToRgb = (hex: string): Rgb => [
   Number.parseInt(hex.slice(3, 5), 16),
   Number.parseInt(hex.slice(5, 7), 16),
 ];
+
+// --- Shipped palette (colorize.ts output) -------------------------------------
+
+type Pixel = readonly [status: 0 | 1 | 2, period: number, primary: number];
+
+/** Colorizes one row of pixels in `view` and returns each pixel's RGB. */
+const colorizedRow = (pixels: readonly Pixel[], view: SemanticView): Rgb[] => {
+  const width = pixels.length;
+  const frame: SemanticFrame = {
+    stage: 'stable',
+    size: { width, height: 1 },
+    sampleStride: 1,
+    bands: [
+      {
+        y0: 0,
+        y1: 1,
+        packedStatusPeriod: Uint32Array.from(pixels, ([status, period]) =>
+          packStatusPeriod(status, period),
+        ),
+        smoothIterationOrMultiplierMagnitude: Float64Array.from(pixels, (pixel) => pixel[2]),
+        multiplierAngle: new Float64Array(width),
+      },
+    ],
+    progress: 1,
+  };
+  const rgba = colorizeFrame(frame, view);
+  return pixels.map((_, index) => [
+    rgba[index * 4] ?? 0,
+    rgba[index * 4 + 1] ?? 0,
+    rgba[index * 4 + 2] ?? 0,
+  ]);
+};
+
+const shippedEscaped = (view: SemanticView): readonly Rgb[] =>
+  colorizedRow(
+    bands().map((band): Pixel => [1, 0, band / ESCAPE_BAND_RATE]),
+    view,
+  );
+
+/** Cells 0–3 and 4–7 of a stable unresolved row are the two checker cells. */
+const shippedUnresolvedCells = (): readonly [Rgb, Rgb] => {
+  const row = colorizedRow(
+    Array.from({ length: 8 }, (): Pixel => [0, 0, 0]),
+    'period',
+  );
+  return [row[0] ?? [0, 0, 0], row[4] ?? [0, 0, 0]];
+};
+
+/**
+ * Periods 1–6 with areas 6, 5, 4, 3, 2 and 1 pixels: periods 1–5 take the
+ * five palette colours and period 6 the neutral.
+ */
+const shippedPeriodClasses = (): readonly Rgb[] => {
+  const pixels: Pixel[] = [];
+  for (let period = 1; period <= 6; period += 1) {
+    for (let count = 0; count < 7 - period; count += 1) pixels.push([2, period, 0.5]);
+  }
+  const row = colorizedRow(pixels, 'period');
+  return [0, 6, 11, 15, 18, 20].map((index) => row[index] ?? [0, 0, 0]);
+};
+
+/**
+ * Light and dark stripe of each multiplier sample. Stripe phase depends on
+ * pixel position and angle, so these come from the domain functions the
+ * colorizer is byte-pinned to (tests/unit/render/colorize.test.ts).
+ */
+const shippedStripePairs = (): readonly (readonly [Rgb, Rgb])[] => {
+  const toRgb = (color: Rgba): Rgb => [color[0], color[1], color[2]];
+  const pairs: (readonly [Rgb, Rgb])[] = [];
+  for (let step = 0; step < MULTIPLIER_ANGLE_STEPS; step += 1) {
+    const angle = (2 * Math.PI * step) / MULTIPLIER_ANGLE_STEPS;
+    for (let m = 0; m <= MULTIPLIER_MAGNITUDE_STEPS; m += 1) {
+      const base = colorForAttracting(1, m / MULTIPLIER_MAGNITUDE_STEPS, angle, 'multiplier');
+      // Along the unit direction (1, 0): sin(0.45) > 0 lightens, sin(3.6) < 0 darkens.
+      pairs.push([
+        toRgb(modulateForMultiplierDirection(base, 1, 0, 1, 0)),
+        toRgb(modulateForMultiplierDirection(base, 8, 0, 1, 0)),
+      ]);
+    }
+  }
+  return pairs;
+};
+
+/** The palette the colorizer ships, sampled from colorizeFrame output. */
+export const shippedPaletteSpec = (): PaletteSpec => ({
+  escaped: {
+    stability: shippedEscaped('stability'),
+    multiplier: shippedEscaped('multiplier'),
+    period: shippedEscaped('period'),
+  },
+  unresolvedCells: shippedUnresolvedCells(),
+  multiplierStripePairs: shippedStripePairs(),
+  periodClasses: shippedPeriodClasses(),
+});

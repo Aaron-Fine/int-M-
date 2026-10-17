@@ -16,7 +16,12 @@ import {
   PERIOD_PALETTE_CANDIDATES,
   SELECTED_PERIOD_PALETTE_ID,
 } from '../tests/unit/palette/palette-candidates';
-import { PALETTE_FLOORS, PHASE1_FLOORS } from '../tests/unit/palette/palette-floors';
+import { TEXT_OVERLAYS, worstOverlayContrast } from '../tests/unit/palette/overlay-contrast';
+import {
+  LABEL_CONTRAST_FLOOR,
+  PALETTE_FLOORS,
+  PHASE1_FLOORS,
+} from '../tests/unit/palette/palette-floors';
 import {
   ESCAPE_BAND_SAMPLES,
   measurePalette,
@@ -24,6 +29,7 @@ import {
   MULTIPLIER_ANGLE_STEPS,
   MULTIPLIER_MAGNITUDE_STEPS,
   phase1PaletteSpec,
+  shippedPaletteSpec,
   type PaletteSpec,
 } from '../tests/unit/palette/palette-metrics';
 
@@ -49,6 +55,11 @@ const palettes = (): readonly PaletteEntry[] => [
     }`,
     spec: phase1PaletteSpec(candidateClasses(candidate)),
   })),
+  {
+    id: 'shipped',
+    description: 'colorize.ts output: period classes are the five emphasized colours, then other',
+    spec: shippedPaletteSpec(),
+  },
 ];
 
 const record = (commit: string) => ({
@@ -68,6 +79,15 @@ const record = (commit: string) => ({
   environment: { node: process.version, commit },
   phase1Floors: PHASE1_FLOORS,
   floors: PALETTE_FLOORS,
+  textOverRaster: TEXT_OVERLAYS.map((selector) => {
+    const worst = worstOverlayContrast(selector);
+    return {
+      selector,
+      worstContrast: Number(worst.toFixed(2)),
+      floor: LABEL_CONTRAST_FLOOR,
+      pass: worst >= LABEL_CONTRAST_FLOOR,
+    };
+  }),
   palettes: palettes().map((palette) => ({
     id: palette.id,
     description: palette.description,
@@ -115,6 +135,15 @@ const summary = (data: PaletteRecord): string => {
     '## Palettes',
     '',
     ...classes,
+    '',
+    '## Text over the raster',
+    '',
+    `Worst WCAG contrast of each overlay over every shipped raster colour and white (floor ${LABEL_CONTRAST_FLOOR}:1):`,
+    '',
+    ...data.textOverRaster.map(
+      (overlay) =>
+        `- \`${overlay.selector}\`: ${overlay.worstContrast.toFixed(2)}:1${overlay.pass ? '' : ' ✗'}`,
+    ),
     '',
   ].join('\n');
 };
