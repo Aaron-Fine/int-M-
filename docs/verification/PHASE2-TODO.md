@@ -96,6 +96,11 @@ Estimates are engineering days. They are planning figures and may overlap.
       `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
       exterior ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
       Correct the rationale text only; the frozen view parameters stay. 0.5.
+- [ ] **Catalog marker target size at 320 px.** axe reports a `target-size`
+      violation on catalog markers at 320 px width (for example the button
+      "Airplane, period 3"), found while planning item 3. Enlarge the hit
+      target without changing the drawn marker, and add axe to the 320 px
+      reflow test. 0.5–1.
 - [ ] **E2E in-flight replay.** Assert an `inflight-replay` frame naming the
       active computation in the browser provenance test (final-review M6). 0.5.
 
