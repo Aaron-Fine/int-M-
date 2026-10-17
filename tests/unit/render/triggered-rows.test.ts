@@ -94,6 +94,49 @@ const compareRow = (
   return mismatches;
 };
 
+const compareOneRow = (
+  kernel: TriggeredRowKernel,
+  scalar: OrbitClassifier,
+  sample: ReturnType<typeof createOrbitSample>,
+  columns: Float64Array,
+  cIm: number,
+): { mismatches: number; period3: number } => {
+  const width = columns.length;
+  const packed = new Uint32Array(width);
+  const primary = new Float64Array(width);
+  const angle = new Float64Array(width);
+  kernel.classifyRow(
+    columns,
+    cIm,
+    width,
+    {
+      packedStatusPeriod: packed,
+      smoothIterationOrMultiplierMagnitude: primary,
+      multiplierAngle: angle,
+    },
+    0,
+  );
+  let mismatches = 0;
+  let period3 = 0;
+  for (let x = 0; x < width; x += 1) {
+    scalar.classifyInto(columns[x] ?? Number.NaN, cIm, sample);
+    const status = sample.status;
+    const word = packStatusPeriod(status, status === 2 ? sample.period : 0);
+    const expectedPrimary =
+      status === 1 ? sample.smoothIteration : status === 2 ? sample.multiplierMagnitude : 0;
+    const expectedAngle = status === 2 ? sample.multiplierAngle : 0;
+    if (status === 2 && sample.period === 3) period3 += 1;
+    if (
+      packed[x] !== word ||
+      !Object.is(primary[x], expectedPrimary) ||
+      !Object.is(angle[x], expectedAngle)
+    ) {
+      mismatches += 1;
+    }
+  }
+  return { mismatches, period3 };
+};
+
 describe('TriggeredRowKernel', () => {
   it('matches the scalar triggered kernel bit for bit across views and options', () => {
     for (const view of VIEWS) {
@@ -128,7 +171,6 @@ describe('TriggeredRowKernel', () => {
       columnSet.add((box.reMin + box.reMax) / 2);
     }
     const columns = Float64Array.from(columnSet);
-    const width = columns.length;
     for (const options of [
       { maxIterations: 512, maxPeriod: 32 },
       { maxIterations: 100, maxPeriod: 7, cycleWarmup: 0 },
@@ -140,36 +182,9 @@ describe('TriggeredRowKernel', () => {
       let mismatches = 0;
       let accepted = 0;
       for (const cIm of rows) {
-        const packed = new Uint32Array(width);
-        const primary = new Float64Array(width);
-        const angle = new Float64Array(width);
-        kernel.classifyRow(
-          columns,
-          cIm,
-          width,
-          {
-            packedStatusPeriod: packed,
-            smoothIterationOrMultiplierMagnitude: primary,
-            multiplierAngle: angle,
-          },
-          0,
-        );
-        for (let x = 0; x < width; x += 1) {
-          scalar.classifyInto(columns[x] ?? Number.NaN, cIm, sample);
-          const status = sample.status;
-          const word = packStatusPeriod(status, status === 2 ? sample.period : 0);
-          const expectedPrimary =
-            status === 1 ? sample.smoothIteration : status === 2 ? sample.multiplierMagnitude : 0;
-          const expectedAngle = status === 2 ? sample.multiplierAngle : 0;
-          if (status === 2 && sample.period === 3) accepted += 1;
-          if (
-            packed[x] !== word ||
-            !Object.is(primary[x], expectedPrimary) ||
-            !Object.is(angle[x], expectedAngle)
-          ) {
-            mismatches += 1;
-          }
-        }
+        const result = compareOneRow(kernel, scalar, sample, columns, cIm);
+        mismatches += result.mismatches;
+        accepted += result.period3;
       }
       expect(mismatches).toBe(0);
       if (options.maxIterations === 512) expect(accepted).toBeGreaterThan(0);
