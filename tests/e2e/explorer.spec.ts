@@ -807,6 +807,63 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.locator('.catalog-marker[aria-current="true"]')).toHaveCount(1);
   });
 
+  test('tabs through catalog markers in catalog order, lowest periods first (ADR 0012)', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(page.locator('.catalog-marker')).toHaveCount(11);
+    await page.getByLabel('Interactive Mandelbrot set').focus();
+    const names: string[] = [];
+    for (let step = 0; step < 11; step += 1) {
+      await page.keyboard.press('Tab');
+      names.push(
+        await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? ''),
+      );
+    }
+    expect(names).toEqual([
+      'Inspect Main cardioid, period 1',
+      'Inspect Period-2 bulb, period 2',
+      'Inspect Douady rabbit, period 3',
+      'Inspect Airplane, period 3',
+      'Inspect Co-rabbit, period 3',
+      'Inspect Period-4 component 6, period 4',
+      'Inspect Period-4 component 4, period 4',
+      'Inspect Period-4 component 2, period 4',
+      'Inspect Period-4 component 1, period 4',
+      'Inspect Period-4 component 3, period 4',
+      'Inspect Period-4 component 5, period 4',
+    ]);
+  });
+
+  test('keeps catalog marker hit boxes apart at 320 px (MI-PERF-008)', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    const boxes = await page.locator('.catalog-marker').evaluateAll((markers) =>
+      markers.map((marker) => {
+        const { left, top, right, bottom, width } = marker.getBoundingClientRect();
+        return { left, top, right, bottom, width };
+      }),
+    );
+    expect(boxes.length).toBeGreaterThan(0);
+    expect(boxes.length).toBeLessThanOrEqual(40);
+    for (const [index, a] of boxes.entries()) {
+      expect(a.width).toBeGreaterThanOrEqual(24);
+      for (const b of boxes.slice(index + 1)) {
+        const apart =
+          a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+        expect(apart, `marker boxes ${JSON.stringify([a, b])} overlap`).toBe(true);
+      }
+    }
+  });
+
   test('Reset clears the selection from the evidence, the marker, and the address bar', async ({
     page,
   }) => {

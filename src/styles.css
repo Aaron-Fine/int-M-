@@ -783,6 +783,36 @@ button:disabled {
   left: auto;
 }
 
+/* The density policy (src/ui/marker-density.ts) marks a marker compact when its 44px box would
+   overlap a neighbour's: the box shrinks to the 24px dot, so hit boxes never overlap. The dot and
+   the label (1.475rem from the centre) stay where they were. */
+.catalog-marker--compact {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.catalog-marker--compact .catalog-marker__dot {
+  inset: 0;
+}
+
+.catalog-marker--period-4.catalog-marker--compact {
+  --p4-hit: 1.5rem;
+}
+
+.catalog-marker--compact .catalog-marker__label {
+  left: 2.225rem;
+}
+
+.catalog-marker--compact.catalog-marker--left-facing .catalog-marker__label {
+  right: 2.225rem;
+  left: auto;
+}
+
+/* The policy hides a label that would cover another label or marker; hover and focus show it. */
+.catalog-marker--label-hidden:not(:hover, :focus-visible) .catalog-marker__label {
+  display: none;
+}
+
 .side-panel {
   display: grid;
   gap: 1rem;

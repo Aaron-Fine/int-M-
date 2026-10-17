@@ -17,8 +17,10 @@ import {
   findCatalogComponent,
   type CatalogComponent,
 } from '../catalog/components';
+import { createCatalogIndex } from '../catalog/viewport-index';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
+import { planMarkers } from './marker-density';
 import { createSemanticLegend } from './semantic-legend';
 import {
   addressBarSearch,
@@ -924,8 +926,10 @@ export function mountApplication(host: HTMLElement): () => void {
     }
   }
 
-  /** One live button per visible catalog component, keyed by catalog id. */
+  /** One live button per shown catalog component, keyed by catalog id. */
   const catalogMarkers = new Map<string, HTMLButtonElement>();
+  /** Built once: the density policy queries it on every frame (ADR 0012). */
+  const catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
 
   function createCatalogMarker(component: CatalogComponent): HTMLButtonElement {
     const marker = button('', {
@@ -954,11 +958,18 @@ export function mountApplication(host: HTMLElement): () => void {
     return marker;
   }
 
+  /** CSS pixels per rem: marker and label sizes are set in rem (styles.css). */
+  function remPx(): number {
+    return Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  }
+
   /**
-   * Moves the existing buttons instead of rebuilding them on every frame. A
-   * rebuilt button drops keyboard focus and vanishes under a pointer or a
-   * test between two reads. Stale buttons are removed first so the survivors
-   * keep their order and never move (moving a focused node blurs it).
+   * Shows the markers the density policy chooses (src/ui/marker-density.ts):
+   * at most 40, lowest periods first, in catalog order. Moves the existing
+   * buttons instead of rebuilding them on every frame. A rebuilt button drops
+   * keyboard focus and vanishes under a pointer or a test between two reads.
+   * Stale buttons are removed first so the survivors keep their order and
+   * never move (moving a focused node blurs it).
    */
   function updateCatalogOverlay(): void {
     if (!state.catalogVisible) {
@@ -966,23 +977,32 @@ export function mountApplication(host: HTMLElement): () => void {
       catalogOverlay.replaceChildren();
       return;
     }
-    const size = dimensions();
+    const rect = canvasStack.getBoundingClientRect();
+    const plan = planMarkers({
+      index: catalogIndex,
+      viewport: state.viewport,
+      width: Math.max(1, Math.round(rect.width)),
+      height: Math.max(1, Math.round(rect.height)),
+      remPx: remPx(),
+      selectedId: state.selectedCatalogId,
+    });
     const visible: HTMLButtonElement[] = [];
-    for (const component of COMPONENT_CATALOG) {
-      const point = complexToPixel(state.viewport, size, component.center);
-      if (point.x < 0 || point.x > size.width || point.y < 0 || point.y > size.height) {
-        catalogMarkers.delete(component.id);
-        continue;
-      }
+    for (const planned of plan.markers) {
+      const { component } = planned;
       let marker = catalogMarkers.get(component.id);
       if (marker === undefined) {
         marker = createCatalogMarker(component);
         catalogMarkers.set(component.id, marker);
       }
-      marker.classList.toggle('catalog-marker--left-facing', point.x / size.width > 0.76);
-      marker.style.left = `${(point.x / size.width) * 100}%`;
-      marker.style.top = `${(point.y / size.height) * 100}%`;
+      marker.classList.toggle('catalog-marker--left-facing', planned.leftFacing);
+      marker.classList.toggle('catalog-marker--compact', planned.compact);
+      marker.classList.toggle('catalog-marker--label-hidden', !planned.labelVisible);
+      marker.style.left = `${planned.x * 100}%`;
+      marker.style.top = `${planned.y * 100}%`;
       visible.push(marker);
+    }
+    for (const [id, marker] of catalogMarkers) {
+      if (!visible.includes(marker)) catalogMarkers.delete(id);
     }
     for (const child of [...catalogOverlay.children]) {
       if (!visible.includes(child as HTMLButtonElement)) child.remove();

@@ -107,7 +107,7 @@ describe('component catalog', () => {
     expect(counts).toEqual(COMPONENT_COUNTS.slice(0, CATALOG.maxPeriod));
   });
 
-  it('keeps the v1 order, which is the keyboard focus order of the markers', () => {
+  it('keeps the v1 file order; the marker focus order is the catalog order (ADR 0012)', () => {
     expect(COMPONENT_CATALOG.map((component) => component.id)).toEqual(
       V1_CATALOG.map((entry) => entry.id),
     );
