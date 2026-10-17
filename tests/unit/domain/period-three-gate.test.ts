@@ -54,7 +54,9 @@ describe('period-3 gate', () => {
       expect(box.reMax).toBeLessThanOrEqual(PERIOD_THREE_HULL.reMax);
       expect(box.absImMax).toBeLessThanOrEqual(PERIOD_THREE_HULL.absImMax);
     }
-    // The kernel's window, written as in triggered-rows.ts.
+    // The kernel's window, written as in triggered-rows.ts (keep in sync with
+    // it; tests/unit/render/triggered-rows.test.ts compares the kernel itself
+    // with the scalar gate at every box edge).
     const inRowWindow = (cRe: number, cIm: number): boolean => {
       const absIm = Math.abs(cIm);
       let reMin = Number.POSITIVE_INFINITY;
