@@ -729,9 +729,6 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasContext.imageSmoothingEnabled = false;
     canvasContext.putImageData(pixels, 0, 0);
     state.frameStage = frame.stage;
-    // The period key ranks this frame (coarse and stable can differ); show
-    // the mapping of the raster on screen, never a stale one.
-    if (state.semanticView === 'period') legend.update('period', frame.periodKey, frame.stage);
     canvasShell.toggleAttribute('data-isolated-period', frame.isolatedPeriod !== undefined);
     if (frame.isolatedPeriod !== undefined) {
       canvasShell.dataset['isolatedPeriod'] = String(frame.isolatedPeriod);
@@ -762,6 +759,11 @@ export function mountApplication(host: HTMLElement): () => void {
       presentationContext.drawImage(renderCanvas, 0, 0);
       scheduleUrlWrite();
     }
+    // Last, because the legend can synchronously start an isolation recolor
+    // (a new request), which must not find this frame's dataset written over
+    // its own. The period key ranks this frame (coarse and stable can
+    // differ); show the mapping of the raster on screen, never a stale one.
+    if (state.semanticView === 'period') legend.update('period', frame.periodKey, frame.stage);
   }
 
   function zoom(direction: 'in' | 'out', anchor: CanvasPoint = { x: 0.5, y: 0.5 }): void {
@@ -970,9 +972,15 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   const onDocumentKeydown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || pointerSession === undefined) return;
-    event.preventDefault();
-    cancelPointerSession(true);
+    if (event.key !== 'Escape') return;
+    if (pointerSession !== undefined) {
+      // An active pan or selection keeps Escape for itself.
+      event.preventDefault();
+      cancelPointerSession(true);
+      return;
+    }
+    // Otherwise Escape anywhere restores a pressed legend isolation.
+    if (!event.defaultPrevented) legend.restore();
   };
   document.addEventListener('keydown', onDocumentKeydown);
 

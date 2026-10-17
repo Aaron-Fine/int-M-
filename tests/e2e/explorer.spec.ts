@@ -921,6 +921,112 @@ test.describe('Mandelbrot Interiority explorer', () => {
     ).toBe(0);
   });
 
+  test('keeps isolation silent in the address bar and ends it on Escape from the canvas', async ({
+    page,
+  }) => {
+    await openPeriodView(page);
+    await expect(page).toHaveURL(/view=period/);
+    const search = await page.evaluate(() => location.search);
+    await page.evaluate(() => {
+      const observed = window as typeof window & { __addressWrites?: number };
+      observed.__addressWrites = 0;
+      const original = history.replaceState.bind(history);
+      history.replaceState = (...args) => {
+        observed.__addressWrites = (observed.__addressWrites ?? 0) + 1;
+        original(...args);
+      };
+    });
+    const explorer = page.locator('#explorer');
+    const legend = page.getByRole('region', { name: 'Semantic legend' });
+    const periodOne = legend.locator('.legend__entry[data-period="1"]');
+
+    await periodOne.click();
+    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    // Escape on the canvas (no pointer session) restores the full view. The
+    // mouse leaves first so a hover cannot isolate whatever lies under it.
+    await page.mouse.move(0, 0);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    await page.locator('.explorer__canvas').focus();
+    await page.keyboard.press('Escape');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+
+    expect(await page.evaluate(() => location.search)).toBe(search);
+    expect(
+      await page.evaluate(
+        () => (window as typeof window & { __addressWrites?: number }).__addressWrites,
+      ),
+    ).toBe(0);
+  });
+
+  test('sends one render request per hover change across legend entries', async ({ page }) => {
+    await openPeriodView(page);
+    const explorer = page.locator('#explorer');
+    const legend = page.getByRole('region', { name: 'Semantic legend' });
+    const requestId = async (): Promise<number> =>
+      Number(await explorer.getAttribute('data-render-request-id'));
+    const settled = async (period: string): Promise<void> => {
+      await expect(explorer).toHaveAttribute('data-isolated-period', period);
+      await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    };
+
+    const start = await requestId();
+    await legend.locator('.legend__entry[data-period="1"]').hover();
+    await settled('1');
+    expect(await requestId()).toBe(start + 1);
+    await legend.locator('.legend__entry[data-period="2"]').hover();
+    await settled('2');
+    expect(await requestId()).toBe(start + 2);
+    // Nothing else is queued behind the settled frame.
+    await page.waitForTimeout(500);
+    expect(await requestId()).toBe(start + 2);
+  });
+
+  test('keeps keyboard focus on the same legend entry across a redraw', async ({ page }) => {
+    await openPeriodView(page);
+    const explorer = page.locator('#explorer');
+    const periodOne = page.locator('.legend__entry[data-period="1"]');
+    await periodOne.focus();
+    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    const before = Number(await explorer.getAttribute('data-render-request-id'));
+
+    // A wheel zoom re-renders (coarse, then stable) without moving focus.
+    const box = await page.locator('.explorer__canvas').boundingBox();
+    if (!box) throw new Error('canvas has no box');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, -120);
+    await expect
+      .poll(async () => Number(await explorer.getAttribute('data-render-request-id')))
+      .toBeGreaterThan(before);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
+    await expect(periodOne).toBeFocused();
+    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+  });
+
+  test.describe('touch', () => {
+    test.use({ hasTouch: true });
+
+    test('a tap toggles isolation once and leaves no sticky hover', async ({ page }) => {
+      await openPeriodView(page);
+      const explorer = page.locator('#explorer');
+      const periodOne = page.locator('.legend__entry[data-period="1"]');
+
+      await periodOne.tap();
+      await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+      await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+      // Tap elsewhere: only the pressed state may keep the isolation.
+      await page.getByRole('heading', { name: 'Semantic legend' }).tap();
+      await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+      await periodOne.tap();
+      await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
+      await page.getByRole('heading', { name: 'Semantic legend' }).tap();
+      await expect(explorer).not.toHaveAttribute('data-isolated-period');
+      await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    });
+  });
+
   test('marks the isolated legend entry without colour in forced colours', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
     await openPeriodView(page);

@@ -30,6 +30,8 @@ export interface SemanticLegend {
   readonly update: (view: SemanticView, periodKey?: PeriodKey, stage?: LegendFrameStage) => void;
   /** Called with the period to isolate (undefined: none) whenever it changes. */
   readonly onIsolate: (listener: IsolationListener) => void;
+  /** Ends a pressed isolation (Escape outside the legend); a no-op without one. */
+  readonly restore: () => void;
 }
 
 const ISOLATION_HINT =
@@ -73,7 +75,10 @@ const renderScale = (scale: LegendScale): HTMLLIElement => {
 
 const swatchOf = (entry: LegendSwatch): HTMLElement => {
   const swatch = element('span', {
-    className: `legend__swatch legend__swatch--${entry.border}`,
+    className:
+      entry.border === 'solid'
+        ? 'legend__swatch'
+        : `legend__swatch legend__swatch--${entry.border}`,
     attributes: { 'aria-hidden': 'true' },
   });
   swatch.style.background = entry.background;
@@ -155,6 +160,8 @@ export function createSemanticLegend(): SemanticLegend {
   let shownView: SemanticView | undefined;
   let shown: string | undefined;
   let listed: readonly number[] = [];
+  let redrawing = false;
+  list.tabIndex = -1;
 
   const controls = (): HTMLElement[] => [...list.querySelectorAll<HTMLElement>('.legend__entry')];
 
@@ -185,7 +192,11 @@ export function createSemanticLegend(): SemanticLegend {
       if (period !== undefined) apply({ type, period });
     };
   list.addEventListener('focusin', onPeriodEvent('focus'));
-  list.addEventListener('focusout', onPeriodEvent('blur'));
+  // A redraw removes the focused button; that focusout is not the user leaving.
+  const onBlur = onPeriodEvent('blur');
+  list.addEventListener('focusout', (event) => {
+    if (!redrawing) onBlur(event);
+  });
   list.addEventListener('click', onPeriodEvent('activate'));
   // Hover previews with a mouse only: a tap focuses and activates instead.
   list.addEventListener('pointerover', (event) => {
@@ -195,7 +206,8 @@ export function createSemanticLegend(): SemanticLegend {
   list.addEventListener('pointerout', (event) => {
     const period = periodOf(event.target);
     const next = periodOf(event.relatedTarget);
-    if (period !== undefined && next !== period) apply({ type: 'unhover', period });
+    // Moving onto another entry is one change: its pointerover replaces the hover.
+    if (period !== undefined && next === undefined) apply({ type: 'unhover', period });
   });
   list.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || isolatedPeriodOf(isolation) === undefined) return;
@@ -209,12 +221,19 @@ export function createSemanticLegend(): SemanticLegend {
     const focusedPeriod = periodOf(document.activeElement);
     const model = legendModel(view, periodKey);
     definition.textContent = model.definition;
-    replaceChildren(list, model.items.map(renderItem));
-    listed = periodKey?.emphasized.map((entry) => entry.period) ?? [];
-    apply({ type: 'available', periods: listed, final: false });
-    controls()
-      .find((control) => Number(control.dataset['period']) === focusedPeriod)
-      ?.focus();
+    redrawing = true;
+    try {
+      replaceChildren(list, model.items.map(renderItem));
+      listed = periodKey?.emphasized.map((entry) => entry.period) ?? [];
+      apply({ type: 'available', periods: listed, final: false });
+      const refocus = controls().find(
+        (control) => Number(control.dataset['period']) === focusedPeriod,
+      );
+      // A focused entry that is gone hands focus to the list, not <body>.
+      if (focusedPeriod !== undefined) (refocus ?? list).focus();
+    } finally {
+      redrawing = false;
+    }
   };
 
   const update = (
@@ -239,6 +258,9 @@ export function createSemanticLegend(): SemanticLegend {
     update,
     onIsolate: (next) => {
       listener = next;
+    },
+    restore: () => {
+      if (isolation.pressed !== undefined) apply({ type: 'escape' });
     },
   };
 }
