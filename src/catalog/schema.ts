@@ -72,6 +72,8 @@ export class CatalogSchemaError extends Error {
 }
 
 const ALIAS_PATTERN = /^mi-[a-z0-9-]+$/;
+/** The shape of a canonical id; an alias with it could collide once more periods are generated. */
+const CANONICAL_ID_SHAPE = /^mi-p\d+-\d+-\d+$/;
 
 /** The canonical id of a component from its period and characteristic ray numerators. */
 export const catalogIdFor = (period: number, lower: number, upper: number): string =>
@@ -223,9 +225,12 @@ const parseAliases = (value: unknown, where: string): string[] =>
   value === undefined
     ? []
     : array(value, where).map((alias, index) =>
-        typeof alias === 'string' && ALIAS_PATTERN.test(alias)
+        typeof alias === 'string' && ALIAS_PATTERN.test(alias) && !CANONICAL_ID_SHAPE.test(alias)
           ? alias
-          : fail(`${where}[${index}]`, 'must look like mi-<lowercase words>'),
+          : fail(
+              `${where}[${index}]`,
+              'must look like mi-<lowercase words> and not like a canonical id (mi-p<p>-<a>-<b>)',
+            ),
       );
 
 const parseCombinatorics = (

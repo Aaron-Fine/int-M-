@@ -64,9 +64,9 @@ describe('catalog schema v2 loader', () => {
       /mi-p1-main is not unique/,
     ],
     [
-      'an alias equal to another id',
-      edited((_, e) => (at(e, 1)['aliases'] = ['mi-p3-3-4'])),
-      /mi-p3-3-4 is not unique/,
+      'an alias shaped like a canonical id',
+      edited((_, e) => (at(e, 1)['aliases'] = ['mi-p5-1-2'])),
+      /aliases\[0\].*canonical id/,
     ],
     ['an upper-case alias', edited((_, e) => (at(e, 1)['aliases'] = ['MI-X'])), /aliases\[0\]/],
     ['an empty label', edited((_, e) => (at(e, 0)['label'] = ' ')), /label/],

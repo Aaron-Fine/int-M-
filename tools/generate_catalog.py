@@ -33,6 +33,8 @@ from catalog_combinatorics import (
 SCHEMA_VERSION = 2
 DEFAULT_CURATION = Path("catalog/curation.v2.json")
 ALIAS_PATTERN = re.compile(r"^mi-[a-z0-9-]+$")
+# An alias shaped like a canonical id could collide once more periods are generated.
+CANONICAL_ID_SHAPE = re.compile(r"^mi-p\d+-\d+-\d+$")
 # Landing points and refined centres must agree this closely to be matched.
 MATCH_TOLERANCE = 1e-9
 
@@ -412,6 +414,8 @@ def check_curation(
         for alias in curated.get("aliases", []):
             if not isinstance(alias, str) or not ALIAS_PATTERN.match(alias):
                 raise ValueError(f"{identifier} has a malformed alias {alias!r}")
+            if CANONICAL_ID_SHAPE.match(alias):
+                raise ValueError(f"{identifier} has an alias shaped like a canonical id: {alias!r}")
             aliases.append(alias)
     if len(aliases) != len(set(aliases)) or identifiers & set(aliases):
         raise ValueError("aliases must be unique and never equal a canonical id")
@@ -438,8 +442,12 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
-    if arguments.max_period < 1 or arguments.max_period > 8:
-        raise ValueError("max-period must be between 1 and 8")
+    if arguments.max_period < 1 or arguments.max_period > 4:
+        raise ValueError(
+            "max-period must be between 1 and 4: root discovery does not converge "
+            "from period 5, and higher periods wait for item 7's pinned "
+            "arbitrary-precision root isolator"
+        )
     if arguments.precision < 40:
         raise ValueError("precision must be at least 40 decimal digits")
 
@@ -451,7 +459,11 @@ def main() -> int:
         )
     )
     if arguments.check is not None:
-        if arguments.check.read_text(encoding="utf-8") != text:
+        try:
+            committed = arguments.check.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            committed = None
+        if committed != text:
             print(
                 f"{arguments.check} differs from the regenerated catalog; run "
                 f"python3 tools/generate_catalog.py --write {arguments.check}",

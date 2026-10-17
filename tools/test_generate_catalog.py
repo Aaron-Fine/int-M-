@@ -78,7 +78,12 @@ class CurationTest(unittest.TestCase):
 
     def test_rejects_an_alias_that_is_a_canonical_id(self) -> None:
         curation = {"mi-p1-0-1": {"label": "Main", "aliases": ["mi-p2-1-2"]}}
-        with self.assertRaisesRegex(ValueError, "never equal a canonical id"):
+        with self.assertRaisesRegex(ValueError, "shaped like a canonical id"):
+            check_curation(curation, self.components())
+
+    def test_rejects_an_alias_shaped_like_a_future_canonical_id(self) -> None:
+        curation = {"mi-p1-0-1": {"label": "Main", "aliases": ["mi-p5-1-2"]}}
+        with self.assertRaisesRegex(ValueError, "shaped like a canonical id"):
             check_curation(curation, self.components())
 
     def test_rejects_a_repeated_alias(self) -> None:
