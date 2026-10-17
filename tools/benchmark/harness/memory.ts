@@ -55,11 +55,11 @@ export const MEMORY_TABLE_HEADERS: readonly string[] = [
 
 export const notMeasured = (reason: string): MemoryFigure => ({ status: 'not measured', reason });
 
-/** The maximum valid reading; readings that are not finite non-negative numbers are dropped. */
 /** A figure whose measurement threw: recorded as not measured with the error, never fatal. */
 export const memoryPassFailure = (error: unknown): MemoryFigure =>
   notMeasured(`memory pass failed: ${error instanceof Error ? error.message : String(error)}`);
 
+/** The maximum valid reading; readings that are not finite non-negative numbers are dropped. */
 export const summarizeReadings = (
   label: string,
   readings: readonly MemoryReading[],
