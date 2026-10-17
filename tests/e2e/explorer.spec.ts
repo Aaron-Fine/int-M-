@@ -671,6 +671,55 @@ test.describe('Mandelbrot Interiority explorer', () => {
     ).toHaveCount(0);
   });
 
+  test('Reset from the keyboard ends a drag in progress instead of resuming it', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const canvas = page.getByLabel('Interactive Mandelbrot set');
+    const view = page.getByLabel('Current view');
+    const defaultView = await view.textContent();
+    await canvas.focus();
+    await canvas.press('+');
+    await expect.poll(() => view.textContent()).not.toBe(defaultView);
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('canvas has no box');
+    const startX = box.x + box.width * 0.3;
+    const startY = box.y + box.height * 0.3;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 40, startY + 20, { steps: 4 });
+    await page.keyboard.press('Home');
+    await expect.poll(() => view.textContent()).toBe(defaultView);
+
+    // The rest of the gesture must not pan the restored view.
+    await page.mouse.move(startX + 90, startY + 40, { steps: 4 });
+    await page.mouse.up();
+    await expect(view).toHaveText(defaultView ?? '');
+    await expect(page.getByRole('button', { name: 'Reset' })).toBeDisabled();
+  });
+
+  test('Reset clears the selection from the evidence, the marker, and the address bar', async ({
+    page,
+  }) => {
+    await page.goto('/?v=1&c=-0.1,0.65&s=0.5&view=stability&q=balanced&sel=-0.1,0.65');
+    await expect(page.locator('#selected-point-status')).toContainText('Outcome:', {
+      timeout: 10_000,
+    });
+    await expect(page.locator('.selected-point-marker')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Reset' }).click();
+
+    await expect(page.locator('#selected-point-status')).toHaveText('No point selected.');
+    await expect(page.locator('.selected-point-marker')).toBeHidden();
+    await expect(
+      page.getByRole('region', { name: 'Point evidence' }).locator('.inspector__classification'),
+    ).toHaveCount(0);
+    await expect(page.locator('.catalog-marker--selected')).toHaveCount(0);
+    await expect.poll(() => new URL(page.url()).searchParams.has('sel')).toBe(false);
+  });
+
   test('automatically recovers once and offers manual retry after persistent failure', async ({
     page,
   }) => {

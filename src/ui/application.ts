@@ -798,6 +798,8 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function resetView(): void {
+    // A pan or area selection still in progress would otherwise resume from its saved view.
+    cancelPointerSession(false);
     state.viewport = {
       center: { ...DEFAULT_VIEWPORT.center },
       spanY: DEFAULT_VIEWPORT.spanY,
