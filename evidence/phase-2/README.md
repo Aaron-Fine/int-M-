@@ -100,6 +100,28 @@ Generators should write to a temporary file, validate record counts/schema,
 atomically publish the final payload, then emit `artifact-index.json`, summary,
 and `manifest.sha256` last.
 
+## Memory high-water (`MI-PERF-006`)
+
+`tools/benchmark/run-release.ts` records one memory figure set per engine, in
+`summary.md` (section `<engine> — memory (MI-PERF-006)`), in
+`environment.json` and in `raw-observations.json` (key `memory`). The figures
+are informational: they are not gates. Each is the maximum over one fresh page
+per corpus case, and each carries the label of what it measures.
+
+| Engine   | Figure     | What it is                                                                                                                                                                                                                                       |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chromium | `jsHeap`   | Main-thread V8 JS heap used (CDP `Performance.getMetrics`, `JSHeapUsedSize`), polled every 50 ms from navigation to the stable frame. Excludes worker heaps and ArrayBuffer backing stores. A lower bound on the true peak.                      |
+| Chromium | `retained` | `performance.measureUserAgentSpecificMemory()` after the stable frame, on a cross-origin-isolated copy of the same build served only for this pass (the timing passes are never isolated). Includes workers and buffers. A snapshot, not a peak. |
+| Firefox  | both       | **Not measured.** Under Playwright (WebDriver BiDi) Firefox has no CDP, no `performance.memory` and no `measureUserAgentSpecificMemory`, and `about:memory` is unreachable. No proxy (such as process RSS) is substituted.                       |
+
+When Chromium's `retained` figure is "not measured", the reason is recorded
+(for example, the page was not cross-origin isolated). Evidence written before
+this pass existed reloads under `--resume` as "not recorded in this evidence
+file". A real peak across workers needs per-worker heap sampling or an
+engine-level memory report; neither is available in both engines, so
+`MI-PERF-006` remains partial until an owner-run release session records these
+figures.
+
 ## Release sessions (`tools/benchmark/run-release.ts`)
 
 Every browser evidence run since 2026-10-16 is one release session, started
