@@ -864,6 +864,13 @@ test.describe('Mandelbrot Interiority explorer', () => {
       },
     );
 
+    // The presented marks are written in a requestAnimationFrame after the status text changes,
+    // so the startup render's marks can still be pending here. Wait for the last of them, or they
+    // would land after the clear below and be read as this request's marks.
+    await page.waitForFunction(
+      () => performance.getEntriesByName('mi:stable-presented').length > 0,
+    );
+
     await page.evaluate(() => {
       for (const name of [
         'mi:interaction-feedback',
@@ -888,6 +895,19 @@ test.describe('Mandelbrot Interiority explorer', () => {
       timeout: 20_000,
     });
     await expect(explorer).toHaveAttribute('data-render-request-id', coarseRequestId ?? '');
+
+    // The stable mark is written a frame after the dataset changes; wait for this request's.
+    await page.waitForFunction(
+      (id) =>
+        performance
+          .getEntriesByName('mi:stable-presented')
+          .some(
+            (entry) =>
+              ((entry as PerformanceMark).detail as { requestId?: number } | null)?.requestId ===
+              id,
+          ),
+      Number(coarseRequestId),
+    );
 
     const marks = await page.evaluate(() =>
       performance
