@@ -229,6 +229,7 @@ export const ddVerifyCycle = (
   cIm: number,
   start: DDPoint,
   proposedPeriod: number,
+  newtonSteps: number = DD_ORACLE_OPTIONS.newtonSteps,
 ): DDOracleCycle | undefined => {
   const scale = Math.max(1, Math.abs(start.re.hi), Math.abs(start.im.hi));
   const acceptSquared = {
@@ -241,7 +242,7 @@ export const ddVerifyCycle = (
     lo: 0,
   };
   let current = start;
-  for (let polish = 0; polish <= DD_ORACLE_OPTIONS.newtonSteps; polish += 1) {
+  for (let polish = 0; polish <= newtonSteps; polish += 1) {
     const {
       z: end,
       lambdaRe,
@@ -366,4 +367,58 @@ export const strataOracleVerdict = (index: number, total: number): DDOracleVerdi
   const verdict = classifyDDMinimal(point.re, point.im);
   strataVerdicts[index] = verdict;
   return verdict;
+};
+
+// ---------------------------------------------------------------------------
+// Period-3 adjudicator for the analytic fast path (ADR 0010).
+// ---------------------------------------------------------------------------
+
+/** Seed orbit length and Newton budget of ddPeriodThreeCycle. */
+export const DD_PERIOD_THREE_OPTIONS = Object.freeze({
+  seedIterations: 4096,
+  newtonSteps: 64,
+} as const);
+
+/**
+ * Independent check of an analytic period-3 claim. It uses no closed form:
+ * the binary64 critical orbit runs DD_PERIOD_THREE_OPTIONS.seedIterations
+ * steps (a seed only; an escape is reported as escaped), then each of the
+ * next three iterates is polished as a period-3 cycle start by dd Newton on
+ * f_c^3(z) - z and certified by ddCertifiedCycle (dd divisor test, dd
+ * |lambda| < 1). The first certified cycle is returned. Unlike
+ * classifyDDMinimal it needs no orbit convergence, so it reaches cycles with
+ * |lambda| near 1 that no iteration budget can.
+ *
+ * It is an adjudicator, not a classifier: its |lambda| < 1 test has no
+ * margin, so at a parabolic parameter it can certify |lambda| = 1 - O(1e-12)
+ * (at c = -7/4 it reports 1 - 1.4e-12). Callers compare its multiplier with
+ * the analytic one within 1e-12, and the analytic path refuses there.
+ */
+export const ddPeriodThreeCycle = (cRe: number, cIm: number): DDOracleVerdict => {
+  let zRe = 0;
+  let zIm = 0;
+  for (let iteration = 1; iteration <= DD_PERIOD_THREE_OPTIONS.seedIterations; iteration += 1) {
+    const nextRe = zRe * zRe - zIm * zIm + cRe;
+    zIm = 2 * zRe * zIm + cIm;
+    zRe = nextRe;
+    if (zRe * zRe + zIm * zIm > 4) {
+      return { status: 'escaped', escapeIteration: iteration };
+    }
+  }
+  for (let phase = 0; phase < 3; phase += 1) {
+    const cycle = ddVerifyCycle(
+      cRe,
+      cIm,
+      { re: { hi: zRe, lo: 0 }, im: { hi: zIm, lo: 0 } },
+      3,
+      DD_PERIOD_THREE_OPTIONS.newtonSteps,
+    );
+    if (cycle !== undefined) {
+      return { status: 'attracting-cycle', cycle };
+    }
+    const nextRe = zRe * zRe - zIm * zIm + cRe;
+    zIm = 2 * zRe * zIm + cIm;
+    zRe = nextRe;
+  }
+  return { status: 'unresolved' };
 };
