@@ -96,10 +96,13 @@ The comparison mixes PR 2 with every later change to the legacy-scan path
 (verifier, renderer-path bundle), so it bounds rather than isolates PR 2,
 and the regression sits in the reference mode, not in what users run: the
 production default is 4.7×–26× faster than this same legacy mode in Firefox
-(Stage A above). Proposed disposition: record B as not met in Firefox and
-superseded for users by C (the watched-lag kernel keeps PR 2's
-allocation-free structure); a follow-up should find which change slowed the
-SpiderMonkey legacy lag scan. `legacy-scan` has since been removed (ADR 0007),
+(Stage A above). **Disposition (owner decision, 2026-10-16): B is not met in
+Firefox and is superseded for users by C** (the watched-lag kernel keeps PR
+2's allocation-free structure). The cause of the SpiderMonkey legacy lag-scan
+slowdown was not isolated: it may be PR 2 itself or shared code (verifier,
+renderer path). The follow-up is dormant: reopen only if a Firefox view misses
+its frozen budget, and then bisect `a6e1838`..`872f613` (the last tree with
+`legacy-scan`) in headed Firefox. `legacy-scan` has since been removed (ADR 0007),
 and the judge baseline is now the production renderer.
 
 ### C — reduce the lag-scan cost (realized as the watched-lag kernel)
@@ -279,5 +282,5 @@ waiting for.
 | Conditional dispositions as proposed (M decided separately)             |                                                                                                                                              |
 | Workstream M: conjugate mirroring                                       | Decided 2026-10-16: remove ("Considering its limited scope of applicability I do not think that the added complexity is worth it"); ADR 0008 |
 | Opt-in diagnostics: counters mode moved out of the ≤5% budget (A above) | Approved 2026-10-16: counters offline only, implemented                                                                                      |
-| Workstream B recorded as not met in Firefox, superseded for users by C  |                                                                                                                                              |
+| Workstream B recorded as not met in Firefox, superseded for users by C  | Approved 2026-10-16 ("Go with option 1 and record it"); follow-up dormant unless a Firefox budget is missed                                  |
 | Phase 2 performance closed                                              |                                                                                                                                              |
