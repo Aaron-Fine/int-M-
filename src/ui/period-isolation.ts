@@ -74,3 +74,32 @@ export const nextIsolation = (state: IsolationState, event: IsolationEvent): Iso
 /** The period the raster isolates: a hover or focus preview, else the pressed entry. */
 export const isolatedPeriodOf = (state: IsolationState): number | undefined =>
   state.hovered ?? state.focused ?? state.pressed;
+
+/**
+ * The period named by the "no longer among the five largest" note, after
+ * `event`. A stable frame that drops a pressed period sets it; any new
+ * isolation, Escape, a view change, or a stable frame listing the period
+ * again clears it.
+ */
+export const nextDroppedPeriod = (
+  dropped: number | undefined,
+  before: IsolationState,
+  after: IsolationState,
+  event: IsolationEvent,
+): number | undefined => {
+  switch (event.type) {
+    case 'available':
+      if (!event.final) return dropped;
+      if (before.pressed !== undefined && after.pressed === undefined) return before.pressed;
+      return dropped !== undefined && event.periods.includes(dropped) ? undefined : dropped;
+    case 'hover':
+    case 'focus':
+    case 'activate':
+    case 'escape':
+    case 'reset':
+      return undefined;
+    case 'unhover':
+    case 'blur':
+      return dropped;
+  }
+};

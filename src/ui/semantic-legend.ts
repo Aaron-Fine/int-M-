@@ -9,6 +9,7 @@ import {
 } from './legend-model';
 import {
   isolatedPeriodOf,
+  nextDroppedPeriod,
   NO_ISOLATION,
   nextIsolation,
   type IsolationEvent,
@@ -190,6 +191,7 @@ export function createSemanticLegend(): SemanticLegend {
   let redrawing = false;
   // The period whose entry a coarse frame took the focus from, until a later
   // frame lists it again (or focus goes elsewhere).
+  let droppedPeriod: number | undefined;
   let lostFocus: number | undefined;
   list.tabIndex = -1;
 
@@ -203,15 +205,10 @@ export function createSemanticLegend(): SemanticLegend {
   };
 
   const apply = (event: IsolationEvent): void => {
-    const before = isolation.pressed;
+    const previous = isolation;
     isolation = nextIsolation(isolation, event);
-    if (event.type === 'available') {
-      if (event.final && before !== undefined && isolation.pressed === undefined) {
-        dropped.textContent = droppedNote(before);
-      }
-    } else if (event.type === 'activate' || event.type === 'escape' || event.type === 'reset') {
-      dropped.textContent = '';
-    }
+    droppedPeriod = nextDroppedPeriod(droppedPeriod, previous, isolation, event);
+    dropped.textContent = droppedPeriod === undefined ? '' : droppedNote(droppedPeriod);
     for (const control of controls()) {
       const pressed = Number(control.dataset['period']) === isolation.pressed;
       control.setAttribute('aria-pressed', String(pressed));

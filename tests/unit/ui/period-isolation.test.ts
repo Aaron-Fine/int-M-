@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isolatedPeriodOf,
   NO_ISOLATION,
+  nextDroppedPeriod,
   nextIsolation,
   type IsolationEvent,
   type IsolationState,
@@ -108,5 +109,52 @@ describe('legend period isolation', () => {
       final: true,
     });
     expect(isolatedPeriodOf(stableWithout)).toBeUndefined();
+  });
+});
+
+describe('dropped-isolation note', () => {
+  /** Applies events, tracking the note the way the legend does. */
+  const note = (...events: readonly IsolationEvent[]): number | undefined => {
+    let state = NO_ISOLATION;
+    let dropped: number | undefined;
+    for (const event of events) {
+      const next = nextIsolation(state, event);
+      dropped = nextDroppedPeriod(dropped, state, next, event);
+      state = next;
+    }
+    return dropped;
+  };
+  const pressed: IsolationEvent[] = [
+    { type: 'available', periods: [1, 2], final: true },
+    { type: 'activate', period: 2 },
+  ];
+  const drop: IsolationEvent = { type: 'available', periods: [1], final: true };
+
+  it('is set by a stable frame that drops the pressed period, not by a coarse one', () => {
+    expect(note(...pressed, { type: 'available', periods: [1], final: false })).toBeUndefined();
+    expect(note(...pressed, drop)).toBe(2);
+  });
+
+  it('survives unrelated stable frames and pointer leaving', () => {
+    expect(note(...pressed, drop, { type: 'available', periods: [1], final: true })).toBe(2);
+    expect(note(...pressed, drop, { type: 'unhover', period: 1 })).toBe(2);
+  });
+
+  it('clears on the next isolation of any period, Escape or an interior-view change', () => {
+    for (const event of [
+      { type: 'hover', period: 1 },
+      { type: 'focus', period: 1 },
+      { type: 'activate', period: 1 },
+      { type: 'escape' },
+      { type: 'reset' },
+    ] as const) {
+      expect(note(...pressed, drop, event), event.type).toBeUndefined();
+    }
+  });
+
+  it('clears when a stable frame lists the period again', () => {
+    expect(note(...pressed, drop, { type: 'available', periods: [1, 2], final: true })).toBe(
+      undefined,
+    );
   });
 });

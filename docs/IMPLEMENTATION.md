@@ -243,8 +243,8 @@ workstream and gate.
   cancellation is acknowledged (`cancel-ack`) separately from quiescence
   (`cancelled`, after every nested tile worker has stopped). The UI maps
   frames to the bounded trace ring through one adapter (`frameDelivery`).
-  Legend isolation (hover, focus or activation of a period entry) is a
-  never reclassifies: a `recolor`, or an `inflight-replay` during a
+  Legend isolation (hover, focus or activation of a period entry) never
+  reclassifies: a `recolor`, or an `inflight-replay` during a
   computation. It never changes the semantic cache key, the status line or
   the URL. Escape clears it from anywhere when no pointer session is active,
   and a second activation clears it; a touch tap toggles it, and keyboard

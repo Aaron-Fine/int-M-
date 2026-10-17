@@ -127,7 +127,9 @@ const magnitudeScale = (): LegendScale => ({
   ticks: [0, 0.25, 0.5, 0.75, 1].map((position) => ({ position, label: String(position) })),
 });
 
-/** Width of one light or dark stripe band: half the period of sin(f·projection). */
+/**
+ * Width of one light or dark stripe band (CSS px; the raster's is in device
+ * px, so the match is approximate, within about 20% at the capped 1.25 DPR): half the period of sin(f·projection). */
 const STRIPE_PITCH = Math.PI / MULTIPLIER_STRIPE_FREQUENCY;
 
 const STRIPE_SAMPLE_ANGLES: readonly { readonly label: string; readonly argLambda: number }[] = [
