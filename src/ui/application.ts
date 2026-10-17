@@ -58,6 +58,8 @@ import {
 interface ApplicationState {
   viewport: Viewport;
   semanticView: SemanticView;
+  /** Period isolated from the legend (MI-UX-018): a palette input, never in the cache key. */
+  isolatedPeriod?: number | undefined;
   catalogVisible: boolean;
   requestId: number;
   activeRequestId: number;
@@ -696,6 +698,9 @@ export function mountApplication(host: HTMLElement): () => void {
       size,
       semanticView: state.semanticView,
       quality: quality.quality,
+      ...(state.semanticView === 'period' && state.isolatedPeriod !== undefined
+        ? { isolatedPeriod: state.isolatedPeriod }
+        : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,
@@ -710,6 +715,11 @@ export function mountApplication(host: HTMLElement): () => void {
     });
   }
 
+  /** Writes the render status only when it changes, so a recolor is not re-announced. */
+  function showRenderStatus(text: string): void {
+    if (statusText.textContent !== text) statusText.textContent = text;
+  }
+
   function presentFrame(frame: FrameMessage): void {
     if (frame.requestId !== state.activeRequestId) return;
 
@@ -721,7 +731,11 @@ export function mountApplication(host: HTMLElement): () => void {
     state.frameStage = frame.stage;
     // The period key ranks this frame (coarse and stable can differ); show
     // the mapping of the raster on screen, never a stale one.
-    if (state.semanticView === 'period') legend.update('period', frame.periodKey);
+    if (state.semanticView === 'period') legend.update('period', frame.periodKey, frame.stage);
+    canvasShell.toggleAttribute('data-isolated-period', frame.isolatedPeriod !== undefined);
+    if (frame.isolatedPeriod !== undefined) {
+      canvasShell.dataset['isolatedPeriod'] = String(frame.isolatedPeriod);
+    }
     canvasShell.dataset['renderStage'] = frame.stage;
     canvasShell.dataset['renderRequestId'] = String(frame.requestId);
     retryRendererButton.hidden = true;
@@ -739,10 +753,10 @@ export function mountApplication(host: HTMLElement): () => void {
     });
 
     if (frame.stage === 'coarse') {
-      statusText.textContent = `Refining view · ${Math.round(frame.progress * 100)}%`;
+      showRenderStatus(`Refining view · ${Math.round(frame.progress * 100)}%`);
     } else {
       status.className = 'status status--ready';
-      statusText.textContent = 'Stable frame';
+      showRenderStatus('Stable frame');
       presentationCanvas.width = frame.width;
       presentationCanvas.height = frame.height;
       presentationContext.drawImage(renderCanvas, 0, 0);
@@ -961,6 +975,17 @@ export function mountApplication(host: HTMLElement): () => void {
     cancelPointerSession(true);
   };
   document.addEventListener('keydown', onDocumentKeydown);
+
+  // Legend isolation recolors the frame on screen, silently: the status line
+  // is a live region, and the legend's aria-pressed state is the
+  // announcement. The legend resets isolation on a view change before the
+  // new view is requested.
+  legend.onIsolate((period) => {
+    state.isolatedPeriod = period;
+    if (state.semanticView !== 'period') return;
+    if (renderTimer !== undefined) clearTimeout(renderTimer);
+    requestRender();
+  });
 
   semanticSelect.addEventListener('change', () => {
     state.semanticView = semanticSelect.value as SemanticView;

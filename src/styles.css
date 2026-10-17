@@ -960,6 +960,54 @@ button:disabled {
   transform: translateX(-100%);
 }
 
+/* Emphasized periods are toggle buttons that isolate the period (MI-UX-018). */
+.legend__item--control {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.legend__entry {
+  display: grid;
+  grid-template-columns: 1.15rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 1.75rem;
+  margin: 0;
+  padding: 0.2rem 0.35rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.legend__entry:hover {
+  background: var(--surface-muted);
+}
+
+.legend__entry[aria-pressed='true'] {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.legend__state {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.legend__entry[aria-pressed='false'] .legend__state {
+  display: none;
+}
+
+.legend__hint {
+  margin: 0.65rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.69rem;
+}
+
 .legend__copy {
   display: grid;
   line-height: 1.25;
@@ -1277,6 +1325,10 @@ button:disabled {
   .legend__swatch,
   .legend__bar {
     border-width: 2px;
+  }
+
+  .legend__entry[aria-pressed='true'] {
+    outline: 2px solid Highlight;
   }
 
   .zoom-selection {

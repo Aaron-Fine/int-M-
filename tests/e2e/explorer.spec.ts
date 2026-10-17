@@ -230,6 +230,48 @@ const expectPeriodLegendMatchesRaster = async (page: Page): Promise<void> => {
   expect(missing).toEqual([]);
 };
 
+/**
+ * Legend isolation (MI-UX-018): counts canvas pixels drawn in the swatch
+ * colour of `period`'s legend entry, and pixels of any other colour brighter
+ * than the isolation dimming allows (dimChannel(255) = 31).
+ */
+const isolationPixels = async (
+  page: Page,
+  period: number,
+): Promise<{ readonly kept: number; readonly undimmed: number }> =>
+  page.evaluate((target) => {
+    const swatch = document.querySelector<HTMLElement>(
+      `.legend__entry[data-period="${target}"] .legend__swatch`,
+    );
+    const canvas = document.querySelector<HTMLCanvasElement>('.explorer__canvas');
+    const context = canvas?.getContext('2d');
+    if (!swatch || !canvas || !context) return { kept: -1, undimmed: -1 };
+    const [red, green, blue] = (getComputedStyle(swatch).backgroundColor.match(/\d+/g) ?? []).map(
+      Number,
+    );
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    let kept = 0;
+    let undimmed = 0;
+    for (let index = 0; index < data.length; index += 4) {
+      const r = data[index] ?? 0;
+      const g = data[index + 1] ?? 0;
+      const b = data[index + 2] ?? 0;
+      if (r === red && g === green && b === blue) kept += 1;
+      else if (Math.max(r, g, b) > 31) undimmed += 1;
+    }
+    return { kept, undimmed };
+  }, period);
+
+/** Opens the period view and waits for its stable frame. */
+const openPeriodView = async (page: Page): Promise<void> => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Explore', exact: true }).click();
+  await page.getByLabel('Interior view').selectOption('period');
+  await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+    timeout: 20_000,
+  });
+};
+
 test.describe('Mandelbrot Interiority explorer', () => {
   test('first-use flow: explanations, evidence terms, interior views, and accessibility', async ({
     page,
@@ -804,6 +846,103 @@ test.describe('Mandelbrot Interiority explorer', () => {
         expect(part.right).toBeLessThanOrEqual(box.x + box.width);
       }
     }
+  });
+
+  test('isolates a period from the legend by keyboard and restores it (MI-UX-018)', async ({
+    page,
+  }) => {
+    await openPeriodView(page);
+    const explorer = page.locator('#explorer');
+    const legend = page.getByRole('region', { name: 'Semantic legend' });
+    const periodOne = legend.locator('.legend__entry[data-period="1"]');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
+    await expect(legend.getByText(/^Hover, focus or select a period/)).toBeVisible();
+
+    // Keyboard focus previews the isolation.
+    await periodOne.focus();
+    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    const isolated = await isolationPixels(page, 1);
+    expect(isolated.kept).toBeGreaterThan(0);
+    expect(isolated.undimmed).toBe(0);
+
+    // Activation keeps it; Escape restores the full view.
+    await page.keyboard.press('Enter');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Escape');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    expect((await isolationPixels(page, 1)).undimmed).toBeGreaterThan(0);
+
+    // A second activation also restores it.
+    await page.keyboard.press('Enter');
+    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await page.keyboard.press('Enter');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+
+    // A pressed isolation ends when the interior view changes.
+    await page.keyboard.press('Enter');
+    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await page.getByLabel('Interior view').selectOption('stability');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await page.getByLabel('Interior view').selectOption('period');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    await expect(legend.locator('.legend__entry[data-period="1"]')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+
+    // Mouse hover previews another period while it lasts, without touching
+    // the render status live region (no announcement per hover).
+    const renderStatus = page.getByRole('status', { name: 'Render status' });
+    const statusBefore = await renderStatus.textContent();
+    await renderStatus.evaluate((element) => {
+      const observed = window as typeof window & { __statusMutations?: number };
+      observed.__statusMutations = 0;
+      new MutationObserver((records) => {
+        observed.__statusMutations = (observed.__statusMutations ?? 0) + records.length;
+      }).observe(element, { childList: true, characterData: true, subtree: true });
+    });
+    const periodTwo = legend.locator('.legend__entry[data-period="2"]');
+    await periodTwo.hover();
+    await expect(explorer).toHaveAttribute('data-isolated-period', '2');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    await page.mouse.move(0, 0);
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    expect(await renderStatus.textContent()).toBe(statusBefore);
+    expect(
+      await page.evaluate(
+        () => (window as typeof window & { __statusMutations?: number }).__statusMutations,
+      ),
+    ).toBe(0);
+  });
+
+  test('marks the isolated legend entry without colour in forced colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openPeriodView(page);
+    const legend = page.getByRole('region', { name: 'Semantic legend' });
+    const periodOne = legend.locator('.legend__entry[data-period="1"]');
+    const periodTwo = legend.locator('.legend__entry[data-period="2"]');
+
+    await periodOne.click();
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+    // Move focus away so only the pressed state remains.
+    await page.getByLabel('Interior view').focus();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-isolated-period', '1');
+    await expect(periodOne.locator('.legend__state')).toBeVisible();
+    await expect(periodOne.locator('.legend__state')).toHaveText('Isolated');
+    await expect(periodTwo.locator('.legend__state')).toBeHidden();
+    const outline = await periodOne.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { style: style.outlineStyle, width: Number.parseFloat(style.outlineWidth) };
+    });
+    expect(outline.style).toBe('solid');
+    expect(outline.width).toBeGreaterThanOrEqual(2);
+    await expectNoAccessibilityViolations(page);
   });
 
   test('contains point evidence and renderer recovery controls on a narrow phone', async ({

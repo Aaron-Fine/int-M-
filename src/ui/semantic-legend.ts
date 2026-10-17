@@ -7,7 +7,36 @@ import {
   type LegendSwatch,
   type LegendTick,
 } from './legend-model';
+import {
+  isolatedPeriodOf,
+  NO_ISOLATION,
+  nextIsolation,
+  type IsolationEvent,
+} from './period-isolation';
 import type { SemanticView } from './view-state';
+
+export type IsolationListener = (period: number | undefined) => void;
+
+/** The stage of the frame whose key the legend shows. */
+export type LegendFrameStage = 'coarse' | 'stable';
+
+export interface SemanticLegend {
+  readonly element: HTMLElement;
+  /**
+   * Shows `view`; in the period view `periodKey` is the key of the frame on
+   * screen and `stage` its stage (only a stable frame can end a pressed
+   * isolation).
+   */
+  readonly update: (view: SemanticView, periodKey?: PeriodKey, stage?: LegendFrameStage) => void;
+  /** Called with the period to isolate (undefined: none) whenever it changes. */
+  readonly onIsolate: (listener: IsolationListener) => void;
+}
+
+const ISOLATION_HINT =
+  'Hover, focus or select a period to show only its pixels; Escape or selecting it again restores the view.';
+
+const waitingHint = (period: number): string =>
+  `Period ${period} stays isolated until the stable frame arrives; this preview does not show it, so every pixel is dimmed.`;
 
 const copyOf = (label: string, detail: string): HTMLElement => {
   const copy = element('span', { className: 'legend__copy' });
@@ -42,20 +71,45 @@ const renderScale = (scale: LegendScale): HTMLLIElement => {
   return item;
 };
 
-const renderSwatch = (entry: LegendSwatch): HTMLLIElement => {
-  const item = element('li', {
-    className: entry.period === undefined ? 'legend__item' : 'legend__item legend__item--period',
-  });
-  if (entry.period !== undefined) item.dataset['period'] = String(entry.period);
+const swatchOf = (entry: LegendSwatch): HTMLElement => {
   const swatch = element('span', {
-    className:
-      entry.border === 'solid'
-        ? 'legend__swatch'
-        : `legend__swatch legend__swatch--${entry.border}`,
+    className: `legend__swatch legend__swatch--${entry.border}`,
     attributes: { 'aria-hidden': 'true' },
   });
   swatch.style.background = entry.background;
-  item.append(swatch, copyOf(entry.label, entry.detail));
+  return swatch;
+};
+
+/** An emphasized period: a toggle button that isolates the period (MI-UX-018). */
+const renderPeriodControl = (entry: LegendSwatch, period: number): HTMLLIElement => {
+  const item = element('li', {
+    className: 'legend__item legend__item--period legend__item--control',
+  });
+  item.dataset['period'] = String(period);
+  const control = element('button', {
+    className: 'legend__entry',
+    // The accessible name comes from the visible label and detail.
+    attributes: { type: 'button', 'aria-pressed': 'false' },
+  });
+  control.dataset['period'] = String(period);
+  // Visible, non-colour pressed state (forced colours included).
+  const state = element('span', {
+    className: 'legend__state',
+    text: 'Isolated',
+    attributes: { 'aria-hidden': 'true' },
+  });
+  control.append(swatchOf(entry), copyOf(entry.label, entry.detail), state);
+  item.append(control);
+  return item;
+};
+
+const renderSwatch = (entry: LegendSwatch): HTMLLIElement => {
+  if (typeof entry.period === 'number') return renderPeriodControl(entry, entry.period);
+  const item = element('li', {
+    className: entry.period === undefined ? 'legend__item' : 'legend__item legend__item--period',
+  });
+  if (entry.period !== undefined) item.dataset['period'] = entry.period;
+  item.append(swatchOf(entry), copyOf(entry.label, entry.detail));
   return item;
 };
 
@@ -70,11 +124,14 @@ const renderItem = (entry: LegendItem): HTMLLIElement => {
   }
 };
 
-export function createSemanticLegend(): {
-  readonly element: HTMLElement;
-  /** Shows `view`; in the period view `periodKey` is the key of the frame on screen. */
-  readonly update: (view: SemanticView, periodKey?: PeriodKey) => void;
-} {
+const periodOf = (target: EventTarget | null): number | undefined => {
+  if (!(target instanceof Element)) return undefined;
+  const control = target.closest<HTMLElement>('.legend__entry');
+  const value = control?.dataset['period'];
+  return value === undefined ? undefined : Number(value);
+};
+
+export function createSemanticLegend(): SemanticLegend {
   const root = element('section', {
     className: 'legend',
     attributes: {
@@ -88,19 +145,100 @@ export function createSemanticLegend(): {
   });
   const definition = element('p', { className: 'legend__definition' });
   const list = element('ul', { className: 'legend__list' });
-  root.append(heading, definition, list);
+  const hint = element('p', { className: 'legend__hint', text: ISOLATION_HINT });
+  hint.hidden = true;
+  root.append(heading, definition, list, hint);
 
+  let isolation = NO_ISOLATION;
+  let notified: number | undefined;
+  let listener: IsolationListener | undefined;
+  let shownView: SemanticView | undefined;
   let shown: string | undefined;
-  const update = (view: SemanticView, periodKey?: PeriodKey): void => {
-    // Coarse and stable frames often share a key; skip identical redraws.
-    const signature = JSON.stringify([view, periodKey ?? null]);
-    if (signature === shown) return;
-    shown = signature;
+  let listed: readonly number[] = [];
+
+  const controls = (): HTMLElement[] => [...list.querySelectorAll<HTMLElement>('.legend__entry')];
+
+  const refreshHint = (): void => {
+    const pressed = isolation.pressed;
+    const waiting = pressed !== undefined && !listed.includes(pressed);
+    hint.hidden = listed.length === 0 && !waiting;
+    hint.textContent = waiting ? waitingHint(pressed) : ISOLATION_HINT;
+  };
+
+  const apply = (event: IsolationEvent): void => {
+    isolation = nextIsolation(isolation, event);
+    for (const control of controls()) {
+      const pressed = Number(control.dataset['period']) === isolation.pressed;
+      control.setAttribute('aria-pressed', String(pressed));
+    }
+    refreshHint();
+    const period = isolatedPeriodOf(isolation);
+    if (period === notified) return;
+    notified = period;
+    listener?.(period);
+  };
+
+  const onPeriodEvent =
+    (type: 'focus' | 'blur' | 'activate') =>
+    (event: Event): void => {
+      const period = periodOf(event.target);
+      if (period !== undefined) apply({ type, period });
+    };
+  list.addEventListener('focusin', onPeriodEvent('focus'));
+  list.addEventListener('focusout', onPeriodEvent('blur'));
+  list.addEventListener('click', onPeriodEvent('activate'));
+  // Hover previews with a mouse only: a tap focuses and activates instead.
+  list.addEventListener('pointerover', (event) => {
+    const period = periodOf(event.target);
+    if (event.pointerType === 'mouse' && period !== undefined) apply({ type: 'hover', period });
+  });
+  list.addEventListener('pointerout', (event) => {
+    const period = periodOf(event.target);
+    const next = periodOf(event.relatedTarget);
+    if (period !== undefined && next !== period) apply({ type: 'unhover', period });
+  });
+  list.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || isolatedPeriodOf(isolation) === undefined) return;
+    event.preventDefault();
+    apply({ type: 'escape' });
+  });
+
+  const redraw = (view: SemanticView, periodKey: PeriodKey | undefined): void => {
+    if (view !== shownView) apply({ type: 'reset' });
+    shownView = view;
+    const focusedPeriod = periodOf(document.activeElement);
     const model = legendModel(view, periodKey);
     definition.textContent = model.definition;
     replaceChildren(list, model.items.map(renderItem));
+    listed = periodKey?.emphasized.map((entry) => entry.period) ?? [];
+    apply({ type: 'available', periods: listed, final: false });
+    controls()
+      .find((control) => Number(control.dataset['period']) === focusedPeriod)
+      ?.focus();
+  };
+
+  const update = (
+    view: SemanticView,
+    periodKey?: PeriodKey,
+    stage: LegendFrameStage = 'stable',
+  ): void => {
+    // Coarse and stable frames often share a key; skip identical redraws so
+    // a focused entry keeps its focus.
+    const signature = JSON.stringify([view, periodKey ?? null]);
+    if (signature !== shown) {
+      shown = signature;
+      redraw(view, periodKey);
+    }
+    // Only a stable frame can end a pressed isolation (period-isolation.ts).
+    if (stage === 'stable') apply({ type: 'available', periods: listed, final: true });
   };
 
   update('stability');
-  return { element: root, update };
+  return {
+    element: root,
+    update,
+    onIsolate: (next) => {
+      listener = next;
+    },
+  };
 }
