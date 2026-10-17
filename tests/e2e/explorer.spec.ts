@@ -2109,6 +2109,80 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await expectNoAccessibilityViolations(page);
   });
 
+  test('keeps markers on the presented frame when an entry is activated (final review I1)', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    const result = await page.evaluate(() => {
+      const marker = document.querySelector<HTMLElement>(
+        '.catalog-marker[data-catalog-id="mi-p3-3-4"]',
+      );
+      const shell = document.querySelector<HTMLElement>('#explorer');
+      const entry = [...document.querySelectorAll<HTMLButtonElement>('.catalog-entry')].find(
+        (candidate) => candidate.textContent === 'Airplane',
+      );
+      if (!marker || !shell || !entry) throw new Error('airplane marker or entry missing');
+      const before = { left: marker.style.left, top: marker.style.top };
+      const requestBefore = shell.dataset['renderRequestId'];
+      entry.click();
+      return {
+        before,
+        after: { left: marker.style.left, top: marker.style.top },
+        connected: marker.isConnected,
+        sameRequest: shell.dataset['renderRequestId'] === requestBefore,
+      };
+    });
+    expect(result.sameRequest).toBe(true);
+    expect(result.connected).toBe(true);
+    expect(result.after).toEqual(result.before);
+    // Once the new frame is presented the airplane sits at the centre.
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect
+      .poll(() =>
+        page
+          .locator('.catalog-marker[data-catalog-id="mi-p3-3-4"]')
+          .evaluate((element) => Number.parseFloat((element as HTMLElement).style.left)),
+      )
+      .toBeCloseTo(50, 0);
+  });
+
+  test('does not shift markers twice after a keyboard pan and inspect (final review I1)', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    const result = await page.evaluate(() => {
+      const canvas = document.querySelector<HTMLElement>('.explorer__canvas');
+      const marker = document.querySelector<HTMLElement>('.catalog-marker');
+      const overlay = marker?.parentElement;
+      if (!canvas || !overlay || !marker) throw new Error('canvas, overlay or marker missing');
+      const before = marker.style.left;
+      for (const key of ['ArrowLeft', 'Enter']) {
+        canvas.dispatchEvent(
+          new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }),
+        );
+      }
+      return { before, after: marker.style.left, transform: overlay.style.transform };
+    });
+    expect(result.transform).toContain('translate3d');
+    expect(result.after).toBe(result.before);
+  });
+
+  test('keeps the panel mark in step while the catalog markers are hidden (final review I2)', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    await page.getByRole('button', { name: /Catalog/ }).click();
+    await expect(page.locator('.catalog-marker')).toHaveCount(0);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    const airplane = panel.getByRole('button', { name: 'Airplane', exact: true });
+    await airplane.click();
+    await expect(airplane).toHaveAttribute('aria-current', 'true');
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(panel.locator('[aria-current="true"]')).toHaveCount(0);
+  });
+
   test('reflows below the canvas at 320 px with full-size entries', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 568 });
     await openExplorer(page);

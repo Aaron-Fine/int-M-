@@ -67,6 +67,10 @@ interface ApplicationState {
   catalogVisible: boolean;
   requestId: number;
   activeRequestId: number;
+  /** Viewport the active render request was made for. */
+  activeRequestViewport?: Viewport | undefined;
+  /** Viewport of the frame on screen: the overlay is planned from it, not from the target. */
+  presentedViewport?: Viewport | undefined;
   activeInspectionRequestId: number;
   frameStage: 'none' | 'coarse' | 'stable';
   dragging: boolean;
@@ -693,6 +697,7 @@ export function mountApplication(host: HTMLElement): () => void {
     const size = dimensions();
     state.requestId += 1;
     state.activeRequestId = state.requestId;
+    state.activeRequestViewport = state.viewport;
     state.frameStage = 'none';
     canvasShell.dataset['renderStage'] = 'requested';
     canvasShell.dataset['renderRequestId'] = String(state.activeRequestId);
@@ -732,6 +737,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   function presentFrame(frame: FrameMessage): void {
     if (frame.requestId !== state.activeRequestId) return;
+    state.presentedViewport = state.activeRequestViewport;
 
     const pixels = new ImageData(frame.rgba, frame.width, frame.height);
     renderCanvas.width = frame.width;
@@ -992,6 +998,8 @@ export function mountApplication(host: HTMLElement): () => void {
    * never move (moving a focused node blurs it).
    */
   function updateCatalogOverlay(): void {
+    // The panel's mark must follow the selection even while the markers are hidden.
+    catalogPanel.setSelected(state.selectedCatalogId);
     if (!state.catalogVisible) {
       catalogMarkers.clear();
       catalogOverlay.replaceChildren();
@@ -1001,7 +1009,8 @@ export function mountApplication(host: HTMLElement): () => void {
     // The 1 px floor only matters before layout, while the canvas is 0x0.
     const plan = planMarkers({
       index: catalogIndex,
-      viewport: state.viewport,
+      // The frame on screen, so markers stay registered to the image until a new one arrives.
+      viewport: state.presentedViewport ?? state.viewport,
       width: Math.max(1, Math.round(rect.width)),
       height: Math.max(1, Math.round(rect.height)),
       remPx: remPx(),
