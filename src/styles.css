@@ -935,6 +935,29 @@ button:disabled {
   forced-color-adjust: none;
 }
 
+.legend__stripes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.legend__stripe {
+  display: grid;
+  flex: 1 1 0;
+  gap: 0.1rem;
+  color: var(--ink-muted);
+  font-size: 0.66rem;
+  text-align: center;
+}
+
+.legend__stripe-chip {
+  display: block;
+  height: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 0.2rem;
+  forced-color-adjust: none;
+}
+
 .legend__ticks {
   position: relative;
   display: block;
@@ -1000,6 +1023,16 @@ button:disabled {
 
 .legend__entry[aria-pressed='false'] .legend__state {
   display: none;
+}
+
+.legend__dropped {
+  margin: 0.4rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.69rem;
+}
+
+.legend__dropped:empty {
+  margin: 0;
 }
 
 .legend__hint {
@@ -1323,6 +1356,7 @@ button:disabled {
   }
 
   .legend__swatch,
+  .legend__stripe-chip,
   .legend__bar {
     border-width: 2px;
   }

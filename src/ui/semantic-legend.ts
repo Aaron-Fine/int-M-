@@ -38,7 +38,12 @@ const ISOLATION_HINT =
   'Hover, focus or select a period to show only its pixels; Escape or selecting it again restores the view.';
 
 const waitingHint = (period: number): string =>
-  `Period ${period} stays isolated until the stable frame arrives; this preview does not show it, so every pixel is dimmed.`;
+  `Period ${period} stays isolated until the stable frame arrives; this preview does not rank it among the five largest.`;
+
+const droppedNote = (period: number): string =>
+  `Period ${period} is no longer among the five largest here.`;
+
+const HINT_ID = 'legend-isolation-hint';
 
 const copyOf = (label: string, detail: string): HTMLElement => {
   const copy = element('span', { className: 'legend__copy' });
@@ -69,6 +74,18 @@ const renderScale = (scale: LegendScale): HTMLLIElement => {
     attributes: { 'aria-hidden': 'true' },
   });
   graphic.append(bar, ticks);
+  if (scale.stripes !== undefined) {
+    // Stripe samples: the light/dark pair the raster draws, at its pitch and angle.
+    const samples = element('span', { className: 'legend__stripes' });
+    for (const stripe of scale.stripes) {
+      const tile = element('span', { className: 'legend__stripe' });
+      const chip = element('span', { className: 'legend__stripe-chip' });
+      chip.style.background = stripe.background;
+      tile.append(chip, element('span', { className: 'legend__stripe-label', text: stripe.label }));
+      samples.append(tile);
+    }
+    graphic.append(samples);
+  }
   item.append(copyOf(scale.label, scale.detail), graphic);
   return item;
 };
@@ -94,7 +111,7 @@ const renderPeriodControl = (entry: LegendSwatch, period: number): HTMLLIElement
   const control = element('button', {
     className: 'legend__entry',
     // The accessible name comes from the visible label and detail.
-    attributes: { type: 'button', 'aria-pressed': 'false' },
+    attributes: { type: 'button', 'aria-pressed': 'false', 'aria-describedby': HINT_ID },
   });
   control.dataset['period'] = String(period);
   // Visible, non-colour pressed state (forced colours included).
@@ -150,9 +167,19 @@ export function createSemanticLegend(): SemanticLegend {
   });
   const definition = element('p', { className: 'legend__definition' });
   const list = element('ul', { className: 'legend__list' });
-  const hint = element('p', { className: 'legend__hint', text: ISOLATION_HINT });
+  const hint = element('p', {
+    className: 'legend__hint',
+    text: ISOLATION_HINT,
+    attributes: { id: HINT_ID },
+  });
   hint.hidden = true;
-  root.append(heading, definition, list, hint);
+  // A polite live region, separate from the status line: it says why a pressed
+  // isolation ended when a stable frame no longer lists the period.
+  const dropped = element('p', {
+    className: 'legend__dropped',
+    attributes: { role: 'status', 'aria-live': 'polite' },
+  });
+  root.append(heading, definition, list, hint, dropped);
 
   let isolation = NO_ISOLATION;
   let notified: number | undefined;
@@ -161,6 +188,9 @@ export function createSemanticLegend(): SemanticLegend {
   let shown: string | undefined;
   let listed: readonly number[] = [];
   let redrawing = false;
+  // The period whose entry a coarse frame took the focus from, until a later
+  // frame lists it again (or focus goes elsewhere).
+  let lostFocus: number | undefined;
   list.tabIndex = -1;
 
   const controls = (): HTMLElement[] => [...list.querySelectorAll<HTMLElement>('.legend__entry')];
@@ -173,7 +203,15 @@ export function createSemanticLegend(): SemanticLegend {
   };
 
   const apply = (event: IsolationEvent): void => {
+    const before = isolation.pressed;
     isolation = nextIsolation(isolation, event);
+    if (event.type === 'available') {
+      if (event.final && before !== undefined && isolation.pressed === undefined) {
+        dropped.textContent = droppedNote(before);
+      }
+    } else if (event.type === 'activate' || event.type === 'escape' || event.type === 'reset') {
+      dropped.textContent = '';
+    }
     for (const control of controls()) {
       const pressed = Number(control.dataset['period']) === isolation.pressed;
       control.setAttribute('aria-pressed', String(pressed));
@@ -191,11 +229,16 @@ export function createSemanticLegend(): SemanticLegend {
       const period = periodOf(event.target);
       if (period !== undefined) apply({ type, period });
     };
-  list.addEventListener('focusin', onPeriodEvent('focus'));
+  list.addEventListener('focusin', (event) => {
+    if (periodOf(event.target) !== undefined) lostFocus = undefined;
+    onPeriodEvent('focus')(event);
+  });
   // A redraw removes the focused button; that focusout is not the user leaving.
   const onBlur = onPeriodEvent('blur');
   list.addEventListener('focusout', (event) => {
-    if (!redrawing) onBlur(event);
+    if (redrawing) return;
+    if (event.target === list) lostFocus = undefined;
+    onBlur(event);
   });
   list.addEventListener('click', onPeriodEvent('activate'));
   // Hover previews with a mouse only: a tap focuses and activates instead.
@@ -216,9 +259,14 @@ export function createSemanticLegend(): SemanticLegend {
   });
 
   const redraw = (view: SemanticView, periodKey: PeriodKey | undefined): void => {
-    if (view !== shownView) apply({ type: 'reset' });
+    if (view !== shownView) {
+      apply({ type: 'reset' });
+      lostFocus = undefined;
+    }
     shownView = view;
-    const focusedPeriod = periodOf(document.activeElement);
+    const activePeriod = periodOf(document.activeElement);
+    // Focus parked on the list by an earlier redraw is still waiting for its entry.
+    const focusedPeriod = activePeriod ?? (document.activeElement === list ? lostFocus : undefined);
     const model = legendModel(view, periodKey);
     definition.textContent = model.definition;
     redrawing = true;
@@ -229,8 +277,12 @@ export function createSemanticLegend(): SemanticLegend {
       const refocus = controls().find(
         (control) => Number(control.dataset['period']) === focusedPeriod,
       );
-      // A focused entry that is gone hands focus to the list, not <body>.
-      if (focusedPeriod !== undefined) (refocus ?? list).focus();
+      // A focused entry that is gone hands focus to the list, not <body>, and
+      // is remembered so a later frame that lists the period gets focus back.
+      if (focusedPeriod !== undefined) {
+        lostFocus = refocus === undefined ? focusedPeriod : undefined;
+        (refocus ?? list).focus();
+      }
     } finally {
       redrawing = false;
     }

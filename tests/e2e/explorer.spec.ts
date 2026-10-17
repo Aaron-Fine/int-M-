@@ -324,6 +324,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
       ).toBeVisible();
       await expect(page.getByText(/Hue and oriented stripes show rotation/)).toBeVisible();
       await expect(page.getByText('Multiplier angle', { exact: true })).toBeVisible();
+      await expect(legend.locator('.legend__stripe')).toHaveText(['−π/2', '0', 'π/2']);
       await expect(legend.getByText('Attraction |λ|', { exact: true })).toBeVisible();
       await expect(legend.locator('.legend__tick').first()).toHaveText('0');
 
@@ -857,6 +858,11 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const periodOne = legend.locator('.legend__entry[data-period="1"]');
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
     await expect(legend.getByText(/^Hover, focus or select a period/)).toBeVisible();
+    // The hint explains the buttons to assistive technology.
+    const hintId = await legend.locator('.legend__hint').getAttribute('id');
+    expect(hintId).toBeTruthy();
+    await expect(periodOne).toHaveAttribute('aria-describedby', hintId ?? '');
+    await expect(legend.locator('.legend__dropped')).toBeEmpty();
 
     // Keyboard focus previews the isolation.
     await periodOne.focus();
