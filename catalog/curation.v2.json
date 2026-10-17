@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "license": "CC0-1.0",
+  "description": "Reviewed names and the v1 ids each canonical id keeps as an alias (ADR 0011). Keys are canonical catalog ids.",
+  "entries": {
+    "mi-p1-0-1": { "label": "Main cardioid", "aliases": ["mi-p1-main"] },
+    "mi-p2-1-2": { "label": "Period-2 bulb", "aliases": ["mi-p2-basilica"] },
+    "mi-p3-1-2": { "label": "Douady rabbit", "aliases": ["mi-p3-rabbit"] },
+    "mi-p3-3-4": { "label": "Airplane", "aliases": ["mi-p3-airplane"] },
+    "mi-p3-5-6": { "label": "Co-rabbit", "aliases": ["mi-p3-corabbit"] },
+    "mi-p4-1-2": { "label": "Period-4 component 6", "aliases": ["mi-p4-06"] },
+    "mi-p4-3-4": { "label": "Period-4 component 4", "aliases": ["mi-p4-04"] },
+    "mi-p4-6-9": { "label": "Period-4 component 2", "aliases": ["mi-p4-02"] },
+    "mi-p4-7-8": { "label": "Period-4 component 1", "aliases": ["mi-p4-01"] },
+    "mi-p4-11-12": { "label": "Period-4 component 3", "aliases": ["mi-p4-03"] },
+    "mi-p4-13-14": { "label": "Period-4 component 5", "aliases": ["mi-p4-05"] }
+  }
+}

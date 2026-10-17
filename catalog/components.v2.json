@@ -1,0 +1,538 @@
+{
+  "schemaVersion": 2,
+  "license": "CC0-1.0",
+  "maxPeriod": 4,
+  "methods": {
+    "newton-decimal-80": "Centres: binary64 Durand-Kerner roots of f_c^p(0), refined by Newton's method in 80-digit decimal arithmetic and rounded to the nearest binary64; exact period: every proper divisor d of p has |f_c^d(0)| > 1e-6. Rays: Lavaurs' pairing of the angles of exact period p, each pair matched to the one centre both of its rays land on (binary64 ray tracing, then Newton). Internal address: the kneading sequence of the lower ray. Angled address: Schleicher's denominators; each numerator names the tuned sub-wake that contains the lower ray. Residuals: |f_c^p(0)|, the distance to the refined centre, and the smallest |f_c^d(0)| over proper divisors d, at the stored centre in 80-digit arithmetic, to three significant digits."
+  },
+  "provenance": {
+    "curated-label": {
+      "generator": "tools/generate_catalog.py",
+      "arguments": "--max-period 4 --precision 80",
+      "curated": "label and aliases from catalog/curation.v2.json"
+    },
+    "generated-label": {
+      "generator": "tools/generate_catalog.py",
+      "arguments": "--max-period 4 --precision 80",
+      "curated": "none; the label is generated from the characteristic rays"
+    }
+  },
+  "components": [
+    {
+      "id": "mi-p1-0-1",
+      "aliases": [
+        "mi-p1-main"
+      ],
+      "label": "Main cardioid",
+      "period": 1,
+      "center": {
+        "re": 0.0,
+        "im": 0.0
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1
+      ],
+      "residual": {
+        "orbitAbs": 0.0,
+        "centerError": 0.0
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p2-1-2",
+      "aliases": [
+        "mi-p2-basilica"
+      ],
+      "label": "Period-2 bulb",
+      "period": 2,
+      "center": {
+        "re": -1.0,
+        "im": 0.0
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        2
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 2,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "residual": {
+        "orbitAbs": 0.0,
+        "centerError": 0.0,
+        "properDivisorOrbitMinAbs": 1.0
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p3-3-4",
+      "aliases": [
+        "mi-p3-airplane"
+      ],
+      "label": "Airplane",
+      "period": 3,
+      "center": {
+        "re": -1.7548776662466927,
+        "im": 0.0
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        2,
+        3
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 2,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        },
+        {
+          "fromPeriod": 2,
+          "toPeriod": 3,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 3,
+          "denominator": 7
+        },
+        {
+          "numerator": 4,
+          "denominator": 7
+        }
+      ],
+      "residual": {
+        "orbitAbs": 2.01e-16,
+        "centerError": 3.55e-17,
+        "properDivisorOrbitMinAbs": 1.75
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p3-5-6",
+      "aliases": [
+        "mi-p3-corabbit"
+      ],
+      "label": "Co-rabbit",
+      "period": 3,
+      "center": {
+        "re": -0.12256116687665362,
+        "im": -0.7448617666197442
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        3
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 3,
+          "rotation": {
+            "numerator": 2,
+            "denominator": 3
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 5,
+          "denominator": 7
+        },
+        {
+          "numerator": 6,
+          "denominator": 7
+        }
+      ],
+      "residual": {
+        "orbitAbs": 7.84e-18,
+        "centerError": 3.88e-18,
+        "properDivisorOrbitMinAbs": 0.755
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p3-1-2",
+      "aliases": [
+        "mi-p3-rabbit"
+      ],
+      "label": "Douady rabbit",
+      "period": 3,
+      "center": {
+        "re": -0.12256116687665362,
+        "im": 0.7448617666197442
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        3
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 3,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 3
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 1,
+          "denominator": 7
+        },
+        {
+          "numerator": 2,
+          "denominator": 7
+        }
+      ],
+      "residual": {
+        "orbitAbs": 7.84e-18,
+        "centerError": 3.88e-18,
+        "properDivisorOrbitMinAbs": 0.755
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p4-7-8",
+      "aliases": [
+        "mi-p4-01"
+      ],
+      "label": "Period-4 component 1",
+      "period": 4,
+      "center": {
+        "re": -1.9407998065294847,
+        "im": 0.0
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 2,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        },
+        {
+          "fromPeriod": 2,
+          "toPeriod": 3,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        },
+        {
+          "fromPeriod": 3,
+          "toPeriod": 4,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 7,
+          "denominator": 15
+        },
+        {
+          "numerator": 8,
+          "denominator": 15
+        }
+      ],
+      "residual": {
+        "orbitAbs": 1.47e-15,
+        "centerError": 5.77e-17,
+        "properDivisorOrbitMinAbs": 1.83
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p4-6-9",
+      "aliases": [
+        "mi-p4-02"
+      ],
+      "label": "Period-4 component 2",
+      "period": 4,
+      "center": {
+        "re": -1.3107026413368328,
+        "im": 0.0
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        2,
+        4
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 2,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        },
+        {
+          "fromPeriod": 2,
+          "toPeriod": 4,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 6,
+          "denominator": 15
+        },
+        {
+          "numerator": 9,
+          "denominator": 15
+        }
+      ],
+      "residual": {
+        "orbitAbs": 1.7e-16,
+        "centerError": 9.81e-17,
+        "properDivisorOrbitMinAbs": 0.407
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p4-11-12",
+      "aliases": [
+        "mi-p4-03"
+      ],
+      "label": "Period-4 component 3",
+      "period": 4,
+      "center": {
+        "re": -0.15652016683375505,
+        "im": -1.0322471089228318
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        3,
+        4
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 3,
+          "rotation": {
+            "numerator": 2,
+            "denominator": 3
+          }
+        },
+        {
+          "fromPeriod": 3,
+          "toPeriod": 4,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 11,
+          "denominator": 15
+        },
+        {
+          "numerator": 12,
+          "denominator": 15
+        }
+      ],
+      "residual": {
+        "orbitAbs": 2.33e-16,
+        "centerError": 2.35e-17,
+        "properDivisorOrbitMinAbs": 1.04
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p4-3-4",
+      "aliases": [
+        "mi-p4-04"
+      ],
+      "label": "Period-4 component 4",
+      "period": 4,
+      "center": {
+        "re": -0.15652016683375505,
+        "im": 1.0322471089228318
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        3,
+        4
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 3,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 3
+          }
+        },
+        {
+          "fromPeriod": 3,
+          "toPeriod": 4,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 2
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 3,
+          "denominator": 15
+        },
+        {
+          "numerator": 4,
+          "denominator": 15
+        }
+      ],
+      "residual": {
+        "orbitAbs": 2.33e-16,
+        "centerError": 2.35e-17,
+        "properDivisorOrbitMinAbs": 1.04
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p4-13-14",
+      "aliases": [
+        "mi-p4-05"
+      ],
+      "label": "Period-4 component 5",
+      "period": 4,
+      "center": {
+        "re": 0.2822713907669139,
+        "im": -0.5300606175785253
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        4
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 4,
+          "rotation": {
+            "numerator": 3,
+            "denominator": 4
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 13,
+          "denominator": 15
+        },
+        {
+          "numerator": 14,
+          "denominator": 15
+        }
+      ],
+      "residual": {
+        "orbitAbs": 2.01e-17,
+        "centerError": 5.49e-18,
+        "properDivisorOrbitMinAbs": 0.601
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    },
+    {
+      "id": "mi-p4-1-2",
+      "aliases": [
+        "mi-p4-06"
+      ],
+      "label": "Period-4 component 6",
+      "period": 4,
+      "center": {
+        "re": 0.2822713907669139,
+        "im": 0.5300606175785253
+      },
+      "centerPrecisionDigits": 16,
+      "internalAddress": [
+        1,
+        4
+      ],
+      "angledInternalAddress": [
+        {
+          "fromPeriod": 1,
+          "toPeriod": 4,
+          "rotation": {
+            "numerator": 1,
+            "denominator": 4
+          }
+        }
+      ],
+      "characteristicRays": [
+        {
+          "numerator": 1,
+          "denominator": 15
+        },
+        {
+          "numerator": 2,
+          "denominator": 15
+        }
+      ],
+      "residual": {
+        "orbitAbs": 2.01e-17,
+        "centerError": 5.49e-18,
+        "properDivisorOrbitMinAbs": 0.601
+      },
+      "method": "newton-decimal-80",
+      "provenance": "curated-label"
+    }
+  ]
+}

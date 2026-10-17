@@ -83,7 +83,7 @@ const environment = {
   revisions: {
     build: buildRevision,
     algorithm: buildRevision,
-    catalog: sha256File('catalog/components.v1.json'),
+    catalog: sha256File('catalog/components.v2.json'),
     verifier: sha256File('fixtures/orbits.v1.json'),
   },
   render: {
