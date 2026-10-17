@@ -121,7 +121,12 @@ Estimates are engineering days. They are planning figures and may overlap.
       "marks and describes arbitrary … points", Firefox "catalog markers are
       keyboard-selectable". Rerun the suite on a quiet machine with
       `--repeat-each 5`; fix any test that still fails (waits on fixed
-      timeouts rather than state). 0.5–1.
+      timeouts rather than state). 0.5–1. Root cause found for the Chromium
+      one (2026-10-17): `resetView` in `src/ui/application.ts` does not
+      invalidate `state.activeInspectionRequestId`, so a slow inspection
+      reply arriving after Reset re-selects the point. That is a real app
+      race: fix it in `resetView` and make the test await the inspection
+      result before Reset.
 - [ ] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
       "Airplane, period 3"), found while planning item 3. Enlarge the hit
