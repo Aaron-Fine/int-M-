@@ -969,8 +969,11 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await expect(page.locator('#selected-point-status')).toHaveText('No point selected.');
     await waitForStable(page);
     await expectNoAccessibilityViolations(page);
-    // The resulting default view owns no parameters, so the broken link leaves the address.
-    await expect.poll(() => new URL(page.url()).search).toBe('');
+    // The view still equals the one the page opened with, so the link stays in the address.
+    await page.waitForTimeout(1_500);
+    expect(new URL(page.url()).search).toBe(
+      '?v=1&c=abc,0&s=2.5&view=sparkle&q=ultra&sel=mi-p9-nope',
+    );
 
     await page.getByRole('button', { name: 'Explore' }).click();
     await notice.getByRole('button', { name: 'Dismiss link notice' }).click();
@@ -982,6 +985,22 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await expect(page.getByLabel('Magnification')).toHaveText('6.00e6×');
     await expect(page.getByLabel('Interior view')).toHaveValue('multiplier');
     await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+  });
+
+  test('keeps a refused link in the address bar until the view changes', async ({ page }) => {
+    const refused = '?v=2&c=-1,0&s=0.5&view=period&q=quick';
+    await page.goto(`/${refused}`);
+    await expect(page.getByRole('status', { name: 'Link notice' })).toContainText(
+      'format version 2',
+    );
+    await waitForStable(page);
+    await page.waitForTimeout(1_500);
+    expect(new URL(page.url()).search).toBe(refused);
+
+    await page.getByRole('button', { name: 'Explore' }).click();
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect.poll(() => searchParam(page, 'v')).toBe('1');
+    expect(searchParam(page, 'c')).not.toBeNull();
   });
 
   test('refuses an unknown or missing version with a notice instead of guessing', async ({
@@ -1060,15 +1079,30 @@ test.describe('Shareable links (MI-UX-019)', () => {
         configurable: true,
         value: { writeText: (): Promise<void> => Promise.reject(new Error('denied')) },
       });
+      // Record each address-bar write with the render stage at that moment.
+      const stages: string[] = [];
+      (window as unknown as { __urlWrites: string[] }).__urlWrites = stages;
+      const original = history.replaceState.bind(history);
+      history.replaceState = (...args: Parameters<History['replaceState']>): void => {
+        stages.push(document.querySelector('#explorer')?.getAttribute('data-render-stage') ?? '');
+        original(...args);
+      };
     });
     await page.goto('/');
     await page.getByRole('button', { name: 'Explore' }).click();
+    await waitForStable(page);
     await page.getByRole('button', { name: 'Zoom in' }).click();
     await page.getByRole('button', { name: 'Copy link to this view' }).click();
     await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
       'Could not copy automatically. The address bar now shows the link to this view.',
     );
     expect(searchParam(page, 'v')).toBe('1');
+    // The write came from the failed copy, before the settled frame (and its 500 ms timer).
+    const writes = await page.evaluate(
+      () => (window as unknown as { __urlWrites: string[] }).__urlWrites,
+    );
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).not.toBe('stable');
   });
 
   test('keeps the link notice and copy control usable in forced colors at 320 px', async ({

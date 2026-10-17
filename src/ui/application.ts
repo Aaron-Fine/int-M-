@@ -26,6 +26,7 @@ import {
   resolveStartupState,
   shareLink,
 } from './share-link';
+import { encodeShareState } from './share-state';
 import type { ShareSelection, ShareState } from './share-state';
 import {
   DEFAULT_VIEWPORT,
@@ -519,12 +520,23 @@ export function mountApplication(host: HTMLElement): () => void {
    * `replaceState`, so Back still leaves the explorer, and never mid-drag or
    * while a newer render is pending, whose stable frame reschedules this.
    */
+  const openedQuery = encodeShareState(startup);
+
   function scheduleUrlWrite(): void {
     if (urlTimer !== undefined) clearTimeout(urlTimer);
     urlTimer = setTimeout(() => {
       urlTimer = undefined;
       if (pointerSession !== undefined || renderTimer !== undefined) return;
       if (state.frameStage !== 'stable') return;
+      // A link that was refused or adjusted stays in the address bar, beside
+      // its notice, until the view differs from the one the page opened with.
+      if (
+        startup.notice !== undefined &&
+        isEncodableShareState(currentShareState()) &&
+        encodeShareState(currentShareState()) === openedQuery
+      ) {
+        return;
+      }
       replaceAddressBar();
     }, URL_WRITE_DELAY_MS);
   }
