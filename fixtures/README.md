@@ -24,7 +24,8 @@ not call the TypeScript classifier. Known attracting periods are declared as
 fixture inputs; the generator independently iterates to a closed cycle and
 computes its multiplier. The TypeScript unit test then compares status, period,
 escape iteration, and multiplier magnitude within the declared binary64
-tolerance.
+tolerance. Cases that pin an acceptance path carry `expectedEvidence`, which the
+test compares with the result's evidence flags (generated, not hand-added).
 
 These fixtures are useful cross-implementation evidence, not a proof that
 every boundary point is correctly classified. The data is dedicated to the

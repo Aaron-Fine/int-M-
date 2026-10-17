@@ -79,6 +79,7 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 3,
         "maxIterations": 2048,
+        "expectedEvidence": ["analytic-period-3-component"],
     },
     {
         "id": "period-four-off-center",
@@ -93,6 +94,7 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 3,
         "maxIterations": 4096,
+        "expectedEvidence": ["analytic-period-3-component"],
     },
     {
         "id": "period-three-airplane-near-cusp",
@@ -100,6 +102,7 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 3,
         "maxIterations": 32768,
+        "expectedEvidence": ["analytic-period-3-component"],
     },
     {
         "id": "period-three-rabbit-rim",
@@ -107,6 +110,7 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 3,
         "maxIterations": 65536,
+        "expectedEvidence": ["analytic-period-3-component"],
     },
     {
         "id": "period-six-rabbit-satellite",
@@ -114,6 +118,7 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 6,
         "maxIterations": 16384,
+        "expectedEvidence": ["converged-cycle"],
     },
     {
         "id": "parabolic-boundary-minus-three-quarters",
@@ -237,6 +242,11 @@ def generate(precision: int) -> dict[str, Any]:
                         "cycleWarmup": 24,
                     },
                     "expected": expected,
+                    **(
+                        {"expectedEvidence": case["expectedEvidence"]}
+                        if "expectedEvidence" in case
+                        else {}
+                    ),
                 }
             )
 
