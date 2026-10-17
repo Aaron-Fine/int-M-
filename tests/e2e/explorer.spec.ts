@@ -891,3 +891,128 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect.poll(() => page.getByLabel('Current view').textContent()).toBe(restored);
   });
 });
+
+test.describe('Shareable links (MI-UX-019)', () => {
+  const waitForStable = async (page: Page): Promise<void> => {
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 30_000,
+    });
+  };
+  const searchParam = (page: Page, key: string): string | null =>
+    new URL(page.url()).searchParams.get(key);
+
+  test('records a settled view in the address without adding history and reopens it', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore' }).click();
+    await waitForStable(page);
+    const historyLength = await page.evaluate(() => history.length);
+
+    const periodTwo = page.getByRole('button', { name: 'Inspect Period-2 bulb, period 2' });
+    await expect(periodTwo).toBeVisible({ timeout: 20_000 });
+    await periodTwo.click();
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await page.getByLabel('Interior view').selectOption('period');
+    await page.getByLabel('Quality').selectOption('quick');
+    await waitForStable(page);
+    await expect.poll(() => searchParam(page, 'q')).toBe('quick');
+    expect(searchParam(page, 'v')).toBe('1');
+    expect(searchParam(page, 'view')).toBe('period');
+    expect(searchParam(page, 'sel')).toBe('mi-p2-basilica');
+    expect(await page.evaluate(() => history.length)).toBe(historyLength);
+
+    const link = page.url();
+    const magnification = (await page.getByLabel('Magnification').textContent()) ?? '';
+    const center = (await page.locator('.coordinates__center').textContent()) ?? '';
+    const reopened = await context.newPage();
+    await reopened.goto(link);
+    await waitForStable(reopened);
+    await expect(reopened.getByLabel('Interior view')).toHaveValue('period');
+    await expect(reopened.getByLabel('Quality')).toHaveValue('quick');
+    await expect(reopened.getByLabel('Magnification')).toHaveText(magnification);
+    await expect(reopened.locator('.coordinates__center')).toHaveText(center);
+    await expect(
+      reopened
+        .getByRole('region', { name: 'Point evidence' })
+        .getByRole('heading', { name: 'Period-2 bulb' }),
+    ).toBeVisible();
+    await expect(reopened.getByRole('status', { name: 'Link notice' })).toHaveText('');
+    expect(reopened.url()).toBe(link);
+  });
+
+  test('restores a selected point and inspects it again', async ({ page }) => {
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=stability&q=balanced&sel=-0.1,0.65');
+    await expect(page.locator('#selected-point-status')).toContainText('Outcome:', {
+      timeout: 10_000,
+    });
+    await expect(page.locator('.selected-point-marker')).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'Point evidence' }).locator('.inspector__coordinate'),
+    ).toHaveText('c = -0.1 + 0.65i');
+    await expect(page.getByRole('status', { name: 'Link notice' })).toHaveText('');
+  });
+
+  test('falls back visibly from malformed fields and clamps an out-of-range zoom', async ({
+    page,
+  }) => {
+    await page.goto('/?v=1&c=abc,0&s=2.5&view=sparkle&q=ultra&sel=mi-p9-nope');
+    const notice = page.getByRole('status', { name: 'Link notice' });
+    await expect(notice).toContainText(
+      'This link was adjusted: the view position was not valid, so the full-set view is shown',
+    );
+    await expect(notice).toContainText('so nothing is selected.');
+    await expect(page.getByLabel('Interior view')).toHaveValue('stability');
+    await expect(page.getByLabel('Quality')).toHaveValue('balanced');
+    await expect(page.getByRole('button', { name: /Reset/ })).toBeDisabled();
+    await expect(page.locator('#selected-point-status')).toHaveText('No point selected.');
+    await waitForStable(page);
+    await expectNoAccessibilityViolations(page);
+    // The resulting default view owns no parameters, so the broken link leaves the address.
+    await expect.poll(() => new URL(page.url()).search).toBe('');
+
+    await page.getByRole('button', { name: 'Explore' }).click();
+    await notice.getByRole('button', { name: 'Dismiss link notice' }).click();
+    await expect(notice).toHaveText('');
+    await expect(page.getByLabel('Interactive Mandelbrot set')).toBeFocused();
+
+    await page.goto('/?v=1&c=-1.25,0&s=1e-12&view=multiplier');
+    await expect(notice).toContainText('the nearest supported zoom is shown');
+    await expect(page.getByLabel('Magnification')).toHaveText('6.00e6×');
+    await expect(page.getByLabel('Interior view')).toHaveValue('multiplier');
+    await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+  });
+
+  test('refuses an unknown or missing version with a notice instead of guessing', async ({
+    page,
+  }) => {
+    const notice = page.getByRole('status', { name: 'Link notice' });
+    for (const [search, message] of [
+      [
+        '/?v=2&c=-1,0&s=0.5&view=period&q=quick',
+        'This link uses format version 2, which this explorer does not read.',
+      ],
+      ['/?v=0&c=-1,0&s=0.5', 'This link uses format version 0, which this explorer does not read.'],
+      ['/?c=-1,0&s=0.5&view=period', 'This link has no format version, so it was not applied.'],
+    ] as const) {
+      await page.goto(search);
+      await expect(notice).toContainText(message);
+      await expect(notice).toContainText('Opening the default full-set view instead.');
+      await expect(page.getByLabel('Interior view')).toHaveValue('stability');
+      await expect(page.getByLabel('Quality')).toHaveValue('balanced');
+      await expect(page.getByRole('button', { name: /Reset/ })).toBeDisabled();
+    }
+  });
+
+  test('keeps the benchmark harness view and quality parameters working', async ({ page }) => {
+    await page.goto('/?view=-1,0,0.5&quality=quick');
+    await expect(page.getByLabel('Quality')).toHaveValue('quick');
+    await expect(page.getByLabel('Magnification')).toHaveText('5.00×');
+    await expect(page.getByRole('status', { name: 'Link notice' })).toHaveText('');
+    await waitForStable(page);
+    await expect.poll(() => searchParam(page, 'v')).toBe('1');
+    expect(searchParam(page, 'q')).toBe('quick');
+    expect(searchParam(page, 'quality')).toBeNull();
+  });
+});

@@ -91,6 +91,23 @@ export const addressBarSearch = (currentSearch: string, state: ShareState): stri
   return parts.length === 0 ? '' : `?${parts.join('&')}`;
 };
 
+/**
+ * False when `encodeShareState` would throw for `state`: a non-finite centre
+ * or span (panning is unbounded), or a non-finite point selection. The
+ * address bar is then left as it is.
+ */
+export const isEncodableShareState = (state: ShareState): boolean => {
+  const { center, spanY } = state.viewport;
+  const pointFinite = (point: { readonly re: number; readonly im: number }): boolean =>
+    Number.isFinite(point.re) && Number.isFinite(point.im);
+  const selection = state.selection;
+  return (
+    pointFinite(center) &&
+    Number.isFinite(spanY) &&
+    (selection?.kind !== 'point' || pointFinite(selection.point))
+  );
+};
+
 /** The link the copy control places on the clipboard: the v1 fields only. */
 export const shareLink = (origin: string, pathname: string, state: ShareState): string => {
   const query = encodeShareState(state);

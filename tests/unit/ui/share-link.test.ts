@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { MIN_VIEWPORT_SPAN_Y } from '../../../src/domain';
-import { addressBarSearch, resolveStartupState, shareLink } from '../../../src/ui/share-link';
+import {
+  addressBarSearch,
+  isEncodableShareState,
+  resolveStartupState,
+  shareLink,
+} from '../../../src/ui/share-link';
 import { DEFAULT_SHARE_STATE, type ShareState } from '../../../src/ui/share-state';
 
 const BASILICA_VIEW: ShareState = {
@@ -149,5 +154,48 @@ describe('shareLink', () => {
     expect(shareLink('https://example.org', '/atlas/', DEFAULT_SHARE_STATE)).toBe(
       'https://example.org/atlas/',
     );
+  });
+});
+
+describe('isEncodableShareState', () => {
+  it('accepts finite views, with or without a point selection', () => {
+    expect(isEncodableShareState(BASILICA_VIEW)).toBe(true);
+    expect(isEncodableShareState(DEFAULT_SHARE_STATE)).toBe(true);
+    expect(
+      isEncodableShareState({
+        ...DEFAULT_SHARE_STATE,
+        selection: { kind: 'point', point: { re: -0.1, im: 0.65 } },
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects a non-finite centre, span, or point selection', () => {
+    const bad = [NaN, Infinity, -Infinity];
+    for (const value of bad) {
+      expect(
+        isEncodableShareState({
+          ...DEFAULT_SHARE_STATE,
+          viewport: { center: { re: value, im: 0 }, spanY: 0.5 },
+        }),
+      ).toBe(false);
+      expect(
+        isEncodableShareState({
+          ...DEFAULT_SHARE_STATE,
+          viewport: { center: { re: 0, im: value }, spanY: 0.5 },
+        }),
+      ).toBe(false);
+      expect(
+        isEncodableShareState({
+          ...DEFAULT_SHARE_STATE,
+          viewport: { center: { re: 0, im: 0 }, spanY: value },
+        }),
+      ).toBe(false);
+      expect(
+        isEncodableShareState({
+          ...DEFAULT_SHARE_STATE,
+          selection: { kind: 'point', point: { re: value, im: 0 } },
+        }),
+      ).toBe(false);
+    }
   });
 });

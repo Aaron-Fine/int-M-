@@ -12,14 +12,18 @@ import {
   zoomViewportAt,
   zoomViewportToRect,
 } from '../domain/viewport';
-import { COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components';
+import {
+  COMPONENT_CATALOG,
+  findCatalogComponent,
+  type CatalogComponent,
+} from '../catalog/components';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { createSemanticLegend } from './semantic-legend';
-import { parseBenchmarkParams } from './benchmark-params';
+import { addressBarSearch, isEncodableShareState, resolveStartupState } from './share-link';
+import type { ShareSelection, ShareState } from './share-state';
 import {
   DEFAULT_VIEWPORT,
-  DEFAULT_QUALITY_PROFILE_ID,
   formatCoordinate,
   formatCoordinateForViewport,
   formatMagnification,
@@ -68,6 +72,8 @@ interface CanvasPoint {
 
 type InteractionMode = 'pan' | 'region';
 const RENDER_DELAY_MS = 65;
+/** Quiet time after a settled view before the address bar records it (ADR 0009). */
+const URL_WRITE_DELAY_MS = 500;
 const LABEL_MAGNIFICATION_THRESHOLD = 2;
 const MIN_REGION_SIZE_PX = 12;
 
@@ -92,13 +98,13 @@ declare global {
 
 export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
-  // Opt-in benchmark parameters (plan §8/§9): validated query parameters for
-  // the Stage A evidence harness. Absent parameters leave every default —
-  // viewport, quality profile, and trace hook — untouched.
-  const benchmark = parseBenchmarkParams(window.location.search);
+  // The starting view (ADR 0009): a v1 share link, else the benchmark
+  // harness's opt-in parameters (plan §8/§9), else the defaults. `perf=1`
+  // enables the render-trace hook in every case.
+  const startup = resolveStartupState(window.location.search);
   let perfHook: NonNullable<Window['__miRenderTrace']> | undefined;
   const renderTraces = createRenderTraceRing({
-    ...(benchmark.perfEnabled
+    ...(startup.perfEnabled
       ? {
           onTraceCompleted: (trace: RenderTrace) => {
             if (perfHook !== undefined) perfHook.lastTrace = trace;
@@ -118,8 +124,8 @@ export function mountApplication(host: HTMLElement): () => void {
     : undefined;
   longTaskObserver?.observe({ type: 'longtask', buffered: true });
   const state: ApplicationState = {
-    viewport: benchmark.viewport ? { ...benchmark.viewport } : { ...DEFAULT_VIEWPORT },
-    semanticView: 'stability',
+    viewport: { ...startup.viewport },
+    semanticView: startup.semanticView,
     catalogVisible: true,
     requestId: 0,
     activeRequestId: 0,
@@ -127,10 +133,10 @@ export function mountApplication(host: HTMLElement): () => void {
     frameStage: 'none',
     dragging: false,
     interactionMode: 'pan',
-    qualityProfile: benchmark.qualityProfile ?? DEFAULT_QUALITY_PROFILE_ID,
+    qualityProfile: startup.qualityProfile,
     requestStartedAtMs: 0,
   };
-  if (benchmark.perfEnabled) {
+  if (startup.perfEnabled) {
     perfHook = {
       snapshot: () => renderTraces.snapshot(),
       viewport: () => ({ ...state.viewport }),
@@ -212,9 +218,10 @@ export function mountApplication(host: HTMLElement): () => void {
   for (const view of SEMANTIC_VIEWS) {
     semanticSelect.append(element('option', { text: view.label, attributes: { value: view.id } }));
   }
+  semanticSelect.value = state.semanticView;
   const semanticDescription = element('p', {
     className: 'control-description',
-    text: SEMANTIC_VIEWS[0].description,
+    text: semanticViewDescription(state.semanticView),
     attributes: { id: 'semantic-view-description' },
   });
   const qualitySelect = element('select', {
@@ -286,10 +293,22 @@ export function mountApplication(host: HTMLElement): () => void {
       'aria-atomic': 'true',
     },
   });
+  // Always in the document so that filling it is announced; empty, it takes
+  // no space (styles.css `.link-notice:empty`).
+  const linkNotice = element('div', {
+    className: 'link-notice',
+    attributes: {
+      role: 'status',
+      'aria-label': 'Link notice',
+      'aria-live': 'polite',
+      'aria-atomic': 'true',
+    },
+  });
 
   const guidance = createGuidance();
   const inspector = createInspector();
   const legend = createSemanticLegend();
+  legend.update(state.semanticView);
   const catalogOverlay = element('div', {
     className: 'catalog-overlay',
     attributes: {
@@ -404,7 +423,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   const workspace = element('main', { className: 'workspace' });
   const primary = element('div', { className: 'primary' });
-  primary.append(controls, canvasShell);
+  primary.append(linkNotice, controls, canvasShell);
   workspace.append(primary, sidePanel);
 
   replaceChildren(host, [header, workspace, guidance.element]);
@@ -412,6 +431,8 @@ export function mountApplication(host: HTMLElement): () => void {
 
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let urlTimer: ReturnType<typeof setTimeout> | undefined;
+  let noticeTimer: ReturnType<typeof setTimeout> | undefined;
   let pointerSession:
     | {
         readonly pointerId: number;
@@ -435,6 +456,85 @@ export function mountApplication(host: HTMLElement): () => void {
     feedbackTimer = setTimeout(() => {
       feedback.classList.remove('feedback--visible');
     }, 2600);
+  }
+
+  function showLinkNotice(message: string): void {
+    const dismiss = button('Dismiss', { className: 'link-notice__dismiss' });
+    dismiss.setAttribute('aria-label', 'Dismiss link notice');
+    dismiss.addEventListener('click', () => {
+      linkNotice.replaceChildren();
+      renderCanvas.focus();
+    });
+    linkNotice.replaceChildren(
+      element('p', { className: 'link-notice__text', text: message }),
+      dismiss,
+    );
+  }
+
+  function currentSelection(): ShareSelection | undefined {
+    if (state.selectedCatalogId !== undefined) {
+      return { kind: 'catalog', id: state.selectedCatalogId };
+    }
+    return state.selectedPoint === undefined
+      ? undefined
+      : { kind: 'point', point: state.selectedPoint };
+  }
+
+  function currentShareState(): ShareState {
+    return {
+      viewport: state.viewport,
+      semanticView: state.semanticView,
+      qualityProfile: state.qualityProfile,
+      selection: currentSelection(),
+    };
+  }
+
+  function replaceAddressBar(): void {
+    const shareState = currentShareState();
+    // Panning is unbounded: a non-finite view cannot be encoded, so the
+    // address keeps its last settled value rather than throwing.
+    if (!isEncodableShareState(shareState)) return;
+    const search = addressBarSearch(window.location.search, shareState);
+    if (search === window.location.search) return;
+    history.replaceState(
+      history.state,
+      '',
+      `${window.location.pathname}${search}${window.location.hash}`,
+    );
+  }
+
+  /**
+   * Records the view in the address bar once it has settled (ADR 0009):
+   * `replaceState`, so Back still leaves the explorer, and never mid-drag or
+   * while a newer render is pending, whose stable frame reschedules this.
+   */
+  function scheduleUrlWrite(): void {
+    if (urlTimer !== undefined) clearTimeout(urlTimer);
+    urlTimer = setTimeout(() => {
+      urlTimer = undefined;
+      if (pointerSession !== undefined || renderTimer !== undefined) return;
+      if (state.frameStage !== 'stable') return;
+      replaceAddressBar();
+    }, URL_WRITE_DELAY_MS);
+  }
+
+  /** Applies the link's notice and selection; needs the worker client. */
+  function restoreFromLink(): void {
+    const notice = startup.notice;
+    if (notice !== undefined) {
+      // Filled after mount: screen readers announce changes to a live
+      // region, not the content it starts with.
+      noticeTimer = setTimeout(() => {
+        showLinkNotice(notice);
+      }, 0);
+    }
+    const selection = startup.selection;
+    if (selection?.kind === 'point') {
+      inspectPoint(selection.point);
+    } else if (selection?.kind === 'catalog') {
+      const component = findCatalogComponent(selection.id);
+      if (component) inspectPoint(component.center, component);
+    }
   }
 
   function updateCoordinateReadout(): void {
@@ -595,6 +695,7 @@ export function mountApplication(host: HTMLElement): () => void {
       presentationCanvas.width = frame.width;
       presentationCanvas.height = frame.height;
       presentationContext.drawImage(renderCanvas, 0, 0);
+      scheduleUrlWrite();
     }
   }
 
@@ -737,6 +838,7 @@ export function mountApplication(host: HTMLElement): () => void {
     } satisfies MainToWorkerMessage);
     updateCatalogSelection();
     updateSelectedPointMarker();
+    scheduleUrlWrite();
   }
 
   function updateCatalogSelection(): void {
@@ -811,8 +913,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   semanticSelect.addEventListener('change', () => {
     state.semanticView = semanticSelect.value as SemanticView;
-    const selected = SEMANTIC_VIEWS.find((view) => view.id === state.semanticView);
-    semanticDescription.textContent = selected?.description ?? '';
+    semanticDescription.textContent = semanticViewDescription(state.semanticView);
     legend.update(state.semanticView);
     requestSemanticView();
   });
@@ -1084,10 +1185,13 @@ export function mountApplication(host: HTMLElement): () => void {
   const resizeObserver = new ResizeObserver(() => scheduleRender());
   resizeObserver.observe(canvasStack);
   scheduleRender(true);
+  restoreFromLink();
 
   return () => {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (feedbackTimer !== undefined) clearTimeout(feedbackTimer);
+    if (urlTimer !== undefined) clearTimeout(urlTimer);
+    if (noticeTimer !== undefined) clearTimeout(noticeTimer);
     resizeObserver.disconnect();
     longTaskObserver?.disconnect();
     document.removeEventListener('keydown', onDocumentKeydown);
@@ -1346,6 +1450,10 @@ function createInspector(): {
 
   clear();
   return { element: root, loading, show, clear };
+}
+
+function semanticViewDescription(view: SemanticView): string {
+  return SEMANTIC_VIEWS.find((candidate) => candidate.id === view)?.description ?? '';
 }
 
 function formatEvidence(evidence: string): string {
