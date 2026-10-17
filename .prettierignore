@@ -2,6 +2,7 @@ coverage/
 /catalog/
 dist/
 dist-e2e/
+dist-visual/
 docs/PLAN.md
 docs/RESEARCH.md
 # Authored plan documents: prettier's HTML rewrite (3k+ diff lines) is not a
@@ -9,6 +10,7 @@ docs/RESEARCH.md
 docs/plans/
 node_modules/
 playwright-report/
+playwright-report-visual/
 test-results/
 model/
 package-lock.json

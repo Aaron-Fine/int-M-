@@ -1,0 +1,6 @@
+/* Raster screenshots show only the image: no hint, markers or selection. */
+.explorer__hint,
+.catalog-overlay,
+.selected-point-marker {
+  display: none !important;
+}

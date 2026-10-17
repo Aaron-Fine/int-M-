@@ -34,6 +34,8 @@
     "test:browser": "playwright test --pass-with-no-tests",
     "test:browser:dev": "PLAYWRIGHT_DEV_SERVER=1 playwright test",
     "test:browser:headed": "playwright test --headed",
+    "test:visual": "playwright test -c playwright.visual.config.ts",
+    "test:visual:container": "bash tools/run-visual-container.sh",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run catalog:test && npm run catalog:check && npm run fixtures:check && npm run fixtures:golden:check && npm run test:unit && npm run build:assets",
     "evidence:early-accept": "vite build --ssr tools/measure_early_accept.ts --outDir .evidence-build --emptyOutDir && node --max-old-space-size=1536 .evidence-build/measure_early_accept.js",
     "tournament": "vite build --ssr tools/benchmark/tournament.ts --outDir .evidence-build/tournament --emptyOutDir && node --expose-gc --max-old-space-size=1536 .evidence-build/tournament/tournament.js",

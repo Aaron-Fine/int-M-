@@ -1,0 +1,5 @@
+/* Hidden in every advisory screenshot: the build stamp changes with each commit; feedback toasts are transient. */
+.build-revision,
+.feedback {
+  visibility: hidden !important;
+}
