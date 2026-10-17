@@ -39,6 +39,15 @@ export {
 } from './verifier';
 export type { VerifierVerdict, VerifierVerdictCode, VerifierCycleTarget } from './verifier';
 export {
+  buildPeriodKey,
+  colorForPeriod,
+  EMPTY_PERIOD_KEY,
+  OTHER_PERIODS_COLOR,
+  PERIOD_EMPHASIS_LIMIT,
+  PERIOD_EMPHASIS_PALETTE,
+} from './period-emphasis';
+export type { PeriodKey, PeriodKeyEntry } from './period-emphasis';
+export {
   colorForAttracting,
   colorForEscaped,
   colorForOrbit,
