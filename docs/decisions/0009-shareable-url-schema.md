@@ -99,3 +99,14 @@ A link has this form:
 - The codec is pure (`src/ui/share-state.ts`, `src/ui/share-link.ts`) and
   covered by unit tests. The browser behaviour is covered by the
   `Shareable links (MI-UX-019)` scenarios in both engines.
+
+## Amendment (2026-10-17)
+
+The ordinal catalog ids were replaced by ray-derived ids
+([ADR 0011](0011-catalog-schema-v2-and-stable-ids.md)). Following the owner's
+ruling, `v` stays 1: every v1 id remains an alias that `sel=` resolves to its
+entry without a notice, and the settled address carries the canonical id
+(`sel=mi-p4-02` becomes `sel=mi-p4-6-9`). Where this ADR says v1 fixes "the
+catalog ids in `catalog/components.v1.json`", read: the canonical ids and
+aliases of `catalog/components.v2.json`, of which the v1 ids are a permanent
+subset.

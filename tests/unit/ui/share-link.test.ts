@@ -13,9 +13,9 @@ const BASILICA_VIEW: ShareState = {
   viewport: { center: { re: -1, im: 0 }, spanY: 0.5 },
   semanticView: 'period',
   qualityProfile: 'quick',
-  selection: { kind: 'catalog', id: 'mi-p2-basilica' },
+  selection: { kind: 'catalog', id: 'mi-p2-1-2' },
 };
-const BASILICA_QUERY = 'v=1&c=-1,0&s=0.5&view=period&q=quick&sel=mi-p2-basilica';
+const BASILICA_QUERY = 'v=1&c=-1,0&s=0.5&view=period&q=quick&sel=mi-p2-1-2';
 const DEFAULT_VIEW_SUFFIX = 'Opening the default full-set view instead.';
 
 describe('resolveStartupState', () => {
@@ -153,6 +153,16 @@ describe('shareLink', () => {
   it('is the plain address for the default state', () => {
     expect(shareLink('https://example.org', '/atlas/', DEFAULT_SHARE_STATE)).toBe(
       'https://example.org/atlas/',
+    );
+  });
+});
+
+describe('catalog aliases (ADR 0011)', () => {
+  it('copies the canonical id after a v1 catalog id opened the view', () => {
+    const startup = resolveStartupState(BASILICA_QUERY.replace('mi-p2-1-2', 'mi-p2-basilica'));
+    expect(startup.notice).toBeUndefined();
+    expect(shareLink('http://127.0.0.1:4174', '/', startup)).toBe(
+      `http://127.0.0.1:4174/?${BASILICA_QUERY}`,
     );
   });
 });

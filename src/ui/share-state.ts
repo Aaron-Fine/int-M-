@@ -149,7 +149,9 @@ const decodeSelection = (text: string | null | undefined): ShareSelection | null
     const point = parsePair(text);
     return point === undefined ? undefined : { kind: 'point', point };
   }
-  return findCatalogComponent(text) === undefined ? undefined : { kind: 'catalog', id: text };
+  // A v1 id is an alias (ADR 0011): it resolves to the entry's canonical id.
+  const component = findCatalogComponent(text);
+  return component === undefined ? undefined : { kind: 'catalog', id: component.id };
 };
 
 const decodeVersion1 = (params: URLSearchParams): ShareDecodeResult => {

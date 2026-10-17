@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { COMPONENT_CATALOG } from '../../../src/catalog/components';
+import { V1_CATALOG } from '../catalog/v1-catalog';
 import { MAX_VIEWPORT_SPAN_Y, MIN_VIEWPORT_SPAN_Y } from '../../../src/domain';
 import {
   DEFAULT_SHARE_STATE,
@@ -24,7 +25,7 @@ const DEEP_VIEW: ShareState = {
   viewport: { center: { re: -0.1592, im: -1.0344 }, spanY: 0.0198 },
   semanticView: 'multiplier',
   qualityProfile: 'detailed',
-  selection: { kind: 'catalog', id: 'mi-p3-rabbit' },
+  selection: { kind: 'catalog', id: 'mi-p3-1-2' },
 };
 
 describe('share decimals', () => {
@@ -152,6 +153,15 @@ describe('decodeShareState', () => {
     ).toEqual({ kind: 'decoded', state: DEEP_VIEW, issues: [] });
   });
 
+  it('resolves every v1 catalog id to its canonical id without an issue (ADR 0011)', () => {
+    for (const entry of V1_CATALOG) {
+      expect(v1(`?v=1&sel=${entry.v1Id}`), entry.v1Id).toEqual({
+        state: { ...DEFAULT_SHARE_STATE, selection: { kind: 'catalog', id: entry.id } },
+        issues: [],
+      });
+    }
+  });
+
   it('treats absent optional fields as their defaults without an issue', () => {
     expect(v1('?v=1')).toEqual({ state: DEFAULT_SHARE_STATE, issues: [] });
     expect(v1('v=1&view=period')).toEqual({
@@ -188,6 +198,7 @@ describe('decodeShareState', () => {
     ['?v=1&q=ultra', ['quality'], {}],
     ['?v=1&q=Balanced', ['quality'], {}],
     ['?v=1&sel=mi-p9-nope', ['selection'], {}],
+    ['?v=1&sel=mi-p4-1-3', ['selection'], {}],
     ['?v=1&sel=MI-P2-BASILICA', ['selection'], {}],
     ['?v=1&sel=-0.1', ['selection'], {}],
     ['?v=1&sel=-0.1,abc', ['selection'], {}],
@@ -195,7 +206,7 @@ describe('decodeShareState', () => {
     [
       '?v=1&c=abc,0&s=0.5&view=period&q=ultra&sel=mi-p2-basilica',
       ['viewport', 'quality'],
-      { semanticView: 'period', selection: { kind: 'catalog', id: 'mi-p2-basilica' } },
+      { semanticView: 'period', selection: { kind: 'catalog', id: 'mi-p2-1-2' } },
     ],
   ] as const)('falls back field by field for %s', (search, issues, kept) => {
     expect(v1(search)).toEqual({ state: { ...DEFAULT_SHARE_STATE, ...kept }, issues });
@@ -243,7 +254,7 @@ describe('encodeShareState', () => {
 
   it('writes every field in schema order with exact decimals', () => {
     expect(encodeShareState(DEEP_VIEW)).toBe(
-      'v=1&c=-0.1592,-1.0344&s=0.0198&view=multiplier&q=detailed&sel=mi-p3-rabbit',
+      'v=1&c=-0.1592,-1.0344&s=0.0198&view=multiplier&q=detailed&sel=mi-p3-1-2',
     );
   });
 

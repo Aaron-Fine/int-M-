@@ -66,3 +66,11 @@ product (atlas) phase:
   product-phase specification if the evidence gate fires later.
 - The ephemeral session atlas is unaffected by this decision and remains
   unbuilt until a candidate source consumes it.
+
+## Amendment (2026-10-17)
+
+[ADR 0011](0011-catalog-schema-v2-and-stable-ids.md) replaced
+`catalog/components.v1.json` with `catalog/components.v2.json` (schema v2):
+the same eleven components and labels, with residuals, method, provenance,
+ray-derived ids and the v1 ids kept as aliases. This decision's scope (the
+curated layer is the only shipped catalog in Phase 2) is unchanged.

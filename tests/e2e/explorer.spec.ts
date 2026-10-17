@@ -1594,7 +1594,7 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await expect.poll(() => searchParam(page, 'q')).toBe('quick');
     expect(searchParam(page, 'v')).toBe('1');
     expect(searchParam(page, 'view')).toBe('period');
-    expect(searchParam(page, 'sel')).toBe('mi-p2-basilica');
+    expect(searchParam(page, 'sel')).toBe('mi-p2-1-2');
     expect(await page.evaluate(() => history.length)).toBe(historyLength);
 
     const link = page.url();
@@ -1614,6 +1614,18 @@ test.describe('Shareable links (MI-UX-019)', () => {
     ).toBeVisible();
     await expect(reopened.getByRole('status', { name: 'Link notice' })).toHaveText('');
     expect(reopened.url()).toBe(link);
+  });
+
+  test('restores a selection named by a v1 catalog id (ADR 0011)', async ({ page }) => {
+    await page.goto('/?v=1&c=-1.3107026413368328,0&s=0.05&sel=mi-p4-02');
+    await waitForStable(page);
+    await expect(
+      page
+        .getByRole('region', { name: 'Point evidence' })
+        .getByRole('heading', { name: 'Period-4 component 2' }),
+    ).toBeVisible();
+    await expect(page.getByRole('status', { name: 'Link notice' })).toHaveText('');
+    await expect.poll(() => searchParam(page, 'sel'), { timeout: 10_000 }).toBe('mi-p4-6-9');
   });
 
   test('restores a selected point and inspects it again', async ({ page }) => {

@@ -1,5 +1,5 @@
 coverage/
-catalog/
+/catalog/
 dist/
 dist-e2e/
 docs/PLAN.md

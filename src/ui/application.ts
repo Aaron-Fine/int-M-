@@ -1494,9 +1494,7 @@ function createInspector(): {
     addFact('Parameter c', coordinate);
     if (component) {
       addFact('Catalog period', String(component.period));
-      if (component.internalAddress) {
-        addFact('Internal address', component.internalAddress.join(' → '));
-      }
+      addFact('Internal address', component.internalAddress.join(' → '));
       if (component.angledInternalAddress) {
         addFact(
           'Angled address',
