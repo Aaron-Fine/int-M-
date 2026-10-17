@@ -14,8 +14,8 @@ export const lowerRayNumerator = (component: CatalogComponent): number =>
 /**
  * Catalog order: by period, then by the lower characteristic angle
  * a / (2^p − 1), which is the order of the roots around the set. Exact
- * integers, read from the id alone, and total: within a period no two
- * components share a lower angle.
+ * integers, the ones the id carries (read here from `characteristicRays`),
+ * and total: within a period no two components share a lower angle.
  */
 export const compareCatalogOrder = (left: CatalogComponent, right: CatalogComponent): number =>
   left.period - right.period || lowerRayNumerator(left) - lowerRayNumerator(right);

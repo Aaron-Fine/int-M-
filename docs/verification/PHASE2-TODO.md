@@ -97,6 +97,15 @@ Estimates are engineering days. They are planning figures and may overlap.
 - [ ] **Merge PR #25** (owner). This also clears the Dependabot `source-map-js`
       alert on `main`.
 - [ ] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
+- [ ] **Phone feedback after a list activation** (owner decision, before
+      item 7). At 320 px the catalog panel stacks below the canvas and the
+      inspector, and the "Zoomed to" toast sits inside the canvas stack, so a
+      tap on an entry changes things only off-screen. Either scroll the canvas
+      into view on narrow layouts (focus stays on the button and leaves the
+      viewport), or show a short confirmation in the panel next to the list.
+      The list grows long at item 7.
+- [ ] **Controls bar at 1280 px.** The Pan and Zoom area buttons overlap the
+      Quality select. The overlap does not depend on the catalog panel.
 - [x] **Deep-view first frame: re-diagnosed, no coarse change.** The
       [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) found that the
       6,000,000× view's unresolved half is period-4 interior the stable pass
@@ -304,9 +313,41 @@ marker count stays bounded at any zoom.
 - [ ] Generated labels, plus curated names where they exist; the encoded size
       budget (≤256 KiB) and a loader off the main thread.
 - [ ] Display through item 6's markers and panel.
-- [ ] Lazy period groups: a group of more than 8 entries builds its buttons
-      on first open; check the 2,010-entry period-12 group at full size
-      (ADR 0012).
+- [ ] Lazy period groups (ADR 0012): a group of more than 8 entries builds
+      its buttons on first open. Over the real 4,016-entry catalog, add an
+      e2e for build on first open, no duplicates on re-open, and a link
+      `sel=` to an entry in an unbuilt group marking it current once built.
+      Measure the main-thread time to build the 2,010-entry period-12 group,
+      which `setSelected` builds synchronously on any selection in it.
+- [ ] Asynchronous catalog hand-over. A loader off the main thread means the
+      index and the panel can no longer be built at mount from a synchronous
+      import (`application.ts`). Add an update path (for example
+      `catalogPanel.setGroups` and an index swap) and decide what the panel
+      shows while loading.
+- [ ] Keyboard efficiency in long groups: add a find field (owner note 3) and
+      consider a roving tabindex inside a group so Tab does not walk 2,010
+      stops.
+- [ ] Screen-reader verbosity: replace the per-entry `aria-describedby` hint
+      with one description on the region or on each list, and include the
+      panel at full size in the manual screen-reader record.
+- [ ] Scroll the current entry into view inside its 20rem list when the
+      selection comes from a marker or a link, without moving focus.
+- [ ] Q4 measurement on real geometry (the synthetic centres are not real).
+      Record the placed-marker count at the default and representative zooms
+      on desktop (922×576) and phone (300×225) canvases. If collisions leave
+      far fewer than about 40, decide whether to keep walking periods. Check
+      the label-width estimate against real generated labels ("Period 12,
+      rays a/4095 and b/4095" hits the 11rem maximum), and whether 40 markers
+      is too dense on a phone canvas.
+- [ ] Sizes: the generator's cross-check asserts that `componentSizeEstimate`
+      is finite and greater than 0 for every entry.
+- [ ] E2e at scale: a marker left off by the policy; selecting from the list
+      an entry the policy had left off, which forces it in and exercises the
+      JS re-plan that CSS alone cannot pass; and a re-check of the
+      data-dependent preconditions (the `.catalog-marker--label-hidden` count
+      and the compact pairs).
+- [ ] Period-4 and generated labels: the curation decision (owner note 2,
+      ADR 0011).
 - [ ] An ADR 0004 amendment recording the product decision.
 
 **Done when:** the full core ships, is validated independently, stays within

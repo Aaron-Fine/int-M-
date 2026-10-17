@@ -414,9 +414,9 @@ package MandelbrotInteriority {
              * interactive at once, lowest periods first; the selected entry
              * shall be shown whenever it is in view; the marker focus order
              * shall not depend on the view; a marker shall be left off only
-             * when the cap is reached or its dot would cover another
-             * marker's, and a colliding label shall be hidden while its
-             * marker stays.
+             * when at least 40 in-view entries have its period or a lower
+             * one, or its dot would cover another marker's, and a colliding
+             * label shall be hidden while its marker stays.
              */
         }
 

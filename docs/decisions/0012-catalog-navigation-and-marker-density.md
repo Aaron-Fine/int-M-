@@ -16,15 +16,15 @@ and curated names where known. Drawing a marker per entry would put thousands
 of buttons on the canvas. The owner chose (Q4) a zoom-dependent cap of about
 40 interactive markers, lowest periods first, with a list that reaches every
 entry. Item 6 builds that list, the cap and the lookup behind it, and tests
-them on a synthetic catalog of the core's size, so that item 7 only supplies
-data.
+them on a synthetic catalog of the core's size, so that item 7 supplies the
+data and an asynchronous hand-over.
 
 ## Decision
 
 **Order.** The catalog order is by period, then by the lower characteristic
 angle a/(2^p − 1): the order of the components' roots around the set. It uses
-exact integers that the id alone carries (item 7's compact form stores
-`(p, a, b)`), and it is total, because within a period no two components share
+exact integers that the id carries (read here from `characteristicRays`;
+item 7's compact form stores `(p, a, b)`), and it is total, because within a period no two components share
 a lower angle. The list uses it, and so does the keyboard focus order of the
 markers, which therefore never depends on the view. The file order is not
 changed.
@@ -118,6 +118,6 @@ rather than time them.
 - A group of more than 8 entries builds its buttons on first open, so the
   panel stays light at item 7's size (the period-12 group has 2,010 entries).
   Item 7 owns the full-size check of that path.
-- Item 7 supplies data only: the loader, the order, the index, the policy and
+- Item 7 supplies the data and an asynchronous hand-over: the loader, the order, the index, the policy and
   the panel are tested at its size. A find field for its 2,010-entry
   period-12 group is left to item 7.
