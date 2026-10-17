@@ -210,6 +210,40 @@ const renderTraces = (page: Page): Promise<TraceView[]> =>
 const tracesWith = async (page: Page, outcome: string): Promise<TraceView | undefined> =>
   (await renderTraces(page)).find((trace) => trace.outcome === outcome);
 
+/**
+ * Waits until nothing is in flight: the newest closed trace is the request on
+ * screen, it completed, and its last frame is stable. Returns the computation
+ * the worker's semantic cache then holds, which is what a recolor reports as
+ * `originComputeId`. That is the request's own compute, or the origin it
+ * reused. It is not the last trace that computed: a later computation can
+ * finish in the worker after the page dropped its frames as stale, and then
+ * the cache holds that one.
+ */
+const settledOriginComputeId = async (page: Page): Promise<number> => {
+  const newest = async (): Promise<{ trace: TraceView | undefined; onScreen: string | null }> => ({
+    trace: (await renderTraces(page)).at(-1),
+    onScreen: await page.locator('#explorer').getAttribute('data-render-request-id'),
+  });
+  await expect
+    .poll(
+      async () => {
+        const { trace, onScreen } = await newest();
+        return (
+          trace?.outcome === 'completed' &&
+          String(trace.requestId) === onScreen &&
+          trace.frames.at(-1)?.stage === 'stable'
+        );
+      },
+      { timeout: 10_000 },
+    )
+    .toBe(true);
+  const { trace } = await newest();
+  const origin = trace?.computeId ?? trace?.frames.at(-1)?.originComputeId;
+  if (origin === undefined)
+    throw new Error(`settled trace names no computation: ${JSON.stringify(trace)}`);
+  return origin;
+};
+
 /** The latest trace is a one-frame recolor of `originComputeId`, with no compute fields. */
 const expectRecolorOf = async (page: Page, originComputeId: number | undefined): Promise<void> => {
   await expect
@@ -252,13 +286,18 @@ const findInflightReplayTrace = async (page: Page): Promise<TraceView | undefine
 };
 
 /** The replay trace is one completed request: a coarse replay of the active computation, then its stable frame. */
-const expectInflightReplay = (replayTrace: TraceView | undefined): void => {
+const expectInflightReplay = (
+  replayTrace: TraceView | undefined,
+  ring: readonly TraceView[],
+): void => {
   expect(replayTrace).toBeDefined();
   const [replayFrame, replayStableFrame] = replayTrace?.frames ?? [];
   expect(replayTrace?.outcome).toBe('completed');
   expect(replayFrame?.stage).toBe('coarse');
   expect(replayFrame?.originComputeId).toBeGreaterThan(0);
-  expect(replayFrame?.originComputeId).toBe(replayTrace?.computeId);
+  expect(replayFrame?.originComputeId, `trace ring: ${JSON.stringify(ring)}`).toBe(
+    replayTrace?.computeId,
+  );
   expect(replayFrame?.workerWallMs).toBeUndefined();
   expect(replayFrame?.colorizeMs).toBeGreaterThanOrEqual(0);
   expect(replayStableFrame?.stage).toBe('stable');
@@ -922,6 +961,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
       cancelledTrace?.cancelAckMs ?? Number.POSITIVE_INFINITY,
     );
 
+    const settledOrigin = await settledOriginComputeId(page);
     const computedTrace = (await renderTraces(page))
       .filter((t) => t.outcome === 'completed')
       .at(-1);
@@ -933,10 +973,10 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
 
     await page.getByLabel('Interior view').selectOption('multiplier');
-    await expectRecolorOf(page, computedTrace?.computeId);
+    await expectRecolorOf(page, settledOrigin);
 
     const replayTrace = await findInflightReplayTrace(page);
-    expectInflightReplay(replayTrace);
+    expectInflightReplay(replayTrace, await renderTraces(page));
   });
   test('preserves focus and non-color state cues in forced colors', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
