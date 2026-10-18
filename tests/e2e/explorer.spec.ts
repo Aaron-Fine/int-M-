@@ -572,6 +572,29 @@ test.describe('Mandelbrot Interiority explorer', () => {
     ).toBeVisible();
   });
 
+  test('a period-4 marker reports the certified period-4 solve', async ({ page }) => {
+    await page.goto('/');
+
+    const marker = page.getByRole('button', { name: 'Inspect Period-4 component 2, period 4' });
+    await expect(marker).toBeVisible({ timeout: 20_000 });
+    await marker.focus();
+    await marker.press('Enter');
+
+    await expect(page.getByRole('heading', { name: 'Period-4 component 2' })).toBeVisible();
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
+      'Attracting cycle',
+      { timeout: 10_000 },
+    );
+    // ADR 0013: the certified cubic solve answers, and the inspector says so.
+    await expect(pointEvidence.locator('.inspector__evidence')).toHaveText(
+      'Analytic Period 4 Component',
+    );
+    await expect(
+      pointEvidence.locator('.facts').getByText('Analytic closed form', { exact: true }),
+    ).toBeVisible();
+  });
+
   test('zooms to a selected area and reveals labels as magnification increases', async ({
     page,
   }) => {
