@@ -4,7 +4,8 @@ import { resolveRenderQuality } from './renderer';
 
 // v2: the default kernel changed to the watched-lag triggered scan.
 // v3: the analytic period-3 fast path changed classification output (ADR 0010).
-const SEMANTIC_ALGORITHM_VERSION = 3;
+// v4: the certified period-4 cubic solve changed classification output (ADR 0013).
+const SEMANTIC_ALGORITHM_VERSION = 4;
 
 const qualityKey = (quality: RenderQuality): string =>
   `${quality.maxIterations}:${quality.maxPeriod}:${quality.coarseStride}`;

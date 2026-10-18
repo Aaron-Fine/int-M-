@@ -101,6 +101,8 @@ hides the marker and overlay layers. `catalog-overlay.png` and
 hidden; the advisory job reports any that do. The baselines await owner
 regeneration in the container; none has been regenerated here.
 
+Since ADR 0013 (2026-10-17) the period-4 path changes the default and 126× rasters, so `default-stability.png`, `period-four-126x-period.png` and `catalog-overlay.png` were regenerated in the container, in both engines, in the commit that changed the kernels. The selected-marker baselines still await the owner.
+
 ## Orbit fixtures
 
 `orbits.v1.json` is an independently generated high-precision reference set for

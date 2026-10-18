@@ -1,11 +1,16 @@
 import {
   AIRPLANE_BOX,
+  BULB_SATELLITE_BOX,
+  CARDIOID_SATELLITE_BOX,
   classifyAnalyticInto,
+  classifyPeriodFourInto,
   classifyPeriodThreeInto,
+  COMPLEX_PRIMITIVE_BOX,
   createOrbitSample,
   ORBIT_EVIDENCE_CODE,
   OrbitScratch,
   RABBIT_BOX,
+  REAL_PRIMITIVE_BOX,
   resolveOrbitOptions,
   TRIGGERED_SCAN_INTERVAL_FIRST,
   TRIGGERED_SCAN_INTERVAL_MAX,
@@ -29,27 +34,29 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * Per pixel, a lane performs exactly the operations of
  * classifyTriggeredOrbitInto in the same order (the analytic prologue, the
  * step, the escape test, the ring store, the watched-lag test, the period-3
- * closed form at the first scanning iteration, the full scans with their
- * argmin, and the canonical verifier call), so every result is
- * bit-identical to the scalar kernel; tests/unit/render/triggered-rows.test.ts
- * pins that. Two harmless reorderings: the ring store happens before the
- * escape test (an escaped pixel's last slot is never read: a lane's next
- * pixel overwrites slots before it reads them), and the watched-lag test is
- * evaluated during warmup but only used from the first scanning iteration.
+ * closed form or the period-4 cubic solve at the first scanning iteration,
+ * the full scans with their argmin, and the canonical verifier call), so
+ * every result is bit-identical to the scalar kernel;
+ * tests/unit/render/triggered-rows.test.ts pins that. Two harmless
+ * reorderings: the ring store happens before the escape test (an escaped
+ * pixel's last slot is never read: a lane's next pixel overwrites slots
+ * before it reads them), and the watched-lag test is evaluated during warmup
+ * but only used from the first scanning iteration.
  *
  * Hot-loop rules from orbit.ts: the lockstep loop has no calls. The rare
  * calls (verifier on a proposal, analytic closed forms on a region hit) run
  * with every double the loops carry round-tripped through `spill`.
- * classifyRow adds no inlinable call for the period-3 path (ADR 0010): the
- * gate is a per-row window computed from the box data before the lanes start,
- * and only the closed form, which is large, is called. Observed with V8 in
- * Node 24: calling inPeriodThreeGate here made the far-exterior stable pass,
- * where no pixel reaches the gate, about 10% slower in some compiles. The
- * working explanation is that the inlined gate spent TurboFan's inlining
- * budget and left a refill call to classifyAnalyticInto out of line. This
- * depends on V8 heuristics and is unguarded: rerun
- * tools/benchmark/fallback-overhead.ts after changing classifyRow or
- * upgrading V8.
+ * classifyRow adds no inlinable call for the period-3 and period-4 paths
+ * (ADR 0010, ADR 0013): each gate is evaluated once per row as windows on
+ * Re c (one for period 3, two for period 4) computed from the box data before
+ * the lanes start, one call site per lane picks the solve, and only the
+ * solves, which are large, are called. Observed with V8 in Node 24: calling
+ * inPeriodThreeGate here made the far-exterior stable pass, where no pixel
+ * reaches the gate, about 10% slower in some compiles. The working
+ * explanation is that the inlined gate spent TurboFan's inlining budget and
+ * left a refill call to classifyAnalyticInto out of line. This depends on V8
+ * heuristics and is unguarded: rerun tools/benchmark/fallback-overhead.ts
+ * (stable and coarse pass) after changing classifyRow or upgrading V8.
  *
  * Lockstep shape: each lane raises an event on one of three tests, so the
  * common iteration is three compares per lane:
@@ -149,6 +156,30 @@ export class TriggeredRowKernel {
     } else if (absIm >= AIRPLANE_BOX.absImMin && absIm <= AIRPLANE_BOX.absImMax) {
       p3ReMin = AIRPLANE_BOX.reMin;
       p3ReMax = AIRPLANE_BOX.reMax;
+    }
+
+    // Period-4 gate (ADR 0013), per row, as two Re c windows: the off-axis
+    // boxes' |Im c| bands are disjoint from each other and from the axis
+    // band, and on the axis band the 1/2 satellite of the period-2 bulb and
+    // the real primitive component both apply. Empty windows when no band
+    // holds |cIm| (NaN included). Written out, not called.
+    let p4ReMin = Number.POSITIVE_INFINITY;
+    let p4ReMax = Number.NEGATIVE_INFINITY;
+    let p4AxisReMin = Number.POSITIVE_INFINITY;
+    let p4AxisReMax = Number.NEGATIVE_INFINITY;
+    if (absIm >= CARDIOID_SATELLITE_BOX.absImMin && absIm <= CARDIOID_SATELLITE_BOX.absImMax) {
+      p4ReMin = CARDIOID_SATELLITE_BOX.reMin;
+      p4ReMax = CARDIOID_SATELLITE_BOX.reMax;
+    } else if (absIm >= COMPLEX_PRIMITIVE_BOX.absImMin && absIm <= COMPLEX_PRIMITIVE_BOX.absImMax) {
+      p4ReMin = COMPLEX_PRIMITIVE_BOX.reMin;
+      p4ReMax = COMPLEX_PRIMITIVE_BOX.reMax;
+    } else if (absIm <= BULB_SATELLITE_BOX.absImMax) {
+      p4ReMin = BULB_SATELLITE_BOX.reMin;
+      p4ReMax = BULB_SATELLITE_BOX.reMax;
+      if (absIm <= REAL_PRIMITIVE_BOX.absImMax) {
+        p4AxisReMin = REAL_PRIMITIVE_BOX.reMin;
+        p4AxisReMax = REAL_PRIMITIVE_BOX.reMax;
+      }
     }
 
     let nextX = 0;
@@ -352,29 +383,38 @@ export class TriggeredRowKernel {
           dueA = Math.min(scheduledA, maxIterations);
         }
       } else if (watchedA <= armA || itA === dueA) {
-        // Analytic period-3 fast path at the first scanning iteration, as in
-        // classifyTriggeredOrbitInto (ADR 0010).
+        // Analytic period-3 and period-4 fast paths at the first scanning
+        // iteration, as in classifyTriggeredOrbitInto (ADR 0010, ADR 0013).
         let analyticA = false;
-        if (itA === scanStart && cA >= p3ReMin && cA <= p3ReMax) {
-          spill[S_ZA_RE] = zaRe;
-          spill[S_ZA_IM] = zaIm;
-          spill[S_ZB_RE] = zbRe;
-          spill[S_ZB_IM] = zbIm;
-          spill[S_CA] = cA;
-          spill[S_CB] = cB;
-          analyticA = classifyPeriodThreeInto(cA, cIm, out);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zaRe = spill[S_ZA_RE]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zaIm = spill[S_ZA_IM]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zbRe = spill[S_ZB_RE]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zbIm = spill[S_ZB_IM]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          cA = spill[S_CA]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          cB = spill[S_CB]!;
+        if (itA === scanStart) {
+          const periodThreeA = cA >= p3ReMin && cA <= p3ReMax;
+          if (
+            periodThreeA ||
+            (cA >= p4ReMin && cA <= p4ReMax) ||
+            (cA >= p4AxisReMin && cA <= p4AxisReMax)
+          ) {
+            spill[S_ZA_RE] = zaRe;
+            spill[S_ZA_IM] = zaIm;
+            spill[S_ZB_RE] = zbRe;
+            spill[S_ZB_IM] = zbIm;
+            spill[S_CA] = cA;
+            spill[S_CB] = cB;
+            analyticA = periodThreeA
+              ? classifyPeriodThreeInto(cA, cIm, out)
+              : classifyPeriodFourInto(cA, cIm, out);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaRe = spill[S_ZA_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaIm = spill[S_ZA_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbRe = spill[S_ZB_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbIm = spill[S_ZB_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cA = spill[S_CA]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cB = spill[S_CB]!;
+          }
         }
         if (analyticA) {
           const o = offset + xA;
@@ -482,26 +522,35 @@ export class TriggeredRowKernel {
         }
       } else if (watchedB <= armB || itB === dueB) {
         let analyticB = false;
-        if (itB === scanStart && cB >= p3ReMin && cB <= p3ReMax) {
-          spill[S_ZA_RE] = zaRe;
-          spill[S_ZA_IM] = zaIm;
-          spill[S_ZB_RE] = zbRe;
-          spill[S_ZB_IM] = zbIm;
-          spill[S_CA] = cA;
-          spill[S_CB] = cB;
-          analyticB = classifyPeriodThreeInto(cB, cIm, out);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zaRe = spill[S_ZA_RE]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zaIm = spill[S_ZA_IM]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zbRe = spill[S_ZB_RE]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          zbIm = spill[S_ZB_IM]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          cA = spill[S_CA]!;
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-          cB = spill[S_CB]!;
+        if (itB === scanStart) {
+          const periodThreeB = cB >= p3ReMin && cB <= p3ReMax;
+          if (
+            periodThreeB ||
+            (cB >= p4ReMin && cB <= p4ReMax) ||
+            (cB >= p4AxisReMin && cB <= p4AxisReMax)
+          ) {
+            spill[S_ZA_RE] = zaRe;
+            spill[S_ZA_IM] = zaIm;
+            spill[S_ZB_RE] = zbRe;
+            spill[S_ZB_IM] = zbIm;
+            spill[S_CA] = cA;
+            spill[S_CB] = cB;
+            analyticB = periodThreeB
+              ? classifyPeriodThreeInto(cB, cIm, out)
+              : classifyPeriodFourInto(cB, cIm, out);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaRe = spill[S_ZA_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zaIm = spill[S_ZA_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbRe = spill[S_ZB_RE]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            zbIm = spill[S_ZB_IM]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cA = spill[S_CA]!;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+            cB = spill[S_CB]!;
+          }
         }
         if (analyticB) {
           const o = offset + xB;

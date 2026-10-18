@@ -9,6 +9,7 @@ import {
 } from '../../../src/domain';
 import { packStatusPeriod } from '../../../src/render/packed-semantic';
 import { prepareRealColumns, preparedRowImaginary } from '../../../src/render/classify-rows';
+import { PERIOD_FOUR_BOXES } from '../../../src/domain/period-four-gate';
 import { PERIOD_THREE_BOXES } from '../../../src/domain/period-three-gate';
 import { TriggeredRowKernel } from '../../../src/render/triggered-rows';
 
@@ -31,6 +32,15 @@ const VIEWS: readonly Viewport[] = [
   { center: { re: -0.0458, im: 0.6923 }, spanY: 0.002 },
   // The co-rabbit (Im c < 0): the row window must use |Im c|.
   { center: { re: -0.1225611668766535, im: -0.7448617666197435 }, spanY: 0.3 },
+  // Period-4 gate boxes (ADR 0013): the cardioid satellite and its
+  // conjugate, the complex primitive, the real primitive and its cusp, and
+  // the axis band where both axis windows apply.
+  { center: { re: 0.2822713907669139, im: 0.5300606175785253 }, spanY: 0.1 },
+  { center: { re: 0.2822713907669139, im: -0.5300606175785253 }, spanY: 0.1 },
+  { center: { re: -0.15652016683375508, im: 1.0322471089228318 }, spanY: 0.012 },
+  { center: { re: -1.9407998065294847, im: 0 }, spanY: 0.0014 },
+  { center: { re: -1.9405507889761495, im: 0 }, spanY: 1e-6 },
+  { center: { re: -1.6, im: 0 }, spanY: 0.0012 },
 ];
 
 const OPTION_SETS: readonly Partial<OrbitOptions>[] = [
@@ -100,7 +110,7 @@ const compareOneRow = (
   sample: ReturnType<typeof createOrbitSample>,
   columns: Float64Array,
   cIm: number,
-): { mismatches: number; period3: number } => {
+): { mismatches: number; period3: number; period4: number } => {
   const width = columns.length;
   const packed = new Uint32Array(width);
   const primary = new Float64Array(width);
@@ -118,6 +128,7 @@ const compareOneRow = (
   );
   let mismatches = 0;
   let period3 = 0;
+  let period4 = 0;
   for (let x = 0; x < width; x += 1) {
     scalar.classifyInto(columns[x] ?? Number.NaN, cIm, sample);
     const status = sample.status;
@@ -126,6 +137,7 @@ const compareOneRow = (
       status === 1 ? sample.smoothIteration : status === 2 ? sample.multiplierMagnitude : 0;
     const expectedAngle = status === 2 ? sample.multiplierAngle : 0;
     if (status === 2 && sample.period === 3) period3 += 1;
+    if (status === 2 && sample.period === 4) period4 += 1;
     if (
       packed[x] !== word ||
       !Object.is(primary[x], expectedPrimary) ||
@@ -134,7 +146,7 @@ const compareOneRow = (
       mismatches += 1;
     }
   }
-  return { mismatches, period3 };
+  return { mismatches, period3, period4 };
 };
 
 describe('TriggeredRowKernel', () => {
@@ -185,6 +197,51 @@ describe('TriggeredRowKernel', () => {
         const result = compareOneRow(kernel, scalar, sample, columns, cIm);
         mismatches += result.mismatches;
         accepted += result.period3;
+      }
+      expect(mismatches).toBe(0);
+      if (options.maxIterations === 512) expect(accepted).toBeGreaterThan(0);
+    }
+  });
+
+  it('matches the scalar kernel at every period-4 gate box edge (rows and columns)', () => {
+    // Calls classifyRow directly with row imaginary parts and columns at each
+    // box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
+    // half-planes, so a drift in the kernel's per-row windows (versus
+    // inPeriodFourGate) shows up as a bitwise difference.
+    const bits = new DataView(new ArrayBuffer(8));
+    const step = (value: number, ulps: number): number => {
+      bits.setFloat64(0, value);
+      bits.setBigInt64(0, bits.getBigInt64(0) + BigInt(value < 0 ? -ulps : ulps));
+      return bits.getFloat64(0);
+    };
+    const around = (value: number): number[] => [step(value, -1), value, step(value, 1)];
+    const rows = new Set<number>([0, -0]);
+    const columnSet = new Set<number>();
+    for (const box of PERIOD_FOUR_BOXES) {
+      for (const edge of [box.absImMin, box.absImMax]) {
+        for (const v of around(edge)) {
+          rows.add(v);
+          rows.add(-v);
+        }
+      }
+      for (const edge of [box.reMin, box.reMax]) for (const v of around(edge)) columnSet.add(v);
+      columnSet.add((box.reMin + box.reMax) / 2);
+    }
+    const columns = Float64Array.from(columnSet);
+    for (const options of [
+      { maxIterations: 512, maxPeriod: 32 },
+      { maxIterations: 100, maxPeriod: 7, cycleWarmup: 0 },
+      { maxIterations: 33, maxPeriod: 1, cycleWarmup: 2 },
+    ] satisfies Partial<OrbitOptions>[]) {
+      const kernel = new TriggeredRowKernel(options);
+      const scalar = new OrbitClassifier(options);
+      const sample = createOrbitSample();
+      let mismatches = 0;
+      let accepted = 0;
+      for (const cIm of rows) {
+        const result = compareOneRow(kernel, scalar, sample, columns, cIm);
+        mismatches += result.mismatches;
+        accepted += result.period4;
       }
       expect(mismatches).toBe(0);
       if (options.maxIterations === 512) expect(accepted).toBeGreaterThan(0);

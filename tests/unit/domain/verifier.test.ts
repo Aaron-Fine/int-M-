@@ -310,12 +310,15 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
       { re: 0.305376533, im: 0.552677981 },
       { re: -0.4828125000000001, im: -0.5906250000000001 },
       { re: -0.2015625000000001, im: -0.7031250000000001 },
+      // Period 5 near its centre: a lag-scan acceptance at iteration 24.
+      { re: -0.5043, im: 0.5628 },
     ];
     let accepted = 0;
     for (const point of acceptedPoints) {
       classifyInto(point.re, point.im, options, scratch, sample);
       // Only lag-scan acceptances replay through the verifier; the analytic
-      // period-3 path (ADR 0010) has no cycle start to replay.
+      // period-3 and period-4 paths (ADR 0010, ADR 0013) have no cycle start
+      // to replay.
       if (sample.status !== 2 || sample.evidence !== ORBIT_EVIDENCE_CODE.convergedCycle) {
         continue;
       }

@@ -144,10 +144,10 @@ const finishAttractingCycle = (
  * attracting record and returns true when c lies in the main cardioid or the
  * period-2 bulb with a multiplier inside the attraction margin; returns false
  * (record untouched) otherwise, including margin-adjacent points, which fall
- * through to the orbit loop. The period-3 closed form
- * (src/domain/analytic-period-three.ts) is not tried here: it runs inside the
- * orbit loop at the first scanning iteration, so pixels that escape early
- * never pay for it (ADR 0010).
+ * through to the orbit loop. The period-3 closed form and the period-4 cubic
+ * solve (src/domain/analytic-period-three.ts, analytic-period-four.ts) are not
+ * tried here: they run inside the orbit loop at the first scanning iteration,
+ * so pixels that escape early never pay for them (ADR 0010, ADR 0013).
  */
 export const classifyAnalyticInto = (cRe: number, cIm: number, out: OrbitSample): boolean => {
   // Analytic fast paths (closed form): main cardioid and period-2 bulb.
@@ -308,6 +308,14 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  *    attracting period 3, and period-3 pixels carry the closed-form multiplier
  *    instead of the orbit product. Every such answer is checked against the
  *    dd period-3 cycle in tests/unit/domain/orbit-oracle-adjudication.test.ts.
+ * 7. Analytic period 4 (ADR 0013). At the same iteration the kernels try the
+ *    certified period-4 cubic solve (src/domain/analytic-period-four.ts)
+ *    inside padded component boxes. It accepts with iterations 0 and the
+ *    certified multiplier, so pixels the legacy scan left unresolved become
+ *    attracting period 4 (the left half of the 6,000,000x view among them),
+ *    and period-4 pixels carry the certified multiplier instead of the orbit
+ *    product. Every such answer is checked against the dd period-4 cycle in
+ *    tests/unit/domain/orbit-oracle-adjudication.test.ts.
  *
  * Every accepted attracting result carries the verifier revision at the rich
  * boundary (AttractingCycleOrbitResult.verifierRevision).

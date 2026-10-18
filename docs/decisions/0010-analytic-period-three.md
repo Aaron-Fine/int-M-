@@ -56,7 +56,7 @@ period 3 now and period 4 after a rigorous root-error bound.
 6. Multiplier: period-3 pixels report the closed-form λ. It agrees with a dd
    reference to 3·10⁻¹⁵ on the golden raster, against up to 1.02·10⁻⁸ there
    (2.2·10⁻⁶ in the spike) for the orbit product.
-7. Period 4 is out of scope until its root-error bound is rigorous.
+7. Period 4 is out of scope until its root-error bound is rigorous. Superseded 2026-10-17 by [ADR 0013](0013-analytic-period-four.md), which ships period 4 with a certified root enclosure.
 
 ## Consequences
 
