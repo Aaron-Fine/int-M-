@@ -20,6 +20,15 @@ export {
 } from './period-three-gate';
 export type { PeriodThreeBox } from './period-three-gate';
 export {
+  BULB_SATELLITE_BOX,
+  CARDIOID_SATELLITE_BOX,
+  COMPLEX_PRIMITIVE_BOX,
+  inPeriodFourGate,
+  PERIOD_FOUR_BOXES,
+  REAL_PRIMITIVE_BOX,
+} from './period-four-gate';
+export type { PeriodFourBox } from './period-four-gate';
+export {
   classifyAnalyticInto,
   classifyInto,
   classifyOrbit,

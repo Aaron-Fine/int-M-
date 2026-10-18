@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyPeriodFourInto,
   createOrbitSample,
+  PERIOD_FOUR_BOXES,
   VERIFIER_THRESHOLDS,
   type PeriodFourCertificate,
 } from '../../../src/domain';
@@ -171,5 +172,54 @@ describe('period-4 certificate, audited in exact arithmetic', () => {
     expect(tally.accepted).toBeGreaterThan(3000);
   });
 
-  // The box-sampled audit cases arrive with PERIOD_FOUR_BOXES (Task 4).
+  it('holds on a grid over every gate box and its conjugate', () => {
+    const tally: Tally = { points: 0, certified: 0, accepted: 0 };
+    const steps = 48;
+    for (const box of PERIOD_FOUR_BOXES) {
+      const reStep = (box.reMax - box.reMin) / steps;
+      const imLow = box.absImMin === 0 ? -box.absImMax : box.absImMin;
+      const imStep = (box.absImMax - imLow) / steps;
+      for (let i = 0; i < steps; i += 1) {
+        for (let j = 0; j < steps; j += 1) {
+          const re = box.reMin + (i + 0.5) * reStep;
+          const im = imLow + (j + 0.5) * imStep;
+          audit(re, im, tally);
+          if (box.absImMin > 0) audit(re, -im, tally);
+        }
+      }
+    }
+    expect(tally.accepted).toBeGreaterThan(5000);
+  });
+
+  it('holds on both sides of the acceptance edge along each box midline', () => {
+    const tally: Tally = { points: 0, certified: 0, accepted: 0 };
+    const sample = createOrbitSample();
+    for (const box of PERIOD_FOUR_BOXES) {
+      const im = box.absImMin === 0 ? 0 : 0.5 * (box.absImMin + box.absImMax);
+      // Walk the midline; bisect every flip of the decision down to adjacent doubles.
+      const steps = 400;
+      let previous = box.reMin;
+      let previousAccepted = classifyPeriodFourInto(previous, im, sample);
+      for (let i = 1; i <= steps; i += 1) {
+        const re = box.reMin + ((box.reMax - box.reMin) * i) / steps;
+        const accepted = classifyPeriodFourInto(re, im, sample);
+        if (accepted !== previousAccepted) {
+          let lo = previous;
+          let hi = re;
+          for (let n = 0; n < 80; n += 1) {
+            const mid = 0.5 * (lo + hi);
+            if (mid === lo || mid === hi) break;
+            if (classifyPeriodFourInto(mid, im, sample) === previousAccepted) lo = mid;
+            else hi = mid;
+          }
+          for (const edge of [lo, hi]) {
+            for (let k = -8; k <= 8; k += 1) audit(edge + k * 1e-15, im, tally);
+          }
+        }
+        previous = re;
+        previousAccepted = accepted;
+      }
+    }
+    expect(tally.accepted).toBeGreaterThan(50);
+  });
 });
