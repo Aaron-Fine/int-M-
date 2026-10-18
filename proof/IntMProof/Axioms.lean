@@ -565,6 +565,10 @@ import IntMProof.GuardPolicyCounterexample
 #guard_msgs in
 #print axioms IntMProof.period4_not_fixed_of_attracting
 
+/-- info: 'IntMProof.period4_minimalPeriod_of_attracting' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_minimalPeriod_of_attracting
+
 /-- info: 'IntMProof.rationalOrbit_embed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.rationalOrbit_embed

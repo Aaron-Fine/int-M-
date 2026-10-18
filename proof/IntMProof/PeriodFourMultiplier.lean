@@ -12,11 +12,13 @@ factor divided out. At every root of `Φ₄` the cycle product
 `μ³ + (c² − 3)μ² − (c⁴ + c³ − c² − 3)μ − G₄(c)`, and the four-step multiplier
 is sixteen times that product. A root of `Φ₄` that has period one or two has
 four-step multiplier exactly `1`, so a root whose four-step multiplier has
-modulus below `1` has exact period four.
+modulus below `1` has exact period four
+(`period4_minimalPeriod_of_attracting`).
 
 None of this certifies the binary64 cubic solve, its root-error certificate,
 or the attraction margin. That every root of the cubic is realized by a
-period-four cycle (the resultant identity) is not proved here.
+period-four cycle (the resultant identity), Fatou uniqueness and Rouché's
+theorem as used are not proved here.
 -/
 
 namespace IntMProof
@@ -184,5 +186,23 @@ theorem period4_not_fixed_of_attracting {c z : ℂ} (hΦ : periodFourDynatomic c
   intro hfix
   apply period4_not_period_two_of_attracting hΦ hatt
   simp only [orbit_succ, orbit_zero, hfix]
+
+/-- A root of `Φ₄` whose four-step multiplier has modulus below `1` has exact
+period four. -/
+theorem period4_minimalPeriod_of_attracting {c z : ℂ} (hΦ : periodFourDynatomic c z = 0)
+    (hatt : ‖(derivative (seedPolynomial c 4)).eval z‖ < 1) :
+    minimalPeriod (quadratic c) z = 4 := by
+  have hclose : orbit c 4 z = z := by
+    have h := orbit_four_sub_self c z
+    rw [hΦ, mul_zero] at h
+    exact sub_eq_zero.mp h
+  have htwo := period4_not_period_two_of_attracting hΦ hatt
+  rw [exactPeriod_iff_closure_and_prime_quotients _ _ 4 (by norm_num)]
+  refine ⟨hclose, fun q hq hq4 => ?_⟩
+  have hq2 : q = 2 := by
+    have : q ∣ 2 ^ 2 := by norm_num; exact hq4
+    exact (Nat.prime_dvd_prime_iff_eq hq Nat.prime_two).mp (hq.dvd_of_dvd_pow this)
+  subst hq2
+  exact htwo
 
 end IntMProof
