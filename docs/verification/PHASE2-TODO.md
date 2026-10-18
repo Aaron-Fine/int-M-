@@ -95,6 +95,12 @@ Estimates are engineering days. They are planning figures and may overlap.
   activation on a narrow layout, show a short in-panel confirmation next to
   the list (optionally with a link that scrolls to the canvas), and leave
   focus where it is.
+- **Item 7, generator (2026-10-17):** prove which ray pair lands at which
+  centre (evidence of the association is not enough); run the full
+  regenerate-and-cross-check in CI only when the catalog or its tools change
+  and on pushes to main; keep the collision-limited marker counts (29 on
+  desktop, 16 on a phone at the default view); accept the measured first open
+  of the period-12 group (47–55 ms in Firefox).
 
 ### 0. Worth doing now
 
