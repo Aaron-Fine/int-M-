@@ -6,7 +6,7 @@ from decimal import Decimal, localcontext
 import unittest
 
 from catalog_certify import Arithmetic, Ball, certify_center
-from generate_catalog import refine_center
+from generate_catalog import DecimalComplex, check_disjoint, refine_center
 
 PRECISION = 80
 RADIUS = Decimal(10) ** -50
@@ -45,6 +45,18 @@ class BallArithmeticTest(unittest.TestCase):
         error = abs(product.re - true)
         self.assertGreater(error, Decimal(10) ** -(PRECISION + 10))
         self.assertLessEqual(error, product.radius)
+
+    def test_disks_a_rounding_apart_from_touching_are_not_claimed_disjoint(self) -> None:
+        radius = Decimal("1e-10")
+        with localcontext() as context:
+            context.prec = 40
+            origin = DecimalComplex(Decimal(0), Decimal(0))
+            for gap in (Decimal(0), Decimal("1e-48"), Decimal("1e-46")):
+                other = DecimalComplex(2 * radius + gap, Decimal(0))
+                with self.assertRaisesRegex(ValueError, "one centre"):
+                    check_disjoint(3, [origin, other], radius)
+            far = DecimalComplex(2 * radius * Decimal("1.001"), Decimal(0))
+            check_disjoint(3, [origin, far], radius)
 
     def test_a_sum_that_cancels_keeps_the_rounding_of_its_operands(self) -> None:
         # z^2 + c is near 0 at a centre: the radius must not shrink with the result.

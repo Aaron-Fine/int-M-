@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
-from decimal import Decimal, localcontext
+from decimal import Decimal, getcontext, localcontext
 import json
 import math
 from pathlib import Path
@@ -137,14 +137,17 @@ def refine_center(
 
 def check_disjoint(period: int, centers: list[DecimalComplex], radius: Decimal) -> None:
     """Certified disks of one period must not meet: each then holds a different root."""
+    # Runs in the caller's context at P digits. Differences, squares and sums err
+    # by a few units of 10**-P relative; the slack of 10**-(P - 5), which is
+    # exactly representable, exceeds that, so a rounding never claims disjointness.
+    digits = getcontext().prec
+    slack = 1 + Decimal(10) ** -(digits - 5)
     ordered = sorted(centers, key=lambda center: (center.real, center.imaginary))
     for index, center in enumerate(ordered):
         for other in ordered[index + 1 :]:
-            if other.real - center.real > 2 * radius:
+            if other.real - center.real > 2 * radius * slack:
                 break
-            # The squared distance and the bound each err by under 1e-70 relative
-            # at 40 digits or more; the 1e-60 slack makes the test round outward.
-            if (other - center).magnitude_squared() <= 4 * radius * radius * (1 + Decimal("1e-60")):
+            if (other - center).magnitude_squared() <= 4 * radius * radius * slack:
                 raise ValueError(f"period {period}: two ray pairs land on one centre")
 
 
