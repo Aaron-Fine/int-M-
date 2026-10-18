@@ -1,4 +1,4 @@
-import type { Complex, EvidenceSource } from '../domain';
+import type { Complex, EvidenceFlag, EvidenceSource } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
@@ -1682,7 +1682,7 @@ function createInspector(): {
       // origin. evidenceSource never changes acceptance or the quality
       // barrier — it names how the candidate was proposed.
       if (orbit.evidenceSource !== undefined) {
-        addFact('Evidence source', formatEvidenceSource(orbit.evidenceSource));
+        addFact('Evidence source', formatEvidenceSource(orbit.evidenceSource, orbit.evidence));
       }
     }
     addFact(
@@ -1733,7 +1733,7 @@ function formatEvidence(evidence: string): string {
  * attraction margin; neither is a weaker claim.
  */
 const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.freeze({
-  analytic: 'Analytic closed form',
+  analytic: 'Analytic closed form', // periods 1-3; period 4 is labelled in formatEvidenceSource
   checkpoint: 'Checkpoint schedule',
   catalog: 'Catalog seed',
   chart: 'Local chart prediction',
@@ -1741,6 +1741,10 @@ const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.
   fallback: 'Systematic orbit scan',
 });
 
-function formatEvidenceSource(source: EvidenceSource): string {
+/** The period-4 solve is certified, not a closed form (ADR 0013 Decision 5). */
+function formatEvidenceSource(source: EvidenceSource, evidence: readonly EvidenceFlag[]): string {
+  if (source === 'analytic' && evidence.includes('analytic-period-4-component')) {
+    return 'Certified analytic solve';
+  }
   return EVIDENCE_SOURCE_LABELS[source];
 }

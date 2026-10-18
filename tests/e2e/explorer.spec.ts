@@ -600,7 +600,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
       'Analytic Period 4 Component',
     );
     await expect(
-      pointEvidence.locator('.facts').getByText('Analytic closed form', { exact: true }),
+      pointEvidence.locator('.facts').getByText('Certified analytic solve', { exact: true }),
     ).toBeVisible();
   });
 

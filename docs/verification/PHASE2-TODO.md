@@ -123,17 +123,20 @@ Estimates are engineering days. They are planning figures and may overlap.
       `period-three-gate.test.ts` failed its grid test once at load 12–17
       during the item 8 fix wave and passed at load about 5. Rerun on a quiet
       machine before treating any of them as a regression.
-- [ ] **Inspector source label for period 4** (owner wording decision). The
+- [x] **Inspector source label for period 4** (owner wording decision). The
       inspector says "Analytic closed form" for the certified period-4 solve,
       which is not a closed form (ADR 0013 Decision 5). Options: "Analytic
       (closed form or certified solve)", or a label per flag. Changing it also
       changes the period 1–3 e2e strings and the pending selected-marker
       baseline.
+      Decided 2026-10-18: a label per method. Periods 1–3 keep "Analytic
+      closed form"; period 4 says "Certified analytic solve". The period 1–3
+      e2e strings are unchanged.
 - [ ] **Confirming release session on the mirror-free build** (owner screen
       time, about 19 minutes headed). It measures the Easy budget, now
       projected at 238 ms against 250 ms in Chrome; it is the last input to the
       "Phase 2 performance closed" approval.
-- [ ] **Merge PR #25** (owner). This also clears the Dependabot `source-map-js`
+- [x] **Merge PR #25** (owner). Merged 2026-10-18 (`5a4c611`). This also clears the Dependabot `source-map-js`
       alert on `main`.
 - [ ] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
 - [x] **Phone feedback after a list activation** (decided 2026-10-17:
@@ -159,19 +162,26 @@ Estimates are engineering days. They are planning figures and may overlap.
       6,000,000× view's unresolved half is period-4 interior the stable pass
       also misses; H's period-4 path (item 8) is the fix. The depth ramp
       (`src/render/coarse-budget.ts`) stays unwired at today's 256.
-- [ ] **Coarse budget at the Feigenbaum view (optional).** At 2,500× the
+- [x] **Coarse budget at the Feigenbaum view (optional).** At 2,500× the
       coarse frame leaves 20.2% of resolvable pixels unresolved (4.8% at a
       512 budget); 126× leaves 6.5%. A depth ramp starting at 1,000× barely
       reaches 2,500× (about 10% of its rise) and does not reach 126×. Decide
       whether a per-view or per-profile coarse budget is worth its
       coarse-frame time; the per-budget costs are already in the study's
       Part 1 tables.
+      Decided 2026-10-18: not adopted; the coarse budget stays 256. The gap
+      lasts one coarse frame and the stable pass closes it. The figures predate
+      period 4 (item 8). Reopen only on a user-visible first-frame complaint.
 - [ ] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
       at 8 and 16 against 4 with
       `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
 - [ ] **Memory high-water (`MI-PERF-006`).** Harness pass landed 2026-10-17 (main-thread JS heap in Chromium; `retained` and Firefox not measured headless); stays open until a measured `retained` figure from branded Chrome and an owner decision on the Firefox gap. It is the one performance
       requirement never measured in the release browsers. Add a
       per-engine high-water figure to the release harness. 1–2.
+      Decided 2026-10-18 (Firefox gap): the requirement passes on the
+      branded-Chrome `retained` figure from the owner's screen session;
+      Firefox is recorded as unmeasured, and a manual `about:memory` reading
+      is the reopen path. Still open until that Chrome figure exists.
 - [x] **Corpus rationale corrections.** `mi-fallback-weak-attraction` is
       period 3 (|λ| 0.848–0.902), not period 6. The left half of
       `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
