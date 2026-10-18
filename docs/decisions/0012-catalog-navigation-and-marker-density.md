@@ -158,6 +158,6 @@ order, and the generator copies them into `components.v2.json`. The inspector
 shows them as a "References:" line under the annotation, and each glossary
 term shows its own. Both link to concepts and to the people they are named
 after. A link opens in a new tab with `rel="noopener noreferrer"`, and a
-visually hidden suffix gives its name as "title, source, opens in a new tab".
+visually hidden suffix gives its name as "title – source, opens in a new tab".
 The generator and the loader reject an unknown or repeated key, an empty
 list, and any URL outside the two hosts.

@@ -2149,9 +2149,10 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     const line = pointEvidence.locator('.inspector__references');
     await expect(line).toBeVisible();
     await expect(line).toContainText('References: ');
-    // The hidden suffix is its own element, so browsers may put a space before its comma.
+    // The hidden suffix is positioned absolutely, so engines may add a space before it; the dash reads cleanly either way.
     const fatou = line.getByRole('link', {
-      name: /^Fatou components\s*, Wikipedia, opens in a new tab$/,
+      name: 'Fatou components – Wikipedia, opens in a new tab',
+      exact: true,
     });
     await expect(fatou).toContainText('Fatou components');
     await expect(fatou).toHaveAttribute(
@@ -2171,7 +2172,8 @@ test.describe('Catalog panel (MI-UX-020)', () => {
 
     await panel.getByText('About periods, rays and addresses').click();
     const internal = panel.getByRole('link', {
-      name: /^Internal addresses in the Mandelbrot set \(Lau and Schleicher\)\s*, arXiv, opens in a new tab$/,
+      name: 'Internal addresses in the Mandelbrot set (Lau and Schleicher) – arXiv, opens in a new tab',
+      exact: true,
     });
     await expect(internal).toHaveCount(2);
     await expect(internal.first()).toHaveAttribute('href', 'https://arxiv.org/abs/math/9411238');

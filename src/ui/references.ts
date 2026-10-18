@@ -12,7 +12,7 @@ export interface ReferenceLinkModel {
   readonly href: string;
   readonly target: '_blank';
   readonly rel: 'noopener noreferrer';
-  /** Visually hidden text after the title, so the link's name is "<title>, <source>, opens in a new tab". */
+  /** Visually hidden text after the title, so the link's name is "<title> – <source>, opens in a new tab". */
   readonly spokenSuffix: string;
 }
 
@@ -33,7 +33,8 @@ export function referenceLinkModel(key: string): ReferenceLinkModel {
     href: reference.url,
     target: '_blank',
     rel: 'noopener noreferrer',
-    spokenSuffix: `, ${reference.source}, opens in a new tab`,
+    // Hidden text is positioned absolutely, so engines add a space before it; a spaced dash reads cleanly either way.
+    spokenSuffix: ` – ${reference.source}, opens in a new tab`,
   };
 }
 

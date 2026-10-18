@@ -13,7 +13,7 @@ describe('reference line', () => {
         href: 'https://en.wikipedia.org/wiki/Julia_set',
         target: '_blank',
         rel: 'noopener noreferrer',
-        spokenSuffix: ', Wikipedia, opens in a new tab',
+        spokenSuffix: ' – Wikipedia, opens in a new tab',
       },
       ' · ',
       expect.objectContaining({ title: 'Gaston Julia' }),
@@ -24,7 +24,7 @@ describe('reference line', () => {
     expect(referenceLinkModel('internal-addresses')).toMatchObject({
       title: 'Internal addresses in the Mandelbrot set (Lau and Schleicher)',
       href: 'https://arxiv.org/abs/math/9411238',
-      spokenSuffix: ', arXiv, opens in a new tab',
+      spokenSuffix: ' – arXiv, opens in a new tab',
     });
   });
 
