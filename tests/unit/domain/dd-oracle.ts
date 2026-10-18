@@ -380,21 +380,22 @@ export const DD_PERIOD_THREE_OPTIONS = Object.freeze({
 } as const);
 
 /**
- * Independent check of an analytic period-3 claim. It uses no closed form:
- * the binary64 critical orbit runs DD_PERIOD_THREE_OPTIONS.seedIterations
- * steps (a seed only; an escape is reported as escaped), then each of the
- * next three iterates is polished as a period-3 cycle start by dd Newton on
- * f_c^3(z) - z and certified by ddCertifiedCycle (dd divisor test, dd
- * |lambda| < 1). The first certified cycle is returned. Unlike
- * classifyDDMinimal it needs no orbit convergence, so it reaches cycles with
- * |lambda| near 1 that no iteration budget can.
+ * Independent check of an analytic period-p claim (p = 3: ADR 0010; p = 4:
+ * ADR 0013). It uses no closed form and no cubic: the binary64 critical
+ * orbit runs DD_PERIOD_THREE_OPTIONS.seedIterations steps (a seed only; an
+ * escape is reported as escaped), then each of the next p iterates is
+ * polished as a period-p cycle start by dd Newton on f_c^p(z) - z and
+ * certified by ddCertifiedCycle (dd divisor test, dd |lambda| < 1). The first
+ * certified cycle is returned. Unlike classifyDDMinimal it needs no orbit
+ * convergence, so it reaches cycles with |lambda| near 1 that no iteration
+ * budget can.
  *
  * It is an adjudicator, not a classifier: its |lambda| < 1 test has no
  * margin, so at a parabolic parameter it can certify |lambda| = 1 - O(1e-12)
  * (at c = -7/4 it reports 1 - 1.4e-12). Callers compare its multiplier with
- * the analytic one within 1e-12, and the analytic path refuses there.
+ * the analytic one within 1e-12, and the analytic paths refuse there.
  */
-export const ddPeriodThreeCycle = (cRe: number, cIm: number): DDOracleVerdict => {
+export const ddPeriodicCycle = (cRe: number, cIm: number, period: number): DDOracleVerdict => {
   let zRe = 0;
   let zIm = 0;
   for (let iteration = 1; iteration <= DD_PERIOD_THREE_OPTIONS.seedIterations; iteration += 1) {
@@ -405,12 +406,12 @@ export const ddPeriodThreeCycle = (cRe: number, cIm: number): DDOracleVerdict =>
       return { status: 'escaped', escapeIteration: iteration };
     }
   }
-  for (let phase = 0; phase < 3; phase += 1) {
+  for (let phase = 0; phase < period; phase += 1) {
     const cycle = ddVerifyCycle(
       cRe,
       cIm,
       { re: { hi: zRe, lo: 0 }, im: { hi: zIm, lo: 0 } },
-      3,
+      period,
       DD_PERIOD_THREE_OPTIONS.newtonSteps,
     );
     if (cycle !== undefined) {
@@ -422,3 +423,11 @@ export const ddPeriodThreeCycle = (cRe: number, cIm: number): DDOracleVerdict =>
   }
   return { status: 'unresolved' };
 };
+
+/** The period-3 adjudicator (ADR 0010). */
+export const ddPeriodThreeCycle = (cRe: number, cIm: number): DDOracleVerdict =>
+  ddPeriodicCycle(cRe, cIm, 3);
+
+/** The period-4 adjudicator (ADR 0013). */
+export const ddPeriodFourCycle = (cRe: number, cIm: number): DDOracleVerdict =>
+  ddPeriodicCycle(cRe, cIm, 4);
