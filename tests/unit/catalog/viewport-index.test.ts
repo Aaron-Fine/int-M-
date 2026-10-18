@@ -67,7 +67,7 @@ describe('catalog viewport index', () => {
     expect(index.entries.map((entry) => entry.component.id)).toEqual(
       [...COMPONENT_CATALOG].sort(compareCatalogOrder).map((component) => component.id),
     );
-    expect(index.find('mi-p3-1-2')?.component.label).toBe('Douady rabbit');
+    expect(index.find('mi-p3-1-2')?.component.label).toBe('1/3-bulb (Douady rabbit)');
     expect(index.find('mi-p3-rabbit')).toBeUndefined();
   });
 

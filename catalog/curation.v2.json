@@ -5,34 +5,68 @@
   "entries": {
     "mi-p1-0-1": {
       "label": "Main cardioid",
-      "aliases": ["mi-p1-main"],
-      "annotation": "Parameters with an attracting fixed point. Where the fixed point's multiplier on the boundary is e^(2πi·p/q), with p/q in lowest terms and q ≥ 2, a bulb of period q is attached."
+      "aliases": [
+        "mi-p1-main"
+      ],
+      "annotation": "The hyperbolic component of period 1: parameters with an attracting fixed point. Where the fixed point's multiplier on the boundary is e^(2πi·p/q), with p/q in lowest terms and q ≥ 2, the p/q-bulb is attached, a component of period q."
     },
     "mi-p2-1-2": {
-      "label": "Period-2 bulb",
-      "aliases": ["mi-p2-basilica"],
-      "annotation": "Parameters with an attracting 2-cycle: the disk of radius 1/4 about −1. It meets the main cardioid at c = −3/4, where the rays 1/3 and 2/3 land."
+      "label": "1/2-bulb (basilica)",
+      "aliases": [
+        "mi-p2-basilica"
+      ],
+      "annotation": "The period-2 component: parameters with an attracting 2-cycle, the disk of radius 1/4 about −1. The parameter rays 1/3 and 2/3 land at its root, c = −3/4, where it meets the main cardioid. At its centre, c = −1, the Julia set is the basilica."
     },
     "mi-p3-1-2": {
-      "label": "Douady rabbit",
-      "aliases": ["mi-p3-rabbit"],
-      "annotation": "The 1/3 bulb of the main cardioid. At its centre the Julia set is the Douady rabbit: three Fatou components meet at the α fixed point and at each of its preimages. Rays 1/7 and 2/7 land at its root."
+      "label": "1/3-bulb (Douady rabbit)",
+      "aliases": [
+        "mi-p3-rabbit"
+      ],
+      "annotation": "The 1/3-bulb of the main cardioid, of period 3. At its centre the Julia set is the Douady rabbit: three bounded Fatou components meet at the α fixed point and at each of its preimages. The parameter rays 1/7 and 2/7 land at its root."
     },
     "mi-p3-3-4": {
-      "label": "Airplane",
-      "aliases": ["mi-p3-airplane"],
-      "annotation": "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; along the real line it is the logistic map's period-3 window. Rays 3/7 and 4/7 land at its cusp, c = −7/4."
+      "label": "Airplane component",
+      "aliases": [
+        "mi-p3-airplane"
+      ],
+      "annotation": "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; at its centre the Julia set is the airplane. On the real line the logistic map's period-3 window opens here. The parameter rays 3/7 and 4/7 land at its root, c = −7/4."
     },
     "mi-p3-5-6": {
-      "label": "Co-rabbit",
-      "aliases": ["mi-p3-corabbit"],
-      "annotation": "The 2/3 bulb, the complex conjugate of the rabbit's 1/3 bulb; its Julia sets are mirror images of the rabbit's. Rays 5/7 and 6/7 land at its root."
+      "label": "2/3-bulb (corabbit)",
+      "aliases": [
+        "mi-p3-corabbit"
+      ],
+      "annotation": "The 2/3-bulb of the main cardioid, the complex conjugate of the 1/3-bulb. At its centre the Julia set is the corabbit, the mirror image of the Douady rabbit. The parameter rays 5/7 and 6/7 land at its root."
     },
-    "mi-p4-1-2": { "aliases": ["mi-p4-06"] },
-    "mi-p4-3-4": { "aliases": ["mi-p4-04"] },
-    "mi-p4-6-9": { "aliases": ["mi-p4-02"] },
-    "mi-p4-7-8": { "aliases": ["mi-p4-01"] },
-    "mi-p4-11-12": { "aliases": ["mi-p4-03"] },
-    "mi-p4-13-14": { "aliases": ["mi-p4-05"] }
+    "mi-p4-1-2": {
+      "aliases": [
+        "mi-p4-06"
+      ]
+    },
+    "mi-p4-3-4": {
+      "aliases": [
+        "mi-p4-04"
+      ]
+    },
+    "mi-p4-6-9": {
+      "aliases": [
+        "mi-p4-02"
+      ]
+    },
+    "mi-p4-7-8": {
+      "aliases": [
+        "mi-p4-01"
+      ]
+    },
+    "mi-p4-11-12": {
+      "aliases": [
+        "mi-p4-03"
+      ]
+    },
+    "mi-p4-13-14": {
+      "aliases": [
+        "mi-p4-05"
+      ]
+    }
   }
 }

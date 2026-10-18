@@ -44,7 +44,7 @@ describe('catalog schema v2 loader', () => {
   });
 
   it('finds an entry by its canonical id or by an alias', () => {
-    expect(findCatalogComponent('mi-p3-1-2')?.label).toBe('Douady rabbit');
+    expect(findCatalogComponent('mi-p3-1-2')?.label).toBe('1/3-bulb (Douady rabbit)');
     expect(findCatalogComponent('mi-p3-rabbit')).toBe(findCatalogComponent('mi-p3-1-2'));
     expect(findCatalogComponent('mi-p9-nope')).toBeUndefined();
   });

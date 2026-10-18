@@ -561,12 +561,12 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('the Douady rabbit marker reports the analytic period-3 closed form', async ({ page }) => {
     await page.goto('/');
 
-    const rabbit = page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' });
+    const rabbit = page.getByRole('button', { name: 'Inspect 1/3-bulb (Douady rabbit), period 3' });
     await expect(rabbit).toBeVisible({ timeout: 20_000 });
     await rabbit.focus();
     await rabbit.press('Enter');
 
-    await expect(page.getByRole('heading', { name: 'Douady rabbit' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '1/3-bulb (Douady rabbit)' })).toBeVisible();
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
     await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
       'Attracting cycle',
@@ -728,7 +728,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await catalog.click();
     await expect(catalog).toHaveAttribute('aria-pressed', 'true');
     const periodTwo = page.getByRole('button', {
-      name: 'Inspect Period-2 bulb, period 2',
+      name: 'Inspect 1/2-bulb (basilica), period 2',
     });
     await expect(periodTwo).toBeVisible({ timeout: 20_000 });
     await periodTwo.click();
@@ -896,10 +896,10 @@ test.describe('Mandelbrot Interiority explorer', () => {
       ),
     ).toEqual([
       'Inspect Main cardioid, period 1',
-      'Inspect Period-2 bulb, period 2',
-      'Inspect Douady rabbit, period 3',
-      'Inspect Airplane, period 3',
-      'Inspect Co-rabbit, period 3',
+      'Inspect 1/2-bulb (basilica), period 2',
+      'Inspect 1/3-bulb (Douady rabbit), period 3',
+      'Inspect Airplane component, period 3',
+      'Inspect 2/3-bulb (corabbit), period 3',
       'Inspect Period 4, rays 1/15 and 2/15',
       'Inspect Period 4, rays 3/15 and 4/15',
       'Inspect Period 4, rays 6/15 and 9/15',
@@ -1214,11 +1214,11 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByRole('button', { name: 'Explore', exact: true }).click();
 
     const periodTwo = page.getByRole('button', {
-      name: 'Inspect Period-2 bulb, period 2',
+      name: 'Inspect 1/2-bulb (basilica), period 2',
     });
     await expect(periodTwo).toBeVisible({ timeout: 20_000 });
     await periodTwo.click();
-    await expect(page.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '1/2-bulb (basilica)' })).toBeVisible();
 
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     await periodTwo.focus();
@@ -1364,7 +1364,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
       // The guide fades out for 150 ms: axe must not sample it half transparent.
       await expect(page.locator('.guidance')).toBeHidden();
       // Catalog markers appear with the first frame and are redrawn until the stable one.
-      await expect(page.getByRole('button', { name: 'Inspect Airplane, period 3' })).toBeVisible({
+      await expect(
+        page.getByRole('button', { name: 'Inspect Airplane component, period 3' }),
+      ).toBeVisible({
         timeout: 20_000,
       });
       await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
@@ -1632,15 +1634,19 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByRole('button', { name: 'Explore', exact: true }).click();
 
     const periodTwo = page.getByRole('button', {
-      name: 'Inspect Period-2 bulb, period 2',
+      name: 'Inspect 1/2-bulb (basilica), period 2',
     });
     await expect(periodTwo).toBeVisible({ timeout: 20_000 });
     await periodTwo.click();
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
-    await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
-    await expect(pointEvidence.getByText('Angled address', { exact: true })).toBeVisible();
-    await expect(pointEvidence.getByText('1 → 2 at 1/2', { exact: true })).toBeVisible();
-    await expect(pointEvidence.getByText('Characteristic rays', { exact: true })).toBeVisible();
+    await expect(pointEvidence.getByRole('heading', { name: '1/2-bulb (basilica)' })).toBeVisible();
+    await expect(pointEvidence.getByText('Angled internal address', { exact: true })).toBeVisible();
+    const angledAddress = pointEvidence.locator('.facts .angled-address');
+    await expect(angledAddress).toHaveCount(1);
+    await expect(angledAddress.locator('sub')).toHaveText(['1/2']);
+    await expect(angledAddress.locator('[aria-hidden="true"]')).toHaveText('1 →1/2 2');
+    await expect(angledAddress.locator('.visually-hidden')).toHaveText('1, to 2 at angle 1/2');
+    await expect(pointEvidence.getByText('Parameter ray pair', { exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page, 'selected-point evidence state');
 
     const factValues = await pointEvidence.locator('.facts dd').evaluateAll((elements) =>
@@ -1680,7 +1686,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
       'Stable frame',
       { timeout: 20_000 },
     );
-    await expect(pointEvidence.getByRole('heading', { name: 'Period-2 bulb' })).toBeVisible();
+    await expect(pointEvidence.getByRole('heading', { name: '1/2-bulb (basilica)' })).toBeVisible();
     await expectNoHorizontalOverflow(page, 'manual renderer-retry state');
   });
 
@@ -1814,7 +1820,7 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await waitForStable(page);
     const historyLength = await page.evaluate(() => history.length);
 
-    const periodTwo = page.getByRole('button', { name: 'Inspect Period-2 bulb, period 2' });
+    const periodTwo = page.getByRole('button', { name: 'Inspect 1/2-bulb (basilica), period 2' });
     await expect(periodTwo).toBeVisible({ timeout: 20_000 });
     await periodTwo.click();
     await page.getByRole('button', { name: 'Zoom in' }).click();
@@ -1840,7 +1846,7 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await expect(
       reopened
         .getByRole('region', { name: 'Point evidence' })
-        .getByRole('heading', { name: 'Period-2 bulb' }),
+        .getByRole('heading', { name: '1/2-bulb (basilica)' }),
     ).toBeVisible();
     await expect(reopened.getByRole('status', { name: 'Link notice' })).toHaveText('');
     expect(reopened.url()).toBe(link);
@@ -2077,10 +2083,10 @@ test.describe('Shareable links (MI-UX-019)', () => {
 test.describe('Catalog panel (MI-UX-020)', () => {
   const ENTRY_ORDER = [
     'Main cardioid',
-    'Period-2 bulb',
-    'Douady rabbit',
-    'Airplane',
-    'Co-rabbit',
+    '1/2-bulb (basilica)',
+    '1/3-bulb (Douady rabbit)',
+    'Airplane component',
+    '2/3-bulb (corabbit)',
     'Period 4, rays 1/15 and 2/15',
     'Period 4, rays 3/15 and 4/15',
     'Period 4, rays 6/15 and 9/15',
@@ -2100,7 +2106,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
   test('zooms to an entry and selects it from the keyboard', async ({ page }) => {
     await openExplorer(page);
     const panel = page.getByRole('region', { name: 'Catalog' });
-    const airplane = panel.getByRole('button', { name: 'Airplane', exact: true });
+    const airplane = panel.getByRole('button', { name: 'Airplane component', exact: true });
     await airplane.focus();
     await airplane.press('Enter');
 
@@ -2108,22 +2114,21 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await expect(page.getByLabel('Magnification')).toHaveText('53×');
     // The panel's confirmation repeats the text on narrow layouts; the toast is the live one.
     await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
-      'Zoomed to Airplane.',
+      'Zoomed to Airplane component.',
     );
     await expect(airplane).toBeFocused();
     await expect(airplane).toHaveAttribute('aria-current', 'true');
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
-    await expect(pointEvidence.getByRole('heading', { name: 'Airplane' })).toBeVisible();
+    await expect(pointEvidence.getByRole('heading', { name: 'Airplane component' })).toBeVisible();
     await expect(pointEvidence.locator('.inspector__annotation')).toHaveText(
-      "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; along the real line it is the logistic map's period-3 window. Rays 3/7 and 4/7 land at its cusp, c = −7/4.",
+      "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; at its centre the Julia set is the airplane. On the real line the logistic map's period-3 window opens here. The parameter rays 3/7 and 4/7 land at its root, c = −7/4.",
     );
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
     });
-    await expect(page.getByRole('button', { name: 'Inspect Airplane, period 3' })).toHaveAttribute(
-      'aria-current',
-      'true',
-    );
+    await expect(
+      page.getByRole('button', { name: 'Inspect Airplane component, period 3' }),
+    ).toHaveAttribute('aria-current', 'true');
     await expect
       .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
       .toBe('mi-p3-3-4');
@@ -2157,7 +2162,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       'summary:Period 1, 1 component',
       'button:Main cardioid',
       'summary:Period 2, 1 component',
-      'button:Period-2 bulb',
+      'button:1/2-bulb (basilica)',
       'summary:Period 3, 3 components',
       ...ENTRY_ORDER.slice(2, 5).map((label) => `button:${label}`),
       'summary:Period 4, 6 components',
@@ -2196,8 +2201,8 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await group.locator('summary').click();
     await expect(group).not.toHaveAttribute('open');
 
-    await page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' }).click();
-    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    await page.getByRole('button', { name: 'Inspect 1/3-bulb (Douady rabbit), period 3' }).click();
+    const rabbit = panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true });
     await expect(group).toHaveAttribute('open');
     await expect(rabbit).toHaveAttribute('aria-current', 'true');
     await expect(panel.locator('[aria-current="true"]')).toHaveCount(1);
@@ -2225,7 +2230,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     const panel = page.getByRole('region', { name: 'Catalog' });
     await panel.getByText('About periods, rays and addresses').click();
     await expect(panel.getByText('Angled internal address', { exact: true })).toBeVisible();
-    await panel.getByRole('button', { name: 'Douady rabbit', exact: true }).click();
+    await panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true }).click();
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
     });
@@ -2236,7 +2241,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await page.emulateMedia({ forcedColors: 'active' });
     await openExplorer(page);
     const panel = page.getByRole('region', { name: 'Catalog' });
-    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    const rabbit = panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true });
     await rabbit.click();
     await expect(rabbit).toHaveAttribute('aria-current', 'true');
     const cue = await rabbit.evaluate((element) => {
@@ -2279,7 +2284,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       );
       const shell = document.querySelector<HTMLElement>('#explorer');
       const entry = [...document.querySelectorAll<HTMLButtonElement>('.catalog-entry')].find(
-        (candidate) => candidate.textContent === 'Airplane',
+        (candidate) => candidate.textContent === 'Airplane component',
       );
       if (!marker || !shell || !entry) throw new Error('airplane marker or entry missing');
       const before = { left: marker.style.left, top: marker.style.top };
@@ -2336,7 +2341,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await page.getByRole('button', { name: /Catalog/ }).click();
     await expect(page.locator('.catalog-marker')).toHaveCount(0);
     const panel = page.getByRole('region', { name: 'Catalog' });
-    const airplane = panel.getByRole('button', { name: 'Airplane', exact: true });
+    const airplane = panel.getByRole('button', { name: 'Airplane component', exact: true });
     await airplane.click();
     await expect(airplane).toHaveAttribute('aria-current', 'true');
     await page.getByRole('button', { name: 'Reset' }).click();
@@ -2444,7 +2449,7 @@ test.describe('Catalog core (ADR 0014)', () => {
     await expect(panel.locator('.catalog-panel__status')).toHaveText('Loading periods 5 to 12…');
     await expect(panel.locator('details.catalog-group')).toHaveCount(4);
     await expect(page.locator('.catalog-marker')).toHaveCount(11);
-    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    const rabbit = panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true });
     await rabbit.focus();
     release();
     await waitForCatalogCore(page);
@@ -2455,7 +2460,7 @@ test.describe('Catalog core (ADR 0014)', () => {
   test('keeps focus on a curated marker while the core arrives', async ({ page }) => {
     const release = await holdCore(page);
     await openExplorer(page);
-    const marker = page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' });
+    const marker = page.getByRole('button', { name: 'Inspect 1/3-bulb (Douady rabbit), period 3' });
     await marker.focus();
     release();
     await waitForCatalogCore(page);
@@ -2661,9 +2666,11 @@ test.describe('Catalog core (ADR 0014)', () => {
     await expect(count).toHaveText('2,010 components match; showing the first 50.');
     await expect(results.getByRole('button')).toHaveCount(50);
     await find.fill('rabbit');
-    await expect(results.getByRole('button')).toHaveText(['Douady rabbit', 'Co-rabbit']);
+    await expect(results.getByRole('button')).toHaveText(['1/3-bulb (Douady rabbit)']);
     await find.press('Tab');
-    await expect(results.getByRole('button', { name: 'Douady rabbit', exact: true })).toBeFocused();
+    await expect(
+      results.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true }),
+    ).toBeFocused();
     await find.press('Escape');
     await expect(find).toHaveValue('');
     await expect(panel.locator('.catalog-panel__groups')).toBeVisible();
@@ -2702,11 +2709,13 @@ test.describe('Catalog core (ADR 0014)', () => {
     await page.setViewportSize({ width: 320, height: 568 });
     await openExplorer(page);
     const panel = panelOf(page);
-    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    const rabbit = panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true });
     await rabbit.click();
     const confirmation = panel.locator('.catalog-panel__confirmation');
     await expect(confirmation).toBeVisible();
-    await expect(confirmation).toHaveText(/^Zoomed to Douady rabbit\.\s*Show the view$/);
+    await expect(confirmation).toHaveText(
+      /^Zoomed to 1\/3-bulb \(Douady rabbit\)\.\s*Show the view$/,
+    );
     await expect(rabbit).toBeFocused();
     expect(
       await confirmation.evaluate((element) => {
@@ -2716,7 +2725,7 @@ test.describe('Catalog core (ADR 0014)', () => {
     ).toBe(true);
     // The canvas toast is the one live announcement; the confirmation is not live.
     await expect(
-      page.locator('[aria-live]').filter({ hasText: 'Zoomed to Douady rabbit.' }),
+      page.locator('[aria-live]').filter({ hasText: 'Zoomed to 1/3-bulb (Douady rabbit).' }),
     ).toHaveCount(1);
     await expect(confirmation.locator('[aria-live], [role="status"]')).toHaveCount(0);
     expect(await confirmation.getAttribute('aria-live')).toBeNull();
@@ -2736,9 +2745,9 @@ test.describe('Catalog core (ADR 0014)', () => {
   test('shows no confirmation where the panel sits beside the canvas', async ({ page }) => {
     await openExplorer(page);
     const panel = panelOf(page);
-    await panel.getByRole('button', { name: 'Douady rabbit', exact: true }).click();
+    await panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true }).click();
     await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
-      'Zoomed to Douady rabbit.',
+      'Zoomed to 1/3-bulb (Douady rabbit).',
     );
     await expect(panel.locator('.catalog-panel__confirmation')).toBeHidden();
   });
@@ -2780,7 +2789,7 @@ test.describe('Catalog core (ADR 0014)', () => {
     await find.press('Tab');
     const rabbit = panel
       .getByRole('list', { name: 'Matching components' })
-      .getByRole('button', { name: 'Douady rabbit', exact: true });
+      .getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true });
     await expect(rabbit).toBeFocused();
     release();
     await waitForCatalogCore(page);

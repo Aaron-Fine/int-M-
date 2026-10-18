@@ -38,9 +38,9 @@ describe('catalog find field (ADR 0014)', () => {
   });
 
   it('finds an entry by its label from a word start, ignoring case and punctuation', () => {
-    expect(ids('rabbit')).toEqual(['mi-p3-1-2', 'mi-p3-5-6']);
-    expect(ids('Co-Rabbit')).toEqual(['mi-p3-5-6']);
-    expect(ids('period 2')).toEqual(['mi-p2-1-2']);
+    expect(ids('rabbit')).toEqual(['mi-p3-1-2']); // "corabbit" has no word start at rabbit
+    expect(ids('Corabbit')).toEqual(['mi-p3-5-6']);
+    expect(ids('basilica')).toEqual(['mi-p2-1-2']);
     expect(ids('abbit')).toEqual([]);
     expect(ids('period 4, rays 6')).toEqual(['mi-p4-6-9']);
   });

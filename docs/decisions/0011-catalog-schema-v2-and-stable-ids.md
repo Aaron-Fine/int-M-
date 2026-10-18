@@ -143,3 +143,17 @@ derives the angled addresses by Schleicher's closed-form rules, which agree
 with the generator's on all 4,015 entries of period 2 to 12, which
 `tests/unit/catalog/core/angled-addresses.test.ts` pins against
 `fixtures/angled-addresses.p12.json` (ADR 0014).
+
+## Amendment (2026-10-18, nomenclature)
+
+Owner decision 2026-10-18: user-visible names follow the literature where it
+has them (Milnor 2000; Schleicher, "Internal addresses in the Mandelbrot set";
+Bartholdi and Nekrashevych, "Twisted rabbit problem"). A curated label is the
+literature component name, with the centre's Julia-set name in parentheses
+where the literature names one: "1/2-bulb (basilica)", "1/3-bulb (Douady
+rabbit)", "2/3-bulb (corabbit)", "Airplane component". The two rays that land
+at a component's root are the "parameter ray pair" (formerly "characteristic
+rays"), angles kept unreduced as a/(2^p − 1). The inspector writes the angled
+internal address as a chain with the rotation as a subscript on each arrow,
+1 →₁/₃ 3 →₁/₂ 6, with a spoken form for assistive technology. Ids, aliases
+and code identifiers are unchanged. Text above that names the entries by their old labels is historical.

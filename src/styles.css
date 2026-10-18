@@ -1664,3 +1664,8 @@ button:disabled {
     box-shadow: none;
   }
 }
+
+.angled-address sub {
+  font-size: 0.75em;
+  line-height: 0;
+}

@@ -115,9 +115,9 @@ describe('catalog groups', () => {
     ]);
     expect(groups.every((group) => group.openByDefault)).toBe(true);
     expect(groups[2]?.components.map((c) => c.label)).toEqual([
-      'Douady rabbit',
-      'Airplane',
-      'Co-rabbit',
+      '1/3-bulb (Douady rabbit)',
+      'Airplane component',
+      '2/3-bulb (corabbit)',
     ]);
   });
 

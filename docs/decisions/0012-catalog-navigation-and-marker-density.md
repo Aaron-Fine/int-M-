@@ -131,3 +131,17 @@ group's list, adds periods 5 to 12 when the core arrives without disturbing
 the groups already shown, and widens the marker label maximum to 14rem. On the
 real core the default view places 29 markers on a 922×576 canvas and 16 on
 300×225; the policy is unchanged.
+
+## Amendment (2026-10-18, nomenclature)
+
+Owner decision 2026-10-18: user-visible names follow the literature where it
+has them (Milnor 2000; Schleicher, "Internal addresses in the Mandelbrot set";
+Bartholdi and Nekrashevych, "Twisted rabbit problem"). A curated label is the
+literature component name, with the centre's Julia-set name in parentheses
+where the literature names one: "1/2-bulb (basilica)", "1/3-bulb (Douady
+rabbit)", "2/3-bulb (corabbit)", "Airplane component". The two rays that land
+at a component's root are the "parameter ray pair" (formerly "characteristic
+rays"), angles kept unreduced as a/(2^p − 1). The inspector writes the angled
+internal address as a chain with the rotation as a subscript on each arrow,
+1 →₁/₃ 3 →₁/₂ 6, with a spoken form for assistive technology. Ids, aliases
+and code identifiers are unchanged. Text above that names the entries or the glossary term by their old names is historical.

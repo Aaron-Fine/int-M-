@@ -60,7 +60,7 @@ test('UI state: catalog overlay on the default view', async ({ page }) => {
 
 test('UI state: a selected catalog marker and its evidence', async ({ page }) => {
   await openSettled(page, '/');
-  const rabbit = page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' });
+  const rabbit = page.getByRole('button', { name: 'Inspect 1/3-bulb (Douady rabbit), period 3' });
   await rabbit.focus();
   await rabbit.press('Enter');
   const evidence = page.getByRole('region', { name: 'Point evidence' });

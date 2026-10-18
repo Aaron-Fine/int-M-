@@ -417,7 +417,7 @@ package MandelbrotInteriority {
              * keyboard and by a list grouped by period. Activating an entry
              * shall zoom to it, never past the zoom ceiling, and select it.
              * Curated entries may carry annotation text, and a glossary shall
-             * explain periods, characteristic rays and internal and angled
+             * explain periods, parameter ray pairs and internal and angled
              * internal addresses. At most 40 catalog markers shall be
              * interactive at once, lowest periods first; the selected entry
              * shall be shown whenever it is in view; the marker focus order

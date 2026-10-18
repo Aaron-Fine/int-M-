@@ -6,13 +6,13 @@ import type { CatalogComponent } from './schema';
  *
  * 1. One or two ray fractions, such as `3/7` or `6/15 and 9/15` (separated
  *    by spaces, a comma or "and"): an entry matches when it has a
- *    characteristic ray equal to each fraction, by value, so `2/5` also finds
+ *    parameter ray equal to each fraction, by value, so `2/5` also finds
  *    the rays 6/15. The main cardioid's rays are 0/1 and 1/1.
  * 2. Text starting with `mi-`: a prefix of the entry's id or of an alias, so
  *    `mi-p4-02` finds its v1 alias and `mi-p12-` lists period 12.
  * 3. Anything else: the label contains the text, ignoring case and treating
  *    every run of punctuation and spaces as one space ("period 2" finds the
- *    "Period-2 bulb"); the match starts at a word start and, when the text
+ *    "1/2-bulb (basilica)"); the match starts at a word start and, when the text
  *    ends in a digit, also ends at a word end, so `period 1` does not find
  *    period 12.
  *

@@ -18,15 +18,17 @@ one of curation.
   generated; regenerate both with
   `python3 tools/generate_catalog_core.py --write catalog` (about 100 s).
 - `curation.v2.json` holds what a person reviewed: the names of the five
-  named components, the v1 ids each entry keeps as aliases, and optional
+  named components (the literature's component name, with the Julia-set name
+  of the centre in parentheses where the literature gives one, such as
+  "1/3-bulb (Douady rabbit)"), the v1 ids each entry keeps as aliases, and optional
   annotations, keyed by canonical id. Every other entry is labelled by its
   rays, for example "Period 4, rays 6/15 and 9/15". Edit it, then regenerate
   `components.v2.json`; the core does not store labels.
 
 ## Ids
 
-An entry's id is `mi-p<p>-<a>-<b>`: its period and the numerators of its two
-characteristic rays over `2^p − 1` (the main cardioid is `mi-p1-0-1`). The id
+An entry's id is `mi-p<p>-<a>-<b>`: its period and the numerators of its
+parameter ray pair over `2^p − 1` (the main cardioid is `mi-p1-0-1`). The id
 depends only on the component, so regeneration never changes it. The v1 ids
 (`mi-p1-main`, `mi-p3-rabbit`, `mi-p4-01`…) are aliases that resolve forever,
 because share links (ADR 0009) name them in `sel=`. Never remove an alias.

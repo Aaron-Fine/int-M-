@@ -20,6 +20,7 @@ import { catalogGroups, zoomSpanFor } from '../catalog/navigation';
 import { createCatalogIndex } from '../catalog/viewport-index';
 import { loadCatalogCore } from './catalog-core-client';
 import { createCatalogPanel } from './catalog-panel';
+import { angledAddressChain } from './angled-address';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { planMarkers } from './marker-density';
@@ -1630,33 +1631,21 @@ function createInspector(): {
       text: statusLabel[orbit.status],
     });
     const facts = element('dl', { className: 'facts' });
-    const addFact = (term: string, value: string, valueClassName?: string): void => {
-      facts.append(
-        element('dt', { text: term }),
-        element('dd', {
-          ...(valueClassName ? { className: valueClassName } : {}),
-          text: value,
-        }),
-      );
+    const addFact = (term: string, value: string | Node, valueClassName?: string): void => {
+      const description = element('dd', valueClassName ? { className: valueClassName } : {});
+      description.append(value);
+      facts.append(element('dt', { text: term }), description);
     };
     addFact('Parameter c', coordinate);
     if (component) {
       addFact('Catalog period', String(component.period));
       addFact('Internal address', component.internalAddress.join(' → '));
       if (component.angledInternalAddress) {
-        addFact(
-          'Angled address',
-          component.angledInternalAddress
-            .map(
-              (step) =>
-                `${step.fromPeriod} → ${step.toPeriod} at ${step.rotation.numerator}/${step.rotation.denominator}`,
-            )
-            .join('; '),
-        );
+        addFact('Angled internal address', angledAddressChain(component.angledInternalAddress));
       }
       if (component.characteristicRays) {
         addFact(
-          'Characteristic rays',
+          'Parameter ray pair',
           component.characteristicRays
             .map((ray) => `${ray.numerator}/${ray.denominator}`)
             .join(' and '),

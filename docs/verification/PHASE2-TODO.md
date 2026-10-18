@@ -215,7 +215,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       machine (substituted by the loaded run; owner to confirm).
 - [x] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
-      "Airplane, period 3"), found while planning item 3. Enlarge the hit
+      "Airplane component, period 3"), found while planning item 3. Enlarge the hit
       target without changing the drawn marker, and add axe to the 320 px
       reflow test. 0.5–1.
       Done 2026-10-17: below 28rem (448 px) period-4 markers use their 24px dot
@@ -344,8 +344,9 @@ is regenerated in the same reviewed commit.
 - [x] Per-entry annotation text (an optional schema field) and a short
       glossary for internal and angled addresses and rays. Done: `annotation`
       (at most 280 characters) in schema v2 and `catalog/curation.v2.json`,
-      five curated; the glossary in the catalog panel
-      (`src/ui/catalog-glossary.ts`).
+      five curated, named by the literature (owner decision 2026-10-18: "1/3-bulb
+      (Douady rabbit)"); the glossary in the catalog panel
+      (`src/ui/catalog-glossary.ts`) defines the parameter ray pair.
 - [x] A marker density policy (Q4) with a stable focus order; handle label
       collisions. Done: `src/ui/marker-density.ts`: at most 40 markers,
       lowest periods first, catalog focus order, colliding labels hidden.

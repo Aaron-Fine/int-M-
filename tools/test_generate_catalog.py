@@ -81,7 +81,7 @@ class BuildCatalogTest(unittest.TestCase):
 
     def test_only_the_five_named_components_keep_curated_labels(self) -> None:
         labels = {e["id"]: (e["label"], e["provenance"]) for e in self.catalog["components"]}
-        self.assertEqual(labels["mi-p3-1-2"], ("Douady rabbit", "curated-label"))
+        self.assertEqual(labels["mi-p3-1-2"], ("1/3-bulb (Douady rabbit)", "curated-label"))
         self.assertEqual(labels["mi-p4-6-9"], ("Period 4, rays 6/15 and 9/15", "curated-aliases"))
         named = [identifier for identifier, (_label, kind) in labels.items() if kind == "curated-label"]
         self.assertEqual(len(named), 5)

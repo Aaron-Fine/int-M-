@@ -7,22 +7,27 @@
  */
 export const V1_CATALOG = [
   { v1Id: 'mi-p1-main', label: 'Main cardioid', id: 'mi-p1-0-1', center: { re: 0, im: 0 } },
-  { v1Id: 'mi-p2-basilica', label: 'Period-2 bulb', id: 'mi-p2-1-2', center: { re: -1, im: 0 } },
+  {
+    v1Id: 'mi-p2-basilica',
+    label: '1/2-bulb (basilica)',
+    id: 'mi-p2-1-2',
+    center: { re: -1, im: 0 },
+  },
   {
     v1Id: 'mi-p3-airplane',
-    label: 'Airplane',
+    label: 'Airplane component',
     id: 'mi-p3-3-4',
     center: { re: -1.7548776662466907, im: 0 },
   },
   {
     v1Id: 'mi-p3-corabbit',
-    label: 'Co-rabbit',
+    label: '2/3-bulb (corabbit)',
     id: 'mi-p3-5-6',
     center: { re: -0.1225611668766535, im: -0.7448617666197435 },
   },
   {
     v1Id: 'mi-p3-rabbit',
-    label: 'Douady rabbit',
+    label: '1/3-bulb (Douady rabbit)',
     id: 'mi-p3-1-2',
     center: { re: -0.1225611668766535, im: 0.7448617666197435 },
   },
