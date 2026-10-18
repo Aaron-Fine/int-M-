@@ -23,7 +23,7 @@ import re
 import sys
 from typing import Any
 
-from catalog_certify import certify_center
+from catalog_certify import certify_center, proper_divisors
 from catalog_combinatorics import (
     RayPair,
     angled_internal_address,
@@ -96,10 +96,6 @@ class DecimalComplex:
 
 ZERO = DecimalComplex(Decimal(0), Decimal(0))
 ONE = DecimalComplex(Decimal(1), Decimal(0))
-
-
-def proper_divisors(value: int) -> list[int]:
-    return [candidate for candidate in range(1, value) if value % candidate == 0]
 
 
 def decimal_orbit_and_derivative(

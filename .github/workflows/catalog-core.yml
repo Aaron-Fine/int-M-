@@ -12,6 +12,8 @@ on:
       - 'tools/generate_catalog.py'
       - 'tools/generate_catalog_core.py'
       - 'tools/crosscheck_*.py'
+      - 'tools/dump_angled_addresses.py'
+      - 'fixtures/angled-addresses.p12.json'
       - 'tools/test_catalog_*.py'
       - 'tools/test_generate_catalog*.py'
       - 'tools/test_crosscheck_*.py'
@@ -48,3 +50,6 @@ jobs:
 
       - name: Cross-check the core and prove every ray pair's landing (a few minutes)
         run: python3 tools/crosscheck_catalog_core.py catalog
+
+      - name: Check the pinned angled addresses (about 25 s)
+        run: python3 tools/dump_angled_addresses.py --check fixtures/angled-addresses.p12.json

@@ -547,7 +547,7 @@ def main(argv: list[str]) -> int:
     print(
         f"cross-checked {len(records)} centres through period {max_period}: counts match A000740; "
         f"each stored centre is within {worst_step:.3g} of a proved simple root of exact period "
-        f"(largest |f_c^p(0)| {worst_orbit:.3g}, smallest proper-divisor |f_c^d(0)| {least_divisor:.3g}); "
+        f"(largest |f_c^p(0)| {worst_orbit:.3g}, smallest stored proper-divisor |f_c^d(0)| {least_divisor:.3g}, not recomputed here); "
         f"the rays of all {len(landings)} pairs are Lavaurs' and, for c in each centre's disk, "
         f"land together at a repelling periodic point of f_c "
         f"(at most {max(landing.steps for landing in landings)} pull-backs, "

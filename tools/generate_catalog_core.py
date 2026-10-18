@@ -7,8 +7,8 @@ same certified centres as tools/generate_catalog.py. Labels, aliases and
 annotations are not stored: the loader derives generated labels and takes
 curated ones from catalog/components.v2.json.
 
-  --write DIR   regenerate both files (about 70 s)
-  --check DIR   regenerate and require byte equality (about 70 s)
+  --write DIR   regenerate both files (about 100 s)
+  --check DIR   regenerate and require byte equality (about 100 s)
   --inputs DIR  fast: the manifest's input hashes match the generator sources,
                 and the binary's length and SHA-256 match the manifest
 
