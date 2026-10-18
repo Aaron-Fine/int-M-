@@ -104,10 +104,22 @@ Estimates are engineering days. They are planning figures and may overlap.
 
 ### 0. Worth doing now
 
-- [ ] **Before release:** rerun `tools/benchmark/fallback-overhead.ts` (Node)
-      after any change to `TriggeredRowKernel.classifyRow` or a V8/Node
-      upgrade; the period-3 overhead fix depends on V8 inlining heuristics
-      (ADR 0010) and the coarse (scalar) pass was never measured.
+- [ ] **Before release:** rerun `tools/benchmark/fallback-overhead.ts` (Node),
+      with and without `--stride`, after any change to
+      `TriggeredRowKernel.classifyRow`, `classifyTriggeredOrbitInto`, the size
+      of either analytic solve, or a V8/Node upgrade; the overhead fix for
+      periods 3 and 4 depends on V8 inlining heuristics (ADR 0010, ADR 0013).
+      Both passes were measured for period 4 (2026-10-17, within 5%).
+- [ ] **Flake watch** (both unrelated to item 8; each failed once under heavy
+      load on 2026-10-17 and passed on rerun). `classify-rows-allocation.test.ts`
+      failed its GC-count assertion `bandOnlyGc ≤ scalarGc + 1` with 2 against
+      ≤ 1 at load around 8: it fails when the band-only baseline collects more
+      often than the classifier, which is noise in GC delivery under load (extra
+      kernel allocation would raise `scalarGc` and make it pass, and
+      `classifyPeriodFourInto` allocates no objects). `verifier-prefix.test.ts`
+      hit its 5 s timeout at load around 20; it calls only `verifyCycleInto`
+      and its reference, and the plan did not touch `verifier.ts`. Rerun on a
+      quiet machine before treating either as a regression.
 - [ ] **Confirming release session on the mirror-free build** (owner screen
       time, about 19 minutes headed). It measures the Easy budget, now
       projected at 238 ms against 250 ms in Chrome; it is the last input to the

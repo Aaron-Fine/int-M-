@@ -47,7 +47,11 @@ makes every change to an output visible and deliberate.
    diff names only the cases the change explains.
 5. **Tolerance.** Goldens compare exact bytes through SHA-256: the tolerance
    is zero. Independent references declare their own tolerances (the orbit
-   fixtures' binary64 multiplier tolerance is in their test).
+   fixtures' binary64 multiplier tolerance is in their test). Goldens are V8
+   (Node) bytes: since ADR 0013, status and period at knife-edge pixels and the
+   period-4 multiplier bits depend on V8's `Math.cbrt`, `atan2`, `cos` and
+   `sin`, so a Node or V8 upgrade that changes these functions changes the
+   goldens; adjudicate as in ADR 0013.
 
 Regenerate a golden with `npm run fixtures:kernel-golden` or
 `npm run fixtures:colorized-golden`; add `-- --check` to compare without
@@ -98,10 +102,13 @@ engines until the owner regenerates the baselines in the container. The
 three raster golden views are unaffected, since `tests/visual/raster-only.css`
 hides the marker and overlay layers. `catalog-overlay.png` and
 `selected-marker.png` shoot `#explorer` and may change where a label is now
-hidden; the advisory job reports any that do. The baselines await owner
-regeneration in the container; none has been regenerated here.
+hidden; the advisory job reports any that do.
 
-Since ADR 0013 (2026-10-17) the period-4 path changes the default and 126× rasters, so `default-stability.png`, `period-four-126x-period.png` and `catalog-overlay.png` were regenerated in the container, in both engines, in the commit that changed the kernels. The selected-marker baselines still await the owner.
+Since ADR 0013 (2026-10-17) the period-4 path changes the default and 126×
+rasters, so `default-stability.png`, `period-four-126x-period.png` and
+`catalog-overlay.png` were regenerated in the container, in both engines, at
+`cf414cc`. The selected-marker baselines (`selected-marker.png` and
+`selected-marker-evidence.png`) still await the owner.
 
 ## Orbit fixtures
 
