@@ -1,3 +1,4 @@
+import { findInCatalog, type FindResult } from '../catalog/find';
 import type { CatalogGroup } from '../catalog/navigation';
 import type { CatalogComponent } from '../catalog/schema';
 import { CATALOG_GLOSSARY } from './catalog-glossary';
@@ -5,12 +6,12 @@ import { button, element } from './dom';
 
 /**
  * The catalog panel (PHASE2-TODO items 6 and 7, MI-UX-020, ADR 0012 and
- * ADR 0014): every entry, grouped by period in catalog order, each a button
- * that zooms to its component and selects it. Groups are native disclosures;
- * a group's buttons are built the first time it opens, so the 4,016-entry
- * core costs nothing until then. Periods 5 to 12 arrive after the first
- * stable frame (addGroups); until then the panel lists the curated periods
- * and says that the rest is loading.
+ * ADR 0014): a find field, then every entry grouped by period in catalog
+ * order, each a button that zooms to its component and selects it. Groups are
+ * native disclosures; a group's buttons are built the first time it opens, so
+ * the 4,016-entry core costs nothing until then. The core arrives after the
+ * first stable frame (addGroups); until then the panel lists the curated
+ * periods and says that the rest is loading.
  */
 export type CatalogCoreState = 'loading' | 'ready' | 'failed';
 
@@ -27,12 +28,31 @@ export interface CatalogPanel {
   addGroups(groups: readonly CatalogGroup[]): void;
   /** The line below the groups that says whether periods 5 to 12 have arrived. */
   setCoreState(state: CatalogCoreState): void;
+  /**
+   * Shows "Zoomed to <label>." beside the list after a list activation, on
+   * layouts where the canvas is above the panel (styles.css). It is not a
+   * live region: the canvas toast already announces the zoom.
+   */
+  confirm(component: CatalogComponent): void;
 }
 
-const HINT_ID = 'catalog-panel-hint';
+const DESCRIPTION_ID = 'catalog-panel-hint';
+const FIND_ID = 'catalog-find';
+const FIND_HINT_ID = 'catalog-find-hint';
+/** Quiet time before the match count is written (and announced) while typing. */
+const COUNT_DELAY_MS = 400;
 
 const countText = (count: number): string =>
   `${count.toLocaleString('en-US')} component${count === 1 ? '' : 's'}`;
+
+const resultText = (result: FindResult, loading: boolean): string => {
+  const suffix = loading ? ' Periods 5 to 12 are still loading.' : '';
+  if (result.total === 0) return `No component matches.${suffix}`;
+  if (result.matches.length < result.total) {
+    return `${countText(result.total)} match; showing the first ${result.matches.length}.${suffix}`;
+  }
+  return `${countText(result.total)} ${result.total === 1 ? 'matches' : 'match'}.${suffix}`;
+};
 
 const CORE_STATE_TEXT: Readonly<Record<CatalogCoreState, string>> = {
   loading: 'Loading periods 5 to 12…',
@@ -61,25 +81,36 @@ function revealWithin(list: HTMLElement, item: HTMLElement): void {
 export function createCatalogPanel(options: {
   readonly groups: readonly CatalogGroup[];
   readonly onActivate: (component: CatalogComponent) => void;
+  /** Brings the canvas into view (the confirmation's button); focus stays put. */
+  readonly onShowView: () => void;
 }): CatalogPanel {
   const root = element('section', {
     className: 'catalog-panel',
     attributes: {
       'aria-labelledby': 'catalog-panel-heading',
+      'aria-describedby': DESCRIPTION_ID,
       'data-catalog-core': 'loading',
     },
   });
+  /** Group entries and find results by catalog id; either may be absent. */
   const entries = new Map<string, HTMLButtonElement>();
+  const results = new Map<string, HTMLButtonElement>();
   const openers = new Map<string, () => void>();
+  const searchable: CatalogComponent[] = [];
   const periods = new Set<number>();
   let selectedId: string | undefined;
-  /** Set while one of the panel's own buttons activates an entry, so it is not scrolled away. */
+  /** Set while the panel's own button activates an entry, so it is not scrolled away. */
   let activatingId: string | undefined;
+  let confirmedId: string | undefined;
+  let coreState: CatalogCoreState = 'loading';
+  let countTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const createEntry = (component: CatalogComponent): HTMLLIElement => {
+  const createEntry = (
+    component: CatalogComponent,
+    registry: Map<string, HTMLButtonElement>,
+  ): HTMLLIElement => {
     const entry = button(component.label, { className: 'catalog-entry' });
     entry.dataset['catalogId'] = component.id;
-    entry.setAttribute('aria-describedby', HINT_ID);
     if (component.id === selectedId) entry.setAttribute('aria-current', 'true');
     entry.addEventListener('click', () => {
       activatingId = component.id;
@@ -89,11 +120,13 @@ export function createCatalogPanel(options: {
         activatingId = undefined;
       }
     });
-    entries.set(component.id, entry);
+    registry.set(component.id, entry);
     const item = element('li');
     item.append(entry);
     return item;
   };
+
+  const groupsBox = element('div', { className: 'catalog-panel__groups' });
 
   const createGroup = (group: CatalogGroup): HTMLDetailsElement => {
     const details = element('details', { className: 'catalog-group' });
@@ -114,7 +147,7 @@ export function createCatalogPanel(options: {
     const open = (): void => {
       if (!built) {
         built = true;
-        list.append(...group.components.map(createEntry));
+        list.append(...group.components.map((component) => createEntry(component, entries)));
       }
       details.open = true;
     };
@@ -126,21 +159,96 @@ export function createCatalogPanel(options: {
     return details;
   };
 
+  const findInput = element('input', {
+    className: 'catalog-find__input',
+    attributes: {
+      id: FIND_ID,
+      type: 'search',
+      autocomplete: 'off',
+      spellcheck: 'false',
+      'aria-describedby': FIND_HINT_ID,
+      'aria-controls': 'catalog-find-results',
+    },
+  });
+  const findCount = element('p', {
+    className: 'catalog-find__count',
+    attributes: { role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' },
+  });
+  const resultList = element('ul', {
+    className: 'catalog-find__results',
+    attributes: { id: 'catalog-find-results', 'aria-label': 'Matching components' },
+  });
+  resultList.hidden = true;
   const coreStatus = element('p', {
     className: 'catalog-panel__status',
     text: CORE_STATE_TEXT.loading,
   });
-  const groupsBox = element('div', { className: 'catalog-panel__groups' });
+  const confirmationText = element('span', { className: 'catalog-panel__confirmation-text' });
+  const showView = button('Show the view', { className: 'catalog-panel__show-view' });
+  showView.addEventListener('click', () => {
+    options.onShowView();
+  });
+  const confirmation = element('p', { className: 'catalog-panel__confirmation' });
+  confirmation.append(confirmationText, showView);
+  confirmation.hidden = true;
+
+  const runFind = (): void => {
+    const result = findInCatalog(searchable, findInput.value);
+    if (countTimer !== undefined) clearTimeout(countTimer);
+    results.clear();
+    if (result === undefined) {
+      resultList.replaceChildren();
+      resultList.hidden = true;
+      groupsBox.hidden = false;
+      findCount.textContent = '';
+      return;
+    }
+    resultList.replaceChildren(
+      ...result.matches.map((component) => createEntry(component, results)),
+    );
+    resultList.hidden = false;
+    groupsBox.hidden = true;
+    countTimer = setTimeout(() => {
+      findCount.textContent = resultText(result, coreState === 'loading');
+    }, COUNT_DELAY_MS);
+  };
+  findInput.addEventListener('input', runFind);
+  findInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || findInput.value === '') return;
+    // Escape clears the field first; the document's Escape (legend isolation) waits.
+    event.preventDefault();
+    findInput.value = '';
+    runFind();
+  });
+
+  const findField = element('div', { className: 'catalog-find' });
+  findField.append(
+    element('label', {
+      className: 'catalog-find__label',
+      text: 'Find a component',
+      attributes: { for: FIND_ID },
+    }),
+    findInput,
+    element('p', {
+      className: 'catalog-find__hint',
+      text: 'By name, id or rays, such as rabbit, mi-p4-6-9 or 6/15.',
+      attributes: { id: FIND_HINT_ID },
+    }),
+    findCount,
+  );
 
   const addGroups = (groups: readonly CatalogGroup[]): void => {
     for (const group of groups) {
       if (periods.has(group.period)) continue;
       periods.add(group.period);
+      searchable.push(...group.components);
+      const details = createGroup(group);
       const next = [...groupsBox.children].find(
         (child) => Number((child as HTMLElement).dataset['period']) > group.period,
       );
-      groupsBox.insertBefore(createGroup(group), next ?? null);
+      groupsBox.insertBefore(details, next ?? null);
     }
+    if (findInput.value.trim() !== '') runFind();
   };
 
   root.append(
@@ -152,25 +260,40 @@ export function createCatalogPanel(options: {
     element('p', {
       className: 'catalog-panel__hint',
       text: 'Choose a component to zoom to it and inspect it.',
-      attributes: { id: HINT_ID },
+      attributes: { id: DESCRIPTION_ID },
     }),
+    findField,
+    resultList,
     groupsBox,
     // Where periods 5 to 12 will appear, so that nothing above moves when they do.
     coreStatus,
+    confirmation,
     createGlossary(),
   );
   addGroups(options.groups);
 
+  const mark = (id: string, current: boolean): void => {
+    for (const registry of [entries, results]) {
+      const entry = registry.get(id);
+      if (current) entry?.setAttribute('aria-current', 'true');
+      else entry?.removeAttribute('aria-current');
+    }
+  };
+
   return {
     element: root,
     setSelected: (id) => {
+      if (id !== confirmedId) {
+        confirmation.hidden = true;
+        confirmedId = undefined;
+      }
       if (id === selectedId) return;
-      if (selectedId !== undefined) entries.get(selectedId)?.removeAttribute('aria-current');
+      if (selectedId !== undefined) mark(selectedId, false);
       selectedId = id;
       if (id === undefined) return;
       openers.get(id)?.();
+      mark(id, true);
       const entry = entries.get(id);
-      entry?.setAttribute('aria-current', 'true');
       const list = entry?.closest<HTMLElement>('.catalog-group__list');
       if (id !== activatingId && entry !== undefined && list !== null && list !== undefined) {
         revealWithin(list, entry);
@@ -178,9 +301,16 @@ export function createCatalogPanel(options: {
     },
     addGroups,
     setCoreState: (state) => {
+      coreState = state;
       root.dataset['catalogCore'] = state;
       coreStatus.textContent = CORE_STATE_TEXT[state];
       coreStatus.hidden = state === 'ready';
+      if (findInput.value.trim() !== '') runFind();
+    },
+    confirm: (component) => {
+      confirmedId = component.id;
+      confirmationText.textContent = `Zoomed to ${component.label}.`;
+      confirmation.hidden = false;
     },
   };
 }

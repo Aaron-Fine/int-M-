@@ -339,6 +339,9 @@ export function mountApplication(host: HTMLElement): () => void {
     onActivate: (component) => {
       activateCatalogEntry(component);
     },
+    onShowView: () => {
+      canvasShell.scrollIntoView({ block: 'start' });
+    },
   });
   const catalogOverlay = element('div', {
     className: 'catalog-overlay',
@@ -943,6 +946,7 @@ export function mountApplication(host: HTMLElement): () => void {
     updateCoordinateReadout();
     inspectPoint(component.center, component);
     showFeedback(`Zoomed to ${component.label}.`);
+    catalogPanel.confirm(component);
     scheduleRender(true);
   }
 

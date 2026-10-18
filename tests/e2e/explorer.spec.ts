@@ -2064,7 +2064,10 @@ test.describe('Catalog panel (MI-UX-020)', () => {
 
     // zoomSpanFor: 2.5 × the size estimate 0.019036, so 2.5 / 0.047589 ≈ 53×.
     await expect(page.getByLabel('Magnification')).toHaveText('53×');
-    await expect(page.getByText('Zoomed to Airplane.')).toBeVisible();
+    // The panel's confirmation repeats the text on narrow layouts; the toast is the live one.
+    await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
+      'Zoomed to Airplane.',
+    );
     await expect(airplane).toBeFocused();
     await expect(airplane).toHaveAttribute('aria-current', 'true');
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
@@ -2319,6 +2322,9 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       .locator('.catalog-glossary summary')
       .evaluate((summary) => summary.getBoundingClientRect().height);
     expect(glossaryHeight).toBeGreaterThanOrEqual(44);
+    const findBox = await panel.getByRole('searchbox', { name: 'Find a component' }).boundingBox();
+    expect(findBox?.height).toBeGreaterThanOrEqual(44);
+    expect((findBox?.x ?? 0) + (findBox?.width ?? 0)).toBeLessThanOrEqual(320);
     // display: list-item keeps the native disclosure triangle (flex would remove it).
     await expect(panel.locator('.catalog-glossary summary')).toHaveCSS('display', 'list-item');
     expect(entries).toHaveLength(11);
@@ -2590,5 +2596,142 @@ test.describe('Catalog core (ADR 0014)', () => {
     expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
       true,
     );
+  });
+
+  test('finds entries by rays, id or name, counts them politely and clears on Escape', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    await waitForCatalogCore(page);
+    const panel = panelOf(page);
+    const find = panel.getByRole('searchbox', { name: 'Find a component' });
+    const results = panel.getByRole('list', { name: 'Matching components' });
+    const count = panel.locator('.catalog-find__count');
+    await expect(count).toHaveAttribute('role', 'status');
+    await find.fill('6/15');
+    await expect(results.getByRole('button')).toHaveText(['Period 4, rays 6/15 and 9/15']);
+    await expect(count).toHaveText('1 component matches.');
+    await expect(panel.locator('.catalog-panel__groups')).toBeHidden();
+    await find.fill('mi-p4-02');
+    await expect(results.getByRole('button')).toHaveText(['Period 4, rays 6/15 and 9/15']);
+    await find.fill('period 12');
+    await expect(count).toHaveText('2,010 components match; showing the first 50.');
+    await expect(results.getByRole('button')).toHaveCount(50);
+    await find.fill('rabbit');
+    await expect(results.getByRole('button')).toHaveText(['Douady rabbit', 'Co-rabbit']);
+    await find.press('Tab');
+    await expect(results.getByRole('button', { name: 'Douady rabbit', exact: true })).toBeFocused();
+    await find.press('Escape');
+    await expect(find).toHaveValue('');
+    await expect(panel.locator('.catalog-panel__groups')).toBeVisible();
+    await expect(count).toHaveText('');
+    await find.fill('zzz');
+    await expect(count).toHaveText('No component matches.');
+  });
+
+  test('describes the panel once instead of on every entry', async ({ page }) => {
+    await openExplorer(page);
+    const panel = panelOf(page);
+    await expect(panel).toHaveAttribute('aria-describedby', 'catalog-panel-hint');
+    await expect(panel.locator('.catalog-entry[aria-describedby]')).toHaveCount(0);
+  });
+
+  test('has no automated WCAG violations with a generated group open and results shown', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    await waitForCatalogCore(page);
+    const panel = panelOf(page);
+    // Period 8 (120 entries): axe over the 2,010 of period 12 exceeds the 30 s budget in Chromium.
+    await panel.locator('details.catalog-group[data-period="8"] > summary').click();
+    await expect(panel.locator('details[data-period="8"] .catalog-entry')).toHaveCount(120);
+    await expectNoAccessibilityViolations(page);
+    await panel.getByRole('searchbox', { name: 'Find a component' }).fill('period 7');
+    await expect(
+      panel.getByRole('list', { name: 'Matching components' }).getByRole('button'),
+    ).toHaveCount(50);
+    await expectNoAccessibilityViolations(page);
+  });
+
+  test('confirms a list activation beside the list on a phone, announced once', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await openExplorer(page);
+    const panel = panelOf(page);
+    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    await rabbit.click();
+    const confirmation = panel.locator('.catalog-panel__confirmation');
+    await expect(confirmation).toBeVisible();
+    await expect(confirmation).toHaveText(/^Zoomed to Douady rabbit\.\s*Show the view$/);
+    await expect(rabbit).toBeFocused();
+    expect(
+      await confirmation.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        return box.top >= 0 && box.bottom <= innerHeight;
+      }),
+    ).toBe(true);
+    // The canvas toast is the one live announcement; the confirmation is not live.
+    await expect(
+      page.locator('[aria-live]').filter({ hasText: 'Zoomed to Douady rabbit.' }),
+    ).toHaveCount(1);
+    await expect(confirmation.locator('[aria-live], [role="status"]')).toHaveCount(0);
+    expect(await confirmation.getAttribute('aria-live')).toBeNull();
+    await confirmation.getByRole('button', { name: 'Show the view' }).click();
+    await expect
+      .poll(() =>
+        page
+          .locator('#explorer')
+          .evaluate((element) => Math.abs(element.getBoundingClientRect().top)),
+      )
+      .toBeLessThan(1);
+    // Reset (the 0 key) clears the selection, and with it the confirmation.
+    await page.getByLabel('Interactive Mandelbrot set').press('0');
+    await expect(confirmation).toBeHidden();
+  });
+
+  test('shows no confirmation where the panel sits beside the canvas', async ({ page }) => {
+    await openExplorer(page);
+    const panel = panelOf(page);
+    await panel.getByRole('button', { name: 'Douady rabbit', exact: true }).click();
+    await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
+      'Zoomed to Douady rabbit.',
+    );
+    await expect(panel.locator('.catalog-panel__confirmation')).toBeHidden();
+  });
+
+  test('says the count covers periods 1 to 4 while the core loads, then updates it', async ({
+    page,
+  }) => {
+    const release = await holdCore(page);
+    await openExplorer(page);
+    const panel = panelOf(page);
+    const find = panel.getByRole('searchbox', { name: 'Find a component' });
+    const count = panel.locator('.catalog-find__count');
+    await find.fill('period 12');
+    await expect(count).toHaveText('No component matches. Periods 5 to 12 are still loading.');
+    release();
+    await waitForCatalogCore(page);
+    await expect(count).toHaveText('2,010 components match; showing the first 50.');
+  });
+
+  test('clears the find field on Escape before Escape ends a legend isolation', async ({
+    page,
+  }) => {
+    await openPeriodView(page);
+    const periodOne = page
+      .getByRole('region', { name: 'Semantic legend' })
+      .locator('.legend__entry[data-period="1"]');
+    await periodOne.focus();
+    await page.keyboard.press('Enter');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+    const find = panelOf(page).getByRole('searchbox', { name: 'Find a component' });
+    await find.fill('rabbit');
+    await find.press('Escape');
+    await expect(find).toHaveValue('');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#explorer')).toHaveAttribute('data-isolated-period', '1');
+    await find.press('Escape');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
   });
 });
