@@ -147,8 +147,13 @@ Estimates are engineering days. They are planning figures and may overlap.
       activation shows "Zoomed to …" with a Show the view button, sticky at
       the bottom of the panel; it is not a live region (the toast announces
       once), and focus stays on the entry.
-- [ ] **Controls bar at 1280 px.** The Pan and Zoom area buttons overlap the
-      Quality select. The overlap does not depend on the catalog panel.
+- [x] **Controls bar at 1280 px.** The Pan and Zoom area buttons overlapped the
+      Quality select. The overlap did not depend on the catalog panel. Cause:
+      above 68rem the bar was `nowrap` and `.controls__fields` had `min-width: 0`,
+      so the fields shrank below their content and spilled over the actions. The
+      bar now wraps at every width and the fields keep their content width; the
+      scenario "keeps controls-bar controls from overlapping at desktop and phone
+      widths" pins it at 320, 1024, 1280, 1366 and 1440 px.
 - [x] **Deep-view first frame: re-diagnosed, no coarse change.** The
       [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) found that the
       6,000,000× view's unresolved half is period-4 interior the stable pass

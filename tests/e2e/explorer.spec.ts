@@ -1309,6 +1309,48 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
+  test('keeps controls-bar controls from overlapping at desktop and phone widths', async ({
+    page,
+  }) => {
+    for (const width of [320, 1024, 1280, 1366, 1440]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/');
+      await expect(page.locator('.controls select').first()).toBeVisible();
+
+      const boxes = await page.locator('.controls').evaluate((bar) =>
+        Array.from(bar.querySelectorAll('button, select'))
+          .map((control) => {
+            const rect = control.getBoundingClientRect();
+            const label =
+              control.getAttribute('aria-label') ??
+              (control.id || control.textContent.trim() || control.className);
+            return {
+              label,
+              left: rect.left,
+              top: rect.top,
+              right: rect.right,
+              bottom: rect.bottom,
+            };
+          })
+          .filter((box) => box.right > box.left && box.bottom > box.top),
+      );
+      expect(boxes.length).toBeGreaterThan(4);
+
+      const overlaps: string[] = [];
+      for (const [index, first] of boxes.entries()) {
+        for (const second of boxes.slice(index + 1)) {
+          // One pixel of tolerance for sub-pixel rounding of touching neighbours.
+          const overlapX = Math.min(first.right, second.right) - Math.max(first.left, second.left);
+          const overlapY = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+          if (overlapX > 1 && overlapY > 1) {
+            overlaps.push(`${first.label} / ${second.label}`);
+          }
+        }
+      }
+      expect(overlaps, `${width}px controls-bar overlaps`).toEqual([]);
+    }
+  });
+
   // One viewport per test: the multi-viewport reflow test above would exceed 30 s with axe in it.
   for (const viewport of [
     { width: 320, height: 568 },
