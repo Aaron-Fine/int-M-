@@ -575,12 +575,12 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('a period-4 marker reports the certified period-4 solve', async ({ page }) => {
     await page.goto('/');
 
-    const marker = page.getByRole('button', { name: 'Inspect Period-4 component 2, period 4' });
+    const marker = page.getByRole('button', { name: 'Inspect Period 4, rays 6/15 and 9/15' });
     await expect(marker).toBeVisible({ timeout: 20_000 });
     await marker.focus();
     await marker.press('Enter');
 
-    await expect(page.getByRole('heading', { name: 'Period-4 component 2' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Period 4, rays 6/15 and 9/15' })).toBeVisible();
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
     await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
       'Attracting cycle',
@@ -633,10 +633,21 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByRole('button', { name: 'Reset' }).click();
     await page.getByRole('button', { name: 'Zoom in' }).click();
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    const periodFour = page.getByRole('button', {
-      name: 'Inspect Period-4 component 2, period 4',
-    });
-    await expect(periodFour.locator('.catalog-marker__label')).toBeVisible();
+    await expect(page.locator('#explorer')).toHaveClass(/explorer--expanded-labels/);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const kept = [
+            ...document.querySelectorAll(
+              '.catalog-marker:not(.catalog-marker--label-hidden) .catalog-marker__label',
+            ),
+          ];
+          return (
+            kept.length > 0 && kept.every((label) => getComputedStyle(label).display !== 'none')
+          );
+        }),
+      )
+      .toBe(true);
   });
 
   test('marks and describes arbitrary escaped, attracting, and unresolved points', async ({
@@ -855,12 +866,12 @@ test.describe('Mandelbrot Interiority explorer', () => {
       'Inspect Douady rabbit, period 3',
       'Inspect Airplane, period 3',
       'Inspect Co-rabbit, period 3',
-      'Inspect Period-4 component 6, period 4',
-      'Inspect Period-4 component 4, period 4',
-      'Inspect Period-4 component 2, period 4',
-      'Inspect Period-4 component 1, period 4',
-      'Inspect Period-4 component 3, period 4',
-      'Inspect Period-4 component 5, period 4',
+      'Inspect Period 4, rays 1/15 and 2/15',
+      'Inspect Period 4, rays 3/15 and 4/15',
+      'Inspect Period 4, rays 6/15 and 9/15',
+      'Inspect Period 4, rays 7/15 and 8/15',
+      'Inspect Period 4, rays 11/15 and 12/15',
+      'Inspect Period 4, rays 13/15 and 14/15',
     ]);
   });
 
@@ -902,7 +913,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
   });
 
   test('resolves the airplane marker centre to the airplane with it selected', async ({ page }) => {
-    // The v1 alias mi-p4-01 resolves to Period-4 component 1, id mi-p4-7-8.
+    // The v1 alias mi-p4-01 resolves to mi-p4-7-8, Period 4, rays 7/15 and 8/15.
     await page.goto('/?v=1&c=-0.75,0&s=2.5&sel=mi-p4-01');
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
@@ -1759,7 +1770,7 @@ test.describe('Shareable links (MI-UX-019)', () => {
     await expect(
       page
         .getByRole('region', { name: 'Point evidence' })
-        .getByRole('heading', { name: 'Period-4 component 2' }),
+        .getByRole('heading', { name: 'Period 4, rays 6/15 and 9/15' }),
     ).toBeVisible();
     await expect(page.getByRole('status', { name: 'Link notice' })).toHaveText('');
     await expect.poll(() => searchParam(page, 'sel'), { timeout: 10_000 }).toBe('mi-p4-6-9');
@@ -1988,12 +1999,12 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     'Douady rabbit',
     'Airplane',
     'Co-rabbit',
-    'Period-4 component 6',
-    'Period-4 component 4',
-    'Period-4 component 2',
-    'Period-4 component 1',
-    'Period-4 component 3',
-    'Period-4 component 5',
+    'Period 4, rays 1/15 and 2/15',
+    'Period 4, rays 3/15 and 4/15',
+    'Period 4, rays 6/15 and 9/15',
+    'Period 4, rays 7/15 and 8/15',
+    'Period 4, rays 11/15 and 12/15',
+    'Period 4, rays 13/15 and 14/15',
   ];
 
   const openExplorer = async (page: Page): Promise<void> => {
@@ -2033,9 +2044,9 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       .toBe('mi-p3-3-4');
 
     // A placeholder entry has no annotation, so the inspector shows none.
-    await panel.getByRole('button', { name: 'Period-4 component 2', exact: true }).click();
+    await panel.getByRole('button', { name: 'Period 4, rays 6/15 and 9/15', exact: true }).click();
     await expect(
-      pointEvidence.getByRole('heading', { name: 'Period-4 component 2' }),
+      pointEvidence.getByRole('heading', { name: 'Period 4, rays 6/15 and 9/15' }),
     ).toBeVisible();
     await expect(pointEvidence.locator('.inspector__annotation')).toHaveCount(0);
   });
@@ -2073,7 +2084,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await openExplorer(page);
     const panel = page.getByRole('region', { name: 'Catalog' });
     const group = panel.locator('details.catalog-group').nth(3);
-    const entry = panel.getByRole('button', { name: 'Period-4 component 2', exact: true });
+    const entry = panel.getByRole('button', { name: 'Period 4, rays 6/15 and 9/15', exact: true });
     await expect(entry).toBeVisible();
     await group.locator('summary').focus();
     await page.keyboard.press('Enter');
@@ -2107,7 +2118,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await page.goto('/?v=1&c=-1.3107026413368328,0&s=0.05&sel=mi-p4-02');
     const panel = page.getByRole('region', { name: 'Catalog' });
     await expect(
-      panel.getByRole('button', { name: 'Period-4 component 2', exact: true }),
+      panel.getByRole('button', { name: 'Period 4, rays 6/15 and 9/15', exact: true }),
     ).toHaveAttribute('aria-current', 'true');
     await expect(panel.locator('[aria-current="true"]')).toHaveCount(1);
   });

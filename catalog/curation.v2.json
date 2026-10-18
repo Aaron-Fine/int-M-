@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "license": "CC0-1.0",
-  "description": "Reviewed names, the v1 ids each canonical id keeps as an alias (ADR 0011), and optional annotations of at most 280 characters (ADR 0012). Keys are canonical catalog ids.",
+  "description": "Reviewed names for the five named components, the v1 ids each canonical id keeps as an alias (ADR 0011), and optional annotations of at most 280 characters (ADR 0012). Every other entry is labelled by its rays (ADR 0014). Keys are canonical catalog ids.",
   "entries": {
     "mi-p1-0-1": {
       "label": "Main cardioid",
@@ -28,11 +28,11 @@
       "aliases": ["mi-p3-corabbit"],
       "annotation": "The 2/3 bulb, the complex conjugate of the rabbit's 1/3 bulb; its Julia sets are mirror images of the rabbit's. Rays 5/7 and 6/7 land at its root."
     },
-    "mi-p4-1-2": { "label": "Period-4 component 6", "aliases": ["mi-p4-06"] },
-    "mi-p4-3-4": { "label": "Period-4 component 4", "aliases": ["mi-p4-04"] },
-    "mi-p4-6-9": { "label": "Period-4 component 2", "aliases": ["mi-p4-02"] },
-    "mi-p4-7-8": { "label": "Period-4 component 1", "aliases": ["mi-p4-01"] },
-    "mi-p4-11-12": { "label": "Period-4 component 3", "aliases": ["mi-p4-03"] },
-    "mi-p4-13-14": { "label": "Period-4 component 5", "aliases": ["mi-p4-05"] }
+    "mi-p4-1-2": { "aliases": ["mi-p4-06"] },
+    "mi-p4-3-4": { "aliases": ["mi-p4-04"] },
+    "mi-p4-6-9": { "aliases": ["mi-p4-02"] },
+    "mi-p4-7-8": { "aliases": ["mi-p4-01"] },
+    "mi-p4-11-12": { "aliases": ["mi-p4-03"] },
+    "mi-p4-13-14": { "aliases": ["mi-p4-05"] }
   }
 }

@@ -79,6 +79,13 @@ class BuildCatalogTest(unittest.TestCase):
         self.assertEqual(list(self.catalog["methods"]), ["krawczyk-decimal-80"])
         self.assertIn("Krawczyk test", self.catalog["methods"]["krawczyk-decimal-80"])
 
+    def test_only_the_five_named_components_keep_curated_labels(self) -> None:
+        labels = {e["id"]: (e["label"], e["provenance"]) for e in self.catalog["components"]}
+        self.assertEqual(labels["mi-p3-1-2"], ("Douady rabbit", "curated-label"))
+        self.assertEqual(labels["mi-p4-6-9"], ("Period 4, rays 6/15 and 9/15", "curated-aliases"))
+        named = [identifier for identifier, (_label, kind) in labels.items() if kind == "curated-label"]
+        self.assertEqual(len(named), 5)
+
     def test_curated_annotations_follow_the_label(self) -> None:
         rabbit = next(e for e in self.catalog["components"] if e["id"] == "mi-p3-1-2")
         self.assertEqual(list(rabbit)[:4], ["id", "aliases", "label", "annotation"])

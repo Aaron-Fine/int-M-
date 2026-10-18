@@ -957,13 +957,20 @@ export function mountApplication(host: HTMLElement): () => void {
   /** Built once: the density policy queries it on every frame (ADR 0012). */
   const catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
 
+  /** "Airplane, period 3"; a generated label already starts with its period. */
+  function markerName(component: CatalogComponent): string {
+    return component.label.startsWith(`Period ${component.period},`)
+      ? component.label
+      : `${component.label}, period ${component.period}`;
+  }
+
   function createCatalogMarker(component: CatalogComponent): HTMLButtonElement {
     const marker = button('', {
       className: `catalog-marker catalog-marker--period-${component.period}`,
-      title: `${component.label}, period ${component.period}`,
+      title: markerName(component),
     });
     marker.dataset['catalogId'] = component.id;
-    marker.setAttribute('aria-label', `Inspect ${component.label}, period ${component.period}`);
+    marker.setAttribute('aria-label', `Inspect ${markerName(component)}`);
     marker.append(
       element('span', {
         className: 'catalog-marker__dot',

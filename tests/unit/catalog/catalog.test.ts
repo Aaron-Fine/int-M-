@@ -144,17 +144,29 @@ describe('component catalog', () => {
     }
   });
 
-  it('keeps every v1 id as an alias of the same component, label and centre', () => {
+  it('keeps every v1 id as an alias of the same component and centre', () => {
     for (const entry of V1_CATALOG) {
       const component = findCatalogComponent(entry.v1Id);
       expect(component?.id, entry.v1Id).toBe(entry.id);
       expect(component?.aliases, entry.v1Id).toContain(entry.v1Id);
-      expect(component?.label, entry.v1Id).toBe(entry.label);
       const moved = Math.hypot(
         (component?.center.re ?? Infinity) - entry.center.re,
         (component?.center.im ?? Infinity) - entry.center.im,
       );
       expect(moved, entry.v1Id).toBeLessThanOrEqual(2.1e-15);
+    }
+  });
+
+  it('keeps the five curated names and labels every other entry by its rays (ADR 0014)', () => {
+    for (const entry of V1_CATALOG) {
+      const component = findCatalogComponent(entry.v1Id)!;
+      const [lower, upper] = raysOf(component);
+      const modulus = rayModulus(component.period);
+      expect(component.label, entry.v1Id).toBe(
+        component.period === 4
+          ? `Period 4, rays ${lower}/${modulus} and ${upper}/${modulus}`
+          : entry.label,
+      );
     }
   });
 
