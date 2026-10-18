@@ -6,10 +6,13 @@ from decimal import Decimal
 from pathlib import Path
 import unittest
 
+from catalog_combinatorics import lavaurs_pairs
 from generate_catalog import (
     DEFAULT_CURATION,
     build_catalog,
+    certified_centers,
     check_curation,
+    label_for,
     load_curation,
     render,
     three_digits,
@@ -68,6 +71,14 @@ class BuildCatalogTest(unittest.TestCase):
         self.assertNotIn("aliases", rabbit)
         self.assertNotIn("annotation", rabbit)
 
+    def test_generated_labels_name_the_period_and_both_rays(self) -> None:
+        self.assertEqual(label_for(4, 6, 9), "Period 4, rays 6/15 and 9/15")
+        self.assertEqual(label_for(12, 1, 2), "Period 12, rays 1/4095 and 2/4095")
+
+    def test_records_the_certified_method(self) -> None:
+        self.assertEqual(list(self.catalog["methods"]), ["krawczyk-decimal-80"])
+        self.assertIn("Krawczyk test", self.catalog["methods"]["krawczyk-decimal-80"])
+
     def test_curated_annotations_follow_the_label(self) -> None:
         rabbit = next(e for e in self.catalog["components"] if e["id"] == "mi-p3-1-2")
         self.assertEqual(list(rabbit)[:4], ["id", "aliases", "label", "annotation"])
@@ -122,6 +133,34 @@ class CurationTest(unittest.TestCase):
     def test_rejects_an_empty_label(self) -> None:
         with self.assertRaisesRegex(ValueError, "label"):
             check_curation({"mi-p1-0-1": {"label": " "}}, self.components())
+
+    def test_accepts_aliases_without_a_label(self) -> None:
+        check_curation({"mi-p2-1-2": {"aliases": ["mi-old"]}}, self.components())
+
+    def test_rejects_an_entry_with_neither_label_nor_aliases(self) -> None:
+        with self.assertRaisesRegex(ValueError, "label or aliases"):
+            check_curation({"mi-p2-1-2": {}}, self.components())
+
+    def test_rejects_an_annotation_without_a_curated_label(self) -> None:
+        curation = {"mi-p2-1-2": {"aliases": ["mi-old"], "annotation": "A note."}}
+        with self.assertRaisesRegex(ValueError, "no curated label"):
+            check_curation(curation, self.components())
+
+
+class CertifiedCentersTest(unittest.TestCase):
+    def test_every_pair_through_period_six_has_a_distinct_certified_centre(self) -> None:
+        pairs = lavaurs_pairs(6)
+        centers = certified_centers(6, 80, pairs)
+        self.assertEqual([len(centers[p]) for p in range(1, 7)], [1, 1, 3, 6, 15, 27])
+        for period in range(1, 7):
+            self.assertEqual([pair for pair, _center in centers[period]], pairs[period])
+
+    def test_a_curated_entry_with_aliases_only_gets_a_generated_label(self) -> None:
+        catalog = build_catalog(4, 80, {"mi-p4-6-9": {"aliases": ["mi-p4-02"]}})
+        entry = next(e for e in catalog["components"] if e["id"] == "mi-p4-6-9")
+        self.assertEqual(entry["label"], "Period 4, rays 6/15 and 9/15")
+        self.assertEqual(entry["provenance"], "curated-aliases")
+        self.assertEqual(entry["aliases"], ["mi-p4-02"])
 
 
 class ResidualFormatTest(unittest.TestCase):

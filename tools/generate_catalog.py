@@ -3,7 +3,9 @@
 
 Writes catalog/components.v2.json from first principles plus the curated
 names and v1 aliases in catalog/curation.v2.json. `--check` regenerates the
-file and requires it to be byte-identical to the committed one.
+file and requires it to be byte-identical to the committed one. Every centre
+is certified (tools/catalog_certify.py, ADR 0014); tools/generate_catalog_core.py
+writes the period <=12 core from the same centres.
 
 The generated numerical data is dedicated to the public domain under CC0-1.0.
 This generator is application source code and is licensed under GPL-3.0-only.
@@ -12,7 +14,6 @@ This generator is application source code and is licensed under GPL-3.0-only.
 from __future__ import annotations
 
 import argparse
-import cmath
 from dataclasses import dataclass
 from decimal import Decimal, localcontext
 import json
@@ -22,7 +23,9 @@ import re
 import sys
 from typing import Any
 
+from catalog_certify import certify_center
 from catalog_combinatorics import (
+    RayPair,
     angled_internal_address,
     internal_address,
     landing_center,
@@ -35,8 +38,13 @@ DEFAULT_CURATION = Path("catalog/curation.v2.json")
 ALIAS_PATTERN = re.compile(r"^mi-[a-z0-9-]+$")
 # An alias shaped like a canonical id could collide once more periods are generated.
 CANONICAL_ID_SHAPE = re.compile(r"^mi-p\d+-\d+-\d+$")
-# Landing points and refined centres must agree this closely to be matched.
+# The two rays of a pair must land this close together (binary64 ray tracing).
 MATCH_TOLERANCE = 1e-9
+# Every centre is certified in a disk of radius 10**-(precision - 30): 1e-50 at
+# 80 digits, far inside the binary64 spacing and far outside the refinement error.
+CERTIFIED_RADIUS_MARGIN = 30
+# The highest period the generator supports (PHASE2-TODO item 7, ADR 0014).
+MAX_SUPPORTED_PERIOD = 12
 # The longest curated annotation, in characters (ADR 0012; src/catalog/schema.ts).
 ANNOTATION_MAX_LENGTH = 280
 
@@ -89,76 +97,8 @@ ZERO = DecimalComplex(Decimal(0), Decimal(0))
 ONE = DecimalComplex(Decimal(1), Decimal(0))
 
 
-def polynomial_multiply(left: list[complex], right: list[complex]) -> list[complex]:
-    result = [0j] * (len(left) + len(right) - 1)
-    for left_index, left_value in enumerate(left):
-        for right_index, right_value in enumerate(right):
-            result[left_index + right_index] += left_value * right_value
-    return result
-
-
-def polynomial_value(coefficients: list[complex], value: complex) -> complex:
-    result = 0j
-    for coefficient in reversed(coefficients):
-        result = result * value + coefficient
-    return result
-
-
-def orbit_polynomials(max_period: int) -> list[list[complex]]:
-    """Return ascending coefficients of f_c^p(0) for p=1..max_period."""
-    current = [0j, 1 + 0j]
-    polynomials = [current]
-    for _period in range(2, max_period + 1):
-        current = polynomial_multiply(current, current)
-        current[1] += 1
-        polynomials.append(current)
-    return polynomials
-
-
-def durand_kerner(coefficients: list[complex]) -> list[complex]:
-    degree = len(coefficients) - 1
-    if degree == 1:
-        return [-coefficients[0] / coefficients[1]]
-
-    roots = [
-        2 * cmath.exp(2j * math.pi * (index + 0.37) / degree)
-        for index in range(degree)
-    ]
-    for _iteration in range(2_000):
-        next_roots: list[complex] = []
-        largest_update = 0.0
-        for index, root in enumerate(roots):
-            denominator = 1 + 0j
-            for other_index, other in enumerate(roots):
-                if index != other_index:
-                    denominator *= root - other
-            update = polynomial_value(coefficients, root) / denominator
-            next_roots.append(root - update)
-            largest_update = max(largest_update, abs(update))
-        roots = next_roots
-        if largest_update < 1e-14:
-            return roots
-    raise RuntimeError("root discovery did not converge")
-
-
-def float_orbit(parameter: complex, iterations: int) -> complex:
-    value = 0j
-    for _iteration in range(iterations):
-        value = value * value + parameter
-    return value
-
-
 def proper_divisors(value: int) -> list[int]:
     return [candidate for candidate in range(1, value) if value % candidate == 0]
-
-
-def has_exact_period(parameter: complex, period: int) -> bool:
-    if abs(float_orbit(parameter, period)) > 1e-7:
-        return False
-    return all(
-        abs(float_orbit(parameter, divisor)) > 1e-6
-        for divisor in proper_divisors(period)
-    )
 
 
 def decimal_orbit_and_derivative(
@@ -194,18 +134,74 @@ def refine_center(
     raise RuntimeError(f"high-precision refinement failed for period {period}")
 
 
-def discover_centers(max_period: int, precision: int) -> dict[int, list[DecimalComplex]]:
-    """Refined centres of every hyperbolic component of exact period <= max_period."""
-    centers: dict[int, list[DecimalComplex]] = {}
-    for period, polynomial in enumerate(orbit_polynomials(max_period), start=1):
-        candidates = [
-            candidate
-            for candidate in durand_kerner(polynomial)
-            if has_exact_period(candidate, period)
-        ]
-        centers[period] = [
-            refine_center(candidate, period, precision) for candidate in candidates
-        ]
+def check_disjoint(period: int, centers: list[DecimalComplex], radius: Decimal) -> None:
+    """Certified disks of one period must not meet: each then holds a different root."""
+    ordered = sorted(centers, key=lambda center: (center.real, center.imaginary))
+    for index, center in enumerate(ordered):
+        for other in ordered[index + 1 :]:
+            if other.real - center.real > 2 * radius:
+                break
+            if (other - center).magnitude_squared() <= 4 * radius * radius:
+                raise ValueError(f"period {period}: two ray pairs land on one centre")
+
+
+def label_for(period: int, lower: int, upper: int) -> str:
+    """The generated label (owner decision 2026-10-17): the period and both rays."""
+    modulus = ray_modulus(period)
+    return f"Period {period}, rays {lower}/{modulus} and {upper}/{modulus}"
+
+
+def method_key(precision: int) -> str:
+    return f"krawczyk-decimal-{precision}"
+
+
+def method_text(precision: int) -> str:
+    return (
+        "Centres: for each Lavaurs ray pair of exact period p, both parameter "
+        "rays are traced in binary64 and must land within 1e-9 of each other; "
+        f"Newton's method in {precision}-digit decimal arithmetic refines the "
+        "landing point, and ball arithmetic with the Krawczyk test proves that "
+        f"the disk of radius 1e-{precision - CERTIFIED_RADIUS_MARGIN} about it "
+        "holds exactly one root of f_c^p(0), a simple one, with f_c^d(0) "
+        "bounded away from 0 over the disk for every proper divisor d of p "
+        "(exact period). The disks of one period are disjoint. The stored "
+        "centre is the nearest binary64. Internal address: the kneading "
+        "sequence of the lower ray. Angled address: Schleicher's denominators; "
+        "each numerator names the tuned sub-wake that contains the lower ray. "
+        "Residuals: |f_c^p(0)|, the distance to the refined centre, and the "
+        "smallest |f_c^d(0)| over proper divisors d, at the stored centre in "
+        f"{precision}-digit arithmetic, to three significant digits."
+    )
+
+
+def certified_centers(
+    max_period: int,
+    precision: int,
+    pairs: dict[int, list[RayPair]],
+) -> dict[int, list[tuple[RayPair, DecimalComplex]]]:
+    """The certified centre of every ray pair of exact period <= max_period.
+
+    Each pair's two parameter rays are traced in binary64 and must land
+    together; Newton's method refines the landing point in `precision`-digit
+    arithmetic, and certify_center proves a small disk about it holds exactly
+    one simple root of f_c^p(0), of exact period p. The disks of one period are
+    disjoint, so the pairs name distinct centres.
+    """
+    radius = Decimal(10) ** -(precision - CERTIFIED_RADIUS_MARGIN)
+    centers: dict[int, list[tuple[RayPair, DecimalComplex]]] = {}
+    for period in range(1, max_period + 1):
+        found: list[tuple[RayPair, DecimalComplex]] = []
+        for lower, upper in pairs[period]:
+            seed = landing_center(lower, period)
+            if abs(seed - landing_center(upper, period)) > MATCH_TOLERANCE:
+                raise ValueError(f"rays {lower} and {upper} of period {period} land apart")
+            refined = refine_center(seed, period, precision)
+            certify_center((refined.real, refined.imaginary), period, radius, precision)
+            found.append(((lower, upper), refined))
+        with localcontext() as context:
+            context.prec = precision
+            check_disjoint(period, [center for _pair, center in found], radius)
+        centers[period] = found
     return centers
 
 
@@ -254,38 +250,6 @@ def residual_fields(
     return residual, digits
 
 
-def match_pairs_to_centers(
-    period: int,
-    pairs: list[tuple[int, int]],
-    centers: list[DecimalComplex],
-) -> list[tuple[tuple[int, int], DecimalComplex]]:
-    """Pairs each ray pair with the one centre both of its rays land on."""
-    if len(pairs) != len(centers):
-        raise ValueError(
-            f"period {period}: {len(pairs)} ray pairs but {len(centers)} centres"
-        )
-    unmatched = list(centers)
-    matched: list[tuple[tuple[int, int], DecimalComplex]] = []
-    for lower, upper in pairs:
-        lower_landing = landing_center(lower, period)
-        upper_landing = landing_center(upper, period)
-        if abs(lower_landing - upper_landing) > MATCH_TOLERANCE:
-            raise ValueError(f"rays {lower} and {upper} of period {period} land apart")
-        near = [
-            center
-            for center in unmatched
-            if abs(complex(float(center.real), float(center.imaginary)) - lower_landing)
-            <= MATCH_TOLERANCE
-        ]
-        if len(near) != 1:
-            raise ValueError(
-                f"rays {lower}/{ray_modulus(period)} land near {len(near)} centres"
-            )
-        unmatched.remove(near[0])
-        matched.append(((lower, upper), near[0]))
-    return matched
-
-
 def load_curation(path: Path) -> dict[str, dict[str, Any]]:
     curation = json.loads(path.read_text(encoding="utf-8"))
     if curation.get("schemaVersion") != SCHEMA_VERSION:
@@ -313,15 +277,11 @@ def build_entry(
         Decimal(binary64(refined.real)), Decimal(binary64(refined.imaginary))
     )
     residual, digits = residual_fields(stored, refined, period, precision)
-    modulus = ray_modulus(period)
     entry: dict[str, Any] = {"id": f"mi-p{period}-{lower}-{upper}"}
     if curated is not None and curated.get("aliases"):
         entry["aliases"] = list(curated["aliases"])
-    entry["label"] = (
-        curated["label"]
-        if curated is not None
-        else f"Period {period}, rays {lower}/{modulus} and {upper}/{modulus}"
-    )
+    curated_label = curated is not None and "label" in curated
+    entry["label"] = curated["label"] if curated_label else label_for(period, lower, upper)
     if curated is not None and "annotation" in curated:
         entry["annotation"] = curated["annotation"]
     entry["period"] = period
@@ -339,8 +299,13 @@ def build_entry(
         ]
         entry["characteristicRays"] = [ray_json(lower, period), ray_json(upper, period)]
     entry["residual"] = residual
-    entry["method"] = f"newton-decimal-{precision}"
-    entry["provenance"] = "curated-label" if curated is not None else "generated-label"
+    entry["method"] = method_key(precision)
+    if curated_label:
+        entry["provenance"] = "curated-label"
+    elif curated is not None:
+        entry["provenance"] = "curated-aliases"
+    else:
+        entry["provenance"] = "generated-label"
     return entry
 
 
@@ -350,10 +315,10 @@ def build_catalog(
     curation: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     pairs = lavaurs_pairs(max_period)
-    centers = discover_centers(max_period, precision)
+    centers = certified_centers(max_period, precision, pairs)
     components: list[dict[str, Any]] = []
     for period in range(1, max_period + 1):
-        for pair, refined in match_pairs_to_centers(period, pairs[period], centers[period]):
+        for pair, refined in centers[period]:
             identifier = f"mi-p{period}-{pair[0]}-{pair[1]}"
             components.append(
                 build_entry(
@@ -370,27 +335,17 @@ def build_catalog(
         "schemaVersion": SCHEMA_VERSION,
         "license": "CC0-1.0",
         "maxPeriod": max_period,
-        "methods": {
-            f"newton-decimal-{precision}": (
-                "Centres: binary64 Durand-Kerner roots of f_c^p(0), refined by "
-                f"Newton's method in {precision}-digit decimal arithmetic and "
-                "rounded to the nearest binary64; exact period: every proper "
-                "divisor d of p has |f_c^d(0)| > 1e-6. Rays: Lavaurs' pairing of "
-                "the angles of exact period p, each pair matched to the one centre "
-                "both of its rays land on (binary64 ray tracing, then Newton). "
-                "Internal address: the kneading sequence of the lower ray. Angled "
-                "address: Schleicher's denominators; each numerator names the tuned "
-                "sub-wake that contains the lower ray. Residuals: |f_c^p(0)|, the "
-                "distance to the refined centre, and the smallest |f_c^d(0)| over "
-                f"proper divisors d, at the stored centre in {precision}-digit "
-                "arithmetic, to three significant digits."
-            )
-        },
+        "methods": {method_key(precision): method_text(precision)},
         "provenance": {
             "curated-label": {
                 "generator": "tools/generate_catalog.py",
                 "arguments": arguments,
-                "curated": "label and aliases from catalog/curation.v2.json",
+                "curated": "label, aliases and annotation from catalog/curation.v2.json",
+            },
+            "curated-aliases": {
+                "generator": "tools/generate_catalog.py",
+                "arguments": arguments,
+                "curated": "aliases from catalog/curation.v2.json; the label is generated from the characteristic rays",
             },
             "generated-label": {
                 "generator": "tools/generate_catalog.py",
@@ -426,9 +381,13 @@ def check_curation(
         raise ValueError(f"curation names ids the generator did not produce: {unknown}")
     aliases: list[str] = []
     for identifier, curated in curation.items():
-        label = curated.get("label")
+        if "label" not in curated and not curated.get("aliases"):
+            raise ValueError(f"{identifier} needs a curated label or aliases")
+        label = curated.get("label", "generated")
         if not isinstance(label, str) or not label.strip():
             raise ValueError(f"{identifier} needs a non-empty curated label")
+        if "annotation" in curated and "label" not in curated:
+            raise ValueError(f"{identifier} has an annotation but no curated label")
         if "annotation" in curated:
             check_annotation(identifier, curated["annotation"])
         for alias in curated.get("aliases", []):
@@ -462,12 +421,8 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
-    if arguments.max_period < 1 or arguments.max_period > 4:
-        raise ValueError(
-            "max-period must be between 1 and 4: root discovery does not converge "
-            "from period 5, and higher periods wait for item 7's pinned "
-            "arbitrary-precision root isolator"
-        )
+    if arguments.max_period < 1 or arguments.max_period > MAX_SUPPORTED_PERIOD:
+        raise ValueError(f"max-period must be between 1 and {MAX_SUPPORTED_PERIOD}")
     if arguments.precision < 40:
         raise ValueError("precision must be at least 40 decimal digits")
 
