@@ -21,7 +21,9 @@ import math
 from pathlib import Path
 import re
 import sys
+from urllib.parse import urlsplit
 from typing import Any
+from collections.abc import Collection
 
 from catalog_certify import certify_center, proper_divisors
 from catalog_combinatorics import (
@@ -35,6 +37,11 @@ from catalog_combinatorics import (
 
 SCHEMA_VERSION = 2
 DEFAULT_CURATION = Path("catalog/curation.v2.json")
+DEFAULT_REFERENCES = Path("catalog/references.v1.json")
+REFERENCES_SCHEMA_VERSION = 1
+# A reference links to one of these hosts only, and its source names that host (ADR 0012).
+REFERENCE_HOSTS = {"Wikipedia": "en.wikipedia.org", "arXiv": "arxiv.org"}
+REFERENCE_KEY_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 ALIAS_PATTERN = re.compile(r"^mi-[a-z0-9-]+$")
 # An alias shaped like a canonical id could collide once more periods are generated.
 CANONICAL_ID_SHAPE = re.compile(r"^mi-p\d+-\d+-\d+$")
@@ -286,6 +293,8 @@ def build_entry(
     entry["label"] = curated["label"] if curated_label else label_for(period, lower, upper)
     if curated is not None and "annotation" in curated:
         entry["annotation"] = curated["annotation"]
+    if curated is not None and "references" in curated:
+        entry["references"] = list(curated["references"])
     entry["period"] = period
     entry["center"] = {"re": binary64(stored.real), "im": binary64(stored.imaginary)}
     entry["centerPrecisionDigits"] = digits
@@ -315,6 +324,7 @@ def build_catalog(
     max_period: int,
     precision: int,
     curation: dict[str, dict[str, Any]],
+    reference_keys: Collection[str] | None = None,
 ) -> dict[str, Any]:
     pairs = lavaurs_pairs(max_period)
     centers = certified_centers(max_period, precision, pairs)
@@ -331,7 +341,7 @@ def build_catalog(
     components.sort(
         key=lambda entry: (entry["period"], entry["center"]["re"], entry["center"]["im"])
     )
-    check_curation(curation, components)
+    check_curation(curation, components, reference_keys)
     arguments = f"--max-period {max_period} --precision {precision}"
     return {
         "schemaVersion": SCHEMA_VERSION,
@@ -342,7 +352,7 @@ def build_catalog(
             "curated-label": {
                 "generator": "tools/generate_catalog.py",
                 "arguments": arguments,
-                "curated": "label, aliases and annotation from catalog/curation.v2.json",
+                "curated": "label, aliases, annotation and references from catalog/curation.v2.json",
             },
             "curated-aliases": {
                 "generator": "tools/generate_catalog.py",
@@ -373,10 +383,67 @@ def check_annotation(identifier: str, annotation: object) -> None:
         )
 
 
+def check_reference_table(table: object) -> dict[str, dict[str, str]]:
+    """The shared reference table: https links to Wikipedia or arXiv only (ADR 0012)."""
+    if not isinstance(table, dict) or table.get("schemaVersion") != REFERENCES_SCHEMA_VERSION:
+        raise ValueError(f"references must declare schemaVersion {REFERENCES_SCHEMA_VERSION}")
+    references = table.get("references")
+    if not isinstance(references, dict) or not references:
+        raise ValueError("references must be a non-empty object keyed by reference key")
+    for key, reference in references.items():
+        if not isinstance(key, str) or not REFERENCE_KEY_PATTERN.match(key):
+            raise ValueError(f"malformed reference key {key!r}")
+        if not isinstance(reference, dict):
+            raise ValueError(f"reference {key} must be an object")
+        title = reference.get("title")
+        if not isinstance(title, str) or not title.strip() or title != title.strip():
+            raise ValueError(f"reference {key} needs a non-empty title")
+        source = reference.get("source")
+        if source not in REFERENCE_HOSTS:
+            raise ValueError(f"reference {key} source must be Wikipedia or arXiv")
+        url = reference.get("url")
+        if not isinstance(url, str):
+            raise ValueError(f"reference {key} needs a url")
+        parts = urlsplit(url)
+        if parts.scheme != "https":
+            raise ValueError(f"reference {key} url must be https")
+        if parts.netloc != REFERENCE_HOSTS[source]:
+            raise ValueError(
+                f"reference {key} url host must be exactly {REFERENCE_HOSTS[source]} "
+                f"for source {source}"
+            )
+    return references
+
+
+def load_references(path: Path) -> dict[str, dict[str, str]]:
+    return check_reference_table(json.loads(path.read_text(encoding="utf-8")))
+
+
+def check_entry_references(
+    identifier: str, curated: dict[str, Any], reference_keys: Collection[str]
+) -> None:
+    """A curated entry's reference keys: a non-empty list of known keys, none repeated."""
+    keys = curated["references"]
+    if not isinstance(keys, list) or not keys:
+        raise ValueError(f"{identifier} has an empty or non-list references")
+    if "label" not in curated:
+        raise ValueError(f"{identifier} has references but no curated label")
+    seen: set[str] = set()
+    for key in keys:
+        if not isinstance(key, str) or key not in reference_keys:
+            raise ValueError(f"{identifier} cites an unknown reference {key!r}")
+        if key in seen:
+            raise ValueError(f"{identifier} cites reference {key} twice")
+        seen.add(key)
+
+
 def check_curation(
     curation: dict[str, dict[str, Any]],
     components: list[dict[str, Any]],
+    reference_keys: Collection[str] | None = None,
 ) -> None:
+    if reference_keys is None:
+        reference_keys = load_references(DEFAULT_REFERENCES)
     identifiers = {entry["id"] for entry in components}
     unknown = sorted(set(curation) - identifiers)
     if unknown:
@@ -392,6 +459,8 @@ def check_curation(
             raise ValueError(f"{identifier} has an annotation but no curated label")
         if "annotation" in curated:
             check_annotation(identifier, curated["annotation"])
+        if "references" in curated:
+            check_entry_references(identifier, curated, reference_keys)
         for alias in curated.get("aliases", []):
             if not isinstance(alias, str) or not ALIAS_PATTERN.match(alias):
                 raise ValueError(f"{identifier} has a malformed alias {alias!r}")
@@ -411,6 +480,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--max-period", type=int, default=4)
     parser.add_argument("--precision", type=int, default=80)
     parser.add_argument("--curation", type=Path, default=DEFAULT_CURATION)
+    parser.add_argument("--references", type=Path, default=DEFAULT_REFERENCES)
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--write", type=Path, help="Write the catalog to this path.")
     action.add_argument(
@@ -433,6 +503,7 @@ def main() -> int:
             arguments.max_period,
             arguments.precision,
             load_curation(arguments.curation),
+            load_references(arguments.references),
         )
     )
     if arguments.check is not None:

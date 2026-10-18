@@ -1,4 +1,5 @@
 import type { Complex } from '../domain/types';
+import referenceData from '../../catalog/references.v1.json';
 
 /**
  * Component catalog schema v2 (ADR 0011): the loader's structural check of
@@ -12,6 +13,21 @@ export const CATALOG_SCHEMA_VERSION_2 = 2;
 export const MAX_CATALOG_PERIOD = 12;
 /** The longest annotation, in characters (code points): a sentence or two (ADR 0012). */
 export const ANNOTATION_MAX_LENGTH = 280;
+
+/** Where a reference points: the only two sources allowed (ADR 0012). */
+export type ReferenceSource = 'Wikipedia' | 'arXiv';
+
+/** One literature link of the shared table, catalog/references.v1.json. */
+export interface CatalogReference {
+  readonly title: string;
+  readonly source: ReferenceSource;
+  readonly url: string;
+}
+
+const REFERENCE_HOSTS: Readonly<Record<ReferenceSource, string>> = {
+  Wikipedia: 'en.wikipedia.org',
+  arXiv: 'arxiv.org',
+};
 
 export interface RationalAngle {
   readonly numerator: number;
@@ -41,6 +57,8 @@ export interface CatalogComponent {
   readonly label: string;
   /** A short curated note about the component; optional, additive to schema v2 (ADR 0012). */
   readonly annotation?: string;
+  /** Keys into the reference table, in display order; kept out of the annotation text (ADR 0012). */
+  readonly references?: readonly string[];
   readonly center: Complex;
   readonly centerPrecisionDigits: number;
   readonly period: number;
@@ -118,6 +136,44 @@ const text = (value: unknown, where: string): string =>
 
 const array = (value: unknown, where: string): readonly unknown[] =>
   Array.isArray(value) ? value : fail(where, 'must be an array');
+
+const isReferenceSource = (value: unknown): value is ReferenceSource =>
+  typeof value === 'string' && Object.hasOwn(REFERENCE_HOSTS, value);
+
+const parseReference = (raw: unknown, where: string): CatalogReference => {
+  const entry = record(raw, where);
+  const title = text(entry['title'], `${where}.title`);
+  const source = entry['source'];
+  if (!isReferenceSource(source)) return fail(`${where}.source`, 'must be Wikipedia or arXiv');
+  const url = text(entry['url'], `${where}.url`);
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return fail(`${where}.url`, 'must be an absolute URL');
+  }
+  if (parsed.protocol !== 'https:') return fail(`${where}.url`, 'must be https');
+  // `host` includes any port; credentials are refused too.
+  if (parsed.host !== REFERENCE_HOSTS[source] || parsed.username !== '' || parsed.password !== '') {
+    return fail(`${where}.url`, `must be on ${REFERENCE_HOSTS[source]} for source ${source}`);
+  }
+  return { title, source, url };
+};
+
+/** Validates catalog/references.v1.json: https links to Wikipedia or arXiv only; throws CatalogSchemaError. */
+export const parseReferenceTable = (raw: unknown): Readonly<Record<string, CatalogReference>> => {
+  const root = record(raw, 'references');
+  if (root['schemaVersion'] !== 1) fail('references.schemaVersion', 'must be 1');
+  const entries = Object.entries(record(root['references'], 'references.references'));
+  if (entries.length === 0) fail('references.references', 'must not be empty');
+  return Object.fromEntries(
+    entries.map(([key, reference]) => [key, parseReference(reference, `references.${key}`)]),
+  );
+};
+
+/** The shared reference table, validated on load; the inspector and the glossary both cite it. */
+export const REFERENCE_TABLE: Readonly<Record<string, CatalogReference>> =
+  parseReferenceTable(referenceData);
 
 const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
@@ -255,6 +311,23 @@ const parseAnnotation = (value: unknown, where: string): { annotation?: string }
   return { annotation };
 };
 
+const parseReferenceKeys = (
+  value: unknown,
+  where: string,
+  table: Readonly<Record<string, CatalogReference>>,
+): { references?: readonly string[] } => {
+  if (value === undefined) return {};
+  const keys = array(value, where).map((key, index) => {
+    const name = text(key, `${where}[${index}]`);
+    return Object.hasOwn(table, name)
+      ? name
+      : fail(`${where}[${index}]`, `unknown reference ${name}`);
+  });
+  if (keys.length === 0) fail(where, 'must not be empty');
+  if (new Set(keys).size !== keys.length) fail(where, 'must not repeat a reference');
+  return { references: keys };
+};
+
 const parseCombinatorics = (
   entry: Json,
   period: number,
@@ -290,6 +363,7 @@ const parseComponent = (
   raw: unknown,
   index: number,
   context: Pick<Catalog, 'maxPeriod' | 'methods' | 'provenance'>,
+  table: Readonly<Record<string, CatalogReference>>,
 ): CatalogComponent => {
   const where = `components[${index}]`;
   const entry = record(raw, where);
@@ -314,6 +388,7 @@ const parseComponent = (
     aliases: parseAliases(entry['aliases'], `${where}.aliases`),
     label: text(entry['label'], `${where}.label`),
     ...parseAnnotation(entry['annotation'], `${where}.annotation`),
+    ...parseReferenceKeys(entry['references'], `${where}.references`, table),
     center: {
       re: finite(center['re'], `${where}.center.re`),
       im: finite(center['im'], `${where}.center.im`),
@@ -342,7 +417,10 @@ const requireUniqueNames = (components: readonly CatalogComponent[]): void => {
 };
 
 /** Validates a parsed catalog file against schema v2; throws CatalogSchemaError. */
-export const parseCatalog = (raw: unknown): Catalog => {
+export const parseCatalog = (
+  raw: unknown,
+  table: Readonly<Record<string, CatalogReference>> = REFERENCE_TABLE,
+): Catalog => {
   const root = record(raw, 'catalog');
   if (root['schemaVersion'] !== CATALOG_SCHEMA_VERSION_2) {
     fail('schemaVersion', `must be ${CATALOG_SCHEMA_VERSION_2}`);
@@ -354,7 +432,7 @@ export const parseCatalog = (raw: unknown): Catalog => {
     provenance: parseProvenance(root['provenance']),
   };
   const components = array(root['components'], 'components').map((entry, index) =>
-    parseComponent(entry, index, context),
+    parseComponent(entry, index, context, table),
   );
   if (components.length === 0) fail('components', 'must not be empty');
   requireUniqueNames(components);

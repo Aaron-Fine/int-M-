@@ -17,11 +17,17 @@ one of curation.
   application loads them in a worker after the first frame. They are
   generated; regenerate both with
   `python3 tools/generate_catalog_core.py --write catalog` (about 100 s).
+- `references.v1.json` is the shared table of literature links: a Wikipedia or
+  arXiv page for each term, concept or person the catalog names. Curated
+  entries and the glossary cite its keys; the application imports it once for
+  both. The generator and the loader reject any URL that is not `https` on
+  exactly `en.wikipedia.org` or `arxiv.org` with a matching `source`.
 - `curation.v2.json` holds what a person reviewed: the names of the five
   named components (the literature's component name, with the Julia-set name
   of the centre in parentheses where the literature gives one, such as
   "1/3-bulb (Douady rabbit)"), the v1 ids each entry keeps as aliases, and optional
-  annotations, keyed by canonical id. Every other entry is labelled by its
+  annotations and references (an array of keys into `references.v1.json`),
+  keyed by canonical id. Every other entry is labelled by its
   rays, for example "Period 4, rays 6/15 and 9/15". Edit it, then regenerate
   `components.v2.json`; the core does not store labels.
 
@@ -47,6 +53,9 @@ because share links (ADR 0009) name them in `sel=`. Never remove an alias.
   smallest |f_c^d(0)| over proper divisors d, at the stored centre.
 - `annotation` (optional, curated): one line of at most 280 characters, shown
   in the inspector under the entry's name (ADR 0012).
+- `references` (optional, curated): keys into `references.v1.json`, in display
+  order, shown as a "References:" line under the annotation. A key is neither
+  empty, repeated nor unknown, and only an entry with a curated label has any.
 - `method` and `provenance`: keys into the `methods` and `provenance` tables
   (in `components.v2.json`, and in the core's manifest), which say how the
   fields were computed and which were curated.

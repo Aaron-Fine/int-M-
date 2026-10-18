@@ -947,6 +947,25 @@ button:disabled {
   font-size: 0.82rem;
 }
 
+.inspector__references,
+.glossary__references {
+  margin: 0.35rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.reference-link {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.reference-link:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
 .catalog-panel__hint {
   margin: 0.35rem 0 0.5rem;
   color: var(--ink-muted);

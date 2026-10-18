@@ -2141,6 +2141,44 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await expect(pointEvidence.locator('.inspector__annotation')).toHaveCount(0);
   });
 
+  test('lists literature references under the annotation and in the glossary', async ({ page }) => {
+    await openExplorer(page);
+    const panel = page.getByRole('region', { name: 'Catalog' });
+    await panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true }).click();
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    const line = pointEvidence.locator('.inspector__references');
+    await expect(line).toBeVisible();
+    await expect(line).toContainText('References: ');
+    // The hidden suffix is its own element, so browsers may put a space before its comma.
+    const fatou = line.getByRole('link', {
+      name: /^Fatou components\s*, Wikipedia, opens in a new tab$/,
+    });
+    await expect(fatou).toContainText('Fatou components');
+    await expect(fatou).toHaveAttribute(
+      'href',
+      'https://en.wikipedia.org/wiki/Classification_of_Fatou_components',
+    );
+    await expect(fatou).toHaveAttribute('target', '_blank');
+    await expect(fatou).toHaveAttribute('rel', /noopener/);
+    await expect(line.getByRole('link')).toHaveCount(8);
+
+    // A generated entry cites nothing.
+    await panel.getByRole('button', { name: 'Period 4, rays 6/15 and 9/15', exact: true }).click();
+    await expect(
+      pointEvidence.getByRole('heading', { name: 'Period 4, rays 6/15 and 9/15' }),
+    ).toBeVisible();
+    await expect(pointEvidence.locator('.inspector__references')).toHaveCount(0);
+
+    await panel.getByText('About periods, rays and addresses').click();
+    const internal = panel.getByRole('link', {
+      name: /^Internal addresses in the Mandelbrot set \(Lau and Schleicher\)\s*, arXiv, opens in a new tab$/,
+    });
+    await expect(internal).toHaveCount(2);
+    await expect(internal.first()).toHaveAttribute('href', 'https://arxiv.org/abs/math/9411238');
+    await expect(internal.first()).toHaveAttribute('target', '_blank');
+    await expect(internal.first()).toHaveAttribute('rel', /noopener/);
+  });
+
   test('reaches every entry by Tab, grouped by period in catalog order', async ({ page }) => {
     await openExplorer(page);
     await waitForCatalogCore(page);

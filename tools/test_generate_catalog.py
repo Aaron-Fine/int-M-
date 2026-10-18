@@ -9,11 +9,14 @@ import unittest
 from catalog_combinatorics import lavaurs_pairs
 from generate_catalog import (
     DEFAULT_CURATION,
+    DEFAULT_REFERENCES,
     build_catalog,
     certified_centers,
     check_curation,
+    check_reference_table,
     label_for,
     load_curation,
+    load_references,
     render,
     three_digits,
 )
@@ -179,3 +182,65 @@ class ResidualFormatTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReferencesTest(unittest.TestCase):
+    KEYS = {"julia-set", "gaston-julia"}
+
+    def components(self) -> list[dict[str, object]]:
+        return [{"id": "mi-p1-0-1"}, {"id": "mi-p2-1-2"}]
+
+    def table(self, **change: object) -> dict[str, object]:
+        reference = {"title": "Sample", "source": "Wikipedia", "url": "https://en.wikipedia.org/wiki/X"}
+        reference.update(change)
+        return {"schemaVersion": 1, "references": {"sample": reference}}
+
+    def test_accepts_the_shipped_table_and_curation(self) -> None:
+        references = load_references(ROOT / DEFAULT_REFERENCES)
+        self.assertEqual(len(references), 17)
+        curation = load_curation(ROOT / DEFAULT_CURATION)
+        check_curation(curation, [{"id": identifier} for identifier in curation], references)
+
+    def test_carries_the_keys_into_the_catalog_after_the_annotation(self) -> None:
+        curation = load_curation(ROOT / DEFAULT_CURATION)
+        catalog = build_catalog(4, 80, curation)
+        rabbit = next(e for e in catalog["components"] if e["id"] == "mi-p3-1-2")
+        self.assertEqual(list(rabbit)[:5], ["id", "aliases", "label", "annotation", "references"])
+        self.assertEqual(rabbit["references"], curation["mi-p3-1-2"]["references"])
+        uncurated = next(e for e in catalog["components"] if e["id"] == "mi-p4-1-2")
+        self.assertNotIn("references", uncurated)
+
+    def test_rejects_a_malformed_table(self) -> None:
+        for change, message in [
+            ({"url": "http://en.wikipedia.org/wiki/X"}, "must be https"),
+            ({"url": "https://example.org/wiki/X"}, "host must be exactly"),
+            ({"url": "https://en.wikipedia.org.evil.example/x"}, "host must be exactly"),
+            ({"url": "https://user@en.wikipedia.org/x"}, "host must be exactly"),
+            ({"source": "arXiv"}, "host must be exactly arxiv.org"),
+            ({"source": "Blog"}, "Wikipedia or arXiv"),
+            ({"title": " "}, "non-empty title"),
+        ]:
+            with self.subTest(change=change):
+                with self.assertRaisesRegex(ValueError, message):
+                    check_reference_table(self.table(**change))
+
+    def test_rejects_invalid_entry_references(self) -> None:
+        for references, label, message in [
+            (["nowhere"], True, "unknown reference"),
+            (["julia-set", "julia-set"], True, "twice"),
+            ([], True, "empty"),
+            ("julia-set", True, "empty or non-list"),
+            (["julia-set"], False, "no curated label"),
+        ]:
+            with self.subTest(references=references, label=label):
+                entry: dict[str, object] = {"references": references}
+                if label:
+                    entry["label"] = "Main"
+                else:
+                    entry["aliases"] = ["mi-old"]
+                with self.assertRaisesRegex(ValueError, message):
+                    check_curation({"mi-p1-0-1": entry}, self.components(), self.KEYS)
+
+    def test_accepts_known_keys(self) -> None:
+        curation = {"mi-p1-0-1": {"label": "Main", "references": ["julia-set", "gaston-julia"]}}
+        check_curation(curation, self.components(), self.KEYS)

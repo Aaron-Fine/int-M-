@@ -145,3 +145,19 @@ rays"), angles kept unreduced as a/(2^p − 1). The inspector writes the angled
 internal address as a chain with the rotation as a subscript on each arrow,
 1 →₁/₃ 3 →₁/₂ 6, with a spoken form for assistive technology. Ids, aliases
 and code identifiers are unchanged. Text above that names the entries or the glossary term by their old names is historical.
+
+## Amendment (2026-10-18, references)
+
+Owner decision 2026-10-18: terms such as Fatou, Julia and Douady get
+references, and "these links should not be part of the annotation". Annotation
+text therefore stays plain and carries no URLs. A shared table,
+`catalog/references.v1.json`, holds the links: Wikipedia or arXiv only, `https`
+on exactly `en.wikipedia.org` or `arxiv.org`, with a `source` that matches the
+host. Each curated entry may list keys from it in `references`, in display
+order, and the generator copies them into `components.v2.json`. The inspector
+shows them as a "References:" line under the annotation, and each glossary
+term shows its own. Both link to concepts and to the people they are named
+after. A link opens in a new tab with `rel="noopener noreferrer"`, and a
+visually hidden suffix gives its name as "title, source, opens in a new tab".
+The generator and the loader reject an unknown or repeated key, an empty
+list, and any URL outside the two hosts.

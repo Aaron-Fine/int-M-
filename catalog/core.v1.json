@@ -35,7 +35,7 @@
   "inputs": {
     "tools/catalog_certify.py": "63ce4e2c88236717960b7f7c1f8c46efc6972056e12ca54722a691128f6b3ca4",
     "tools/catalog_combinatorics.py": "dcb3c2ad19f4f320b9f211183ed5e18c67ba3c4c90c65a651bfc8b1df9cdfcb5",
-    "tools/generate_catalog.py": "b1ec9fd2d4a82c762a69490dbe4cca822436a33dd0f93ca508751da85ca8368a",
+    "tools/generate_catalog.py": "5cb186687d023ac5fc32dc5fa85ae95f48bb2199f2e8554c58dd3c28cd667094",
     "tools/generate_catalog_core.py": "427073dc36f1b45dd738adbd3367683f058df00acbac34a56f97cd8fe1ccc0c8"
   }
 }

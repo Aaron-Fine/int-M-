@@ -21,6 +21,7 @@ import { createCatalogIndex } from '../catalog/viewport-index';
 import { loadCatalogCore } from './catalog-core-client';
 import { createCatalogPanel } from './catalog-panel';
 import { angledAddressChain } from './angled-address';
+import { referencesLine } from './references';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { planMarkers } from './marker-density';
@@ -1606,6 +1607,7 @@ function createInspector(): {
           })
         : undefined,
       annotation(component),
+      referencesLine(component?.references),
       element('p', {
         className: 'inspector__coordinate',
         text: `c = ${coordinate}`,
@@ -1689,6 +1691,7 @@ function createInspector(): {
           })
         : undefined,
       annotation(component),
+      referencesLine(component?.references),
       element('p', {
         className: 'inspector__coordinate',
         text: `c = ${coordinate}`,

@@ -3,6 +3,7 @@ import type { CatalogGroup } from '../catalog/navigation';
 import type { CatalogComponent } from '../catalog/schema';
 import { angledAddressChain } from './angled-address';
 import { CATALOG_GLOSSARY } from './catalog-glossary';
+import { referencesLine } from './references';
 import { button, element } from './dom';
 
 /**
@@ -70,7 +71,7 @@ const CORE_STATE_TEXT: Readonly<Record<CatalogCoreState, string>> = {
 function createGlossary(): HTMLElement {
   const glossary = element('details', { className: 'catalog-glossary' });
   const terms = element('dl');
-  for (const { term, definition } of CATALOG_GLOSSARY) {
+  for (const { term, definition, references } of CATALOG_GLOSSARY) {
     const description = element('dd');
     if (typeof definition === 'string') description.textContent = definition;
     else {
@@ -78,6 +79,8 @@ function createGlossary(): HTMLElement {
         description.append(typeof part === 'string' ? part : angledAddressChain(part.address));
       }
     }
+    const line = referencesLine(references, 'glossary__references');
+    if (line !== undefined) description.append(line);
     terms.append(element('dt', { text: term }), description);
   }
   glossary.append(element('summary', { text: 'About periods, rays and addresses' }), terms);
