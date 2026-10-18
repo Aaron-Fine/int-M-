@@ -13,7 +13,10 @@
  *
  * Usage:
  *   node tools/benchmark/fallback-overhead.ts <baseline.js> <candidate.js>
- *     [--reps N] [--raster WxH] [--cases id,id] [--out file.json]
+ *     [--reps N] [--raster WxH] [--cases id,id] [--stride S] [--out file.json]
+ * --stride 1 (the default) times the stable pass (the two-lane row kernel);
+ * a larger stride times a coarse pass (the scalar kernel). Both arms must
+ * accept the stride argument (tools/benchmark/overhead-entry.ts).
  * Exit 0: every case within 5% and the control arm within 2%.
  * Exit 1: a case above 5% with a quiet control arm (a real regression).
  * Exit 3: the control arm moved more than 2% (too noisy; rerun on an idle
@@ -34,6 +37,7 @@ interface Arm {
   readonly timeCase: (
     caseId: string,
     size: { readonly width: number; readonly height: number },
+    stride?: number,
   ) => Promise<number>;
 }
 
@@ -57,6 +61,10 @@ const rasterMatch = /^(\d+)x(\d+)$/.exec(option('--raster') ?? '1024x640');
 if (rasterMatch === null) throw new RangeError('--raster must look like 1024x640');
 const size = { width: Number(rasterMatch[1]), height: Number(rasterMatch[2]) };
 const cases = (option('--cases') ?? DEFAULT_CASES.join(',')).split(',');
+const stride = Number(option('--stride') ?? '1');
+if (!Number.isInteger(stride) || stride < 1) {
+  throw new RangeError('--stride must be a positive integer');
+}
 const load = os.loadavg()[0] ?? 0;
 if (load > 1.5) {
   process.stderr.write(`warning: 1-minute load average ${load.toFixed(2)}; expect noise\n`);
@@ -94,7 +102,7 @@ for (let rep = 0; rep <= reps; rep += 1) {
     for (let slot = 0; slot < arms.length; slot += 1) {
       const arm = arms[(rep + slot) % arms.length];
       if (arm === undefined) continue;
-      const ms = await arm.timeCase(caseId, size);
+      const ms = await arm.timeCase(caseId, size, stride);
       if (rep > 0) samples.get(caseId)?.[arm.name].push(ms);
     }
   }
@@ -119,6 +127,7 @@ const rows = cases.map((caseId) => {
     caseId,
     reps,
     raster: size,
+    stride,
     medianMs: {
       baseline: median(arm.baseline),
       control: median(arm.control),

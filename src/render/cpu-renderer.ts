@@ -58,6 +58,16 @@ const classifyFull = async (
   };
 };
 
+/**
+ * The quality the coarse pass runs at: the stride floored at 2, the iteration
+ * budget capped at COARSE_BASE_ITERATIONS and the period cap at 16.
+ */
+export const coarseRenderQuality = (quality: RenderQuality): RenderQuality => ({
+  maxIterations: Math.min(quality.maxIterations, COARSE_BASE_ITERATIONS),
+  maxPeriod: Math.min(quality.maxPeriod, 16),
+  coarseStride: Math.max(2, quality.coarseStride),
+});
+
 export class CpuRenderer implements Renderer {
   public constructor(private readonly tilePool?: TilePool) {}
 
@@ -68,12 +78,8 @@ export class CpuRenderer implements Renderer {
   ): Promise<void> {
     validateRasterSize(request.size);
     const quality = resolveRenderQuality(request.quality);
-    const coarseStride = Math.max(2, quality.coarseStride);
-    const coarseQuality: RenderQuality = {
-      maxIterations: Math.min(quality.maxIterations, COARSE_BASE_ITERATIONS),
-      maxPeriod: Math.min(quality.maxPeriod, 16),
-      coarseStride,
-    };
+    const coarseQuality = coarseRenderQuality(quality);
+    const coarseStride = coarseQuality.coarseStride;
 
     const coarse = await classifyFull(request, coarseQuality, coarseStride, 'coarse', signal);
     throwIfAborted(signal);

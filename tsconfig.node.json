@@ -37,6 +37,7 @@
     "tools/generate_colorized_golden.ts",
     "tools/kernel_pixel_dump.ts",
     "tools/adjudicate_period_three.ts",
+    "tools/adjudicate_period_four.ts",
     "tools/benchmark/fallback-overhead.ts",
     "tools/palette_metrics.ts"
   ]
