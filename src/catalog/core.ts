@@ -97,6 +97,10 @@ export const parseCoreManifest = (raw: unknown): CoreManifest => {
 
 /** The lowercase hexadecimal SHA-256 of the bytes (Web Crypto, in browsers and Node). */
 export const sha256Hex = async (bytes: ArrayBuffer): Promise<string> => {
+  // Web Crypto's subtle API exists only in secure contexts (https, localhost).
+  if ((crypto as { subtle?: SubtleCrypto }).subtle === undefined) {
+    throw new Error('the catalog core needs a secure context (https or localhost) for Web Crypto');
+  }
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
   return Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('');
 };

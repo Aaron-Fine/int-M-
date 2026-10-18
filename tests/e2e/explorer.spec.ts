@@ -2086,7 +2086,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
       .toBe('mi-p3-3-4');
 
-    // A placeholder entry has no annotation, so the inspector shows none.
+    // A generated entry has no annotation, so the inspector shows none.
     await panel.getByRole('button', { name: 'Period 4, rays 6/15 and 9/15', exact: true }).click();
     await expect(
       pointEvidence.getByRole('heading', { name: 'Period 4, rays 6/15 and 9/15' }),
@@ -2714,6 +2714,17 @@ test.describe('Catalog core (ADR 0014)', () => {
     release();
     await waitForCatalogCore(page);
     await expect(count).toHaveText('2,010 components match; showing the first 50.');
+  });
+
+  test('says the count covers periods 1 to 4 after the core fails to load', async ({ page }) => {
+    await page.route(CORE_FILE, (route) => route.abort('internetdisconnected'));
+    await openExplorer(page);
+    const panel = panelOf(page);
+    await expect(panel).toHaveAttribute('data-catalog-core', 'failed', { timeout: 20_000 });
+    await panel.getByRole('searchbox', { name: 'Find a component' }).fill('period 12');
+    await expect(panel.locator('.catalog-find__count')).toHaveText(
+      'No component matches. Periods 5 to 12 could not be loaded.',
+    );
   });
 
   test('keeps focus on a find result when the core lands and rebuilds the results', async ({

@@ -991,12 +991,14 @@ export function mountApplication(host: HTMLElement): () => void {
    * panel's periods 5 to 12, and a link's pending selection (ADR 0014).
    */
   function adoptCatalogCore(components: readonly CatalogComponent[]): void {
+    // Build everything first: a throw here must leave the state untouched.
     const merged = mergeCatalog(COMPONENT_CATALOG, components);
-    catalogIndex = createCatalogIndex(merged);
-    catalogByName = namesOf(merged);
-    catalogPanel.addGroups(
-      catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod),
-    );
+    const index = createCatalogIndex(merged);
+    const names = namesOf(merged);
+    const groups = catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod);
+    catalogIndex = index;
+    catalogByName = names;
+    catalogPanel.addGroups(groups);
     catalogPanel.setCoreState('ready');
     const pending = state.pendingCatalogId;
     delete state.pendingCatalogId;
@@ -1006,18 +1008,23 @@ export function mountApplication(host: HTMLElement): () => void {
     updateCatalogOverlay();
   }
 
+  function onCatalogCoreFailure(reason: unknown): void {
+    console.error('catalog core:', reason);
+    catalogPanel.setCoreState('failed');
+    if (state.pendingCatalogId === undefined) return;
+    delete state.pendingCatalogId;
+    showLinkNotice(
+      'This link names a catalog component from periods 5 to 12, which could not be loaded, so nothing is selected.',
+    );
+  }
+
   /** Loads periods 5 to 12 off the main thread, after the first stable frame (MI-PERF-003). */
   function requestCatalogCore(): void {
     if (catalogCoreRequested) return;
     catalogCoreRequested = true;
-    loadCatalogCore({ url: coreUrl, manifest: coreManifest }).then(adoptCatalogCore, () => {
-      catalogPanel.setCoreState('failed');
-      if (state.pendingCatalogId === undefined) return;
-      delete state.pendingCatalogId;
-      showLinkNotice(
-        'This link names a catalog component from periods 5 to 12, which could not be loaded, so nothing is selected.',
-      );
-    });
+    loadCatalogCore({ url: coreUrl, manifest: coreManifest })
+      .then(adoptCatalogCore)
+      .catch(onCatalogCoreFailure);
   }
 
   /** "Airplane, period 3"; a generated label already starts with its period. */

@@ -45,8 +45,14 @@ const COUNT_DELAY_MS = 400;
 const countText = (count: number): string =>
   `${count.toLocaleString('en-US')} component${count === 1 ? '' : 's'}`;
 
-const resultText = (result: FindResult, loading: boolean): string => {
-  const suffix = loading ? ' Periods 5 to 12 are still loading.' : '';
+const CORE_COUNT_SUFFIX: Readonly<Record<CatalogCoreState, string>> = {
+  loading: ' Periods 5 to 12 are still loading.',
+  ready: '',
+  failed: ' Periods 5 to 12 could not be loaded.',
+};
+
+const resultText = (result: FindResult, core: CatalogCoreState): string => {
+  const suffix = CORE_COUNT_SUFFIX[core];
   if (result.total === 0) return `No component matches.${suffix}`;
   if (result.matches.length < result.total) {
     return `${countText(result.total)} match; showing the first ${result.matches.length}.${suffix}`;
@@ -182,6 +188,8 @@ export function createCatalogPanel(options: {
   const coreStatus = element('p', {
     className: 'catalog-panel__status',
     text: CORE_STATE_TEXT.loading,
+    // Filled at creation, so only the change to "could not be loaded" is announced.
+    attributes: { role: 'status' },
   });
   const confirmationText = element('span', { className: 'catalog-panel__confirmation-text' });
   const showView = button('Show the view', { className: 'catalog-panel__show-view' });
@@ -216,7 +224,7 @@ export function createCatalogPanel(options: {
     groupsBox.hidden = true;
     if (focusedId !== undefined) (results.get(focusedId) ?? findInput).focus();
     countTimer = setTimeout(() => {
-      findCount.textContent = resultText(result, coreState === 'loading');
+      findCount.textContent = resultText(result, coreState);
     }, COUNT_DELAY_MS);
   };
   findInput.addEventListener('input', runFind);
@@ -255,7 +263,7 @@ export function createCatalogPanel(options: {
       );
       groupsBox.insertBefore(details, next ?? null);
     }
-    if (findInput.value.trim() !== '') runFind();
+    // No find here: the caller follows with setCoreState, which runs it once.
   };
 
   root.append(
@@ -310,6 +318,8 @@ export function createCatalogPanel(options: {
     setCoreState: (state) => {
       coreState = state;
       root.dataset['catalogCore'] = state;
+      // With a query, the live find count already announces the failure; stay quiet.
+      coreStatus.setAttribute('aria-live', findInput.value.trim() === '' ? 'polite' : 'off');
       coreStatus.textContent = CORE_STATE_TEXT[state];
       coreStatus.hidden = state === 'ready';
       if (findInput.value.trim() !== '') runFind();
