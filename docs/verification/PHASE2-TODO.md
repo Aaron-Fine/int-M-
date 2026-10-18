@@ -83,6 +83,13 @@ Estimates are engineering days. They are planning figures and may overlap.
   verifier; ADR 0010 records it and `MI-PERF-004` names analytic closed forms.
 - **Workstream H:** adopt period 3 now and period 4 after a rigorous error
   bound ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)); item 8 below.
+- **Item 7 (2026-10-17):** add a find field above the period groups that
+  filters by label, id or ray numerators (no roving tabindex); label every
+  generated entry by its rays ("Period 4, rays 6/15 and 9/15"), with the
+  curated names kept only for the five named components; after a list
+  activation on a narrow layout, show a short in-panel confirmation next to
+  the list (optionally with a link that scrolls to the canvas), and leave
+  focus where it is.
 
 ### 0. Worth doing now
 
@@ -97,8 +104,8 @@ Estimates are engineering days. They are planning figures and may overlap.
 - [ ] **Merge PR #25** (owner). This also clears the Dependabot `source-map-js`
       alert on `main`.
 - [ ] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
-- [ ] **Phone feedback after a list activation** (owner decision, before
-      item 7). At 320 px the catalog panel stacks below the canvas and the
+- [ ] **Phone feedback after a list activation** (decided 2026-10-17:
+      an in-panel confirmation; built in item 7). At 320 px the catalog panel stacks below the canvas and the
       inspector, and the "Zoomed to" toast sits inside the canvas stack, so a
       tap on an entry changes things only off-screen. Either scroll the canvas
       into view on narrow layouts (focus stays on the button and leaves the
@@ -324,9 +331,8 @@ marker count stays bounded at any zoom.
       import (`application.ts`). Add an update path (for example
       `catalogPanel.setGroups` and an index swap) and decide what the panel
       shows while loading.
-- [ ] Keyboard efficiency in long groups: add a find field (owner note 3) and
-      consider a roving tabindex inside a group so Tab does not walk 2,010
-      stops.
+- [ ] Keyboard efficiency in long groups: a find field filtering by label, id
+      or ray numerators (owner decision 2026-10-17; no roving tabindex).
 - [ ] Screen-reader verbosity: replace the per-entry `aria-describedby` hint
       with one description on the region or on each list, and include the
       panel at full size in the manual screen-reader record.
@@ -346,8 +352,9 @@ marker count stays bounded at any zoom.
       JS re-plan that CSS alone cannot pass; and a re-check of the
       data-dependent preconditions (the `.catalog-marker--label-hidden` count
       and the compact pairs).
-- [ ] Period-4 and generated labels: the curation decision (owner note 2,
-      ADR 0011).
+- [ ] Labels by rays for every generated entry, period 4 included
+      ("Period 4, rays 6/15 and 9/15"); curated names only for the five named
+      components (owner decision 2026-10-17; ADR 0011).
 - [ ] An ADR 0004 amendment recording the product decision.
 
 **Done when:** the full core ships, is validated independently, stays within
