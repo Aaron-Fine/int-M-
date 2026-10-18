@@ -65,6 +65,10 @@ package MandelbrotInteriority {
 
         item def CancelRequest;
 
+        item def CancelAcknowledgment;
+
+        item def CancelQuiescence;
+
         item def SemanticTile;
 
         item def ColorizedFrame;
@@ -84,6 +88,8 @@ package MandelbrotInteriority {
             out item cancelRequest : CancelRequest;
             out item inspectorRequest : InspectorRequest;
             in item colorizedFrame : ColorizedFrame;
+            in item cancelAcknowledgment : CancelAcknowledgment;
+            in item cancelQuiescence : CancelQuiescence;
             in item renderStatus : RenderStatus;
             in item inspectorResult : InspectorResult;
         }
@@ -113,6 +119,16 @@ package MandelbrotInteriority {
 
         part def FirstUseGuidance;
 
+        part def RenderTraceRecorder {
+            doc /*
+             * Bounded always-on ring of request summaries recorded at request
+             * and band boundaries only. Each frame keeps the delivery source
+             * set by the worker (computed, in-flight replay, semantic cache,
+             * recolor) and its compute identity; cancellations keep both the
+             * acknowledgment and the child-quiescence timing.
+             */
+        }
+
         part def UIShell {
             part viewControls : ViewControls;
             part legend : Legend;
@@ -120,6 +136,7 @@ package MandelbrotInteriority {
             part canvasPresenter : CanvasPresenter;
             part rendererLifecycle : RendererLifecycle;
             part firstUseGuidance : FirstUseGuidance;
+            part renderTraceRecorder : RenderTraceRecorder;
             port renderChannel : UIWorkerPort;
         }
 
@@ -130,6 +147,23 @@ package MandelbrotInteriority {
         }
 
         part def NumericalKernel;
+
+        part def CycleVerifier {
+            doc /*
+             * The single declared acceptance procedure: every candidate
+             * source (lag scan, watched lag, checkpoint, analytic paths)
+             * proposes, and only this verifier may accept an attracting
+             * cycle and its primitive period.
+             */
+        }
+
+        part def TileWorkerPool {
+            doc /*
+             * Nested workers for the stable pass. Cancellation is reported as
+             * quiescent only after every child has stopped or the pool has
+             * been reset.
+             */
+        }
 
         part def SemanticTileStore {
             doc /*
@@ -158,6 +192,8 @@ package MandelbrotInteriority {
             part coordinateMapper : CoordinateMapper;
             part orbitEngine : OrbitEngine;
             part numericalKernel : NumericalKernel;
+            part cycleVerifier : CycleVerifier;
+            part tileWorkerPool : TileWorkerPool;
             part semanticTileStore : SemanticTileStore;
             part paletteMapper : PaletteMapper;
             part catalogMatcher : CatalogMatcher;
@@ -184,9 +220,17 @@ package MandelbrotInteriority {
 
         part def CatalogGenerator;
 
+        part def EvidenceHarness {
+            doc /*
+             * Frozen benchmark corpus, environment capture, paired browser
+             * runners, and manifest tooling for Phase 2 performance evidence.
+             */
+        }
+
         part def OfflineToolchain {
             part fixtureGenerator : HighPrecisionFixtureGenerator;
             part catalogGenerator : CatalogGenerator;
+            part evidenceHarness : EvidenceHarness;
         }
     }
 
@@ -348,6 +392,87 @@ package MandelbrotInteriority {
         }
     }
 
+
+    package PerformanceRequirements {
+
+        requirement <'MI-PERF-001'> ReproducibleEvidence {
+            subject toolchain : Architecture::OfflineToolchain;
+            doc /*
+             * The offline toolchain shall reproduce the declared corpus and
+             * retain build, environment, raw observations, metric
+             * definitions, and semantic-comparison evidence for every
+             * normative run.
+             */
+        }
+
+        requirement <'MI-PERF-002'> BoundedSystematicDetection {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The classifier shall perform finite, profile-bounded systematic
+             * detection and may report a higher opportunistic period only
+             * after the same primitive-period and attraction checks.
+             */
+        }
+
+        requirement <'MI-PERF-003'> CuratedCatalogIntegrity {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The curated identity layer shall remain intact. If workstream F
+             * ships, the generated period-12 core shall be deterministically
+             * reproducible and versioned extension shards shall load without
+             * blocking rendering or weakening the curated catalog.
+             */
+        }
+
+        requirement <'MI-PERF-004'> CommonAcceptance {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * No checkpoint, catalog, algebraic, Newton, SIMD, or subdivision
+             * path shall emit attracting-cycle status without the common
+             * declared acceptance procedure; exhausted or ambiguous work
+             * shall remain unresolved.
+             */
+        }
+
+        requirement <'MI-PERF-005'> GuardedAcceleratedKernel {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * An optional accelerated kernel shall be capability-detected and
+             * self-tested, preserve the semantic contract, and automatically
+             * use the scalar Worker CPU path on unsupported or failed
+             * execution.
+             */
+        }
+
+        requirement <'MI-PERF-006'> BoundedResponsiveRendering {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Rendering shall remain progressive, cancellable,
+             * memory-bounded, and within versioned responsiveness and
+             * stable-frame budgets on the supported target class.
+             */
+        }
+
+        requirement <'MI-PERF-007'> BoundedObservation {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Always-on observation shall operate only at request/band
+             * boundaries, distinguish computed, cached, replayed, and
+             * recolored frames, and meet retention/overhead limits.
+             */
+        }
+
+        requirement <'MI-PERF-008'> AccessibleCatalogPresentation {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Catalog presentation, the curated centers and, if F ships,
+             * dynamic marker loading and clustering, shall remain
+             * keyboard-operable, screen-reader understandable, focus-stable,
+             * and bounded in simultaneous interactive markers.
+             */
+        }
+    }
+
     package RequirementSatisfaction {
 
         part uxSatisfactionContext {
@@ -385,6 +510,28 @@ package MandelbrotInteriority {
                 by app.uiShell;
             satisfy UserExperienceRequirements::RendererRecoveryAndFallback
                 by app.uiShell.rendererLifecycle;
+        }
+
+        part perfSatisfactionContext {
+            part app : Architecture::MandelbrotInteriorityApplication;
+            part toolchain : Architecture::OfflineToolchain;
+
+            satisfy PerformanceRequirements::ReproducibleEvidence
+                by toolchain.evidenceHarness;
+            satisfy PerformanceRequirements::BoundedSystematicDetection
+                by app.renderingWorker.orbitEngine;
+            satisfy PerformanceRequirements::CuratedCatalogIntegrity
+                by app.catalogData;
+            satisfy PerformanceRequirements::CommonAcceptance
+                by app.renderingWorker.cycleVerifier;
+            satisfy PerformanceRequirements::GuardedAcceleratedKernel
+                by app.renderingWorker.numericalKernel;
+            satisfy PerformanceRequirements::BoundedResponsiveRendering
+                by app.renderingWorker.tileWorkerPool;
+            satisfy PerformanceRequirements::BoundedObservation
+                by app.uiShell.renderTraceRecorder;
+            satisfy PerformanceRequirements::AccessibleCatalogPresentation
+                by app.uiShell;
         }
     }
 
@@ -460,6 +607,69 @@ package MandelbrotInteriority {
             objective accessibility {
                 verify UserExperienceRequirements::KeyboardOperation;
                 verify UserExperienceRequirements::AccessibleInterface;
+            }
+        }
+
+        verification def <'MI-VER-PERF-001'> BenchmarkAndObservabilityTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Run the frozen corpus with the evidence harness in branded
+             * browsers on the declared target, storing every sample with a
+             * manifest; exercise computed, cache, replay, recolor, and
+             * cancellation deliveries and the observation overhead and
+             * retention limits.
+             */
+            objective benchmarkAndObservability {
+                verify PerformanceRequirements::ReproducibleEvidence;
+                verify PerformanceRequirements::BoundedObservation;
+            }
+        }
+
+        verification def <'MI-VER-PERF-002'> ClassifierAgreementTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Adjudicate classifier results against the high-precision oracle
+             * and the reference lag scan, including candidate rejection and
+             * unresolved-rate checks.
+             */
+            objective classifierAgreement {
+                verify PerformanceRequirements::BoundedSystematicDetection;
+                verify PerformanceRequirements::CommonAcceptance;
+            }
+        }
+
+        verification def <'MI-VER-PERF-003'> CatalogDeterminismTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Check catalog completeness, deterministic generation when a
+             * generated layer ships, and keyboard, focus, and marker-cap
+             * accessibility of catalog presentation.
+             */
+            objective catalogDeterminism {
+                verify PerformanceRequirements::CuratedCatalogIntegrity;
+                verify PerformanceRequirements::AccessibleCatalogPresentation;
+            }
+        }
+
+        verification def <'MI-VER-PERF-004'> RenderingBudgetTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Measure cancellation, cache, and memory behavior and the
+             * stable-frame budgets in both release browsers.
+             */
+            objective renderingBudget {
+                verify PerformanceRequirements::BoundedResponsiveRendering;
+            }
+        }
+
+        verification def <'MI-VER-PERF-005'> AcceleratedKernelTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * When an accelerated kernel exists: capability detection,
+             * backend parity, and forced-failure fallback in both browsers.
+             */
+            objective acceleratedKernel {
+                verify PerformanceRequirements::GuardedAcceleratedKernel;
             }
         }
     }

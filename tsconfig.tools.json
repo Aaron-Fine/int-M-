@@ -25,8 +25,6 @@
     "tools/benchmark/validate-corpus.ts",
     "tools/benchmark/bca.ts",
     "tools/benchmark/kernel-bench.ts",
-    "tools/benchmark/kernel-parity.ts",
-    "tools/benchmark/view-chain.d.mts",
     "tools/phase0-browser-benchmark.ts",
     "tools/emit_tile_certificate.ts",
     "tools/measure_early_accept.ts",

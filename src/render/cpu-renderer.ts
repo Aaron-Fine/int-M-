@@ -1,6 +1,5 @@
 import {
   classifyOrbit,
-  planConjugateMirror,
   validateRasterSize,
   type Complex,
   type OrbitResult,
@@ -9,7 +8,6 @@ import {
 } from '../domain';
 import { classifyRows } from './classify-rows';
 import { colorizeFrame } from './colorize';
-import { applyConjugateMirror } from './conjugate-mirror';
 import { RenderCancelledError } from './render-cancelled-error';
 import {
   resolveRenderQuality,
@@ -38,29 +36,9 @@ const classifyFull = async (
   stage: RenderStage,
   signal: AbortSignal,
 ): Promise<SemanticFrame> => {
-  // Conjugate mirroring (default on) applies to the stride-1 stable pass only.
-  const mirrorPlan =
-    request.conjugateMirror !== false && stride === 1
-      ? planConjugateMirror(request.viewport, request.size)
-      : undefined;
-  const band = await classifyRows(
-    request,
-    quality,
-    stride,
-    0,
-    request.size.height,
-    signal,
-    request.classifierMode,
-    request.yieldMechanism,
-    undefined,
-    {
-      perfCounters: request.perfCounters === true,
-      mirrorPlan,
-    },
-  );
+  const band = await classifyRows(request, quality, stride, 0, request.size.height, signal);
 
   throwIfAborted(signal);
-  let timing = band.timing;
   const semanticBand: SemanticBand = {
     y0: 0,
     y1: request.size.height,
@@ -68,20 +46,13 @@ const classifyFull = async (
     smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
     multiplierAngle: band.multiplierAngle,
   };
-  if (mirrorPlan !== undefined) {
-    const mirrorStarted = performance.now();
-    applyConjugateMirror(mirrorPlan, [semanticBand], request.size.width);
-    timing = { ...timing, classifyMs: timing.classifyMs + (performance.now() - mirrorStarted) };
-  }
   return {
     stage,
     size: request.size,
     sampleStride: stride,
     bands: [semanticBand],
     progress: stage === 'coarse' ? 0.2 : 1,
-    timing,
-    ...(band.differential === undefined ? {} : { differential: band.differential }),
-    ...(band.counters === undefined ? {} : { counters: band.counters }),
+    timing: band.timing,
   };
 };
 
@@ -110,16 +81,14 @@ export class CpuRenderer implements Renderer {
     const pool = this.tilePool;
     const stable =
       pool !== undefined && pool.size > 1
-        ? await pool.classifyStable(
-            request,
-            quality,
-            signal,
-            request.classifierMode,
-            request.perfCounters === true,
-          )
+        ? await pool.classifyStable(request, quality, signal)
         : await classifyFull(request, quality, 1, 'stable', signal);
     throwIfAborted(signal);
     await onFrame(stable);
+  }
+
+  public async quiesce(): Promise<void> {
+    await this.tilePool?.quiesce?.();
   }
 
   public inspect(point: Complex, quality?: Partial<RenderQuality>): OrbitResult {

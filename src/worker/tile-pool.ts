@@ -1,25 +1,16 @@
 import { classifyRows } from '../render/classify-rows';
-import { applyConjugateMirror } from '../render/conjugate-mirror';
 import { RenderCancelledError } from '../render/render-cancelled-error';
 import { orderRowBandsForDispatch, splitRowBands } from '../render/row-bands';
 import { PACKED_OUTPUT_REVISION } from '../render/packed-semantic';
-import {
-  accumulatePerfCounters,
-  createPerfCounters,
-  type MutablePerfCounters,
-} from '../render/perf-counters';
 import type { RowBand } from '../render/row-bands';
 import type { SemanticStageTiming } from '../render/renderer';
 import type {
   DynamicsRenderRequest,
-  FrameOutput,
   SemanticBand,
   SemanticFrame,
   TilePool,
 } from '../render/renderer';
-import type { ClassifierMode, DifferentialStats, RenderQuality } from '../domain';
-import { computedPrefixRows, createDifferentialStats, planConjugateMirror } from '../domain';
-import type { ConjugateMirrorPlan } from '../domain';
+import type { RenderQuality } from '../domain';
 import type {
   SupervisorToTileMessage,
   TileMessageEvent,
@@ -54,26 +45,10 @@ const throwIfAborted = (signal: AbortSignal): void => {
   if (signal.aborted) throw new RenderCancelledError();
 };
 
-/** Adds the band's differential stats into the frame-level record. */
-const accumulateDifferentialStats = (
-  into: DifferentialStats,
-  from: Readonly<DifferentialStats>,
-): void => {
-  into.pixels += from.pixels;
-  into.statusDisagreements += from.statusDisagreements;
-  into.periodDisagreements += from.periodDisagreements;
-  into.multiplierMagnitudeDisagreements += from.multiplierMagnitudeDisagreements;
-  into.legacyAttracting += from.legacyAttracting;
-  into.checkpointAttracting += from.checkpointAttracting;
-  into.legacyUnresolved += from.legacyUnresolved;
-  into.checkpointUnresolved += from.checkpointUnresolved;
-};
-
 /**
- * Supervisor-owned storage for one band of the stable frame. On the
- * zero-copy path the buffers are handed to the tile worker as transferable
- * views and the returned views are adopted directly; on the legacy-merge
- * measurement arm the worker-allocated results are copied in here.
+ * Supervisor-owned storage for one band of the stable frame. The buffers are
+ * transferred to the tile worker, which classifies into them and transfers
+ * them back; the returned views then replace this entry (zero-copy).
  */
 interface BandStorage {
   packedStatusPeriod: Uint32Array<ArrayBuffer>;
@@ -93,8 +68,6 @@ const frameFromBands = (
   storage: readonly BandStorage[],
   progress: number,
   timing: SemanticStageTiming,
-  counters?: MutablePerfCounters,
-  differential?: DifferentialStats,
 ): SemanticFrame => ({
   stage: 'stable',
   size: request.size,
@@ -112,8 +85,6 @@ const frameFromBands = (
   }),
   progress,
   timing,
-  ...(counters === undefined ? {} : { counters }),
-  ...(differential === undefined ? {} : { differential }),
 });
 
 interface ActiveJob {
@@ -122,12 +93,6 @@ interface ActiveJob {
   readonly onAbort: () => void;
   readonly request: DynamicsRenderRequest;
   readonly quality: RenderQuality;
-  readonly classifierMode?: ClassifierMode;
-  readonly perfCounters: boolean;
-  /** Experiment (workstream M): rows to fill by mirroring after the last band returns. */
-  readonly mirrorPlan: ConjugateMirrorPlan | undefined;
-  /** True when bands span mirrored rows and workers must skip them in place. */
-  readonly workersSkipMirroredRows: boolean;
   readonly bands: readonly RowBand[];
   readonly expectedJobs: number;
   readonly received: Map<number, TileResultMessage>;
@@ -135,16 +100,11 @@ interface ActiveJob {
   /** Dispatch order over band indices; position `nextDispatch` posts next. */
   readonly dispatchOrder: readonly number[];
   readonly assignment: Map<number, number>;
-  readonly frameOutput: FrameOutput;
-  /** Supervisor-owned per-band storage; filled as results arrive. */
+  /** Supervisor-owned per-band storage; replaced by the returned views as results arrive. */
   readonly bandStorage: BandStorage[];
   nextDispatch: number;
   readonly bandsElapsedMs: number[];
   mergeCpuMs: number;
-  /** Opt-in plan §8 counters, summed per band as results arrive. */
-  readonly counters: MutablePerfCounters | undefined;
-  /** Differential-mode stats, summed per band as results arrive. */
-  readonly differential: DifferentialStats | undefined;
   settled: boolean;
   resolve: (frame: SemanticFrame) => void;
   reject: (error: unknown) => void;
@@ -181,8 +141,6 @@ class TilePoolImpl implements TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
-    classifierMode?: ClassifierMode,
-    perfCounters?: boolean,
   ): Promise<SemanticFrame> {
     throwIfAborted(signal);
     if (this.#active !== undefined) {
@@ -194,8 +152,18 @@ class TilePoolImpl implements TilePool {
     throwIfAborted(signal);
 
     return this.#workerCount === 1
-      ? this.#classifyInProcess(request, quality, signal, classifierMode, perfCounters === true)
-      : this.#classifyTiled(request, quality, signal, classifierMode, perfCounters === true);
+      ? this.#classifyInProcess(request, quality, signal)
+      : this.#classifyTiled(request, quality, signal);
+  }
+
+  public async quiesce(): Promise<void> {
+    // A running job's drain is not a cancelled job's: a new job starts only
+    // after the previous drain settled (or the pool reset), so when the
+    // current drain belongs to the active job there is nothing left to wait
+    // for, and waiting would reset the pool under the running job.
+    const drain = this.#drain;
+    if (drain === undefined || drain.generation === this.#active?.generation) return;
+    await this.#awaitChildDrain();
   }
 
   public dispose(): void {
@@ -208,28 +176,8 @@ class TilePoolImpl implements TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
-    classifierMode?: ClassifierMode,
-    perfCounters = false,
   ): Promise<SemanticFrame> {
-    const mirrorPlan =
-      request.conjugateMirror !== false
-        ? planConjugateMirror(request.viewport, request.size)
-        : undefined;
-    const band = await classifyRows(
-      request,
-      quality,
-      1,
-      0,
-      request.size.height,
-      signal,
-      classifierMode,
-      request.yieldMechanism,
-      undefined,
-      {
-        perfCounters,
-        mirrorPlan,
-      },
-    );
+    const band = await classifyRows(request, quality, 1, 0, request.size.height, signal);
     throwIfAborted(signal);
     const semanticBand: SemanticBand = {
       y0: 0,
@@ -238,21 +186,13 @@ class TilePoolImpl implements TilePool {
       smoothIterationOrMultiplierMagnitude: band.smoothIterationOrMultiplierMagnitude,
       multiplierAngle: band.multiplierAngle,
     };
-    let timing = band.timing;
-    if (mirrorPlan !== undefined) {
-      const mirrorStarted = performance.now();
-      applyConjugateMirror(mirrorPlan, [semanticBand], request.size.width);
-      timing = { ...timing, classifyMs: timing.classifyMs + (performance.now() - mirrorStarted) };
-    }
     return {
       stage: 'stable',
       size: request.size,
       sampleStride: 1,
       bands: [semanticBand],
       progress: 1,
-      timing,
-      ...(band.differential === undefined ? {} : { differential: band.differential }),
-      ...(band.counters === undefined ? {} : { counters: band.counters }),
+      timing: band.timing,
     };
   }
 
@@ -260,39 +200,13 @@ class TilePoolImpl implements TilePool {
     request: DynamicsRenderRequest,
     quality: RenderQuality,
     signal: AbortSignal,
-    classifierMode?: ClassifierMode,
-    perfCounters = false,
   ): Promise<SemanticFrame> {
     const workers = this.#ensureWorkers();
-    // Conjugate mirroring (workstream M, default on). When the computed rows
-    // are a leading prefix [0, R) (always true for center.im === 0, where
-    // R = ceil(height / 2); the PR #15 / 138a31b scheduling design), bands
-    // are dispatched over those R rows only and one undispatched tail band
-    // [R, height) is filled by the supervisor's mirror. Otherwise (a lucky
-    // exact-pair view with unpaired rows at the bottom) every band is
-    // dispatched and workers skip their mirrored rows in place.
-    const mirrorPlan =
-      request.conjugateMirror !== false
-        ? planConjugateMirror(request.viewport, request.size)
-        : undefined;
-    const computedRows = mirrorPlan === undefined ? undefined : computedPrefixRows(mirrorPlan);
-    const dispatchBands = splitRowBands(
-      computedRows ?? request.size.height,
-      workers.length * BANDS_PER_WORKER,
-    );
-    const bands: readonly RowBand[] =
-      computedRows === undefined
-        ? dispatchBands
-        : [...dispatchBands, { y0: computedRows, y1: request.size.height }];
-    const dispatchOrder =
-      request.bandOrder === 'legacy'
-        ? dispatchBands.map((_, index) => index)
-        : orderRowBandsForDispatch(dispatchBands, request.size.height, workers.length);
+    const bands = splitRowBands(request.size.height, workers.length * BANDS_PER_WORKER);
+    const dispatchOrder = orderRowBandsForDispatch(bands, request.size.height, workers.length);
     const generation = ++this.#generation;
-    const frameOutput = request.frameOutput ?? 'zero-copy';
-    // Zero-copy: per-band buffers are the frame storage and travel to the
-    // tile worker as transferable views. Legacy-merge: workers allocate and
-    // the supervisor copies; storage below receives the results.
+    // Per-band buffers are the frame storage and travel to the tile worker as
+    // transferable views; the returned views become the frame storage.
     const bandStorage = bands.map((band) =>
       allocateBandStorage((band.y1 - band.y0) * request.size.width),
     );
@@ -306,23 +220,16 @@ class TilePoolImpl implements TilePool {
         },
         request,
         quality,
-        ...(classifierMode === undefined ? {} : { classifierMode }),
-        perfCounters,
-        mirrorPlan,
-        workersSkipMirroredRows: computedRows === undefined && mirrorPlan !== undefined,
         bands,
-        expectedJobs: dispatchBands.length,
+        expectedJobs: bands.length,
         received: new Map(),
         startedAt: performance.now(),
         dispatchOrder,
         assignment: new Map(),
-        frameOutput,
         bandStorage,
         nextDispatch: 0,
-        bandsElapsedMs: new Array<number>(dispatchBands.length).fill(Number.NaN),
+        bandsElapsedMs: new Array<number>(bands.length).fill(Number.NaN),
         mergeCpuMs: 0,
-        counters: perfCounters ? createPerfCounters() : undefined,
-        differential: classifierMode === 'differential' ? createDifferentialStats() : undefined,
         settled: false,
         resolve,
         reject,
@@ -364,19 +271,16 @@ class TilePoolImpl implements TilePool {
       throw new Error(`band ${bandIndex} missing for generation ${active.generation}`);
     }
     if (worker === undefined) throw new Error(`worker ${workerIndex} missing`);
-    active.assignment.set(bandIndex, workerIndex);
-    const zeroCopy = active.frameOutput === 'zero-copy';
     const storage = active.bandStorage[bandIndex];
-    const bandOutput =
-      zeroCopy && storage !== undefined
-        ? {
-            y0: band.y0,
-            y1: band.y1,
-            packedStatusPeriod: storage.packedStatusPeriod,
-            smoothIterationOrMultiplierMagnitude: storage.smoothIterationOrMultiplierMagnitude,
-            multiplierAngle: storage.multiplierAngle,
-          }
-        : undefined;
+    if (storage === undefined) throw new Error(`band ${bandIndex} storage missing`);
+    active.assignment.set(bandIndex, workerIndex);
+    const bandOutput = {
+      y0: band.y0,
+      y1: band.y1,
+      packedStatusPeriod: storage.packedStatusPeriod,
+      smoothIterationOrMultiplierMagnitude: storage.smoothIterationOrMultiplierMagnitude,
+      multiplierAngle: storage.multiplierAngle,
+    };
     const message: SupervisorToTileMessage = {
       type: 'tile-classify',
       generation: active.generation,
@@ -386,30 +290,17 @@ class TilePoolImpl implements TilePool {
       y0: band.y0,
       y1: band.y1,
       quality: active.quality,
-      ...(active.classifierMode === undefined ? {} : { classifierMode: active.classifierMode }),
-      ...(active.request.yieldMechanism === undefined
-        ? {}
-        : { yieldMechanism: active.request.yieldMechanism }),
-      ...(active.perfCounters ? { perfCounters: true } : {}),
-      // Only in the in-place fallback; with prefix scheduling workers never
-      // see a mirrored row and need no flag.
-      ...(active.workersSkipMirroredRows ? { conjugateMirror: true as const } : {}),
-      ...(bandOutput === undefined ? {} : { bandOutput }),
-      ...(bandOutput === undefined ? {} : { outputRevision: PACKED_OUTPUT_REVISION }),
+      bandOutput,
+      outputRevision: PACKED_OUTPUT_REVISION,
     };
-    // Zero-copy transfers the band storage to the worker; it returns with
-    // the result. The supervisor never touches these buffers in between —
-    // they are detached until the result arrives.
-    worker.postMessage(
-      message,
-      bandOutput === undefined
-        ? []
-        : [
-            bandOutput.packedStatusPeriod.buffer,
-            bandOutput.smoothIterationOrMultiplierMagnitude.buffer,
-            bandOutput.multiplierAngle.buffer,
-          ],
-    );
+    // The band storage is transferred to the worker; it returns with the
+    // result. The supervisor never touches these buffers in between — they
+    // are detached until the result arrives.
+    worker.postMessage(message, [
+      bandOutput.packedStatusPeriod.buffer,
+      bandOutput.smoothIterationOrMultiplierMagnitude.buffer,
+      bandOutput.multiplierAngle.buffer,
+    ]);
     this.#drain?.remaining.add(bandIndex);
   }
 
@@ -452,73 +343,30 @@ class TilePoolImpl implements TilePool {
     }
 
     const mergeStarted = performance.now();
-    const storage = current.bandStorage[message.jobId];
-    if (storage === undefined) {
+    if (current.bandStorage[message.jobId] === undefined) {
       this.#failActive(new Error(`band ${message.jobId} storage missing`));
       return;
     }
-    if (current.frameOutput === 'zero-copy') {
-      // The returned views ARE the frame storage: no copy. They are the
-      // transferred band buffers, re-owned by the supervisor on arrival.
-      storage.packedStatusPeriod = message.packedStatusPeriod;
-      storage.smoothIterationOrMultiplierMagnitude = message.smoothIterationOrMultiplierMagnitude;
-      storage.multiplierAngle = message.multiplierAngle;
-    } else {
-      // Legacy-merge measurement arm: copy the worker's output into the
-      // supervisor-owned frame storage (the merge memcpy the zero-copy path
-      // removes).
-      storage.packedStatusPeriod.set(message.packedStatusPeriod);
-      storage.smoothIterationOrMultiplierMagnitude.set(
-        message.smoothIterationOrMultiplierMagnitude,
-      );
-      storage.multiplierAngle.set(message.multiplierAngle);
-    }
+    // The returned views ARE the frame storage: no copy. They are the
+    // transferred band buffers, re-owned by the supervisor on arrival.
+    current.bandStorage[message.jobId] = {
+      packedStatusPeriod: message.packedStatusPeriod,
+      smoothIterationOrMultiplierMagnitude: message.smoothIterationOrMultiplierMagnitude,
+      multiplierAngle: message.multiplierAngle,
+    };
     current.mergeCpuMs += performance.now() - mergeStarted;
     current.received.set(message.jobId, message);
     current.bandsElapsedMs[message.jobId] = performance.now() - current.startedAt;
-    // Opt-in plan §8 counters and differential stats arrive per band; the
-    // frame-level record is the per-band sum, accumulated once here.
-    if (current.counters !== undefined && message.counters !== undefined) {
-      accumulatePerfCounters(current.counters, message.counters);
-    }
-    if (current.differential !== undefined && message.differential !== undefined) {
-      accumulateDifferentialStats(current.differential, message.differential);
-    }
     if (current.received.size === current.expectedJobs) {
       this.#finishActive((job) => {
         const results = [...job.received.values()];
-        const frame = frameFromBands(
-          job.request,
-          job.bands,
-          job.bandStorage,
-          1,
-          {
-            classifyMs: performance.now() - job.startedAt,
-            yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
-            yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
-            bandsElapsedMs: [...job.bandsElapsedMs],
-            mergeCpuMs: job.mergeCpuMs,
-          },
-          job.counters,
-          job.differential,
-        );
-        const timing = frame.timing;
-        if (job.mirrorPlan !== undefined && timing !== undefined) {
-          // Single-threaded fill after every band has returned: all band
-          // buffers are supervisor-owned here, so there is no worker race.
-          const mirrorStarted = performance.now();
-          applyConjugateMirror(job.mirrorPlan, frame.bands, job.request.size.width);
-          const mirrorMs = performance.now() - mirrorStarted;
-          job.resolve({
-            ...frame,
-            timing: {
-              ...timing,
-              classifyMs: timing.classifyMs + mirrorMs,
-              mergeCpuMs: job.mergeCpuMs + mirrorMs,
-            },
-          });
-          return;
-        }
+        const frame = frameFromBands(job.request, job.bands, job.bandStorage, 1, {
+          classifyMs: performance.now() - job.startedAt,
+          yieldWaitMs: Math.max(0, ...results.map((result) => result.yieldWaitMs)),
+          yieldCount: results.reduce((sum, result) => sum + result.yieldCount, 0),
+          bandsElapsedMs: [...job.bandsElapsedMs],
+          mergeCpuMs: job.mergeCpuMs,
+        });
         job.resolve(frame);
       });
     }

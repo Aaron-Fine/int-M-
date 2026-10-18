@@ -122,93 +122,6 @@ class InspectOnlyRenderer implements Renderer {
 }
 
 describe('RenderWorkerRuntime', () => {
-  it('threads an explicit classifierMode from the render message into the dynamics request', async () => {
-    const requests: DynamicsRenderRequest[] = [];
-    const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
-
-    await runtime.handle({
-      type: 'render',
-      requestId: 1,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-      classifierMode: 'checkpoint',
-    });
-
-    expect(requests).toHaveLength(1);
-    expect(requests[0]?.classifierMode).toBe('checkpoint');
-  });
-
-  it('keeps the default render message free of any classifierMode field', async () => {
-    const requests: DynamicsRenderRequest[] = [];
-    const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
-
-    await runtime.handle({
-      type: 'render',
-      requestId: 1,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-    });
-
-    expect(requests).toHaveLength(1);
-    expect(requests[0]).not.toHaveProperty('classifierMode');
-  });
-
-  it('threads conjugateMirror only when given, defaulting to absent (mirroring on)', async () => {
-    const requests: DynamicsRenderRequest[] = [];
-    const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const runtime = new RenderWorkerRuntime({ postMessage: () => undefined }, renderer);
-    const base = {
-      type: 'render' as const,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability' as const,
-    };
-
-    await runtime.handle({ ...base, requestId: 1 });
-    await runtime.handle({ ...base, requestId: 2, conjugateMirror: false });
-
-    expect(requests).toHaveLength(2);
-    expect(requests[0]).not.toHaveProperty('conjugateMirror');
-    expect(requests[1]?.conjugateMirror).toBe(false);
-  });
-
   it('returns structured inspection evidence', async () => {
     const messages: WorkerToMainMessage[] = [];
     const port: WorkerMessagePort = {
@@ -588,8 +501,6 @@ describe('RenderWorkerRuntime', () => {
       expect.objectContaining({ quality: STABLE_QUALITY }),
       STABLE_QUALITY,
       expect.any(AbortSignal),
-      undefined,
-      false,
     );
     expect(messages.filter((message) => message.type === 'frame')).toEqual([
       expect.objectContaining({ type: 'frame', requestId: 'first', stage: 'coarse' }),
@@ -665,98 +576,195 @@ describe('RenderWorkerRuntime', () => {
       expect.objectContaining({ type: 'frame', stage: 'stable' }),
     );
   });
+});
 
-  it('threads perfCounters into the dynamics request and counters onto the frame message', async () => {
-    const countersFrame = (size: RasterSize): SemanticFrame => ({
-      ...semanticFrame(size),
-      counters: {
-        lagComparisons: 7,
-        proposals: 3,
-        analyticPathHits: 0,
-        rejectsNoClosure: 1,
-        rejectsNotAttracting: 0,
-        rejectsNonFinite: 0,
-        rejectsAmbiguous: 0,
-        checkpointRolls: 2,
-        reArms: 1,
-        systematic1to4: 4,
-        systematic5to8: 0,
-        systematic9to12: 0,
-        systematic13Plus: 0,
-        opportunistic1to4: 0,
-        opportunistic5to8: 0,
-        opportunistic9to12: 0,
-        opportunistic13Plus: 0,
-        escaped: 0,
-        attracting: size.width * size.height,
-        unresolved: 0,
-      },
-    });
-    const requests: DynamicsRenderRequest[] = [];
+describe('RenderWorkerRuntime delivery provenance and cancellation lifecycle', () => {
+  type FrameOut = Extract<WorkerToMainMessage, { type: 'frame' }>;
+  const framesOf = (messages: readonly WorkerToMainMessage[]): FrameOut[] =>
+    messages.filter((message): message is FrameOut => message.type === 'frame');
+  const inspect = (): OrbitResult => ({
+    status: 'unresolved',
+    iterations: 1,
+    evidence: ['iteration-limit'],
+  });
+  const dynamics = {
+    viewport: { center: { re: 0, im: 0 }, spanY: 3 },
+    size: { width: 2, height: 2 },
+  };
+
+  it('freshFrames_shareOneComputeIdAndCarryWorkerWallAndClassifyTiming', async () => {
+    const messages: WorkerToMainMessage[] = [];
     const renderer: Renderer = {
-      inspect: () => ({
-        status: 'unresolved',
-        iterations: 1,
-        evidence: ['iteration-limit'],
-      }),
+      inspect,
       render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(countersFrame(request.size));
+        await onFrame({
+          ...semanticFrame(request.size, 'coarse'),
+          timing: { classifyMs: 3, yieldWaitMs: 0, yieldCount: 0 },
+        });
+        await onFrame({
+          ...semanticFrame(request.size),
+          timing: { classifyMs: 9, yieldWaitMs: 1, yieldCount: 2 },
+        });
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer);
+
+    await runtime.handle({ type: 'render', requestId: 1, semanticView: 'period', ...dynamics });
+    await runtime.handle({
+      type: 'render',
+      requestId: 2,
+      semanticView: 'period',
+      ...dynamics,
+      viewport: { ...dynamics.viewport, spanY: 2 },
+    });
+
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'computed',
+      'computed',
+      'computed',
+    ]);
+    const ids = frames.map((frame) =>
+      frame.provenance.source === 'computed' ? frame.provenance.computeId : undefined,
+    );
+    expect(ids[0]).toEqual(ids[1]);
+    expect(ids[2]).toEqual(ids[3]);
+    expect(ids[2]).toBeGreaterThan(ids[0] ?? Number.POSITIVE_INFINITY);
+    for (const frame of frames) {
+      expect(frame.provenance).toHaveProperty('workerWallMs');
+      expect(frame.provenance).not.toHaveProperty('originComputeId');
+      expect(frame.workerTiming?.classifyMs).toBeDefined();
+    }
+  });
+
+  it('cacheHits_areSemanticCacheInTheSameViewAndRecolorInAnotherWithoutComputeTiming', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const renderer: Renderer = {
+      inspect,
+      render: async (request, _signal, onFrame) => {
+        await onFrame({
+          ...semanticFrame(request.size),
+          timing: { classifyMs: 9, yieldWaitMs: 1, yieldCount: 2 },
+        });
+      },
+      colorize,
+    };
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer);
+
+    await runtime.handle({ type: 'render', requestId: 1, semanticView: 'period', ...dynamics });
+    await runtime.handle({ type: 'render', requestId: 2, semanticView: 'period', ...dynamics });
+    await runtime.handle({ type: 'render', requestId: 3, semanticView: 'multiplier', ...dynamics });
+    await runtime.handle({ type: 'render', requestId: 4, semanticView: 'multiplier', ...dynamics });
+
+    const frames = framesOf(messages);
+    const computed = frames[0]?.provenance;
+    expect(computed?.source).toEqual('computed');
+    const computeId = computed?.source === 'computed' ? computed.computeId : -1;
+    expect(frames.slice(1).map((frame) => frame.provenance)).toEqual([
+      { source: 'semantic-cache', originComputeId: computeId },
+      { source: 'recolor', originComputeId: computeId },
+      { source: 'semantic-cache', originComputeId: computeId },
+    ]);
+    for (const frame of frames.slice(1)) {
+      // Colorization ran; classification did not, and is absent, not zero.
+      expect(frame.workerTiming?.colorizeMs).toBeGreaterThanOrEqual(0);
+      expect(frame.workerTiming).not.toHaveProperty('classifyMs');
+      expect(frame.workerTiming).not.toHaveProperty('yieldWaitMs');
+    }
+  });
+
+  it('inflightReplay_reusesTheActiveComputationAndLaterFramesKeepItsComputeId', async () => {
+    let onFrame: SemanticFrameConsumer | undefined;
+    let finish: () => void = () => undefined;
+    const renderer: Renderer = {
+      inspect,
+      render: async (request, _signal, consumer) => {
+        await consumer(semanticFrame(request.size, 'coarse'));
+        onFrame = consumer;
+        await new Promise<void>((resolve) => {
+          finish = resolve;
+        });
       },
       colorize,
     };
     const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime({ postMessage: (m) => messages.push(m) }, renderer);
+
+    const first = runtime.handle({
+      type: 'render',
+      requestId: 'a',
+      semanticView: 'period',
+      ...dynamics,
+    });
+    await runtime.handle({ type: 'render', requestId: 'b', semanticView: 'period', ...dynamics });
+    await onFrame?.(semanticFrame(dynamics.size));
+    finish();
+    await first;
+
+    const frames = framesOf(messages);
+    const original = frames[0]?.provenance;
+    const computeId = original?.source === 'computed' ? original.computeId : -1;
+    expect(frames.map((frame) => [frame.requestId, frame.stage, frame.provenance])).toEqual([
+      ['a', 'coarse', expect.objectContaining({ source: 'computed', computeId })],
+      ['b', 'coarse', { source: 'inflight-replay', originComputeId: computeId }],
+      ['b', 'stable', expect.objectContaining({ source: 'computed', computeId })],
+    ]);
+  });
+
+  it('explicitCancel_postsAckImmediatelyAndQuiescenceOnlyAfterTheRendererQuiesces', async () => {
+    const pending = createPendingPool();
+    let releaseChildren: () => void = () => undefined;
+    const quiesce = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseChildren = resolve;
+        }),
+    );
+    const messages: WorkerToMainMessage[] = [];
     const runtime = new RenderWorkerRuntime(
-      { postMessage: (message) => messages.push(message) },
-      renderer,
+      { postMessage: (m) => messages.push(m) },
+      new CpuRenderer({ ...pending.pool, quiesce }),
     );
 
-    await runtime.handle({
+    const renderHandle = runtime.handle({
       type: 'render',
-      requestId: 1,
+      requestId: 'slow',
       viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
-      perfCounters: true,
+      size: { width: 4, height: 2 },
+      quality: STABLE_QUALITY,
+      semanticView: 'period',
     });
-    expect(requests).toHaveLength(1);
-    expect(requests[0]?.perfCounters).toBe(true);
-    const frameMessage = messages.find(
-      (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
-        message.type === 'frame',
-    );
-    expect(frameMessage?.counters?.attracting).toBe(4);
-    expect(frameMessage?.differential).toBeUndefined();
+    await waitFor(pending.started, 'classifyStable');
+    await runtime.handle({ type: 'cancel', requestId: 'slow' });
 
-    // Default path: no perfCounters on the request, and a counters-less
-    // frame produces a frame message without the counters field
-    // (byte-identical messages).
-    messages.length = 0;
-    requests.length = 0;
-    const plainRenderer: Renderer = {
-      inspect: (point, quality) => renderer.inspect(point, quality),
-      render: async (request, _signal, onFrame) => {
-        requests.push(request);
-        await onFrame(semanticFrame(request.size));
-      },
-      colorize,
-    };
-    const plainRuntime = new RenderWorkerRuntime(
-      { postMessage: (message) => messages.push(message) },
-      plainRenderer,
-    );
-    await plainRuntime.handle({
-      type: 'render',
-      requestId: 2,
-      viewport: { center: { re: 0, im: 0 }, spanY: 3 },
-      size: { width: 2, height: 2 },
-      semanticView: 'stability',
+    expect(messages).toContainEqual({ type: 'cancel-ack', requestId: 'slow' });
+    await vi.waitFor(() => {
+      expect(quiesce).toHaveBeenCalledOnce();
     });
-    expect(requests[0]).not.toHaveProperty('perfCounters');
-    const defaultFrame = messages.find(
-      (message): message is Extract<WorkerToMainMessage, { type: 'frame' }> =>
-        message.type === 'frame',
+    expect(messages).not.toContainEqual({ type: 'cancelled', requestId: 'slow' });
+
+    releaseChildren();
+    await renderHandle;
+    const lifecycle = messages
+      .filter((message) => message.type === 'cancel-ack' || message.type === 'cancelled')
+      .map((message) => message.type);
+    expect(lifecycle).toEqual(['cancel-ack', 'cancelled']);
+  });
+
+  it('cancelForWorkNotRunning_acknowledgesAndReportsQuiescenceAtOnce', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      { inspect, render: () => Promise.resolve(), colorize },
     );
-    expect(defaultFrame).not.toHaveProperty('counters');
+
+    await runtime.handle({ type: 'cancel', requestId: 'finished' });
+
+    expect(messages).toEqual([
+      { type: 'cancel-ack', requestId: 'finished' },
+      { type: 'cancelled', requestId: 'finished' },
+    ]);
   });
 });

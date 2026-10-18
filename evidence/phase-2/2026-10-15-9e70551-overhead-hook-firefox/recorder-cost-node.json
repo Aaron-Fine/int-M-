@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "measurement": "render-trace-ring recorder cost per frame/request/snapshot",
+  "label": "directional Node/V8 microbenchmark of the production ring; browser-side overhead is bounded end-to-end by tools/benchmark/run-overhead.mjs",
+  "worstShape": {
+    "framesPerRequest": 2,
+    "bandsElapsedMsLength": 16,
+    "raster": "1024x640"
+  },
+  "ringCapacity": 32,
+  "measured": {
+    "warmupFrames": 2000,
+    "measuredFrames": 20000,
+    "measuredRequests": 4000,
+    "recordFrameMeanUs": 1.1605742999999997,
+    "ringCallMeanUs": 3.306393916666667,
+    "snapshotPerTraceMeanUs": 0.20165906250000143
+  },
+  "budget": {
+    "perFrameBudgetMs": 0.2,
+    "perFrameBudgetUs": 200
+  },
+  "verdict": "within ≤0.2 ms/frame budget (directional)"
+}

@@ -48,7 +48,7 @@ const compareRow = (
   const columns = new Float64Array(width);
   prepareRealColumns(transform, width, 1, columns);
   const kernel = new TriggeredRowKernel(options);
-  const scalar = new OrbitClassifier({ ...options, classifierMode: 'triggered-scan' });
+  const scalar = new OrbitClassifier(options);
   const sample = createOrbitSample();
   const packed = new Uint32Array(width * height);
   const primary = new Float64Array(width * height);

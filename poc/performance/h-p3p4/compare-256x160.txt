@@ -1,0 +1,17 @@
+mi-easy-default-full             prod    5.12 ms  proto    4.71 ms  x  1.09  {"prod-unresolved->alg-p3":46,"oracle-confirms":78,"agree-p3":184,"prod-unresolved->alg-p4":32,"agree-p4":64}
+mi-easy-exterior-heavy           prod    3.02 ms  proto    2.86 ms  x  1.06  {}
+mi-easy-main-cardioid            prod    3.12 ms  proto    2.71 ms  x  1.15  {}
+mi-easy-period2-bulb             prod    2.43 ms  proto    2.01 ms  x  1.21  {}
+mi-hard-rabbit-boundary          prod   24.92 ms  proto   11.98 ms  x  2.08  {"prod-unresolved->alg-p3":1608,"oracle-confirms":1608,"agree-p3":6382}
+mi-hard-supplied-126x            prod   31.23 ms  proto   17.99 ms  x  1.74  {"prod-unresolved->alg-p4":799,"oracle-confirms":799,"agree-p4":4529}
+mi-hard-supplied-609x            prod   12.52 ms  proto    8.89 ms  x  1.41  {"prod-unresolved->alg-p4":234,"oracle-confirms":234,"agree-p4":1512}
+mi-hard-supplied-13x             prod   22.55 ms  proto   13.20 ms  x  1.71  {"prod-unresolved->alg-p4":563,"oracle-confirms":563,"agree-p4":3646}
+mi-fallback-unknown-high-period  prod   70.42 ms  proto   70.41 ms  x  1.00  {}
+mi-fallback-weak-attraction      prod  116.05 ms  proto    2.54 ms  x 45.69  {"prod-unresolved->alg-p3":1079,"oracle-confirms":1079,"agree-p3":39881}
+mi-fallback-ambiguous-boundary   prod    7.71 ms  proto    8.03 ms  x  0.96  {}
+mi-fallback-budget-exhaustion    prod   82.29 ms  proto   80.76 ms  x  1.02  {}
+mi-scale-6mx-basilica-rim        prod   72.26 ms  proto    8.13 ms  x  8.89  {"prod-unresolved->alg-p4":20480,"oracle-confirms":20480}
+agreeing algebraic pixels 56198; worst |Δλ| 2.16e-6, worst Δ|λ| 1.89e-6, worst Δarg 2.31e-6 rad
+microbench ns/pixel: tryP3 on 46447 p3 pixels 63.5; tryP4 on 9751 p4 pixels 326.8
+stats {"p3Tried":1062021,"p3Refused":21056,"p4Tried":399553,"p4Refused":30275,"p4RefusedByErr":0}
+corpus sum: prod 453.7 ms, proto 234.2 ms, saving 48.4%

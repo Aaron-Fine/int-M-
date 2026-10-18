@@ -98,7 +98,7 @@ export const runParity = async (
     const sizes = [options.parityRaster];
     if (options.shippingCaseIds.includes(corpusCase.id)) sizes.push(options.shippingRaster);
     for (const size of sizes) {
-      const spec = makeSpec(corpusCase, size, { diagnostics: true, collectCounters: false });
+      const spec = makeSpec(corpusCase, size, { diagnostics: true });
       options.log(`parity ${corpusCase.id} @ ${rasterLabel(size)}: baseline`);
       const base = await materialize(baseline, spec);
       for (const candidate of candidates) {

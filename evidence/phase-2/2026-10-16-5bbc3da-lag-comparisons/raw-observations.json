@@ -1,0 +1,132 @@
+{
+  "description": "Lag comparisons per corpus case: legacy-scan instrumented counter vs a pixel-checked counting replica of the watched-lag kernel",
+  "raster": {
+    "width": 1024,
+    "height": 640
+  },
+  "rows": [
+    {
+      "caseId": "mi-easy-default-full",
+      "designation": "screening",
+      "profile": "Balanced",
+      "legacyComparisons": 99064636,
+      "triggeredComparisons": 5125978,
+      "reductionPct": 94.82562273786581,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-easy-exterior-heavy",
+      "designation": "screening",
+      "profile": "Balanced",
+      "legacyComparisons": 0,
+      "triggeredComparisons": 0,
+      "reductionPct": 0,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-easy-main-cardioid",
+      "designation": "screening",
+      "profile": "Balanced",
+      "legacyComparisons": 454396,
+      "triggeredComparisons": 24840,
+      "reductionPct": 94.53340258276921,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-easy-period2-bulb",
+      "designation": "screening",
+      "profile": "Balanced",
+      "legacyComparisons": 0,
+      "triggeredComparisons": 0,
+      "reductionPct": 0,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-hard-rabbit-boundary",
+      "designation": "release-gate",
+      "profile": "Balanced",
+      "legacyComparisons": 1343250967,
+      "triggeredComparisons": 68847821,
+      "reductionPct": 94.874537767595,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-hard-supplied-126x",
+      "designation": "release-gate",
+      "profile": "Detailed",
+      "legacyComparisons": 2962752405,
+      "triggeredComparisons": 90915205,
+      "reductionPct": 96.93139376592625,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-hard-supplied-609x",
+      "designation": "release-gate",
+      "profile": "Detailed",
+      "legacyComparisons": 902132075,
+      "triggeredComparisons": 28229198,
+      "reductionPct": 96.8708353485824,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-hard-supplied-13x",
+      "designation": "release-gate",
+      "profile": "Detailed",
+      "legacyComparisons": 2264821746,
+      "triggeredComparisons": 68783590,
+      "reductionPct": 96.96295789629,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-fallback-unknown-high-period",
+      "designation": "release-gate",
+      "profile": "Balanced",
+      "legacyComparisons": 4435553664,
+      "triggeredComparisons": 226290668,
+      "reductionPct": 94.89825430731166,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-fallback-weak-attraction",
+      "designation": "release-gate",
+      "profile": "Balanced",
+      "legacyComparisons": 8137709224,
+      "triggeredComparisons": 371317659,
+      "reductionPct": 95.43707388923535,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-fallback-ambiguous-boundary",
+      "designation": "release-gate",
+      "profile": "Balanced",
+      "legacyComparisons": 205030506,
+      "triggeredComparisons": 11103051,
+      "reductionPct": 94.58468341291612,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-fallback-budget-exhaustion",
+      "designation": "release-gate",
+      "profile": "Balanced",
+      "legacyComparisons": 5542619776,
+      "triggeredComparisons": 270333332,
+      "reductionPct": 95.12264339021476,
+      "replicaMismatches": 0
+    },
+    {
+      "caseId": "mi-scale-6mx-basilica-rim",
+      "designation": "release-gate",
+      "profile": "Balanced",
+      "legacyComparisons": 5112791040,
+      "triggeredComparisons": 230686720,
+      "reductionPct": 95.48804717041594,
+      "replicaMismatches": 0
+    }
+  ],
+  "total": {
+    "legacyComparisons": 31006180435,
+    "triggeredComparisons": 1371658062,
+    "reductionPct": 95.57617854648211
+  },
+  "replicaMismatches": 0
+}

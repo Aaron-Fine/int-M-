@@ -55,27 +55,11 @@ describe('parseBenchmarkParams', () => {
     expect(parseBenchmarkParams('?perf=').perfEnabled).toBe(false);
   });
 
-  it('enables the plan §8 counters sub-mode only under ?perf=1&perfCounters=1', () => {
-    expect(parseBenchmarkParams('?perf=1&perfCounters=1').perfCounters).toBe(true);
-    expect(parseBenchmarkParams('?perf=1').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('?perfCounters=1').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('?perf=0&perfCounters=1').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('?perf=1&perfCounters=0').perfCounters).toBeUndefined();
-    expect(parseBenchmarkParams('').perfCounters).toBeUndefined();
-  });
-
-  it('accepts exactly the frozen classifier mode vocabulary', () => {
-    expect(parseBenchmarkParams('?classifierMode=legacy-scan').classifierMode).toBe('legacy-scan');
-    expect(parseBenchmarkParams('?classifierMode=checkpoint').classifierMode).toBe('checkpoint');
-    expect(parseBenchmarkParams('?classifierMode=differential').classifierMode).toBe(
-      'differential',
+  it('ignores retired renderer parameters from old URLs', () => {
+    const parsed = parseBenchmarkParams(
+      '?perf=1&classifierMode=legacy-scan&perfCounters=1&bandOrder=legacy&yieldMechanism=timeout&frameOutput=legacy-merge&conjugateMirror=0&retiredFlag=1',
     );
-    expect(parseBenchmarkParams('?classifierMode=triggered-scan').classifierMode).toBe(
-      'triggered-scan',
-    );
-    expect(parseBenchmarkParams('?classifierMode=Checkpoint').classifierMode).toBeUndefined();
-    expect(parseBenchmarkParams('?classifierMode=bogus').classifierMode).toBeUndefined();
-    expect(parseBenchmarkParams('?classifierMode=').classifierMode).toBeUndefined();
+    expect(parsed).toEqual({ perfEnabled: true });
   });
 
   it('accepts exactly the shipping quality profile ids', () => {
@@ -88,21 +72,17 @@ describe('parseBenchmarkParams', () => {
 
   it('parses every validated parameter together and ignores invalid ones', () => {
     const params = parseBenchmarkParams(
-      '?perf=1&classifierMode=checkpoint&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed',
+      '?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed',
     );
     expect(params.perfEnabled).toBe(true);
-    expect(params.classifierMode).toBe('checkpoint');
     expect(params.viewport).toEqual({
       center: { re: -0.158902249, im: -1.034028 },
       spanY: Number('0.019841269841269841269'),
     });
     expect(params.qualityProfile).toBe('detailed');
 
-    const partlyInvalid = parseBenchmarkParams(
-      '?perf=1&classifierMode=bogus&view=not-a-view&quality=detailed',
-    );
+    const partlyInvalid = parseBenchmarkParams('?perf=1&view=not-a-view&quality=detailed');
     expect(partlyInvalid.perfEnabled).toBe(true);
-    expect(partlyInvalid.classifierMode).toBeUndefined();
     expect(partlyInvalid.viewport).toBeUndefined();
     expect(partlyInvalid.qualityProfile).toBe('detailed');
   });

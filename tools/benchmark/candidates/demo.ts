@@ -13,7 +13,7 @@
  * - demo-semantic-no-certificate: same conversion without a certificate
  *   (must FAIL).
  */
-import { LEGACY_REFERENCE_OPTIONS, productionCandidate } from './support';
+import { productionCandidate } from './support';
 import type { Candidate, CaseRenderSpec, RenderedFrame, SemanticFields } from './types';
 
 const firstIndex = (status: Uint8Array, code: number): number => status.indexOf(code);
@@ -44,8 +44,6 @@ const wrongPeriod = (): Candidate =>
     productionCandidate({
       id: 'inner',
       description: 'inner',
-      requestOptions: LEGACY_REFERENCE_OPTIONS,
-      diagnosticMode: 'legacy-scan',
     }),
     { id: 'demo-wrong-period', description: 'DEMO (must fail): period + 1 for one pixel.' },
     (fields) => {
@@ -59,8 +57,6 @@ const semantic = (withCertificate: boolean): Candidate => {
   const inner = productionCandidate({
     id: 'inner',
     description: 'inner',
-    requestOptions: LEGACY_REFERENCE_OPTIONS,
-    diagnosticMode: 'legacy-scan',
   });
   return {
     ...withMutation(
@@ -98,8 +94,6 @@ export const createDemoCandidates = (): readonly Candidate[] => [
   productionCandidate({
     id: 'baseline-clone',
     description: 'Control: identical to baseline (CI must contain 1.0).',
-    requestOptions: LEGACY_REFERENCE_OPTIONS,
-    diagnosticMode: 'legacy-scan',
   }),
   wrongPeriod(),
   semantic(true),

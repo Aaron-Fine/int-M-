@@ -1,11 +1,10 @@
-import type { Complex, DifferentialStats, EvidenceSource } from '../domain';
+import type { Complex, EvidenceSource } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
   MainToWorkerMessage,
   WorkerToMainMessage,
 } from '../worker/protocol';
-import type { PerfCounters } from '../render/perf-counters';
 import {
   complexToPixel,
   panViewport,
@@ -41,6 +40,7 @@ import { RendererWorkerClient } from './renderer-worker-client';
 import {
   createRenderTraceRing,
   expectedWorkerCount,
+  frameDelivery,
   viewKeyHash,
   type RenderTrace,
 } from './worker-timing-marks';
@@ -59,8 +59,6 @@ interface ApplicationState {
   selectedPoint?: Complex;
   selectedCatalogId?: string;
   requestStartedAtMs: number;
-  cancelRequestedAtMs: number;
-  cancelRequestedRequestId: number;
 }
 
 interface CanvasPoint {
@@ -81,16 +79,13 @@ declare global {
     /**
      * Opt-in (?perf=1) render-trace diagnostic boundary, performance plan §8.
      * Absent unless requested; exposes the bounded ring's snapshot, the most
-     * recently completed trace, the live viewport, and (with
-     * `?perf=1&perfCounters=1`) the last stable frame's diagnostics counters
-     * for the Stage A evidence harness.
+     * recently completed trace and the live viewport for the evidence
+     * harnesses.
      */
     __miRenderTrace?: {
       readonly snapshot: () => readonly RenderTrace[];
       readonly viewport: () => Viewport;
       lastTrace: RenderTrace | undefined;
-      lastCounters: PerfCounters | undefined;
-      lastDifferential: DifferentialStats | undefined;
     };
   }
 }
@@ -99,7 +94,7 @@ export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
   // Opt-in benchmark parameters (plan §8/§9): validated query parameters for
   // the Stage A evidence harness. Absent parameters leave every default —
-  // viewport, quality profile, classifier mode, trace hook — untouched.
+  // viewport, quality profile, and trace hook — untouched.
   const benchmark = parseBenchmarkParams(window.location.search);
   let perfHook: NonNullable<Window['__miRenderTrace']> | undefined;
   const renderTraces = createRenderTraceRing({
@@ -134,16 +129,12 @@ export function mountApplication(host: HTMLElement): () => void {
     interactionMode: 'pan',
     qualityProfile: benchmark.qualityProfile ?? DEFAULT_QUALITY_PROFILE_ID,
     requestStartedAtMs: 0,
-    cancelRequestedAtMs: 0,
-    cancelRequestedRequestId: 0,
   };
   if (benchmark.perfEnabled) {
     perfHook = {
       snapshot: () => renderTraces.snapshot(),
       viewport: () => ({ ...state.viewport }),
       lastTrace: undefined,
-      lastCounters: undefined,
-      lastDifferential: undefined,
     };
     window.__miRenderTrace = perfHook;
   }
@@ -516,8 +507,7 @@ export function mountApplication(host: HTMLElement): () => void {
   function scheduleRender(immediate = false): void {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (state.activeRequestId > 0 && state.frameStage !== 'stable') {
-      state.cancelRequestedAtMs = performance.now();
-      state.cancelRequestedRequestId = state.activeRequestId;
+      renderTraces.requestCancellation(state.activeRequestId, performance.now());
       performance.mark('mi:cancellation-requested', {
         detail: { requestId: state.activeRequestId },
       });
@@ -558,15 +548,6 @@ export function mountApplication(host: HTMLElement): () => void {
       size,
       semanticView: state.semanticView,
       quality: quality.quality,
-      ...(benchmark.classifierMode === undefined
-        ? {}
-        : { classifierMode: benchmark.classifierMode }),
-      ...(benchmark.bandOrder === undefined ? {} : { bandOrder: benchmark.bandOrder }),
-      ...(benchmark.yieldMechanism === undefined
-        ? {}
-        : { yieldMechanism: benchmark.yieldMechanism }),
-      ...(benchmark.perfCounters ? { perfCounters: true } : {}),
-      ...(benchmark.conjugateMirror === false ? { conjugateMirror: false } : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,
@@ -600,23 +581,10 @@ export function mountApplication(host: HTMLElement): () => void {
       performance.mark(`mi:${frame.stage}-presented`, {
         detail: { requestId: frame.requestId },
       });
-      renderTraces.recordFrame(frame, {
-        requestToPresentMs: performance.now() - state.requestStartedAtMs,
-        colorizeMs: frame.workerTiming?.colorizeMs,
-        bandsElapsedMs: frame.workerTiming?.bandsElapsedMs,
-        mergeCpuMs: frame.workerTiming?.mergeCpuMs,
-        yieldWaitMs: frame.workerTiming?.yieldWaitMs,
-        yieldCount: frame.workerTiming?.yieldCount,
-        counters: frame.counters,
-        differential: frame.differential,
-      });
-      // Last stable frame's diagnostics counters (plan §8): surfaced through
-      // the __miRenderTrace hook for the Stage A evidence harness. Undefined
-      // unless the request opted in via ?perf=1&perfCounters=1.
-      if (frame.stage === 'stable' && perfHook !== undefined) {
-        perfHook.lastCounters = frame.counters;
-        perfHook.lastDifferential = frame.differential;
-      }
+      renderTraces.recordFrame(
+        frame,
+        frameDelivery(frame, performance.now() - state.requestStartedAtMs),
+      );
     });
 
     if (frame.stage === 'coarse') {
@@ -1061,18 +1029,17 @@ export function mountApplication(host: HTMLElement): () => void {
           message.result.point,
         )}. Outcome: ${message.result.orbit.status.replace('-', ' ')}.`;
         break;
-      case 'cancelled':
+      case 'cancel-ack':
         performance.mark('mi:cancellation-acknowledged', {
           detail: { requestId: message.requestId },
         });
-        if (message.requestId === state.cancelRequestedRequestId && state.cancelRequestedAtMs > 0) {
-          renderTraces.recordCancellation(
-            message.requestId,
-            performance.now() - state.cancelRequestedAtMs,
-          );
-          state.cancelRequestedAtMs = 0;
-          state.cancelRequestedRequestId = 0;
-        }
+        renderTraces.recordCancellationAck(message.requestId, performance.now());
+        break;
+      case 'cancelled':
+        performance.mark('mi:cancellation-quiesced', {
+          detail: { requestId: message.requestId },
+        });
+        renderTraces.recordCancellationQuiesced(message.requestId, performance.now());
         break;
       case 'error':
         break;
@@ -1108,7 +1075,7 @@ export function mountApplication(host: HTMLElement): () => void {
     retryRendererButton.hidden = true;
     workerClient.retry();
   });
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV || import.meta.env.MODE === 'e2e') {
     window.__MI_PHASE1_TEST__ = {
       failRenderer: () => workerClient.simulateUnexpectedFailure(),
     };
@@ -1125,7 +1092,7 @@ export function mountApplication(host: HTMLElement): () => void {
     longTaskObserver?.disconnect();
     document.removeEventListener('keydown', onDocumentKeydown);
     workerClient.dispose();
-    if (import.meta.env.DEV) delete window.__MI_PHASE1_TEST__;
+    if (import.meta.env.DEV || import.meta.env.MODE === 'e2e') delete window.__MI_PHASE1_TEST__;
     delete window.__miRenderTrace;
     perfHook = undefined;
     host.replaceChildren();

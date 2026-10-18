@@ -2,8 +2,6 @@ export * from './cpu-renderer';
 export { RenderCancelledError } from './render-cancelled-error';
 export { semanticRequestKey, SemanticFrameStore } from './semantic-store';
 export type {
-  BandOrder,
-  FrameOutput,
   SemanticBand,
   DynamicsRenderRequest,
   RasterFrame,

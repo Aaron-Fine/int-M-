@@ -67,6 +67,7 @@ const frame = (requestId: number): WorkerToMainMessage => ({
   type: 'frame',
   requestId,
   stage: 'coarse',
+  provenance: { source: 'computed', computeId: 1, workerWallMs: 1 },
   width: 1,
   height: 1,
   rgba: new Uint8ClampedArray([0, 0, 0, 255]),

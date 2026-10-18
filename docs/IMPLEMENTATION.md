@@ -44,7 +44,6 @@ Vite serves the application at `http://127.0.0.1:5173`. The other common command
 | `npm run evidence:cpu`           | Measure the CPU renderer and print environment data      |
 | `npm run poc:perf`               | Run the PoC differential harness (directional evidence)  |
 | `npm run poc:bench:pr2`          | Run the pr2 allocation microbench (directional evidence) |
-| `npm run poc:bench:pr4`          | Run the pr4 checkpoint microbench (directional evidence) |
 | `node tools/measure_ui_path.mjs` | Collect target-device UI-path presentation marks         |
 | `npm run test:unit`              | Run deterministic unit and worker tests                  |
 | `npm run test:browser`           | Run end-to-end tests in Chromium and Firefox             |
@@ -206,17 +205,15 @@ workstream and gate.
 
 - Acceptance is versioned policy: `src/domain/verifier.ts` (revision
   `src-verifier-1.0.0`) is the only code path that writes attracting status.
-  Candidate sources — the PR 4 checkpoint schedule
-  (`src/domain/checkpoint.ts`, revision `src-checkpoint-1.0.0`) and any future
-  catalog, chart, algebra, or Newton path — propose only.
-- The classifier mode is a versioned option (`OrbitOptions.classifierMode`):
-  `'triggered-scan'` (the watched-lag kernel, `src/domain/orbit-triggered.ts`)
-  is the default on this branch, proposed in
-  [ADR 0006](decisions/0006-watched-lag-default-classifier.md) and pending the
-  release-protocol Stage A run; `'legacy-scan'` is the reference mode (judge
-  baseline, `perfCounters` instrumentation), `'checkpoint'` runs the PR 4
-  schedule, and `'differential'` runs both kernels per pixel, reports the
-  legacy answer, and counts disagreements.
+  Candidate sources — any future catalog, chart, algebra, or Newton path —
+  propose only.
+- The classifier is the watched-lag triggered scan
+  (`src/domain/orbit-triggered.ts`), accepted in
+  [ADR 0006](decisions/0006-watched-lag-default-classifier.md) on the
+  release-protocol Stage A run. The `legacy-scan`, checkpoint, and differential
+  modes and the instrumented counting kernel were removed 2026-10-16
+  ([ADR 0007](decisions/0007-remove-reference-kernels.md)); the golden kernel
+  fixture is the bit-level reference for kernel changes.
 - The period policy (`src/domain/period-policy.ts`, revision
   `period-policy-1.0.0`) separates the systematic search budget from
   opportunistic verified discoveries and stamps evidence-source origin
@@ -226,6 +223,17 @@ workstream and gate.
   companion; their results are committed, labeled directional, and are not
   release evidence. Normative runs land under `evidence/phase-2/` per the
   [phase-2 evidence contract](../evidence/phase-2/README.md).
+- Render observability is part of the worker protocol: every frame carries
+  a provenance (`computed` with its `computeId`, or `inflight-replay`,
+  `semantic-cache`, `recolor` with the `originComputeId` it reuses), and
+  cancellation is acknowledged (`cancel-ack`) separately from quiescence
+  (`cancelled`, after every nested tile worker has stopped). The UI maps
+  frames to the bounded trace ring through one adapter (`frameDelivery`).
+- Browser evidence comes from one release harness, `tools/benchmark/run-release.ts`
+  (`npm run evidence:release`); `--release` runs the plan §9 protocol (branded
+  stable browsers, headed, ≥22 repetitions, BCa intervals). `--compare` adds
+  paired arms, and `--resume` continues an interrupted run. Headed runs need
+  an unlocked session; wrap long runs in a screensaver inhibitor.
 
 ## Requirements traceability
 

@@ -3,8 +3,6 @@
  * entry below (see README.md). The BASELINE is not listed here: the judge
  * always supplies it.
  */
-import { checkpoint } from './checkpoint';
-import { triggeredScan } from './triggered-scan';
 import type { Candidate } from './types';
 
-export const CANDIDATES: readonly Candidate[] = [checkpoint, triggeredScan];
+export const CANDIDATES: readonly Candidate[] = [];

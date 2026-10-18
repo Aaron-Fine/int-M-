@@ -1,6 +1,6 @@
 /**
  * Reusable yield scheduler for worker raster loops (plan §5 renderer-path
- * detail "yield mechanism", §12).
+ * detail, §12).
  *
  * Browsers clamp nested timers to a 4 ms minimum after five nesting levels
  * (the HTML timer-nesting rule), so the previous `setTimeout(0)` row yields
@@ -14,12 +14,6 @@
  * bounds its pending queue: callers that exceed the bound resolve on the
  * microtask queue instead of queueing without limit.
  */
-
-export type YieldMechanism = 'message-channel' | 'timeout';
-
-export const DEFAULT_YIELD_MECHANISM: YieldMechanism = 'message-channel';
-
-export const YIELD_MECHANISMS: readonly YieldMechanism[] = ['message-channel', 'timeout'];
 
 /** Never queue more than this many resolvers; overflow resolves as microtasks. */
 export const MAX_PENDING_YIELDS = 64;
@@ -37,18 +31,12 @@ export interface MessageChannelLike {
 }
 
 export interface YieldSchedulerOptions {
-  /**
-   * 'message-channel' (default) posts a port task per drain; 'timeout' uses
-   * `setTimeout(0)` and keeps the 4 ms nested-timer clamp as the measurement
-   * arm for paired evidence.
-   */
-  readonly mechanism?: YieldMechanism;
   /** Test seam: overrides the MessageChannel source. */
   readonly createChannel?: () => MessageChannelLike | undefined;
 }
 
 export interface YieldScheduler {
-  /** Suspends the caller to the macrotask queue (never a timer under the default mechanism). */
+  /** Suspends the caller to the macrotask queue (a port task, not a timer, when MessageChannel exists). */
   yieldToEventLoop(): Promise<void>;
   /** Resolvers waiting for the next port drain. */
   readonly pendingCount: number;
@@ -57,7 +45,6 @@ export interface YieldScheduler {
 }
 
 export const createYieldScheduler = (options: YieldSchedulerOptions = {}): YieldScheduler => {
-  const mechanism = options.mechanism ?? DEFAULT_YIELD_MECHANISM;
   const pending: (() => void)[] = [];
   let scheduled = false;
   let channel: MessageChannelLike | undefined;
@@ -71,10 +58,6 @@ export const createYieldScheduler = (options: YieldSchedulerOptions = {}): Yield
   };
 
   const schedule = (): void => {
-    if (mechanism === 'timeout') {
-      setTimeout(drain, 0);
-      return;
-    }
     if (sender === undefined) {
       const createChannel =
         options.createChannel ??
@@ -151,6 +134,3 @@ export const defaultRowYieldScheduler = (): YieldScheduler => {
   defaultScheduler ??= createYieldScheduler();
   return defaultScheduler;
 };
-
-export const isYieldMechanism = (value: string): value is YieldMechanism =>
-  (YIELD_MECHANISMS as readonly string[]).includes(value);

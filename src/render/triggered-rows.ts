@@ -86,7 +86,7 @@ export class TriggeredRowKernel {
   readonly #out: OrbitSample = createOrbitSample();
 
   public constructor(options: Partial<OrbitOptions>) {
-    this.#options = resolveOrbitOptions({ ...options, classifierMode: 'triggered-scan' });
+    this.#options = resolveOrbitOptions(options);
     if (this.#options.maxPeriod > PACK_PERIOD_MAX) {
       throw new RangeError('maxPeriod does not fit the packed period channel');
     }

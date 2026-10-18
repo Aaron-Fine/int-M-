@@ -1,0 +1,2386 @@
+{
+  "schemaVersion": 1,
+  "method": {
+    "algorithm": "sha-256",
+    "byteOrder": "row-major RGBA, 4 bytes per pixel, read via getImageData(0, 0, width, height) from canvas.explorer__canvas after the computed stable frame is presented",
+    "scope": "palette-inclusive proxy over the final RGBA raster; renderer-path arms must be hash-identical (semantic results are unchanged by scheduling, yield, transfer, and packed-layout changes)"
+  },
+  "comparisons": [
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 9,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 10,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 11,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 12,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 13,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 14,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 15,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 16,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 17,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 18,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 19,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 20,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-easy-default-full",
+      "arm": "default",
+      "repetition": 21,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        },
+        {
+          "variant": "before",
+          "hash": "4ccca9e5b952cd6bf70037b78e8e4b50ee7a3eeafba83a33af9fe75ce07a1e5c"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 9,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 10,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 11,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 12,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 13,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 14,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 15,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 16,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 17,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 18,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 19,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 20,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-rabbit-boundary",
+      "arm": "default",
+      "repetition": 21,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        },
+        {
+          "variant": "before",
+          "hash": "ed826c5517d6fea17fa2c5e051c9ad747d211ebec6de61e388eee99d6a5a8758"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 9,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 10,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 11,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 12,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 13,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 14,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 15,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 16,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 17,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 18,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 19,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 20,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-126x",
+      "arm": "default",
+      "repetition": 21,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        },
+        {
+          "variant": "before",
+          "hash": "2ba460cf8430b4cd57bec695c9f9e8fb48c1dea71f2e0270ad8d4d675530dee1"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 9,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 10,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 11,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 12,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 13,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 14,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 15,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 16,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 17,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 18,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 19,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 20,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-hard-supplied-13x",
+      "arm": "default",
+      "repetition": 21,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        },
+        {
+          "variant": "before",
+          "hash": "7f955884dfc3838806f7f33f01f1df1c5ce47df4e71a0ea89bfb6c2394c40292"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 9,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 10,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 11,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 12,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 13,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 14,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 15,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 16,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 17,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 18,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 19,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 20,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-weak-attraction",
+      "arm": "default",
+      "repetition": 21,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        },
+        {
+          "variant": "before",
+          "hash": "d9ad74a806807b9856a239f422575d675db29584f8ab516a79397171f1626f28"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 0,
+      "climate": "cold",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 1,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 2,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 3,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 4,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 5,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 6,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 7,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 8,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 9,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 10,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 11,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 12,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 13,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 14,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 15,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 16,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 17,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 18,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 19,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 20,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    },
+    {
+      "detail": "build-59926c5-vs-9e70551-alternating",
+      "caseId": "mi-fallback-budget-exhaustion",
+      "arm": "default",
+      "repetition": 21,
+      "climate": "warm",
+      "dists": [
+        {
+          "variant": "after",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        },
+        {
+          "variant": "before",
+          "hash": "f206b8db44662e4cf97df50163cc63f7c3559329856a6cdb841204baae8c99e5"
+        }
+      ],
+      "equal": true
+    }
+  ]
+}

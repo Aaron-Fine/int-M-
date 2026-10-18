@@ -104,35 +104,6 @@ export type OrbitResult = EscapedOrbitResult | AttractingCycleOrbitResult | Unre
 
 export type SemanticView = 'stability' | 'multiplier' | 'period';
 
-/**
- * Versioned classifier-mode option (PR 4, plan section 11: the checkpoint
- * schedule lands "behind a legacy differential flag"). The vocabulary is
- * frozen; 'triggered-scan' is the default, and 'legacy-scan' stays available
- * as the explicit reference kernel.
- *
- * - 'legacy-scan': the post-PR-3 lag scan (src/domain/orbit.ts classifyInto),
- *   unchanged; the reference kernel.
- * - 'checkpoint': the PR 4 power-of-two checkpoint schedule
- *   (src/domain/checkpoint.ts), candidate-only toward the common verifier.
- * - 'differential': both kernels run per pixel; disagreements (status,
- *   period, |lambda| bits) are counted into a preallocated differential
- *   record while the legacy answer stays the reported one.
- * - 'triggered-scan' (default): the legacy lag scan run only when a scale-aware step
- *   gate fires, plus a periodic safety scan and a full scan of every iteration
- *   in the last max(64, 2 * maxPeriod) of the budget. Not combinable with
- *   perfCounters (the instrumented kernel only mirrors the legacy scan).
- *   Same status and period as 'legacy-scan' on accepted pixels; escapes are
- *   bit-identical; iteration counts at acceptance may differ.
- */
-export type ClassifierMode = 'legacy-scan' | 'checkpoint' | 'differential' | 'triggered-scan';
-
-export const CLASSIFIER_MODES: readonly ClassifierMode[] = Object.freeze([
-  'legacy-scan',
-  'checkpoint',
-  'differential',
-  'triggered-scan',
-]);
-
 export interface OrbitOptions {
   readonly maxIterations: number;
   readonly maxPeriod: number;
@@ -143,15 +114,6 @@ export interface OrbitOptions {
    */
   readonly cycleTolerance: number;
   readonly cycleWarmup: number;
-  /** Versioned classifier mode; default 'triggered-scan' (see ClassifierMode). */
-  readonly classifierMode?: ClassifierMode;
-  /**
-   * Checkpoint-schedule exhaustion scan (plan section 4): one final full lag
-   * scan from the final state when the orbit budget ends unresolved,
-   * verifier-gated like every candidate path. Default on; read only by the
-   * checkpoint kernel (the legacy scan is unaffected).
-   */
-  readonly exhaustionScan?: boolean;
   /**
    * Versioned period policy (PR 5, plan section 4) describing the search
    * this classification runs: the systematic ceiling and orbit budget it

@@ -1,5 +1,11 @@
 # Stage A gate analysis — first run (2026-09-02 @ 6f49f19)
 
+> **Superseded for gate decisions (2026-10-15).** The release-protocol run
+> ([evidence](../../evidence/phase-2/2026-10-11-59926c5-watched-lag-release/summary.md))
+> and the Phase 2 gate verdicts are recorded in
+> [PHASE-2-CLOSEOUT.md](PHASE-2-CLOSEOUT.md). This analysis of the first,
+> screening-protocol run is kept as the record of that run.
+
 This document records, per workstream, what the accumulated directional
 evidence does and does not establish against the plan §5 ship gates. It is
 written against the first Stage A run

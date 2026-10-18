@@ -9,6 +9,7 @@ import {
 } from '../render';
 import type { SemanticView } from '../domain';
 import type {
+  FrameProvenance,
   MainToWorkerMessage,
   RenderMessage,
   RequestId,
@@ -25,9 +26,20 @@ interface ActiveRender {
   readonly controller: AbortController;
   readonly key: string;
   readonly request: DynamicsRenderRequest;
+  /** Identity of this semantic computation; survives rebinding to new requests. */
+  readonly computeId: number;
+  readonly startedAt: number;
   requestId: RequestId;
   semanticView: SemanticView;
   lastFrame?: SemanticFrame;
+}
+
+/** Origin of the single semantic-store entry, for delivery provenance. */
+interface CachedOrigin {
+  readonly key: string;
+  readonly computeId: number;
+  /** The semantic view the cached frame was most recently delivered in. */
+  view: SemanticView;
 }
 
 const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage => ({
@@ -40,19 +52,33 @@ const dynamicsRequest = (message: RenderMessage): DynamicsRenderRequest => ({
   viewport: message.viewport,
   size: message.size,
   ...(message.quality === undefined ? {} : { quality: message.quality }),
-  ...(message.classifierMode === undefined ? {} : { classifierMode: message.classifierMode }),
-  ...(message.bandOrder === undefined ? {} : { bandOrder: message.bandOrder }),
-  ...(message.yieldMechanism === undefined ? {} : { yieldMechanism: message.yieldMechanism }),
-  ...(message.frameOutput === undefined ? {} : { frameOutput: message.frameOutput }),
-  ...(message.perfCounters === undefined ? {} : { perfCounters: message.perfCounters }),
-  ...(message.conjugateMirror === undefined ? {} : { conjugateMirror: message.conjugateMirror }),
 });
+
+/** Classification timing describes performed work: fresh frames only. */
+const frameTiming = (
+  frame: SemanticFrame,
+  colorizeMs: number,
+  computed: boolean,
+): WorkerFrameTiming => {
+  if (!computed) return { colorizeMs };
+  const timing = frame.timing;
+  return {
+    classifyMs: timing?.classifyMs ?? 0,
+    colorizeMs,
+    yieldWaitMs: timing?.yieldWaitMs ?? 0,
+    yieldCount: timing?.yieldCount ?? 0,
+    ...(timing?.bandsElapsedMs === undefined ? {} : { bandsElapsedMs: timing.bandsElapsedMs }),
+    ...(timing?.mergeCpuMs === undefined ? {} : { mergeCpuMs: timing.mergeCpuMs }),
+  };
+};
 
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;
   readonly #port: WorkerMessagePort;
   readonly #semanticStore = new SemanticFrameStore();
   #activeRender: ActiveRender | undefined;
+  #cachedOrigin: CachedOrigin | undefined;
+  #nextComputeId = 1;
 
   public constructor(port: WorkerMessagePort, renderer: Renderer = new CpuRenderer()) {
     this.#port = port;
@@ -62,8 +88,15 @@ export class RenderWorkerRuntime {
   public async handle(message: MainToWorkerMessage): Promise<void> {
     switch (message.type) {
       case 'cancel':
+        this.#port.postMessage({ type: 'cancel-ack', requestId: message.requestId });
         if (this.#activeRender?.requestId === message.requestId) {
+          // Quiescence is posted by #render once the renderer and its
+          // nested workers have stopped.
           this.#activeRender.controller.abort();
+        } else {
+          // Nothing runs on behalf of this request: it already completed,
+          // was served from the cache, or its computation was rebound.
+          this.#port.postMessage({ type: 'cancelled', requestId: message.requestId });
         }
         return;
 
@@ -85,30 +118,39 @@ export class RenderWorkerRuntime {
     }
   }
 
-  #postFrame(requestId: RequestId, frame: SemanticFrame, view: SemanticView): void {
+  #postFrame(
+    requestId: RequestId,
+    frame: SemanticFrame,
+    view: SemanticView,
+    origin: {
+      readonly source: FrameProvenance['source'];
+      readonly active?: ActiveRender;
+      readonly computeId: number;
+    },
+  ): void {
     const colorizeStarted = performance.now();
     const raster = this.#renderer.colorize(frame, view);
-    const workerTiming: WorkerFrameTiming = {
-      classifyMs: frame.timing?.classifyMs ?? 0,
-      colorizeMs: performance.now() - colorizeStarted,
-      yieldWaitMs: frame.timing?.yieldWaitMs ?? 0,
-      yieldCount: frame.timing?.yieldCount ?? 0,
-      ...(frame.timing?.bandsElapsedMs === undefined
-        ? {}
-        : { bandsElapsedMs: frame.timing.bandsElapsedMs }),
-      ...(frame.timing?.mergeCpuMs === undefined ? {} : { mergeCpuMs: frame.timing.mergeCpuMs }),
-    };
+    const colorizeMs = performance.now() - colorizeStarted;
+    const computed = origin.source === 'computed';
+    const workerTiming = frameTiming(frame, colorizeMs, computed);
+    const provenance: FrameProvenance =
+      origin.source === 'computed'
+        ? {
+            source: 'computed',
+            computeId: origin.computeId,
+            workerWallMs: performance.now() - (origin.active?.startedAt ?? colorizeStarted),
+          }
+        : { source: origin.source, originComputeId: origin.computeId };
     const response: WorkerToMainMessage = {
       type: 'frame',
       requestId,
       stage: raster.stage,
+      provenance,
       width: raster.size.width,
       height: raster.size.height,
       rgba: raster.rgba,
       progress: raster.progress,
       workerTiming,
-      ...(frame.counters === undefined ? {} : { counters: frame.counters }),
-      ...(frame.differential === undefined ? {} : { differential: frame.differential }),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }
@@ -117,11 +159,17 @@ export class RenderWorkerRuntime {
     const request = dynamicsRequest(message);
     const key = semanticRequestKey(request);
     const cached = this.#semanticStore.get(request);
-    if (cached !== undefined) {
+    const cachedOrigin = this.#cachedOrigin;
+    if (cached !== undefined && cachedOrigin?.key === key) {
       if (this.#activeRender !== undefined && this.#activeRender.key !== key) {
         this.#activeRender.controller.abort();
       }
-      this.#postFrame(message.requestId, cached, message.semanticView);
+      const source = cachedOrigin.view === message.semanticView ? 'semantic-cache' : 'recolor';
+      cachedOrigin.view = message.semanticView;
+      this.#postFrame(message.requestId, cached, message.semanticView, {
+        source,
+        computeId: cachedOrigin.computeId,
+      });
       return;
     }
 
@@ -133,7 +181,10 @@ export class RenderWorkerRuntime {
       this.#activeRender.requestId = message.requestId;
       this.#activeRender.semanticView = message.semanticView;
       if (this.#activeRender.lastFrame !== undefined) {
-        this.#postFrame(message.requestId, this.#activeRender.lastFrame, message.semanticView);
+        this.#postFrame(message.requestId, this.#activeRender.lastFrame, message.semanticView, {
+          source: 'inflight-replay',
+          computeId: this.#activeRender.computeId,
+        });
       }
       return;
     }
@@ -143,6 +194,8 @@ export class RenderWorkerRuntime {
       controller: new AbortController(),
       key,
       request,
+      computeId: this.#nextComputeId++,
+      startedAt: performance.now(),
       requestId: message.requestId,
       semanticView: message.semanticView,
     };
@@ -154,15 +207,26 @@ export class RenderWorkerRuntime {
           return;
         }
         active.lastFrame = frame;
-        this.#semanticStore.put(active.request, frame);
-        this.#postFrame(active.requestId, frame, active.semanticView);
+        if (frame.stage === 'stable') {
+          this.#semanticStore.put(active.request, frame);
+          this.#cachedOrigin = {
+            key: active.key,
+            computeId: active.computeId,
+            view: active.semanticView,
+          };
+        }
+        this.#postFrame(active.requestId, frame, active.semanticView, {
+          source: 'computed',
+          active,
+          computeId: active.computeId,
+        });
       });
       if (active.controller.signal.aborted) {
-        this.#port.postMessage({ type: 'cancelled', requestId: active.requestId });
+        await this.#postQuiesced(active.requestId);
       }
     } catch (error: unknown) {
       if (error instanceof RenderCancelledError || active.controller.signal.aborted) {
-        this.#port.postMessage({ type: 'cancelled', requestId: active.requestId });
+        await this.#postQuiesced(active.requestId);
       } else {
         this.#port.postMessage(errorMessage(active.requestId, error));
       }
@@ -171,5 +235,10 @@ export class RenderWorkerRuntime {
         this.#activeRender = undefined;
       }
     }
+  }
+
+  async #postQuiesced(requestId: RequestId): Promise<void> {
+    await this.#renderer.quiesce?.();
+    this.#port.postMessage({ type: 'cancelled', requestId });
   }
 }
