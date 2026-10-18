@@ -162,7 +162,7 @@ describe('TriggeredRowKernel', () => {
     // Calls classifyRow directly with row imaginary parts and columns at each
     // box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
     // half-planes, so a drift in the kernel's per-row window (versus
-    // inPeriodThreeGate) shows up as a bitwise difference.
+    // inPeriodThreeGate) shows up as an answer-changing drift.
     const bits = new DataView(new ArrayBuffer(8));
     const step = (value: number, ulps: number): number => {
       bits.setFloat64(0, value);
@@ -207,7 +207,7 @@ describe('TriggeredRowKernel', () => {
     // Calls classifyRow directly with row imaginary parts and columns at each
     // box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
     // half-planes, so a drift in the kernel's per-row windows (versus
-    // inPeriodFourGate) shows up as a bitwise difference.
+    // inPeriodFourGate) shows up as an answer-changing drift.
     const bits = new DataView(new ArrayBuffer(8));
     const step = (value: number, ulps: number): number => {
       bits.setFloat64(0, value);

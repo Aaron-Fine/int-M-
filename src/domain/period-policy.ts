@@ -85,7 +85,7 @@ export const EVIDENCE_SOURCE_VALUES: readonly EvidenceSource[] = Object.freeze([
  * escape proposes candidates.)
  *
  * Consequence pinned by tests: 'analytic' is reachable ONLY from the
- * closed-form paths. Any future opportunistic hit — a period above the
+ * analytic paths. Any future opportunistic hit — a period above the
  * systematic ceiling proposed by a non-analytic source — therefore carries
  * evidenceSource !== 'analytic' by construction, while acceptance (and the
  * quality barrier) stays the verifier's alone.

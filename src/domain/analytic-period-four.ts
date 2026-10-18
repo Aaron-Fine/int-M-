@@ -84,7 +84,7 @@ export const PERIOD_FOUR_EVALUATION_BOUND = 2 ** -47;
 export const PERIOD_FOUR_ANALYTIC_REVISION = 'src-analytic-p4-1.0.0';
 
 /** Deflation of the computed |M'(mu~)| before its error is subtracted. */
-const DERIVATIVE_DEFLATION = 1 - 2 ** -40;
+export const DERIVATIVE_DEFLATION = 1 - 2 ** -40;
 /** Covers the rounding of 16 |mu~| and of the final sum (section 12.4). */
 const MODULUS_TAIL = 2 ** -50;
 /** sin(2 pi / 3); a candidate rotation only, never part of the certificate. */
@@ -99,7 +99,7 @@ export const classifyPeriodFourInto = (
 ): boolean => {
   // |c| (rounded), reused by the certificate. Every period-4 component lies
   // in |c| < 2.2; refusing |c| > 4 keeps every intermediate far from
-  // overflow and refuses NaN and infinite input (section 12.6).
+  // overflow and refuses NaN and infinite input (sections 12.3 step 1 and 12.5 item 8).
   const r = Math.sqrt(cRe * cRe + cIm * cIm);
   if (!(r <= 4)) {
     return false;

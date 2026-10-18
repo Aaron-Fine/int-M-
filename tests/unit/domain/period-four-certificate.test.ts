@@ -23,7 +23,7 @@ import {
  * 3. whenever the code accepts, 16 |mu~| + 16 r < 1 - attractMargin, so that
  *    root's multiplier is attracting beyond the margin.
  *
- * It does not depend on the floating-point error analysis of section 12.3:
+ * It does not depend on the floating-point error analysis of section 12.5:
  * it checks that analysis's conclusions directly, point by point.
  */
 
@@ -128,6 +128,7 @@ const audit = (cRe: number, cIm: number, tally: Tally): void => {
   expect(compare(norm2(residual), mul(f, f))).toBeLessThanOrEqual(0);
   expect(compare(d, int(0))).toBe(1);
   expect(compare(norm2(slope), mul(d, d))).toBeGreaterThanOrEqual(0);
+  // Stricter than 12.5 item 7 needs (K̂(1 + 8u) >= |M''|/2), on purpose.
   expect(compare(norm2(curvature), mul(k, k))).toBeLessThanOrEqual(0);
   // 2. Rouché on |h| = r with r = 2h (1 + 2^-40).
   const r = mul(mul(int(2), exact(cert.radiusRatio)), RADIUS_INFLATION);

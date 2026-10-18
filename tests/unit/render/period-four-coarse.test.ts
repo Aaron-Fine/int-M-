@@ -16,8 +16,9 @@ import { packStatusPeriod } from '../../../src/render/packed-semantic';
  * The coarse pass (stride > 1, scalar classifier) and the stable pass
  * (stride 1, two-lane row kernel) both answer period-4 pixels with the
  * certified cubic solve (ADR 0013): same record at the same parameter. The
- * view lies inside the 1/2 satellite of the period-2 bulb, on the real axis,
- * so both axis windows of the row kernel are exercised.
+ * view lies inside the 1/2 satellite of the period-2 bulb, on the real axis.
+ * The row kernel's real-primitive window is set on the axis rows but holds no
+ * column of this view; the gate-edge test in triggered-rows.test.ts covers it.
  */
 const VIEW = { center: { re: -1.310702641336833, im: 0 }, spanY: 0.02 };
 const SIZE = { width: 96, height: 64 };

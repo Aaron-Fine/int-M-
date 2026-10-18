@@ -4,6 +4,7 @@ import {
   classifyOrbit,
   classifyPeriodFourInto,
   createOrbitSample,
+  DERIVATIVE_DEFLATION,
   ORBIT_EVIDENCE_CODE,
   PERIOD_FOUR_ANALYTIC_REVISION,
   PERIOD_FOUR_EVALUATION_BOUND,
@@ -196,7 +197,24 @@ describe('classifyPeriodFourInto', () => {
   });
 
   it('documents the evaluation bound (2^-47 = 64 u) and the revision', () => {
+    // Change only with section 12.5.
     expect(PERIOD_FOUR_EVALUATION_BOUND).toBe(64 * 2 ** -53);
     expect(PERIOD_FOUR_ANALYTIC_REVISION).toBe('src-analytic-p4-1.0.0');
+  });
+
+  it('derives E from the Horner error budget (section 12.5)', () => {
+    const u = 2 ** -53;
+    const kappa = (2 * Math.SQRT2 * u) / (1 - 2 * u);
+    const gamma11 = (11 * kappa) / (1 - 11 * kappa);
+    const gamma7 = (7 * kappa) / (1 - 7 * kappa);
+    const e = PERIOD_FOUR_EVALUATION_BOUND;
+    expect(e * (1 - 35 * u) * (1 - u)).toBeGreaterThanOrEqual(gamma11 + 3.02 * u);
+    expect(2 * e * (1 - 35 * u)).toBeGreaterThanOrEqual(gamma7);
+  });
+
+  it('keeps the derivative deflation below one after the rounding of the bound', () => {
+    const u = 2 ** -53;
+    expect(((1 - 2 ** -40) * (1 + u) ** 2) / (1 - 2 * u)).toBeLessThan(1);
+    expect(DERIVATIVE_DEFLATION).toBe(1 - 2 ** -40);
   });
 });

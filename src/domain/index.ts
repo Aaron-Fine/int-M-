@@ -8,6 +8,7 @@ export type { PeriodThreeTarget } from './analytic-period-three';
 export {
   classifyPeriodFourInto,
   PERIOD_FOUR_ANALYTIC_REVISION,
+  DERIVATIVE_DEFLATION,
   PERIOD_FOUR_EVALUATION_BOUND,
 } from './analytic-period-four';
 export type { PeriodFourCertificate, PeriodFourTarget } from './analytic-period-four';

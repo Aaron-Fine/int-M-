@@ -33,8 +33,9 @@ const EXPECTED_ANALYTIC_PIXELS: Readonly<Record<string, number>> = {
 
 /**
  * |lambda_analytic - lambda_dd| may not exceed the certificate's allowance
- * plus this (dd rounding and dd Newton error). Measured worst on this raster:
- * 3.5e-12 against an allowance of 5.6e-9 (ratio 4.5e-3), near the real cusp.
+ * plus this (dd rounding and dd Newton error). Measured on this raster:
+ * largest error 3.5e-12, largest ratio 4.5e-3, largest allowance 5.6e-9
+ * (different pixels).
  */
 const DD_TOLERANCE = 1e-12;
 

@@ -88,7 +88,11 @@ const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void 
       if (legacy.period === period) {
         expect(
           Math.abs(production.multiplierMagnitude - legacy.multiplierMagnitude),
-        ).toBeLessThanOrEqual(LEGACY_ANALYTIC_MAGNITUDE_TOLERANCE);
+        ).toBeLessThanOrEqual(
+          period === 3
+            ? LEGACY_PERIOD_THREE_MAGNITUDE_TOLERANCE
+            : LEGACY_PERIOD_FOUR_MAGNITUDE_TOLERANCE,
+        );
       }
     } else {
       expect(legacy.status).toBe('unresolved');
@@ -117,7 +121,8 @@ const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void 
  * fixture); the dd adjudication pins the analytic multipliers to 1e-12
  * (period 3) and to the certificate's allowance (period 4).
  */
-const LEGACY_ANALYTIC_MAGNITUDE_TOLERANCE = 1e-4;
+const LEGACY_PERIOD_THREE_MAGNITUDE_TOLERANCE = 1e-5;
+const LEGACY_PERIOD_FOUR_MAGNITUDE_TOLERANCE = 1e-4;
 
 const PROFILES: readonly { readonly label: string; readonly options: Partial<OrbitOptions> }[] = [
   { label: 'quick', options: { maxIterations: 256, maxPeriod: 16 } },

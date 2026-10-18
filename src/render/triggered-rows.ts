@@ -56,7 +56,9 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * explanation is that the inlined gate spent TurboFan's inlining budget and
  * left a refill call to classifyAnalyticInto out of line. This depends on V8
  * heuristics and is unguarded: rerun tools/benchmark/fallback-overhead.ts
- * (stable and coarse pass) after changing classifyRow or upgrading V8.
+ * (stable and coarse pass, with and without --stride) after changing
+ * classifyRow, classifyTriggeredOrbitInto or the size of either analytic
+ * solve, or upgrading V8.
  *
  * Lockstep shape: each lane raises an event on one of three tests, so the
  * common iteration is three compares per lane:

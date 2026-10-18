@@ -13,7 +13,7 @@
  * every parameter the solve accepts; then it changes speed, never answers.
  * tests/unit/domain/period-four-gate.test.ts checks that on dense grids and
  * along every box edge (measured, not proved). Every accepted parameter lies
- * in a period-4 hyperbolic component (proved: section 12.2), so the gate
+ * in a period-4 hyperbolic component (section 12.2), so the gate
  * only has to contain the six components.
  */
 

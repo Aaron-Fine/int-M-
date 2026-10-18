@@ -83,7 +83,7 @@ describe('period policy product language (PR 5, plan section 4)', () => {
     expect(copy).not.toMatch(/exhaustive|all periods|every period|guaranteed through period 99/i);
   });
 
-  it('keeps the analytic evidence source reserved for the closed-form paths', () => {
+  it('keeps the analytic evidence source reserved for the analytic paths', () => {
     // Opportunistic results (when candidate sources ship in PR 4+) are
     // proposed by non-analytic sources, so they carry evidenceSource !==
     // 'analytic' by construction of this mapping; acceptance and the
