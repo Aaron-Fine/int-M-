@@ -45,11 +45,12 @@ import type { EvidenceFlag } from './types';
  * Current mapping in src/ (documented per plan section 4's table):
  *
  * - 'analytic'  — the closed-form main-cardioid, period-2-bulb and period-3
- *   fast paths (evidence flags 'analytic-main-cardioid',
- *   'analytic-period-2-bulb', 'analytic-period-3-component'). Bucket 1–2 in
- *   the plan's operational table ("closed-form tests"); period 3 joins it by
- *   ADR 0010, although the plan's table lists periods 3–4 under the common
- *   verifier.
+ *   fast paths and the certified period-4 cubic solve (evidence flags
+ *   'analytic-main-cardioid', 'analytic-period-2-bulb',
+ *   'analytic-period-3-component', 'analytic-period-4-component'). Bucket
+ *   1–2 in the plan's operational table ("closed-form tests"); periods 3 and
+ *   4 join it by ADR 0010 and ADR 0013, although the plan's table lists
+ *   periods 3–4 under the common verifier.
  * - 'fallback'  — the classifyInto lag scan. The scan is today's ONLY
  *   non-analytic proposal mechanism: it is the systematic search itself,
  *   and in the plan's vocabulary it is the fallback path — the full-lag
@@ -77,7 +78,7 @@ export const EVIDENCE_SOURCE_VALUES: readonly EvidenceSource[] = Object.freeze([
 
 /**
  * Maps the orbit classifier's evidence flags to their proposal origin at the
- * rich result boundary. Total over EvidenceFlag: the three closed-form flags
+ * rich result boundary. Total over EvidenceFlag: the four analytic flags
  * are 'analytic'; everything else that can reach an attracting result is the
  * lag scan, i.e. 'fallback'. (Escape/iteration-limit flags never reach an
  * attracting result; they map to 'fallback' for totality, not because an
@@ -92,7 +93,8 @@ export const EVIDENCE_SOURCE_VALUES: readonly EvidenceSource[] = Object.freeze([
 export const evidenceSourceForFlag = (flag: EvidenceFlag): EvidenceSource =>
   flag === 'analytic-main-cardioid' ||
   flag === 'analytic-period-2-bulb' ||
-  flag === 'analytic-period-3-component'
+  flag === 'analytic-period-3-component' ||
+  flag === 'analytic-period-4-component'
     ? 'analytic'
     : 'fallback';
 

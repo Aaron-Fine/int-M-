@@ -93,6 +93,7 @@ describe('period policy product language (PR 5, plan section 4)', () => {
     expect(evidenceSourceForFlag('analytic-main-cardioid')).toBe('analytic');
     expect(evidenceSourceForFlag('analytic-period-2-bulb')).toBe('analytic');
     expect(evidenceSourceForFlag('analytic-period-3-component')).toBe('analytic');
+    expect(evidenceSourceForFlag('analytic-period-4-component')).toBe('analytic');
   });
 });
 

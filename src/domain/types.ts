@@ -33,7 +33,8 @@ export type EvidenceFlag =
   | 'analytic-period-2-bulb'
   | 'converged-cycle'
   | 'iteration-limit'
-  | 'analytic-period-3-component';
+  | 'analytic-period-3-component'
+  | 'analytic-period-4-component';
 
 /**
  * Evidence flags encoded as small integers in the primitive record;
@@ -49,6 +50,7 @@ export const ORBIT_EVIDENCE_CODE = Object.freeze({
   convergedCycle: 3,
   iterationLimit: 4,
   analyticPeriod3Component: 5,
+  analyticPeriod4Component: 6,
 } as const);
 
 export const EVIDENCE_BY_CODE: readonly EvidenceFlag[] = Object.freeze([
@@ -58,6 +60,7 @@ export const EVIDENCE_BY_CODE: readonly EvidenceFlag[] = Object.freeze([
   'converged-cycle',
   'iteration-limit',
   'analytic-period-3-component',
+  'analytic-period-4-component',
 ]);
 
 interface OrbitResultBase {

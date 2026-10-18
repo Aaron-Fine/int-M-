@@ -241,6 +241,7 @@ describe('scalar core parity with the legacy classifier', () => {
       [ORBIT_EVIDENCE_CODE.analyticMainCardioid, ['analytic-main-cardioid']],
       [ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb, ['analytic-period-2-bulb']],
       [ORBIT_EVIDENCE_CODE.analyticPeriod3Component, ['analytic-period-3-component']],
+      [ORBIT_EVIDENCE_CODE.analyticPeriod4Component, ['analytic-period-4-component']],
       [ORBIT_EVIDENCE_CODE.convergedCycle, ['converged-cycle']],
       [ORBIT_EVIDENCE_CODE.iterationLimit, ['iteration-limit']],
     ];

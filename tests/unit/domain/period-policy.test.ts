@@ -145,6 +145,7 @@ describe('evidence source vocabulary (plan section 4)', () => {
     expect(evidenceSourceForFlag('analytic-main-cardioid')).toBe('analytic');
     expect(evidenceSourceForFlag('analytic-period-2-bulb')).toBe('analytic');
     expect(evidenceSourceForFlag('analytic-period-3-component')).toBe('analytic');
+    expect(evidenceSourceForFlag('analytic-period-4-component')).toBe('analytic');
     expect(evidenceSourceForFlag('converged-cycle')).toBe('fallback');
   });
 
@@ -162,6 +163,15 @@ describe('evidence source vocabulary (plan section 4)', () => {
     periodThree.period = 3;
     expect(materializeOrbitResult(periodThree)).toMatchObject({
       evidence: ['analytic-period-3-component'],
+      evidenceSource: 'analytic',
+    });
+
+    const periodFour = createOrbitSample();
+    periodFour.status = 2;
+    periodFour.evidence = ORBIT_EVIDENCE_CODE.analyticPeriod4Component;
+    periodFour.period = 4;
+    expect(materializeOrbitResult(periodFour)).toMatchObject({
+      evidence: ['analytic-period-4-component'],
       evidenceSource: 'analytic',
     });
 
@@ -187,6 +197,7 @@ describe('evidence source vocabulary (plan section 4)', () => {
       'analytic-main-cardioid',
       'analytic-period-2-bulb',
       'analytic-period-3-component',
+      'analytic-period-4-component',
       'converged-cycle',
       'escape-radius',
       'iteration-limit',
