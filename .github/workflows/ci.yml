@@ -83,6 +83,9 @@ jobs:
       - name: Validate generated catalog
         run: npm run catalog:check
 
+      - name: Check the catalog core inputs and digest
+        run: npm run catalog:core:inputs
+
       - name: Validate orbit fixtures
         run: npm run fixtures:check
 

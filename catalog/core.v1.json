@@ -1,0 +1,41 @@
+{
+  "format": "mi-catalog-core",
+  "formatVersion": 1,
+  "license": "CC0-1.0",
+  "maxPeriod": 12,
+  "count": 4016,
+  "countsByPeriod": [
+    1,
+    1,
+    3,
+    6,
+    15,
+    27,
+    63,
+    120,
+    252,
+    495,
+    1023,
+    2010
+  ],
+  "recordBytes": 34,
+  "byteLength": 136560,
+  "sha256": "d4299c77f31e95cebca90af0f35097955b3e9fa6ac2ce1ba3db7d066a6277e46",
+  "method": "krawczyk-decimal-80",
+  "methods": {
+    "krawczyk-decimal-80": "Centres: for each Lavaurs ray pair of exact period p, both parameter rays are traced in binary64 and must land within 1e-9 of each other; Newton's method in 80-digit decimal arithmetic refines the landing point, and ball arithmetic with the Krawczyk test proves that the disk of radius 1e-50 about it holds exactly one root of f_c^p(0), a simple one, with f_c^d(0) bounded away from 0 over the disk for every proper divisor d of p (exact period). The disks of one period are disjoint. The stored centre is the nearest binary64. Internal address: the kneading sequence of the lower ray. Angled address: Schleicher's denominators; each numerator names the tuned sub-wake that contains the lower ray. Residuals: |f_c^p(0)|, the distance to the refined centre, and the smallest |f_c^d(0)| over proper divisors d, at the stored centre in 80-digit arithmetic, to three significant digits."
+  },
+  "provenance": {
+    "generated-label": {
+      "generator": "tools/generate_catalog_core.py",
+      "arguments": "--max-period 12 --precision 80",
+      "curated": "none; the label is generated from the characteristic rays"
+    }
+  },
+  "inputs": {
+    "tools/catalog_certify.py": "63ce4e2c88236717960b7f7c1f8c46efc6972056e12ca54722a691128f6b3ca4",
+    "tools/catalog_combinatorics.py": "dcb3c2ad19f4f320b9f211183ed5e18c67ba3c4c90c65a651bfc8b1df9cdfcb5",
+    "tools/generate_catalog.py": "18b07c5204ef62794fe3e1a6811ebb5ee6c738195a4f5db17bafd4a3437bcff0",
+    "tools/generate_catalog_core.py": "22495c7e09003a79ea353cdd3a9d3d91fca8f42c898813e3ee3f5b85c9ec1f6b"
+  }
+}
