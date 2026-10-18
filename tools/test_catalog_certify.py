@@ -32,6 +32,20 @@ class BallArithmeticTest(unittest.TestCase):
                 distance = abs(complex(float(product.re), float(product.im)) - value)
                 self.assertLessEqual(distance, float(product.radius))
 
+    def test_a_product_encloses_the_true_value_under_the_default_context(self) -> None:
+        arithmetic = Arithmetic(PRECISION)
+        digits = "0." + "1234567890" * 7
+        with localcontext() as context:
+            context.prec = 28
+            left = Ball(Decimal(digits), Decimal(0), Decimal(0))
+            product = arithmetic.multiply(left, left)
+        with localcontext() as exact:
+            exact.prec = 200
+            true = Decimal(digits) * Decimal(digits)
+        error = abs(product.re - true)
+        self.assertGreater(error, Decimal(10) ** -(PRECISION + 10))
+        self.assertLessEqual(error, product.radius)
+
     def test_a_sum_that_cancels_keeps_the_rounding_of_its_operands(self) -> None:
         # z^2 + c is near 0 at a centre: the radius must not shrink with the result.
         arithmetic = Arithmetic(PRECISION)
@@ -68,6 +82,10 @@ class CertifyTest(unittest.TestCase):
         rabbit = refined(complex(-0.12256116687665362, 0.7448617666197442), 3)
         with self.assertRaisesRegex(ValueError, "Krawczyk"):
             certify_center(rabbit, 3, Decimal("0.5"), PRECISION)
+
+    def test_a_zero_derivative_is_a_failure_to_prove_not_an_arithmetic_error(self) -> None:
+        with self.assertRaisesRegex(ValueError, "derivative"):
+            certify_center((Decimal("-0.5"), Decimal(0)), 2, RADIUS, PRECISION)
 
     def test_the_main_cardioid_contracts_to_rounding_only(self) -> None:
         # g_1(c) = c: g' is 1 everywhere, so 1 - y G' is pure rounding allowance.

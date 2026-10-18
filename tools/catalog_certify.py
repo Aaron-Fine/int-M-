@@ -38,56 +38,75 @@ class Arithmetic:
 
     precision: int
 
+    # Every operation runs under its own context at `precision` digits, so the
+    # allowances below are sound whatever context the caller has set.
     @property
     def rounding(self) -> Decimal:
-        return Decimal(10) ** (3 - self.precision)
+        with localcontext() as context:
+            context.prec = self.precision
+            return Decimal(10) ** (3 - self.precision)
 
     @property
     def inflate(self) -> Decimal:
-        return 1 + Decimal(10) ** (5 - self.precision)
+        with localcontext() as context:
+            context.prec = self.precision
+            return 1 + Decimal(10) ** (5 - self.precision)
 
     def magnitude(self, re: Decimal, im: Decimal) -> Decimal:
         """An upper bound of |re + i im|."""
-        return (re * re + im * im).sqrt() * self.inflate
+        with localcontext() as context:
+            context.prec = self.precision
+            return (re * re + im * im).sqrt() * self.inflate
 
     def add(self, left: Ball, right: Ball) -> Ball:
-        re, im = left.re + right.re, left.im + right.im
-        error = (
-            self.magnitude(left.re, left.im) + self.magnitude(right.re, right.im)
-        ) * self.rounding
-        return Ball(re, im, (left.radius + right.radius + error) * self.inflate)
+        with localcontext() as context:
+            context.prec = self.precision
+            re, im = left.re + right.re, left.im + right.im
+            error = (
+                self.magnitude(left.re, left.im) + self.magnitude(right.re, right.im)
+            ) * self.rounding
+            return Ball(re, im, (left.radius + right.radius + error) * self.inflate)
 
     def multiply(self, left: Ball, right: Ball) -> Ball:
-        re = left.re * right.re - left.im * right.im
-        im = left.re * right.im + left.im * right.re
-        size_left = self.magnitude(left.re, left.im)
-        size_right = self.magnitude(right.re, right.im)
-        radius = (
-            size_left * right.radius
-            + size_right * left.radius
-            + left.radius * right.radius
-            + size_left * size_right * self.rounding
-        )
-        return Ball(re, im, radius * self.inflate)
+        with localcontext() as context:
+            context.prec = self.precision
+            re = left.re * right.re - left.im * right.im
+            im = left.re * right.im + left.im * right.re
+            size_left = self.magnitude(left.re, left.im)
+            size_right = self.magnitude(right.re, right.im)
+            radius = (
+                size_left * right.radius
+                + size_right * left.radius
+                + left.radius * right.radius
+                + size_left * size_right * self.rounding
+            )
+            return Ball(re, im, radius * self.inflate)
 
     def double(self, ball: Ball) -> Ball:
-        return Ball(ball.re * 2, ball.im * 2, ball.radius * 2)
+        with localcontext() as context:
+            context.prec = self.precision
+            error = self.magnitude(ball.re, ball.im) * 2 * self.rounding
+            return Ball(ball.re * 2, ball.im * 2, (ball.radius * 2 + error) * self.inflate)
 
     def excludes_zero(self, ball: Ball) -> bool:
         """True when no point of the ball is 0."""
-        return (ball.re * ball.re + ball.im * ball.im).sqrt() > ball.radius * self.inflate
+        with localcontext() as context:
+            context.prec = self.precision
+            return (ball.re * ball.re + ball.im * ball.im).sqrt() > ball.radius * self.inflate
 
     def orbit(self, parameter: Ball, steps: int) -> list[tuple[Ball, Ball]]:
         """Enclosures of (f_c^n(0), d/dc f_c^n(0)) over the ball, n = 1..steps."""
-        zero = Ball(Decimal(0), Decimal(0), Decimal(0))
-        one = Ball(Decimal(1), Decimal(0), Decimal(0))
-        value, derivative = zero, zero
-        enclosures: list[tuple[Ball, Ball]] = []
-        for _step in range(steps):
-            derivative = self.add(self.multiply(self.double(value), derivative), one)
-            value = self.add(self.multiply(value, value), parameter)
-            enclosures.append((value, derivative))
-        return enclosures
+        with localcontext() as context:
+            context.prec = self.precision
+            zero = Ball(Decimal(0), Decimal(0), Decimal(0))
+            one = Ball(Decimal(1), Decimal(0), Decimal(0))
+            value, derivative = zero, zero
+            enclosures: list[tuple[Ball, Ball]] = []
+            for _step in range(steps):
+                derivative = self.add(self.multiply(self.double(value), derivative), one)
+                value = self.add(self.multiply(value, value), parameter)
+                enclosures.append((value, derivative))
+            return enclosures
 
 
 def proper_divisors(value: int) -> list[int]:
@@ -117,6 +136,8 @@ def certify_center(center: Pair, period: int, radius: Decimal, precision: int) -
         slope = over_disk[-1][1]
         # y ≈ 1 / g'(x); any y works, a good one makes the test pass.
         norm = slope.re * slope.re + slope.im * slope.im
+        if norm == 0:
+            raise ValueError(f"period {period}: the derivative of f_c^p(0) vanishes at the centre")
         inverse = Ball(slope.re / norm, -slope.im / norm, Decimal(0))
         step = arithmetic.multiply(inverse, value)
         one = Ball(Decimal(1), Decimal(0), Decimal(0))

@@ -41,7 +41,8 @@ CANONICAL_ID_SHAPE = re.compile(r"^mi-p\d+-\d+-\d+$")
 # The two rays of a pair must land this close together (binary64 ray tracing).
 MATCH_TOLERANCE = 1e-9
 # Every centre is certified in a disk of radius 10**-(precision - 30): 1e-50 at
-# 80 digits, far inside the binary64 spacing and far outside the refinement error.
+# 80 digits. At any precision the radius is far outside the Newton refinement
+# error; whether the Krawczyk test then passes is checked, and a failure raises.
 CERTIFIED_RADIUS_MARGIN = 30
 # The highest period the generator supports (PHASE2-TODO item 7, ADR 0014).
 MAX_SUPPORTED_PERIOD = 12
@@ -141,7 +142,9 @@ def check_disjoint(period: int, centers: list[DecimalComplex], radius: Decimal) 
         for other in ordered[index + 1 :]:
             if other.real - center.real > 2 * radius:
                 break
-            if (other - center).magnitude_squared() <= 4 * radius * radius:
+            # The squared distance and the bound each err by under 1e-70 relative
+            # at 40 digits or more; the 1e-60 slack makes the test round outward.
+            if (other - center).magnitude_squared() <= 4 * radius * radius * (1 + Decimal("1e-60")):
                 raise ValueError(f"period {period}: two ray pairs land on one centre")
 
 
