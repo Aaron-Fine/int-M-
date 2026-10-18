@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Route } from '@playwright/test';
 
 const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
@@ -386,6 +386,15 @@ const isolationPixels = async (
     }
     return { kept, undimmed };
   }, period);
+
+/** Waits until periods 5 to 12 of the catalog have loaded (ADR 0014). */
+const waitForCatalogCore = async (page: Page): Promise<void> => {
+  await expect(page.getByRole('region', { name: 'Catalog' })).toHaveAttribute(
+    'data-catalog-core',
+    'ready',
+    { timeout: 20_000 },
+  );
+};
 
 /** Opens the period view and waits for its stable frame. */
 const openPeriodView = async (page: Page): Promise<void> => {
@@ -817,6 +826,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const cardioid = page.getByRole('button', { name: 'Inspect Main cardioid, period 1' });
     await expect(cardioid).toBeVisible({ timeout: 20_000 });
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
+    await waitForCatalogCore(page);
     const total = await markers.count();
     expect(total).toBeGreaterThan(1);
 
@@ -831,7 +841,12 @@ test.describe('Mandelbrot Interiority explorer', () => {
       .poll(async () => Number(await explorer.getAttribute('data-render-request-id')))
       .toBeGreaterThan(before);
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
-    await expect(markers).toHaveCount(total);
+    // The plan follows the canvas size: one button per drawn component, at most 40.
+    const resized = await markers.evaluateAll((all) =>
+      all.map((marker) => marker.getAttribute('data-catalog-id')),
+    );
+    expect(new Set(resized).size).toBe(resized.length);
+    expect(resized.length).toBeLessThanOrEqual(40);
     await expect(cardioid).toHaveAttribute('aria-current', 'true');
     await expect(cardioid).toHaveClass(/catalog-marker--selected/);
 
@@ -839,7 +854,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await toggle.click();
     await expect(markers).toHaveCount(0);
     await toggle.click();
-    await expect(markers).toHaveCount(total);
+    await expect(markers).toHaveCount(resized.length);
     await expect(page.locator('.catalog-marker[aria-current="true"]')).toHaveCount(1);
   });
 
@@ -851,16 +866,35 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
     });
-    await expect(page.locator('.catalog-marker')).toHaveCount(11);
+    await waitForCatalogCore(page);
+    const shown = await page
+      .locator('.catalog-marker')
+      .evaluateAll((markers) => markers.map((marker) => marker.getAttribute('data-catalog-id')));
+    // Re-checked precondition: the core added markers of periods 5 and 6 (29 at 922×576).
+    expect(shown.length).toBeGreaterThan(11);
+    expect(shown.length).toBeLessThanOrEqual(40);
     await page.getByLabel('Interactive Mandelbrot set').focus();
-    const names: string[] = [];
-    for (let step = 0; step < 11; step += 1) {
+    const ids: (string | null)[] = [];
+    while (ids.length < shown.length) {
       await page.keyboard.press('Tab');
-      names.push(
-        await page.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? ''),
+      ids.push(
+        await page.evaluate(() => document.activeElement?.getAttribute('data-catalog-id') ?? null),
       );
     }
-    expect(names).toEqual([
+    expect(ids).toEqual(shown);
+    // Catalog order: by period, then by the lower ray (ids are mi-p<p>-<lower>-<upper>).
+    const order = ids.map((id) => {
+      const match = /^mi-p(\d+)-(\d+)-/.exec(id ?? '');
+      return [Number(match?.[1]), Number(match?.[2])] as const;
+    });
+    expect(order).toEqual([...order].sort((a, b) => a[0] - b[0] || a[1] - b[1]));
+    expect(
+      await page.evaluate(() =>
+        [...document.querySelectorAll('.catalog-marker')]
+          .slice(0, 11)
+          .map((marker) => marker.getAttribute('aria-label')),
+      ),
+    ).toEqual([
       'Inspect Main cardioid, period 1',
       'Inspect Period-2 bulb, period 2',
       'Inspect Douady rabbit, period 3',
@@ -882,6 +916,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
     });
+    await waitForCatalogCore(page);
+    // Re-checked precondition: with the core loaded, compact pairs exist at 320 px.
+    expect(await page.locator('.catalog-marker--compact').count()).toBeGreaterThan(1);
     const boxes = await page.locator('.catalog-marker').evaluateAll((markers) =>
       markers.map((marker) => {
         const { left, top, right, bottom, width } = marker.getBoundingClientRect();
@@ -940,6 +977,9 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
     });
+    await waitForCatalogCore(page);
+    // Re-checked precondition: the policy hides labels once the core is loaded.
+    expect(await page.locator('.catalog-marker--label-hidden').count()).toBeGreaterThan(0);
     const hidden = page.locator('.catalog-marker--label-hidden').first();
     await expect(hidden).toHaveCount(1);
     const id = await hidden.getAttribute('data-catalog-id');
@@ -2053,10 +2093,11 @@ test.describe('Catalog panel (MI-UX-020)', () => {
 
   test('reaches every entry by Tab, grouped by period in catalog order', async ({ page }) => {
     await openExplorer(page);
+    await waitForCatalogCore(page);
     const panel = page.getByRole('region', { name: 'Catalog' });
     await panel.locator('summary').first().focus();
     const visited: string[] = [];
-    for (let step = 0; step < 40; step += 1) {
+    for (let step = 0; step < 60; step += 1) {
       const focused = await page.evaluate(() => {
         const active = document.activeElement;
         if (!active?.closest('.catalog-panel')) return undefined;
@@ -2076,6 +2117,14 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       ...ENTRY_ORDER.slice(2, 5).map((label) => `button:${label}`),
       'summary:Period 4, 6 components',
       ...ENTRY_ORDER.slice(5).map((label) => `button:${label}`),
+      'summary:Period 5, 15 components',
+      'summary:Period 6, 27 components',
+      'summary:Period 7, 63 components',
+      'summary:Period 8, 120 components',
+      'summary:Period 9, 252 components',
+      'summary:Period 10, 495 components',
+      'summary:Period 11, 1,023 components',
+      'summary:Period 12, 2,010 components',
       'summary:About periods, rays and addresses',
     ]);
   });
@@ -2278,5 +2327,268 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       expect(entry.right).toBeLessThanOrEqual(320);
     }
     await expectNoAccessibilityViolations(page);
+  });
+});
+
+test.describe('Catalog core (ADR 0014)', () => {
+  const openExplorer = async (page: Page): Promise<void> => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+  };
+  const panelOf = (page: Page) => page.getByRole('region', { name: 'Catalog' });
+  const CORE_FILE = '**/core.v1*.bin';
+  /** Holds the core's response until the returned function is called. */
+  const holdCore = async (page: Page): Promise<() => void> => {
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(CORE_FILE, async (route) => {
+      await held;
+      await route.continue();
+    });
+    return release;
+  };
+
+  test('lists all 4,016 entries once periods 5 to 12 load, and draws some as markers', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    await waitForCatalogCore(page);
+    const panel = panelOf(page);
+    await expect(panel.locator('.catalog-panel__status')).toBeHidden();
+    await expect(panel.locator('.catalog-group__count')).toHaveText([
+      '1 component',
+      '1 component',
+      '3 components',
+      '6 components',
+      '15 components',
+      '27 components',
+      '63 components',
+      '120 components',
+      '252 components',
+      '495 components',
+      '1,023 components',
+      '2,010 components',
+    ]);
+    const periods = await page
+      .locator('.catalog-marker')
+      .evaluateAll((markers) =>
+        markers.map((marker) =>
+          Number(/^mi-p(\d+)-/.exec(marker.getAttribute('data-catalog-id') ?? '')?.[1]),
+        ),
+      );
+    expect(periods.length).toBeLessThanOrEqual(40);
+    expect(Math.max(...periods)).toBeGreaterThan(4);
+  });
+
+  test('says periods 5 to 12 are loading, then adds them without moving focus', async ({
+    page,
+  }) => {
+    const release = await holdCore(page);
+    await openExplorer(page);
+    const panel = panelOf(page);
+    await expect(panel).toHaveAttribute('data-catalog-core', 'loading');
+    await expect(panel.locator('.catalog-panel__status')).toHaveText('Loading periods 5 to 12…');
+    await expect(panel.locator('details.catalog-group')).toHaveCount(4);
+    await expect(page.locator('.catalog-marker')).toHaveCount(11);
+    const rabbit = panel.getByRole('button', { name: 'Douady rabbit', exact: true });
+    await rabbit.focus();
+    release();
+    await waitForCatalogCore(page);
+    await expect(panel.locator('details.catalog-group')).toHaveCount(12);
+    await expect(rabbit).toBeFocused();
+  });
+
+  test('keeps focus on a curated marker while the core arrives', async ({ page }) => {
+    const release = await holdCore(page);
+    await openExplorer(page);
+    const marker = page.getByRole('button', { name: 'Inspect Douady rabbit, period 3' });
+    await marker.focus();
+    release();
+    await waitForCatalogCore(page);
+    await expect(page.locator('.catalog-marker')).not.toHaveCount(11);
+    await expect(marker).toBeFocused();
+  });
+
+  test('keeps a linked generated entry in the address bar while the core loads', async ({
+    page,
+  }) => {
+    const release = await holdCore(page);
+    const id = 'mi-p12-2045-2050';
+    await page.goto(`/?v=1&c=-0.75,0&s=2.5&sel=${id}`);
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    // The address is rewritten 500 ms after a stable frame (ADR 0009); the pending id must survive.
+    await page.waitForTimeout(1_000);
+    expect(new URL(page.url()).searchParams.get('sel')).toBe(id);
+    await expect(panelOf(page)).toHaveAttribute('data-catalog-core', 'loading');
+    release();
+    await waitForCatalogCore(page);
+    await expect(panelOf(page).locator(`.catalog-entry[data-catalog-id="${id}"]`)).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+  });
+
+  test('says so when the core for a linked generated entry cannot load', async ({ page }) => {
+    await page.route(CORE_FILE, (route) => route.abort('internetdisconnected'));
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&sel=mi-p12-2045-2050');
+    await expect(panelOf(page)).toHaveAttribute('data-catalog-core', 'failed', {
+      timeout: 20_000,
+    });
+    await expect(page.getByRole('status', { name: 'Link notice' })).toContainText(
+      'could not be loaded, so nothing is selected',
+    );
+    await expect(page.locator('.catalog-marker[aria-current="true"]')).toHaveCount(0);
+  });
+
+  for (const [condition, handle] of [
+    ['unreachable', (route: Route) => route.abort('internetdisconnected')],
+    [
+      'corrupt',
+      async (route: Route) => {
+        const response = await route.fetch();
+        const body = Buffer.from(await response.body());
+        body[100] = (body[100] ?? 0) ^ 0xff;
+        await route.fulfill({ response, body });
+      },
+    ],
+  ] as const) {
+    test(`keeps the curated catalog when the core is ${condition} (MI-PERF-003)`, async ({
+      page,
+    }) => {
+      await page.route(CORE_FILE, handle);
+      await openExplorer(page);
+      const panel = panelOf(page);
+      await expect(panel).toHaveAttribute('data-catalog-core', 'failed', { timeout: 20_000 });
+      await expect(panel.locator('.catalog-panel__status')).toHaveText(
+        'Periods 5 to 12 could not be loaded. Reload the page to try again.',
+      );
+      await expect(panel.locator('details.catalog-group')).toHaveCount(4);
+      await expect(page.locator('.catalog-marker')).toHaveCount(11);
+      await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable');
+    });
+  }
+
+  test('loads the core again on a reload', async ({ page }) => {
+    await openExplorer(page);
+    await waitForCatalogCore(page);
+    await page.reload();
+    await waitForCatalogCore(page);
+    await expect(panelOf(page).locator('details.catalog-group')).toHaveCount(12);
+  });
+
+  test('builds the 2,010-entry period-12 group on first open, once', async ({ page }) => {
+    await openExplorer(page);
+    await waitForCatalogCore(page);
+    const group = panelOf(page).locator('details.catalog-group[data-period="12"]');
+    await expect(group.locator('.catalog-entry')).toHaveCount(0);
+    await group.locator('summary').click();
+    await expect(group.locator('.catalog-entry')).toHaveCount(2010);
+    await group.locator('summary').click();
+    await group.locator('summary').click();
+    await expect(group.locator('.catalog-entry')).toHaveCount(2010);
+    const ids = await group
+      .locator('.catalog-entry')
+      .evaluateAll((entries) => entries.map((entry) => entry.getAttribute('data-catalog-id')));
+    expect(new Set(ids).size).toBe(2010);
+  });
+
+  test('marks a linked period-12 entry once its group is built, in view, focus unmoved', async ({
+    page,
+  }) => {
+    const id = 'mi-p12-2045-2050';
+    await page.goto(`/?v=1&c=-0.75,0&s=2.5&sel=${id}`);
+    await waitForCatalogCore(page);
+    const panel = panelOf(page);
+    const entry = panel.locator(`.catalog-entry[data-catalog-id="${id}"]`);
+    await expect(entry).toHaveAttribute('aria-current', 'true');
+    await expect(panel.locator('details.catalog-group[data-period="12"]')).toHaveAttribute(
+      'open',
+      '',
+    );
+    const placement = await entry.evaluate((element) => {
+      const list = element.closest('ul');
+      if (!list) throw new Error('entry outside a list');
+      const box = element.getBoundingClientRect();
+      const frame = list.getBoundingClientRect();
+      return {
+        inside: box.top >= frame.top && box.bottom <= frame.bottom,
+        focused: document.activeElement === element,
+        pageScroll: window.scrollY,
+      };
+    });
+    expect(placement).toEqual({ inside: true, focused: false, pageScroll: 0 });
+    await expect(
+      page
+        .getByRole('region', { name: 'Point evidence' })
+        .getByRole('heading', { name: 'Period 12, rays 2045/4095 and 2050/4095' }),
+    ).toBeVisible();
+    await expect(page.locator(`.catalog-marker[data-catalog-id="${id}"]`)).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
+      .toBe(id);
+  });
+
+  test('refuses a well-formed link id that names no component, once the core loads', async ({
+    page,
+  }) => {
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&sel=mi-p5-1-9');
+    await waitForCatalogCore(page);
+    await expect(page.getByRole('status', { name: 'Link notice' })).toContainText(
+      'the selected point or component was not found, so nothing is selected',
+    );
+    await expect(panelOf(page).locator('[aria-current="true"]')).toHaveCount(0);
+  });
+
+  test('selects from the list an entry the policy left off, and a link forces it in', async ({
+    page,
+  }) => {
+    await openExplorer(page);
+    await waitForCatalogCore(page);
+    const marker = page.locator('.catalog-marker[data-catalog-id="mi-p5-7-8"]');
+    // Re-checked precondition (a 922×576 canvas): period 5 is drawn, but this
+    // entry's dot would cover a neighbour's, so the policy leaves it off.
+    await expect(page.locator('.catalog-marker[data-catalog-id="mi-p5-1-2"]')).toHaveCount(1);
+    await expect(marker).toHaveCount(0);
+    const panel = panelOf(page);
+    await panel.locator('details.catalog-group[data-period="5"] > summary').click();
+    const entry = panel.getByRole('button', { name: 'Period 5, rays 7/31 and 8/31', exact: true });
+    await entry.click();
+    await expect(entry).toBeFocused();
+    await expect(entry).toHaveAttribute('aria-current', 'true');
+    await expect(page.getByRole('status', { name: 'Interaction feedback' })).toHaveText(
+      'Zoomed to Period 5, rays 7/31 and 8/31.',
+    );
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(marker).toHaveAttribute('aria-current', 'true');
+
+    // At the default view only the selection puts it on the canvas: the JS re-plan.
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&sel=mi-p5-7-8');
+    await waitForCatalogCore(page);
+    await expect(marker).toHaveAttribute('aria-current', 'true');
+    await expect(marker.locator('.catalog-marker__label')).toBeVisible();
+    expect(await page.locator('.catalog-marker').count()).toBeLessThanOrEqual(40);
+  });
+
+  test('shows the longest generated labels in full on a desktop canvas', async ({ page }) => {
+    const id = 'mi-p12-2047-2048';
+    await page.goto(`/?v=1&c=-0.75,0&s=2.5&sel=${id}`);
+    await waitForCatalogCore(page);
+    const label = page.locator(`.catalog-marker[data-catalog-id="${id}"] .catalog-marker__label`);
+    await expect(label).toHaveText('Period 12, rays 2047/4095 and 2048/4095');
+    expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+      true,
+    );
   });
 });

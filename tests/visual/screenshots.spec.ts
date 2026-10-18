@@ -21,6 +21,12 @@ const openSettled = async (page: Page, url: string): Promise<void> => {
   await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
     timeout: 60_000,
   });
+  // Periods 5 to 12 arrive after the first stable frame (ADR 0014): shoot the settled overlay.
+  await expect(page.getByRole('region', { name: 'Catalog' })).toHaveAttribute(
+    'data-catalog-core',
+    'ready',
+    { timeout: 60_000 },
+  );
 };
 
 const RASTER_VIEWS = [

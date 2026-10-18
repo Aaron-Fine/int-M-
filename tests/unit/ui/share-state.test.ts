@@ -162,6 +162,15 @@ describe('decodeShareState', () => {
     }
   });
 
+  it('keeps a well-formed period 5 to 12 id for the core to confirm (ADR 0014)', () => {
+    for (const id of ['mi-p12-2045-2050', 'mi-p5-7-8', 'mi-p5-1-9']) {
+      expect(v1(`?v=1&sel=${id}`), id).toEqual({
+        state: { ...DEFAULT_SHARE_STATE, selection: { kind: 'catalog', id } },
+        issues: [],
+      });
+    }
+  });
+
   it('treats absent optional fields as their defaults without an issue', () => {
     expect(v1('?v=1')).toEqual({ state: DEFAULT_SHARE_STATE, issues: [] });
     expect(v1('v=1&view=period')).toEqual({
@@ -199,6 +208,9 @@ describe('decodeShareState', () => {
     ['?v=1&q=Balanced', ['quality'], {}],
     ['?v=1&sel=mi-p9-nope', ['selection'], {}],
     ['?v=1&sel=mi-p4-1-3', ['selection'], {}],
+    ['?v=1&sel=mi-p13-1-2', ['selection'], {}],
+    ['?v=1&sel=mi-p5-01-2', ['selection'], {}],
+    ['?v=1&sel=mi-p5-1-3', ['selection'], {}],
     ['?v=1&sel=MI-P2-BASILICA', ['selection'], {}],
     ['?v=1&sel=-0.1', ['selection'], {}],
     ['?v=1&sel=-0.1,abc', ['selection'], {}],

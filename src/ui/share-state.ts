@@ -1,5 +1,6 @@
 import type { Complex } from '../domain';
-import { findCatalogComponent } from '../catalog/components';
+import { CATALOG, findCatalogComponent } from '../catalog/components';
+import { isCoreCandidateId } from '../catalog/core';
 import {
   DEFAULT_QUALITY_PROFILE_ID,
   DEFAULT_VIEWPORT,
@@ -151,7 +152,10 @@ const decodeSelection = (text: string | null | undefined): ShareSelection | null
   }
   // A v1 id is an alias (ADR 0011): it resolves to the entry's canonical id.
   const component = findCatalogComponent(text);
-  return component === undefined ? undefined : { kind: 'catalog', id: component.id };
+  if (component !== undefined) return { kind: 'catalog', id: component.id };
+  // Periods 5 to 12 arrive with the core after the first frame: a well-formed
+  // id is kept, and the application confirms it once the core loads (ADR 0014).
+  return isCoreCandidateId(text, CATALOG.maxPeriod) ? { kind: 'catalog', id: text } : undefined;
 };
 
 const decodeVersion1 = (params: URLSearchParams): ShareDecodeResult => {

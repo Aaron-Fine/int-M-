@@ -12,13 +12,13 @@ import {
   zoomViewportAt,
   zoomViewportToRect,
 } from '../domain/viewport';
-import {
-  COMPONENT_CATALOG,
-  findCatalogComponent,
-  type CatalogComponent,
-} from '../catalog/components';
+import coreUrl from '../../catalog/core.v1.bin?url';
+import coreManifest from '../../catalog/core.v1.json';
+import { CATALOG, COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components';
+import { mergeCatalog } from '../catalog/core';
 import { catalogGroups, zoomSpanFor } from '../catalog/navigation';
 import { createCatalogIndex } from '../catalog/viewport-index';
+import { loadCatalogCore } from './catalog-core-client';
 import { createCatalogPanel } from './catalog-panel';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
@@ -27,6 +27,7 @@ import { createSemanticLegend } from './semantic-legend';
 import {
   addressBarSearch,
   isEncodableShareState,
+  issuesNotice,
   resolveStartupState,
   shareLink,
 } from './share-link';
@@ -78,6 +79,8 @@ interface ApplicationState {
   qualityProfile: QualityProfileId;
   selectedPoint?: Complex;
   selectedCatalogId?: string;
+  /** A link's generated entry (period 5 to 12) awaiting the catalog core (ADR 0014). */
+  pendingCatalogId?: string;
   requestStartedAtMs: number;
 }
 
@@ -500,9 +503,8 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function currentSelection(): ShareSelection | undefined {
-    if (state.selectedCatalogId !== undefined) {
-      return { kind: 'catalog', id: state.selectedCatalogId };
-    }
+    const catalogId = state.selectedCatalogId ?? state.pendingCatalogId;
+    if (catalogId !== undefined) return { kind: 'catalog', id: catalogId };
     return state.selectedPoint === undefined
       ? undefined
       : { kind: 'point', point: state.selectedPoint };
@@ -596,8 +598,10 @@ export function mountApplication(host: HTMLElement): () => void {
     if (selection?.kind === 'point') {
       inspectPoint(selection.point);
     } else if (selection?.kind === 'catalog') {
-      const component = findCatalogComponent(selection.id);
+      const component = lookupCatalog(selection.id);
+      // Only a well-formed period 5 to 12 id decodes without an entry (share-state.ts).
       if (component) inspectPoint(component.center, component);
+      else state.pendingCatalogId = selection.id;
     }
   }
 
@@ -768,6 +772,7 @@ export function mountApplication(host: HTMLElement): () => void {
     if (frame.stage === 'coarse') {
       showRenderStatus(`Refining view · ${Math.round(frame.progress * 100)}%`);
     } else {
+      requestCatalogCore();
       status.className = 'status status--ready';
       showRenderStatus('Stable frame');
       presentationCanvas.width = frame.width;
@@ -822,6 +827,7 @@ export function mountApplication(host: HTMLElement): () => void {
     };
     delete state.selectedPoint;
     delete state.selectedCatalogId;
+    delete state.pendingCatalogId;
     // A reply for the point just cleared must not re-select it (ids start at 1).
     state.activeInspectionRequestId = 0;
     inspector.clear();
@@ -906,6 +912,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   function inspectPoint(complexPoint: Complex, component?: CatalogComponent): void {
     state.selectedPoint = complexPoint;
+    delete state.pendingCatalogId;
     if (component) {
       state.selectedCatalogId = component.id;
     } else {
@@ -954,8 +961,60 @@ export function mountApplication(host: HTMLElement): () => void {
 
   /** One live button per shown catalog component, keyed by catalog id. */
   const catalogMarkers = new Map<string, HTMLButtonElement>();
-  /** Built once: the density policy queries it on every frame (ADR 0012). */
-  const catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
+  /**
+   * The density policy queries the index on every frame (ADR 0012). It holds
+   * the curated entries until the core arrives, then all 4,016 (ADR 0014).
+   */
+  let catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
+  let catalogByName = namesOf(COMPONENT_CATALOG);
+  let catalogCoreRequested = false;
+
+  function namesOf(components: readonly CatalogComponent[]): ReadonlyMap<string, CatalogComponent> {
+    return new Map(
+      components.flatMap((component) =>
+        [component.id, ...component.aliases].map((name) => [name, component] as const),
+      ),
+    );
+  }
+
+  /** The loaded entry with this id or alias. */
+  function lookupCatalog(idOrAlias: string | undefined): CatalogComponent | undefined {
+    return idOrAlias === undefined ? undefined : catalogByName.get(idOrAlias);
+  }
+
+  /**
+   * Hands the core over once the worker has verified it: the index, the
+   * panel's periods 5 to 12, and a link's pending selection (ADR 0014).
+   */
+  function adoptCatalogCore(components: readonly CatalogComponent[]): void {
+    const merged = mergeCatalog(COMPONENT_CATALOG, components);
+    catalogIndex = createCatalogIndex(merged);
+    catalogByName = namesOf(merged);
+    catalogPanel.addGroups(
+      catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod),
+    );
+    catalogPanel.setCoreState('ready');
+    const pending = state.pendingCatalogId;
+    delete state.pendingCatalogId;
+    const component = lookupCatalog(pending);
+    if (component) inspectPoint(component.center, component);
+    else if (pending !== undefined) showLinkNotice(issuesNotice(['selection']));
+    updateCatalogOverlay();
+  }
+
+  /** Loads periods 5 to 12 off the main thread, after the first stable frame (MI-PERF-003). */
+  function requestCatalogCore(): void {
+    if (catalogCoreRequested) return;
+    catalogCoreRequested = true;
+    loadCatalogCore({ url: coreUrl, manifest: coreManifest }).then(adoptCatalogCore, () => {
+      catalogPanel.setCoreState('failed');
+      if (state.pendingCatalogId === undefined) return;
+      delete state.pendingCatalogId;
+      showLinkNotice(
+        'This link names a catalog component from periods 5 to 12, which could not be loaded, so nothing is selected.',
+      );
+    });
+  }
 
   /** "Airplane, period 3"; a generated label already starts with its period. */
   function markerName(component: CatalogComponent): string {
@@ -1096,10 +1155,7 @@ export function mountApplication(host: HTMLElement): () => void {
     showFeedback(`${profile.label} quality selected · ${describePeriodPolicy(profile.policy)}`);
     scheduleRender(true);
     if (state.selectedPoint) {
-      inspectPoint(
-        state.selectedPoint,
-        COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
-      );
+      inspectPoint(state.selectedPoint, lookupCatalog(state.selectedCatalogId));
     }
   });
 
@@ -1293,7 +1349,7 @@ export function mountApplication(host: HTMLElement): () => void {
         if (message.requestId !== state.activeInspectionRequestId) break;
         inspector.show(
           message.result,
-          COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
+          lookupCatalog(state.selectedCatalogId),
           currentQualityProfile(),
           formattedSelectedPoint(message.result.point),
         );
@@ -1338,6 +1394,7 @@ export function mountApplication(host: HTMLElement): () => void {
         status.className = 'status status--error';
         statusText.textContent = 'Renderer could not recover. Controls remain available.';
         retryRendererButton.hidden = false;
+        requestCatalogCore();
       },
     },
   );

@@ -742,7 +742,8 @@ button:disabled {
   left: 2.85rem;
   display: none;
   width: max-content;
-  max-width: 11rem;
+  /* The longest generated label, "Period 12, rays 2047/4095 and 2048/4095", is 13.7rem (ADR 0014). */
+  max-width: 14rem;
   padding: 0.18rem 0.35rem;
   overflow: hidden;
   color: white;
@@ -952,6 +953,12 @@ button:disabled {
   font-size: 0.78rem;
 }
 
+.catalog-panel__status {
+  margin: 0 0 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+}
+
 .catalog-group + .catalog-group {
   border-top: 1px solid var(--line);
 }
@@ -993,8 +1000,10 @@ button:disabled {
   font-weight: 400;
 }
 
-/* A long group (the period ≤12 core) scrolls inside the panel; the padding keeps focus rings unclipped. */
+/* A long group (the period ≤12 core) scrolls inside the panel; the padding keeps focus rings unclipped.
+   Positioned, so that an entry's offsetTop is measured from the list when the panel reveals it. */
 .catalog-group__list {
+  position: relative;
   max-height: 20rem;
   margin: 0 0 0.5rem;
   padding: 0.3rem;
