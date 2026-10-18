@@ -521,6 +521,50 @@ import IntMProof.GuardPolicyCounterexample
 #guard_msgs in
 #print axioms IntMProof.period3_not_fixed_of_attracting
 
+/-- info: 'IntMProof.orbit_four_sub_self' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.orbit_four_sub_self
+
+/-- info: 'IntMProof.periodFourDynatomic_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodFourDynatomic_eq_zero
+
+/-- info: 'IntMProof.period4_seedDerivative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_seedDerivative
+
+/-- info: 'IntMProof.period4_product_root' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_product_root
+
+/-- info: 'IntMProof.period4_product_zero_of_center' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_product_zero_of_center
+
+/-- info: 'IntMProof.period4_product_root_satellite' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_product_root_satellite
+
+/-- info: 'IntMProof.periodFourDynatomic_fixedPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodFourDynatomic_fixedPoint
+
+/-- info: 'IntMProof.periodFourDynatomic_twoCycle' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodFourDynatomic_twoCycle
+
+/-- info: 'IntMProof.periodFourDynatomic_period_two_multiplier' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.periodFourDynatomic_period_two_multiplier
+
+/-- info: 'IntMProof.period4_not_period_two_of_attracting' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_not_period_two_of_attracting
+
+/-- info: 'IntMProof.period4_not_fixed_of_attracting' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.period4_not_fixed_of_attracting
+
 /-- info: 'IntMProof.rationalOrbit_embed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.rationalOrbit_embed
