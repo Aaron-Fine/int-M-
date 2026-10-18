@@ -26,3 +26,7 @@ The workstream H spike ([record](../verification/WORKSTREAM-H-SPIKE-2026-10-16.m
 - Speed, measured in Node ([evidence](../../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md)): the stable pass ran the 126×, 13×, 609× and 6,000,000× views 1.72×, 1.69×, 1.42× and 7.2× faster, and the far-exterior and ambiguous-boundary views stayed within ±1% in both passes (every 95% interval; the limit is 5%). The row kernel's code generation remains the fragile point ADR 0010 records: rerun `tools/benchmark/fallback-overhead.ts`, with and without `--stride`, after any change to `classifyRow` or a V8 upgrade.
 - The candidate uses `Math.cbrt`, `Math.atan2`, `Math.cos` and `Math.sin`, which ECMAScript does not require to be correctly rounded. The certificate does not depend on them, so every answer is sound in every engine, but the multiplier's last bits, and at a knife-edge pixel the decision itself, may differ between engines. The owner accepted this on 2026-10-17. Before this change status and period depended only on correctly rounded operations.
 - The browser release run in both browsers is deferred to the owner's screen session.
+- Evidence: [adjudication](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md) (every
+  changed pixel and the 6,000,000× view at 1024×640, 0 unsupported) and
+  [fallback overhead and gain](../../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md)
+  (Node, directional).

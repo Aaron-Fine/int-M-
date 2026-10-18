@@ -81,6 +81,11 @@ Estimates are engineering days. They are planning figures and may overlap.
 - **Workstream H acceptance (2026-10-17):** period 3 is accepted by margin and
   a derived rounding allowance, like periods 1 and 2, without the cycle
   verifier; ADR 0010 records it and `MI-PERF-004` names analytic closed forms.
+- **Workstream H period 4 (2026-10-17):** period 4 is accepted by the same
+  margin through a certified root enclosure with a proved binary64 budget,
+  without the cycle verifier; ADR 0013 records it. The owner accepted the
+  paper-proved Rouché enclosure with the exact sampled audit, and the
+  engine-dependent last bits.
 - **Workstream H:** adopt period 3 now and period 4 after a rigorous error
   bound ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)); item 8 below.
 - **Item 7 (2026-10-17):** add a find field above the period groups that
@@ -373,10 +378,10 @@ p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
 - [x] Evidence codes and flags for the analytic source; regenerate the golden
       kernel fixture in the same commit, with oracle evidence for every
       changed pixel (unresolved → attracting). Done: [adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md), 19,216 changed pixels, 0 unsupported.
-- [ ] A release-harness run in both browsers. Deferred to the owner's screen session (headed release harness).
-- [ ] **Period 4, after a rigorous root-error bound** (Kantorovich, or a cusp
+- [ ] A release-harness run in both browsers. Deferred to the owner's screen session (headed release harness). It now covers period 4 too.
+- [x] **Period 4, after a rigorous root-error bound** (Kantorovich, or a cusp
       exclusion disk): the cubic solve inside the component boxes. This also
-      resolves the unresolved half of the 6,000,000× basilica-rim view.
+      resolves the unresolved half of the 6,000,000× basilica-rim view. Done: [ADR 0013](../decisions/0013-analytic-period-four.md), a certified root enclosure with a proved binary64 budget ([PERFORMANCE-MATHEMATICS §12](../PERFORMANCE-MATHEMATICS.md#12-period-4-cubic-with-a-certified-root-workstream-h-adr-0013)); [adjudication](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md): 12,435 changed golden-raster pixels and all 327,680 pixels of the 6,000,000× view's left half at 1024×640, 0 unsupported; Node [overhead and gain](../../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md).
 
 **Done when:** the hard views gain as the spike measured, in the browsers, and
 every changed pixel is adjudicated against the oracle.

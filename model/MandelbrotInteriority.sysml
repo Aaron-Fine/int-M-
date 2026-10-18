@@ -497,8 +497,10 @@ package MandelbrotInteriority {
              * path shall emit attracting-cycle status without the common
              * declared acceptance procedure (closed-form analytic paths
              * accept by the verifier's attraction margin with a declared
-             * binary64 allowance, ADR 0010); exhausted or ambiguous work
-             * shall remain unresolved.
+             * binary64 allowance, ADR 0010; the period-4 cubic solve
+             * accepts the same way through a certified root enclosure,
+             * ADR 0013); exhausted or ambiguous work shall remain
+             * unresolved.
              */
         }
 

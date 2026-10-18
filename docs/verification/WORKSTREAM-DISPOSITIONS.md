@@ -30,7 +30,7 @@ directional-pass-pending, D is directional-pass-pending — records in
 | E   | Dynamic microbands               | **Not started**; renderer-path details have directional evidence; N precedes E |
 | F   | Period-12 core + shards          | **Deferred by default; evidence gate does NOT fire on current evidence**       |
 | G   | Catalog/session/adjacent Newton  | **Not started**; directionally strong PoC evidence, ship shape known           |
-| H   | p3/p4 algebraic experiment       | **Period 3 landed** (ADR 0010); period 4 not started                           |
+| H   | p3/p4 algebraic experiment       | **Period 3 and period 4 landed** (ADR 0010, ADR 0013)                          |
 | I   | Wasm SIMD backend                | **Not started**; direction accepted under ADR 0005 conditions                  |
 | J   | Rigorous subdivision (research)  | **Not started** (research track; gate quoted below)                            |
 | K   | Worker pool sizing               | **Hold** for the declared ≥8-core target class before any PR                   |
@@ -137,9 +137,16 @@ incorrect results`; the targeted and weighted clauses still need the browser
 release run, which is deferred to the owner's screen session.
 Kill (plan §5, verbatim): `Keep research-only if inversion/branch selection
 costs exceed orbit/Newton path` — not triggered: the closed form is 5–37×
-cheaper per pixel handled ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)). Period 4 is not
-started: it needs a rigorous root-error bound (Kantorovich or a cusp
-exclusion disk) before its cubic solve may accept.
+cheaper per pixel handled ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)).
+Period 4 landed on 2026-10-17 ([ADR 0013](../decisions/0013-analytic-period-four.md)):
+its cubic solve accepts only through a certified root enclosure (an
+a-posteriori Rouché test with a proved binary64 budget,
+[PERFORMANCE-MATHEMATICS §12](../PERFORMANCE-MATHEMATICS.md#12-period-4-cubic-with-a-certified-root-workstream-h-adr-0013)).
+Every changed pixel is dd-adjudicated
+([adjudication](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md)), the fallback
+overhead is within 5% ([overhead](../../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md)),
+and the unresolved half of the 6,000,000× view resolves. The browser release
+run for both periods is deferred to the owner's screen session.
 
 ## Workstream I — Wasm SIMD backend
 
