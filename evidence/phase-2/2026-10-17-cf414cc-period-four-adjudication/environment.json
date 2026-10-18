@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-18T05:24:10.384Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465489920,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.8-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "152354cf018b62bb6e0b064db76af1204556c055",
+    "algorithm": "152354cf018b62bb6e0b064db76af1204556c055",
+    "catalog": "f80de4691cf5089a541202a561051802722b2dfef49cee909f6d5b21a7ec11db",
+    "verifier": "231fe67f1fe80efbbeea53c75d3c31171b5ea530c279ae98284d2c09c21401aa"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/environment.json --note Workstream H period 4 (ADR 0013): oracle adjudication of every pixel whose stable-pass output changed at the golden raster, and of the 6,000,000x view at 1024x640 (npm run evidence:period-four); Node, deterministic, no timing.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Workstream H period 4 (ADR 0013): oracle adjudication of every pixel whose stable-pass output changed at the golden raster, and of the 6,000,000x view at 1024x640 (npm run evidence:period-four); Node, deterministic, no timing."
+  ]
+}

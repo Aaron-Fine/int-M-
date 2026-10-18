@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "description": "Analytic period-4 path (ADR 0013): every pixel whose stable-pass output changed at the golden raster, adjudicated against the dd period-4 cycle",
+  "raster": {
+    "width": 1024,
+    "height": 640
+  },
+  "beforeCommit": "30af42c",
+  "afterCommit": "152354c",
+  "tolerance": 1e-12,
+  "changedPixels": 327680,
+  "analyticAnsweredPixels": 327680,
+  "analyticAnsweredButUnchanged": [],
+  "changedSetEqualsAnalyticSet": true,
+  "unsupportedPixels": 0,
+  "transitionsByCase": {
+    "mi-scale-6mx-basilica-rim": {
+      "unresolved -> attracting-p4": 327680
+    }
+  },
+  "colorChangesByCase": {
+    "mi-scale-6mx-basilica-rim": {
+      "stability": {
+        "statusChanged": 327680,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 327680,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 327680,
+        "multiplierOnly": 0
+      }
+    }
+  },
+  "unresolvedByCase": {
+    "mi-scale-6mx-basilica-rim": {
+      "before": 327680,
+      "after": 0
+    }
+  },
+  "maxAnalyticError": 1.132427485117688e-14,
+  "maxBeforeError": 0,
+  "maxAllowance": 3.5935087059482022e-12,
+  "maxErrorToAllowance": 0.0031517144311549385
+}

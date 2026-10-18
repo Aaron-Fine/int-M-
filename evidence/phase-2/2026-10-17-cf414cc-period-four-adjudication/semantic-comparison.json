@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "description": "Analytic period-4 path (ADR 0013): every pixel whose stable-pass output changed at the golden raster, adjudicated against the dd period-4 cycle",
+  "raster": {
+    "width": 160,
+    "height": 100
+  },
+  "beforeCommit": "30af42c",
+  "afterCommit": "152354c",
+  "tolerance": 1e-12,
+  "changedPixels": 12435,
+  "analyticAnsweredPixels": 12435,
+  "analyticAnsweredButUnchanged": [],
+  "changedSetEqualsAnalyticSet": true,
+  "unsupportedPixels": 0,
+  "transitionsByCase": {
+    "mi-easy-default-full": {
+      "attracting-p4 -> attracting-p4": 30,
+      "unresolved -> attracting-p4": 2
+    },
+    "mi-easy-exterior-heavy": {},
+    "mi-easy-main-cardioid": {},
+    "mi-easy-period2-bulb": {},
+    "mi-hard-rabbit-boundary": {},
+    "mi-hard-supplied-126x": {
+      "unresolved -> attracting-p4": 312,
+      "attracting-p4 -> attracting-p4": 1772
+    },
+    "mi-hard-supplied-609x": {
+      "unresolved -> attracting-p4": 84,
+      "attracting-p4 -> attracting-p4": 593
+    },
+    "mi-hard-supplied-13x": {
+      "unresolved -> attracting-p4": 216,
+      "attracting-p4 -> attracting-p4": 1426
+    },
+    "mi-fallback-unknown-high-period": {},
+    "mi-fallback-weak-attraction": {},
+    "mi-fallback-ambiguous-boundary": {},
+    "mi-fallback-budget-exhaustion": {},
+    "mi-scale-6mx-basilica-rim": {
+      "unresolved -> attracting-p4": 8000
+    }
+  },
+  "colorChangesByCase": {
+    "mi-easy-default-full": {
+      "stability": {
+        "statusChanged": 2,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 2,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 2,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-easy-exterior-heavy": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-easy-main-cardioid": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-easy-period2-bulb": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-hard-rabbit-boundary": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-hard-supplied-126x": {
+      "stability": {
+        "statusChanged": 312,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 312,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 312,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-hard-supplied-609x": {
+      "stability": {
+        "statusChanged": 84,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 84,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 84,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-hard-supplied-13x": {
+      "stability": {
+        "statusChanged": 216,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 216,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 216,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-fallback-unknown-high-period": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-fallback-weak-attraction": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-fallback-ambiguous-boundary": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-fallback-budget-exhaustion": {
+      "stability": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 0,
+        "multiplierOnly": 0
+      }
+    },
+    "mi-scale-6mx-basilica-rim": {
+      "stability": {
+        "statusChanged": 8000,
+        "multiplierOnly": 0
+      },
+      "multiplier": {
+        "statusChanged": 8000,
+        "multiplierOnly": 0
+      },
+      "period": {
+        "statusChanged": 8000,
+        "multiplierOnly": 0
+      }
+    }
+  },
+  "unresolvedByCase": {
+    "mi-easy-default-full": {
+      "before": 66,
+      "after": 64
+    },
+    "mi-easy-exterior-heavy": {
+      "before": 0,
+      "after": 0
+    },
+    "mi-easy-main-cardioid": {
+      "before": 0,
+      "after": 0
+    },
+    "mi-easy-period2-bulb": {
+      "before": 0,
+      "after": 0
+    },
+    "mi-hard-rabbit-boundary": {
+      "before": 376,
+      "after": 376
+    },
+    "mi-hard-supplied-126x": {
+      "before": 498,
+      "after": 186
+    },
+    "mi-hard-supplied-609x": {
+      "before": 145,
+      "after": 61
+    },
+    "mi-hard-supplied-13x": {
+      "before": 369,
+      "after": 153
+    },
+    "mi-fallback-unknown-high-period": {
+      "before": 1340,
+      "after": 1340
+    },
+    "mi-fallback-weak-attraction": {
+      "before": 0,
+      "after": 0
+    },
+    "mi-fallback-ambiguous-boundary": {
+      "before": 155,
+      "after": 155
+    },
+    "mi-fallback-budget-exhaustion": {
+      "before": 4864,
+      "after": 4864
+    },
+    "mi-scale-6mx-basilica-rim": {
+      "before": 8000,
+      "after": 0
+    }
+  },
+  "maxAnalyticError": 3.507684306548395e-12,
+  "maxBeforeError": 0.000003199488061150661,
+  "maxAllowance": 5.632304503149649e-9,
+  "maxErrorToAllowance": 0.00450743015338567
+}

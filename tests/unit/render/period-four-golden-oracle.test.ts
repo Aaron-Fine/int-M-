@@ -21,7 +21,7 @@ import { ddPeriodFourCycle } from '../domain/dd-oracle';
  * raster is checked against the dd period-4 cycle (no cubic). This is the set
  * of pixels the change moved: unresolved -> attracting p4, and attracting p4
  * with the certified multiplier instead of the orbit product
- * (evidence/phase-2/<date>-<commit>-period-four-adjudication/).
+ * (evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/).
  */
 const EXPECTED_ANALYTIC_PIXELS: Readonly<Record<string, number>> = {
   'mi-easy-default-full': 32,
