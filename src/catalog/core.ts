@@ -110,6 +110,7 @@ const residualValue = (value: number, index: number): number => {
 };
 
 const checkHeader = (view: DataView, manifest: CoreManifest): void => {
+  if (view.byteLength < CORE_HEADER_BYTES) fail('header', 'the file is shorter than its header');
   const magic = String.fromCharCode(...new Uint8Array(view.buffer, view.byteOffset, 6));
   if (magic !== MAGIC) fail('header', `must start with ${MAGIC}`);
   if (view.getUint16(6, true) !== CORE_FORMAT_VERSION) fail('header', 'unknown format version');
@@ -140,6 +141,9 @@ const checkRays = (period: number, lower: number, upper: number, index: number):
   }
   if (!hasExactRayPeriod(lower, period) || !hasExactRayPeriod(upper, period)) {
     fail(`record ${index}`, 'both rays must have exact period p');
+  }
+  if (kneadingSequence(lower, period) !== kneadingSequence(upper, period)) {
+    fail(`record ${index}`, 'both rays must have one kneading sequence');
   }
 };
 
@@ -291,7 +295,10 @@ export const mergeCatalog = (
   const merged = core.map((entry) => {
     const named = byId.get(entry.id);
     if (named === undefined) return entry;
-    if (named.center.re !== entry.center.re || named.center.im !== entry.center.im) {
+    if (
+      !Object.is(named.center.re, entry.center.re) ||
+      !Object.is(named.center.im, entry.center.im)
+    ) {
       fail(entry.id, 'the curated centre differs from the core');
     }
     byId.delete(entry.id);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { CatalogSchemaError, COMPONENT_CATALOG } from '../../../../src/catalog/components';
-import { kneadingSequence } from '../../../../src/catalog/combinatorics';
+import { hasExactRayPeriod, kneadingSequence } from '../../../../src/catalog/combinatorics';
 import {
   CORE_HEADER_BYTES,
   CORE_RECORD_BYTES,
@@ -149,7 +149,13 @@ describe('catalog core loader rejects a damaged file (MI-PERF-003)', () => {
     ],
     [
       'records out of order',
-      () => edited((view) => view.setUint16(recordOffset(6) + 1, 1, true)),
+      () =>
+        edited((view) => {
+          // Record 6 becomes a copy of record 5: a repeat, and so out of order.
+          for (let byte = 0; byte < CORE_RECORD_BYTES; byte += 1) {
+            view.setUint8(recordOffset(6) + byte, view.getUint8(recordOffset(5) + byte));
+          }
+        }),
       /catalog order/,
     ],
     [
@@ -157,6 +163,66 @@ describe('catalog core loader rejects a damaged file (MI-PERF-003)', () => {
       () => edited((view) => view.setFloat64(recordOffset(7) + 5, Number.NaN, true)),
       /finite/,
     ],
+    ['a bad record size', () => edited((view) => view.setUint16(10, 40, true)), /records must be/],
+    [
+      'a period out of range',
+      () => edited((view) => view.setUint8(recordOffset(7), 13)),
+      /period out of range/,
+    ],
+    [
+      'extra trailing bytes',
+      () => {
+        const longer = new Uint8Array(coreBytes().byteLength + 1);
+        longer.set(new Uint8Array(coreBytes()));
+        return longer.buffer;
+      },
+      /length/,
+    ],
+    [
+      'an infinite centre',
+      () => edited((view) => view.setFloat64(recordOffset(7) + 13, Number.POSITIVE_INFINITY, true)),
+      /finite/,
+    ],
+    [
+      'zero correct digits',
+      () => edited((view) => view.setUint8(recordOffset(7) + 21, 0)),
+      /centerPrecisionDigits/,
+    ],
+    [
+      'more than 17 correct digits',
+      () => edited((view) => view.setUint8(recordOffset(7) + 21, 18)),
+      /centerPrecisionDigits/,
+    ],
+    [
+      'a count that disagrees with the manifest',
+      () => edited((view) => view.setUint32(12, 4015, true)),
+      /record count/,
+    ],
+    [
+      'a maximum period that disagrees with the manifest',
+      () => edited((view) => view.setUint16(8, 11, true)),
+      /maximum period/,
+    ],
+    [
+      'rays of different kneading sequences',
+      () => {
+        const index = CORE.findIndex((component) => component.period === 6);
+        const lower = CORE[index]?.characteristicRays?.[0].numerator ?? 0;
+        const other = Array.from({ length: 62 - lower }, (_, offset) => lower + 1 + offset).find(
+          (value) =>
+            hasExactRayPeriod(value, 6) &&
+            kneadingSequence(value, 6) !== kneadingSequence(lower, 6),
+        );
+        return edited((view) => view.setUint16(recordOffset(index) + 3, other ?? 0, true));
+      },
+      /kneading/,
+    ],
+    [
+      'a ray pair of the main cardioid that is wrong',
+      () => edited((view) => view.setUint16(recordOffset(0) + 3, 2, true)),
+      /main cardioid/,
+    ],
+    ['a header shorter than 16 bytes', () => new ArrayBuffer(8), /length/],
     [
       'a negative residual',
       () => edited((view) => view.setFloat32(recordOffset(7) + 22, -1, true)),
@@ -172,6 +238,46 @@ describe('catalog core loader rejects a damaged file (MI-PERF-003)', () => {
     expect(() => parseCoreManifest({ ...raw, formatVersion: 2 })).toThrow(/formatVersion/);
     expect(() => parseCoreManifest({ ...raw, sha256: 'abc' })).toThrow(/sha256/);
     expect(() => parseCoreManifest({ ...raw, maxPeriod: 13 })).toThrow(/maxPeriod/);
+  });
+
+  it('rejects a header shorter than 16 bytes as a schema error when the manifest agrees', () => {
+    const raw = CORE_MANIFEST_DATA as Record<string, unknown>;
+    const tiny = parseCoreManifest({ ...raw, byteLength: 8 });
+    expect(() => decodeCatalogCore(new ArrayBuffer(8), tiny)).toThrow(CatalogSchemaError);
+    expect(() => decodeCatalogCore(new ArrayBuffer(8), tiny)).toThrow(/shorter than its header/);
+  });
+
+  it.each([
+    ['a non-object', () => 7, /manifest/],
+    ['another format', (raw: object) => ({ ...raw, format: 'other' }), /format/],
+    [
+      'a short countsByPeriod',
+      (raw: object) => ({ ...raw, countsByPeriod: [1] }),
+      /countsByPeriod/,
+    ],
+    [
+      'a zero count in countsByPeriod',
+      (raw: object) => ({
+        ...raw,
+        countsByPeriod: [0, 1, 3, 6, 15, 27, 63, 120, 252, 495, 1023, 2010],
+      }),
+      /countsByPeriod\[0\]/,
+    ],
+    ['a non-integer recordBytes', (raw: object) => ({ ...raw, recordBytes: 34.5 }), /recordBytes/],
+    ['a missing byteLength', (raw: object) => ({ ...raw, byteLength: undefined }), /byteLength/],
+    ['a zero count', (raw: object) => ({ ...raw, count: 0 }), /count/],
+    ['an empty method', (raw: object) => ({ ...raw, method: '' }), /method/],
+  ])('rejects a manifest with %s', (_name, damage, message) => {
+    const raw = CORE_MANIFEST_DATA as Record<string, unknown>;
+    expect(() => parseCoreManifest(damage(raw))).toThrow(CatalogSchemaError);
+    expect(() => parseCoreManifest(damage(raw))).toThrow(message);
+  });
+
+  it('rejects a curated centre that differs from the core only in the sign of zero', () => {
+    const [first, ...rest] = COMPONENT_CATALOG;
+    const flipped = { ...first!, center: { re: first!.center.re, im: -0 } };
+    expect(Object.is(first!.center.im, 0)).toBe(true);
+    expect(() => mergeCatalog([flipped, ...rest], CORE)).toThrow(/curated centre differs/);
   });
 
   it('rejects a curated entry whose centre differs from the core', () => {
