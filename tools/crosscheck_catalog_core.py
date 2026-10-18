@@ -8,18 +8,61 @@ record it proves, at the stored binary64 centre c0 itself, that the disk
 B(c0, rho) holds exactly one root of g(c) = f_c^p(0), a simple one, of exact
 period p (Rouche's theorem, where the generator uses the Krawczyk test). It
 also checks the counts per period against OEIS A000740, the residuals,
-conjugate closure, the half-plane and real-axis order invariants, and that
-the component size estimate is finite and positive.
+conjugate closure, that the disks of one period are disjoint, the half-plane
+and real-axis order invariants, and that the component size estimate is
+finite and positive.
 
 It then proves that each record's rays belong to its centre. The pairs must
 be Lavaurs' pairs (recomputed here), and tools/crosscheck_rays.py proves
 that the two dynamic rays of each pair land together for f_c, c in the
-proved disk of the record's centre. By the wake theorem (Douady and Hubbard;
-Milnor 2000, Theorem 1.2), c then lies in the wake of the pair. Every
-period-p component in that wake other than the pair's own lies in the wake of
-a smaller period-p pair, so, by induction from the innermost pairs and
-because the centres are distinct, each centre is the one its pair's rays
-land at.
+proved disk of the record's centre (or, for the decimal fallback, in a
+smaller proved disk shown to lie inside it). By the wake theorem the centre
+c_P of the record of pair P then lies in the wake W_P, and induction gives
+the association:
+
+Association. Let H_P be the period-p component whose root the parameter rays
+of P land at. c_P is a centre of a period-p component H (fact a), and H lies
+in W_P: H is connected, meets W_P at c_P, and misses its boundary, which is
+two parameter rays outside M and a root, which is in no hyperbolic component
+(fact d). Suppose H is not H_P. Its root pair P' differs from P (facts a, b),
+and H lies in W_P', so the two wakes nest (fact c). W_P inside W_P' is
+impossible: the root of P' lies on the boundary of H, so in the closure of
+W_P; it is neither on P's rays nor P's root (fact b), so it would lie in W_P,
+inside the open W_P', on whose boundary it lies. So W_P' lies strictly inside
+W_P, and by induction on the number of period-p wakes inside a wake, the record
+of P' holds H's centre. Two records would then share a centre, but their disks
+are disjoint. So H is H_P, for every pair P. (Period 1 has one centre, 0.)
+
+Trust base. The proofs rely on these and nothing else:
+- IEEE-754 binary64 with round-to-nearest, where only +, -, *, /, math.sqrt and
+  exact operations enter a bound; Python's integers, fractions and decimal
+  module (each decimal operation correctly rounded to the context's precision).
+- Rouche's theorem, with the deviation bounds of disk_radii (proved there by
+  induction from f_(n+1) = f_n^2 + c) and magnitude_bounds (integer square roots
+  of truncated coordinates, floored and ceiled).
+- Gleason's lemma: the roots of f_c^p(0) are simple, so the Mobius count
+  (1/2) sum over d | p of mu(p/d) 2^d is the number of period-p centres, and
+  the records, being that many distinct roots of exact period p, are all of them.
+- Douady and Hubbard (Orsay notes, 1984-85; Milnor 2000), the facts used above:
+  (a) c is the centre of a period-p hyperbolic component exactly when 0 has
+  exact period p under f_c, and each component has one centre and one root;
+  (b) for p >= 2 each root of a period-p component is the landing point of
+  exactly two parameter rays, both of period p and landing nowhere else, the
+  component lies in their wake, and distinct components have distinct roots;
+  (c) parameter rays are disjoint and lie outside M, so wakes of distinct
+  period-p pairs are nested or disjoint; (d) roots are parabolic parameters,
+  in no hyperbolic component.
+- Lavaurs (1986): the pairs of period-p parameter rays that land together are
+  those of his algorithm, recomputed by lavaurs_pairs.
+- The wake theorem (Douady and Hubbard; Milnor 2000, Theorem 1.2): the dynamic
+  rays of a pair land together only for c in the closed wake of the pair.
+- Everything in tools/crosscheck_rays.py's own trust base (Bottcher's theorem,
+  the maximum principle, the Schwarz-Pick lemma, Banach's fixed-point theorem).
+- Proved here, as elementary lemmas: exact period from |f^d(0)| bounded away
+  from 0 on the disk for each proper divisor d (prove_root_at); distinct
+  centres from disjoint disks, with a scan that stops only past the largest
+  radius (check_collection); the refined disk's root being the record's own,
+  by |c1 - c0| + rho1 <= rho in exact fractions (refined_disk).
 
 Usage: python3 tools/crosscheck_catalog_core.py catalog [--workers N]
 
@@ -207,8 +250,27 @@ def prove_root_at(orbit: ExactOrbit, period: int) -> Proof:
     return Proof(rho, newton_step, value_up)
 
 
+def exact_decimal(value: Fraction) -> Decimal:
+    """A dyadic n / 2^k as the Decimal n 5^k / 10^k, exactly.
+
+    A Decimal built from a string keeps every digit, whatever the context's precision.
+    """
+    bits = value.denominator.bit_length() - 1
+    if value.denominator != 1 << bits:
+        raise ValueError(f"{value} is not dyadic")
+    return Decimal(f"{value.numerator * 5**bits}E-{bits}")
+
+
 def refined_disk(record: Record) -> tuple[Decimal, Decimal, Decimal]:
-    """A proved disk of radius below 1e-24 about the centre, for the decimal ray fallback."""
+    """A proved disk of radius below 1e-24 about the record's own root, for the decimal ray fallback.
+
+    Newton in REFINED_DIGITS-digit decimals (any result would do) gives a dyadic
+    c1 = (c_re + i c_im) / 2^REFINED_BITS. Rouche proves one simple root of exact
+    period in B(c1, rho1); the exact test |c1 - c0| + rho1 <= rho puts that disk
+    inside the record's own B(c0, rho), which holds only one root, so the two roots
+    are the same. c1 and rho1 are returned exactly. Raises ValueError if a step fails.
+    """
+    own = prove_root(record)
     with localcontext() as context:
         context.prec = REFINED_DIGITS
         re, im = Decimal(record.re), Decimal(record.im)
@@ -226,8 +288,12 @@ def refined_disk(record: Record) -> tuple[Decimal, Decimal, Decimal]:
         c_re = int((re * scale).to_integral_value())
         c_im = int((im * scale).to_integral_value())
     proof = prove_root_at(exact_orbit_dyadic(c_re, c_im, REFINED_BITS, record.period), record.period)
-    radius = Decimal(proof.rho.numerator) / Decimal(proof.rho.denominator) * (1 + Decimal(10) ** -30)
-    return Decimal(c_re) / scale, Decimal(c_im) / scale, radius
+    centre_re, centre_im = Fraction(c_re, 1 << REFINED_BITS), Fraction(c_im, 1 << REFINED_BITS)
+    slack = own.rho - proof.rho
+    gap = (centre_re - Fraction(record.re)) ** 2 + (centre_im - Fraction(record.im)) ** 2
+    if not (slack > 0 and gap <= slack * slack):
+        raise ValueError("the refined disk does not lie in the record's own disk")
+    return exact_decimal(centre_re), exact_decimal(centre_im), exact_decimal(proof.rho)
 
 
 def lavaurs_pairs(max_period: int) -> dict[int, list[tuple[int, int]]]:
@@ -335,10 +401,15 @@ def check_record(task: tuple[Record, bool]) -> tuple[Proof, list[str], Landing |
         record.re, record.im, radius, record.period, record.lower, record.upper
     )
     if landing is None:
-        landing = prove_rays_land_together(
-            record.re, record.im, radius, record.period, record.lower, record.upper,
-            refined=refined_disk(record),
-        )
+        try:
+            refined = refined_disk(record)
+        except ValueError:
+            refined = None
+        if refined is not None:
+            landing = prove_rays_land_together(
+                record.re, record.im, radius, record.period, record.lower, record.upper,
+                refined=refined,
+            )
     if landing is None:
         name = f"mi-p{record.period}-{record.lower}-{record.upper}"
         problems.append(f"{name}: its two dynamic rays were not proved to land together")
@@ -405,9 +476,12 @@ def check_collection(
             for record, proof in zip(records, proofs)
             if record.period == period
         )
+        # Sorted by real part: once a disk is further right than rho plus the largest
+        # radius, it and every later one are too far to meet.
+        largest = max((rho for _re, _im, rho in disks), default=Fraction(0))
         for index, (re, im, rho) in enumerate(disks):
             for other_re, other_im, other_rho in disks[index + 1 :]:
-                if Fraction(other_re) - Fraction(re) > rho + other_rho:
+                if Fraction(other_re) - Fraction(re) > rho + largest:
                     break
                 gap = (Fraction(other_re) - Fraction(re)) ** 2 + (Fraction(other_im) - Fraction(im)) ** 2
                 if gap <= (rho + other_rho) ** 2:
@@ -469,7 +543,8 @@ def main(argv: list[str]) -> int:
         f"cross-checked {len(records)} centres through period {max_period}: counts match A000740; "
         f"each stored centre is within {worst_step:.3g} of a proved simple root of exact period "
         f"(largest |f_c^p(0)| {worst_orbit:.3g}, smallest proper-divisor |f_c^d(0)| {least_divisor:.3g}); "
-        f"the rays of all {len(landings)} pairs are Lavaurs' and land together at their centres "
+        f"the rays of all {len(landings)} pairs are Lavaurs' and, for c in each centre's disk, "
+        f"land together at a repelling periodic point of f_c "
         f"(at most {max(landing.steps for landing in landings)} pull-backs, "
         f"{sum(landing.decimal for landing in landings)} in 40-digit decimals)"
     )

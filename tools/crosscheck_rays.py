@@ -1,22 +1,25 @@
 """Proves that a centre's two characteristic dynamic rays land at one point (ADR 0014).
 
-For a parameter c (any point of a small disk C, which holds the true centre)
-and the rays of angles a/M and b/M, M = 2^p - 1, of f_c(z) = z^2 + c, this
-module encloses each ray in a chain of disks and proves both land at the
-same repelling periodic point:
+For every parameter c of a small disk C, which holds the true centre c*, and
+the rays of angles a/M and b/M, M = 2^p - 1, of f_c(z) = z^2 + c, this module
+encloses each ray in a chain of disks and proves both land at the same
+repelling periodic point. The enclosures hold for every c in C; the theorems
+are applied at c = c*, which lies in the Mandelbrot set M.
 
 1. Far out, |w| in [20, 400], the Bottcher map is within relative
    exp(eta) - 1 of the identity (eta = |c| / |z|^2 / (1 - |c| / |z|^2)), so
    disks about the straight ray enclose R_c(theta) on that fundamental
-   domain of potential, for every angle of the rays' doubling cycles.
+   domain of potential, for every angle of the rays' doubling cycles
+   (start_chain).
 2. Pulling a chain back by z = +-sqrt(w - c) encloses the next fundamental
    domain of the ray of half the angle; the sign is the one whose image
-   meets the disk already known at the junction, and exactly one may.
+   meets the disk already known at the junction, and exactly one may
+   (pull_back).
 3. Once one period of potential of both rays lies in a disk D on which
    every w in D has exactly one solution of f^p(z) = w in D (the Krawczyk
    test, with the target w ranging over D), the inverse branch maps D into
    a compact part of itself, so its iterates carry both rays to its unique
-   fixed point: they land together.
+   fixed point: they land together (maps_into_itself, prove_landing).
 
 Arithmetic is ball arithmetic in binary64, every rounding bounded by the
 operands' magnitudes, and it uses only operations IEEE-754 rounds correctly
@@ -25,12 +28,36 @@ a real, frexp, ldexp): magnitudes are sqrt(x^2 + y^2) and square roots the
 real formulas, never the C library's hypot or cmath. Each complex operation
 gets an allowance of 8 units of 4.5e-16 relative to its operands, and every
 radius is inflated by 2e-15 relative. The rays' directions come from decimal
-Taylor series with a bounded remainder. A 40-digit decimal fallback, where
-every operation is correctly rounded, serves where binary64 cannot resolve the
-landing point.
-By the Douady-Hubbard-Milnor wake theorem the two rays land together only
-for c in the closed wake of the pair; tools/crosscheck_catalog_core.py turns
-that into the association of every pair with its centre.
+Taylor series with a bounded remainder. A 40-digit decimal fallback, with the
+same bounds and correctly rounded operations (an allowance of 8 units of 1e-37,
+an inflation of 1e-35), serves where binary64 cannot resolve the landing point.
+
+Trust base. The proof relies on these and nothing else:
+- IEEE-754 binary64 with round-to-nearest, where only +, -, *, /, math.sqrt and
+  exact operations enter a bound; Python's integers and decimal module (each
+  operation correctly rounded to the context's precision).
+- Bottcher's theorem: for c in M, phi_c is a conformal isomorphism from the
+  complement of K_c onto the complement of the closed unit disk, tangent to the
+  identity at infinity, with phi_c(f_c(z)) = phi_c(z)^2 and the product formula
+  phi_c(z) = z prod_n (1 + c / z_n^2)^(1 / 2^(n+1)); the dynamic ray R_c(theta)
+  is the preimage of the straight ray of angle theta, and f_c maps R_c(theta)
+  onto R_c(2 theta), doubling the potential (Douady and Hubbard; Milnor,
+  Dynamics in One Complex Variable, section 9).
+- |c| <= 2 for c in M, checked as |c| <= BOTTCHER_C_BOUND = 2.01 on the disk.
+- The maximum principle for the subharmonic Green's function log|phi_c|.
+- The Schwarz-Pick lemma (or the Earle-Hamilton theorem) for the landing step.
+- Banach's fixed-point theorem and the mean-value inequality for holomorphic
+  maps on a convex set, for the Krawczyk test.
+- Proved here, as elementary lemmas: the Bottcher estimate and |z| >= 0.99 |w|
+  for |c| <= 2.01, |w| >= 20 (start_chain); the square-root perturbation bound
+  and the branch choice (pull_back); the Krawczyk-with-target lemma
+  (maps_into_itself); the landing lemma (prove_landing); the rounding of the
+  magnitudes, square roots and directions (float_size, float_sqrt,
+  DecimalBalls.sqrt, unit_direction).
+- In tools/crosscheck_catalog_core.py: the wake theorem (Douady and Hubbard;
+  Milnor 2000, Theorem 1.2), under which the two rays land together only for c
+  in the closed wake of the pair, and the facts that turn that into the
+  association of every pair with its centre.
 
 It shares no code with the generator. GPL-3.0-only.
 """
@@ -50,6 +77,8 @@ START_RATIO = 1.06
 FLOAT_STEPS_PER_PERIOD = 90
 DECIMAL_STEPS_PER_PERIOD = 16
 DECIMAL_DIGITS = 40
+# start_chain's |z| >= 0.99 |w| is proved for |c| up to this bound; every centre has |c| <= 2.
+BOTTCHER_C_BOUND = 2.01
 
 
 @dataclass(frozen=True)
@@ -246,23 +275,55 @@ class DecimalBalls:
         return abs(value)
 
     def sqrt(self, value: DecimalComplex) -> DecimalComplex:
+        """The principal square root by float_sqrt's cancellation-free formulas.
+
+        With v = x + iy, |v| = m, t = sqrt((m + |x|) / 2) and s = |y| / (2t), one has
+        t^2 - s^2 = |x| and 2ts = |y| (as (m + |x|)^2 - y^2 = 2|x|(m + |x|)), so
+        t + is is the root of |x| + i|y|, and signs and order give the root of v.
+        Every decimal operation is correctly rounded, within e = 5e-40 relative: m
+        comes out within 2.01e (two squares, a sum, a root), m + |x| adds two
+        non-negative terms (3.02e), / 2 and the root give t within 3.02e, and 2t and
+        the division give s within 5.04e. Each part is within 5.04e of itself, so the
+        root is within 5.04e |root|, far inside the 8 unit = 1600e |root| that pull_back
+        allows. No term cancels, however nearly real v is.
+        """
         modulus = abs(value)
-        re = ((modulus + value.re) / 2).sqrt()
-        im = ((modulus - value.re) / 2).sqrt()
-        return DecimalComplex(re, im if value.im >= 0 else -im)
+        large = ((modulus + abs(value.re)) / 2).sqrt()
+        if large == 0:
+            return DecimalComplex(0)
+        small = abs(value.im) / (2 * large)
+        if value.re >= 0:
+            return DecimalComplex(large, small if value.im >= 0 else -small)
+        return DecimalComplex(small, large if value.im >= 0 else -large)
 
     def rsqrt(self, value: Decimal) -> Decimal:
         return value.sqrt()
 
 
 def start_chain(numerator: int, modulus: int, c_size: float, arith, scale) -> list:  # type: ignore[no-untyped-def]
-    """Disks covering R_c(numerator / modulus) for |w| in [START_RADIUS, START_RADIUS^2], outer first."""
+    """Disks covering R_c(numerator / modulus) for |w| in [START_RADIUS, START_RADIUS^2], outer first.
+
+    The ray is phi_c^-1 of the straight ray of Bottcher coordinates w = phi_c(z), and
+    each disk covers its arc of |w| in [inner, outer]. With c_size >= |c| and
+    c_size <= BOTTCHER_C_BOUND = 2.01:
+
+    Estimate. If |z| >= 3, then |z^2 + c| >= |z|^2 - 2.01 >= |z|, so every iterate
+    z_n has |z_n| >= |z|. With q = c_size / |z|^2 < 1 and |Log(1 + x)| <= |x| / (1 - |x|),
+    the product formula gives |log(phi_c(z) / z)| <= sum_n 2^-(n+1) q / (1 - q) =
+    eta(|z|) = q / (1 - q), so z = w exp(-d) with |d| <= eta(|z|), decreasing in |z|.
+
+    |z| >= 0.99 |w| for |w| >= 20. The Green's function G = log|phi_c| (0 on K_c)
+    is subharmonic on C; on |z| = 3 it is at most log 3 + eta(3) < log 4, as
+    eta(3) <= 0.2876, so by the maximum principle G < log 4 on |z| <= 3. Since
+    G(z) = log|w| >= log 20, |z| > 3, so |z| >= 20 exp(-0.2876) >= 15, then
+    eta(|z|) <= eta(15) <= 0.00902 and |z| >= |w| exp(-0.00902) >= 0.991 |w|.
+    """
     chain = []
     outer = START_RADIUS * START_RADIUS
     direction = unit_direction(numerator, modulus)
     while outer > START_RADIUS * (1 + 1e-9):
         inner = max(START_RADIUS, outer / START_RATIO)
-        smallest = inner * 0.99  # |z| >= |w| exp(-eta) >= 0.99 |w|
+        smallest = inner * 0.99  # |z| >= 0.99 |w| >= 0.99 inner (proved above)
         ratio = c_size / smallest**2
         eta = ratio / (1 - ratio)
         middle = (outer + inner) / 2
@@ -275,7 +336,25 @@ def start_chain(numerator: int, modulus: int, c_size: float, arith, scale) -> li
 
 
 def pull_back(chain: list, junction: tuple, c, c_radius, arith) -> list | None:  # type: ignore[no-untyped-def]
-    """Encloses the preimage branch of the chain that continues from the junction disk."""
+    """Encloses the preimage branch of the chain that continues from the junction disk.
+
+    The chain's disks B_j hold consecutive arcs of a ray; the ray of half the angle
+    holds consecutive arcs A_j with f_c(A_j) in B_j, and A_1 starts in the junction
+    disk. Each B_j = B(w, r) misses c, since r + |c - c0| plus the rounding of u = w - c0
+    stays below 0.9 |u|, so f_c^-1(B_j) is two sets +-S_j, and S_j lies in B(sqrt(u), rho):
+
+    Square-root lemma. If |u' - u| <= s < |u| = S, the root of u' on the branch
+    continuous from sqrt(u) satisfies |sqrt(u') - sqrt(u)| <= s / (sqrt(S) (1 +
+    sqrt(1 - s / S))). Rotate so that u = S > 0; then Re u' >= S - s and |u'| >= S - s,
+    so Re sqrt(u') = sqrt((|u'| + Re u') / 2) >= sqrt(S - s), and |sqrt(u') - sqrt(u)| =
+    |u' - u| / |sqrt(u') + sqrt(u)| <= s / (sqrt(S - s) + sqrt(S)).
+
+    That bound is below sqrt(S), so the disks about +-sqrt(u) are disjoint and the
+    connected arc A_j lies in one of them; it starts where A_(j-1) ends, so its disk
+    meets the last one chosen. The distance test is outward, so the true sign always
+    tests as meeting; when exactly one sign does, it is the true one, and otherwise
+    the proof stops.
+    """
     result, last = [], junction
     for centre, radius in chain:
         u = centre - c
@@ -305,8 +384,8 @@ def pull_back_float(chain: list, junction: tuple, c, c_radius, arith) -> list | 
     Every magnitude here is sqrt(x^2 + y^2). Nothing overflows: |w| <= 401. If
     |w - c| were so small that its squares underflowed, its size would come out too
     small and the disk would be refused (spread >= 0.9 size), which only stops the
-    proof. A centre difference in the junction test that underflows is below 1e-154,
-    far inside any disk radius, so the disks truly meet.
+    proof. An underestimated junction distance can only add a "meets", so at worst
+    it refuses a step.
     """
     sqrt, unit, inflate = math.sqrt, arith.unit, arith.inflate
     cx, cy = c.real, c.imag
@@ -366,7 +445,18 @@ def orbit_ball(z, z_radius, c, c_radius, steps: int, arith):  # type: ignore[no-
 
 
 def maps_into_itself(centre, radius, c, c_radius, period: int, arith) -> bool:  # type: ignore[no-untyped-def]
-    """Krawczyk with the target ranging over D: every w in D has one f^p-preimage in D."""
+    """Krawczyk with the target ranging over D: every w in D has one f^p-preimage in D.
+
+    Lemma. Let D be the closed disk B(m, r), F = f_c^p and Y = 1 / F'(m) as computed
+    (any number would do). For w in D, K_w(z) = z - Y (F(z) - w) has |K_w'(z)| =
+    |1 - Y F'(z)| <= kappa on D, with kappa enclosing |1 - Y F'(m)| + |Y| sup|F' - F'(m)|,
+    and |K_w(m) - m| <= |Y| (|F(m) - m| + r) <= shift. By the mean-value inequality on
+    the convex D, K_w maps D into B(m, shift + kappa r), inside D when the test
+    passes, as a kappa-contraction, kappa < 1. By Banach's fixed-point theorem K_w has
+    one fixed point in D, that is, one z in D with F(z) = w. So the inverse branch g of
+    F maps D into B(m, shift + kappa r); g is holomorphic, as |1 - Y F'| < 1 keeps F'
+    from vanishing on D.
+    """
     value, value_radius, _slope, _ = orbit_ball(centre, 0 * radius, c, c_radius, period, arith)
     _value, _, slope, slope_radius = orbit_ball(centre, radius, c, c_radius, period, arith)
     inverse = 1 / slope
@@ -396,11 +486,32 @@ def landing_estimate(end, c, period: int, pieces: list, arith):  # type: ignore[
 
 
 def prove_landing(c, c_radius, period: int, lower: int, upper: int, arith, max_steps: int):  # type: ignore[no-untyped-def]
-    """Landing or None: both rays pulled back until one disk certifies their common end."""
+    """Landing or None: both rays pulled back until one disk certifies their common end.
+
+    Landing lemma. Every p-th pull-back, the disks of the last p pull-backs of each
+    ray cover one period of its potential, an arc gamma_0, and lie in D = B(m, r).
+    Suppose maps_into_itself passes, so the inverse branch g maps D into B(m, r')
+    with r' < r. Normalise D to the unit disk: g = s h with s = r' / r < 1 and h a
+    holomorphic self-map of the disk. By the Schwarz-Pick lemma h does not increase
+    the hyperbolic distance, and z -> s z shrinks it by the factor s, as the density
+    2 / (1 - |z|^2) is at least 2 / (1 - s^2 |z|^2); so g is an s-contraction of the complete
+    hyperbolic metric. It has one fixed point zeta, and g^n -> zeta uniformly on D,
+    whose image g(D) has bounded hyperbolic diameter. |g'(zeta)| <= s, so zeta is a
+    repelling periodic point. The next period inward, gamma_1, is a connected arc
+    with f^p(gamma_1) = gamma_0 in D that starts at gamma_0's inner end, in D. Each
+    point of gamma_1 in D is g of its image, so it lies in B(m, r'), inside D; thus
+    gamma_1 meets D in a set both open and closed in gamma_1, so gamma_1 lies in D
+    and in g(gamma_0). By induction gamma_k lies in g^k(D), which shrinks to zeta:
+    both rays land at zeta.
+    """
     modulus = (1 << period) - 1
     first = doubling_cycle(lower, modulus)
     cycles = [first] if upper in first else [first, doubling_cycle(upper, modulus)]
-    c_size = float(arith.size(c)) * 1.000001 + float(c_radius)
+    # An upper bound of |c| on the disk: the factor absorbs the size's, the
+    # conversions' and the sum's rounding.
+    c_size = (float(arith.size(c)) + float(c_radius)) * 1.000001
+    if not c_size <= BOTTCHER_C_BOUND:
+        return None
     scale = arith.real("1.000001")
     chains = {
         angle: start_chain(angle, modulus, c_size, arith, scale) for cycle in cycles for angle in cycle
