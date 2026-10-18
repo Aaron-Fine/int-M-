@@ -114,7 +114,11 @@ the binary64 TypeScript classifier. It covers:
 - period-three points near the airplane cusp, near the rabbit's boundary
   (|λ| = 0.99) and at the weak-attraction corpus centre, which the analytic
   period-3 path answers (ADR 0010), and a period-six point of the rabbit's
-  satellite inside that path's gate box, which it must not answer; and
+  satellite inside that path's gate box, which it must not answer;
+- period-four points at |λ| ≈ 0.99 in the 1/2 satellite of the period-2 bulb,
+  next to the real primitive cusp and on a cardioid satellite's rim, which the
+  certified period-4 path answers (ADR 0013), and a period-eight point inside
+  that path's gate box, which it must not answer; and
 - a known parabolic boundary point that must remain unresolved within the
   declared finite budget.
 

@@ -113,11 +113,11 @@ const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void 
  * Largest |lambda| difference allowed between the analytic period-3 or
  * period-4 multiplier and the legacy orbit product. The orbit product is the
  * inaccurate side (up to 1.02e-8 for period 3 and 3.2e-6 for period 4 on the
- * golden raster, 2.2e-6 in the H spike); the dd adjudication pins the
- * analytic multipliers to 1e-12 (period 3) and to the certificate's
- * allowance (period 4).
+ * golden raster, 2.2e-6 in the H spike, 3.0e-5 at the near-cusp period-4
+ * fixture); the dd adjudication pins the analytic multipliers to 1e-12
+ * (period 3) and to the certificate's allowance (period 4).
  */
-const LEGACY_ANALYTIC_MAGNITUDE_TOLERANCE = 1e-5;
+const LEGACY_ANALYTIC_MAGNITUDE_TOLERANCE = 1e-4;
 
 const PROFILES: readonly { readonly label: string; readonly options: Partial<OrbitOptions> }[] = [
   { label: 'quick', options: { maxIterations: 256, maxPeriod: 16 } },
