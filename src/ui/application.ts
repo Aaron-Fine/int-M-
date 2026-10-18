@@ -986,16 +986,30 @@ export function mountApplication(host: HTMLElement): () => void {
     return idOrAlias === undefined ? undefined : catalogByName.get(idOrAlias);
   }
 
+  /** The merged index, names and new panel groups; throws on an inconsistent core. */
+  function buildCatalogCore(components: readonly CatalogComponent[]) {
+    const merged = mergeCatalog(COMPONENT_CATALOG, components);
+    return {
+      index: createCatalogIndex(merged),
+      names: namesOf(merged),
+      groups: catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod),
+    };
+  }
+
   /**
    * Hands the core over once the worker has verified it: the index, the
    * panel's periods 5 to 12, and a link's pending selection (ADR 0014).
    */
   function adoptCatalogCore(components: readonly CatalogComponent[]): void {
-    // Build everything first: a throw here must leave the state untouched.
-    const merged = mergeCatalog(COMPONENT_CATALOG, components);
-    const index = createCatalogIndex(merged);
-    const names = namesOf(merged);
-    const groups = catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod);
+    // Build everything first: a throw here leaves the state untouched and is a failed load.
+    let built: ReturnType<typeof buildCatalogCore>;
+    try {
+      built = buildCatalogCore(components);
+    } catch (error) {
+      onCatalogCoreFailure(error);
+      return;
+    }
+    const { index, names, groups } = built;
     catalogIndex = index;
     catalogByName = names;
     catalogPanel.addGroups(groups);
@@ -1023,8 +1037,11 @@ export function mountApplication(host: HTMLElement): () => void {
     if (catalogCoreRequested) return;
     catalogCoreRequested = true;
     loadCatalogCore({ url: coreUrl, manifest: coreManifest })
-      .then(adoptCatalogCore)
-      .catch(onCatalogCoreFailure);
+      .then(adoptCatalogCore, onCatalogCoreFailure)
+      // A throw after the hand-over has committed is a bug, not a failed load.
+      .catch((error: unknown) => {
+        console.error('catalog core hand-over:', error);
+      });
   }
 
   /** "Airplane, period 3"; a generated label already starts with its period. */
