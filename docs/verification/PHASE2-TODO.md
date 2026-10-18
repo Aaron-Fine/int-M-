@@ -138,7 +138,9 @@ Estimates are engineering days. They are planning figures and may overlap.
       "Phase 2 performance closed" approval.
 - [x] **Merge PR #25** (owner). Merged 2026-10-18 (`5a4c611`). This also clears the Dependabot `source-map-js`
       alert on `main`.
-- [ ] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
+- [x] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
+      Approved 2026-10-18 after the literature-nomenclature pass; references to
+      the terms are kept out of the annotation text.
 - [x] **Phone feedback after a list activation** (decided 2026-10-17:
       an in-panel confirmation; built in item 7). At 320 px the catalog panel stacks below the canvas and the
       inspector, and the "Zoomed to" toast sits inside the canvas stack, so a
