@@ -127,3 +127,19 @@ canonical id. Sharding by period is possible without changing ids.
 additive, so `schemaVersion` stays 2. ADR 0012 also makes the catalog order
 (period, then lower characteristic angle) the keyboard focus order of the
 markers in place of the file order; the file order itself is unchanged.
+
+## Amendment (2026-10-17, ADR 0014)
+
+[ADR 0014](0014-generated-catalog-core.md) replaces the Durand–Kerner seeds:
+each centre is refined from its rays' landing point and certified by the
+Krawczyk test (method `krawczyk-decimal-80`); the eleven centres are
+unchanged. The six period-4 entries are now labelled by their rays ("Period 4,
+rays 6/15 and 9/15"); their ids and v1 aliases are unchanged, and their
+provenance is `curated-aliases`. The earlier line that left the period-4 labels as placeholders
+("Period-4 component N") is historical: since ADR 0014 (owner decision
+2026-10-17) the six period-4 entries are labelled by their rays, and ids and
+aliases are unchanged. The encoded form of "Scaling to item 7" is
+built with 34 bytes per record: one method and one provenance cover the whole
+core, so the manifest holds them instead of an index per entry. The loader
+derives the angled addresses by Schleicher's closed-form rules, which agree
+with the generator's on all 4,015 entries of period 2 to 12.

@@ -35,14 +35,16 @@ an inflation of 1e-35), serves where binary64 cannot resolve the landing point.
 Trust base. The proof relies on these and nothing else:
 - IEEE-754 binary64 with round-to-nearest, where only +, -, *, /, math.sqrt and
   exact operations enter a bound; Python's integers and decimal module (each
-  operation correctly rounded to the context's precision).
+  operation correctly rounded to the context's precision); math.nextafter is
+  exact, and float() of a Fraction or Decimal is correctly rounded (faithful
+  rounding would suffice where it is used).
 - Bottcher's theorem: for c in M, phi_c is a conformal isomorphism from the
   complement of K_c onto the complement of the closed unit disk, tangent to the
   identity at infinity, with phi_c(f_c(z)) = phi_c(z)^2 and the product formula
   phi_c(z) = z prod_n (1 + c / z_n^2)^(1 / 2^(n+1)); the dynamic ray R_c(theta)
   is the preimage of the straight ray of angle theta, and f_c maps R_c(theta)
   onto R_c(2 theta), doubling the potential (Douady and Hubbard; Milnor,
-  Dynamics in One Complex Variable, section 9).
+  Dynamics in One Complex Variable, the treatment of Bottcher's theorem).
 - |c| <= 2 for c in M, checked as |c| <= BOTTCHER_C_BOUND = 2.01 on the disk.
 - The maximum principle for the subharmonic Green's function log|phi_c|.
 - The Schwarz-Pick lemma (or the Earle-Hamilton theorem) for the landing step.
@@ -57,7 +59,10 @@ Trust base. The proof relies on these and nothing else:
 - In tools/crosscheck_catalog_core.py: the wake theorem (Douady and Hubbard;
   Milnor 2000, Theorem 1.2), under which the two rays land together only for c
   in the closed wake of the pair, and the facts that turn that into the
-  association of every pair with its centre.
+  association of every pair with its centre, among them the step from the
+  closed wake to the open wake: the centre lies in M, so it is on no parameter
+  ray (Douady and Hubbard (c)), and it is not the parabolic root (Douady and
+  Hubbard (d)).
 
 It shares no code with the generator. GPL-3.0-only.
 """

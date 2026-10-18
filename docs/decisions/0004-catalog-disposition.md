@@ -74,3 +74,15 @@ product (atlas) phase:
 the same eleven components and labels, with residuals, method, provenance,
 ray-derived ids and the v1 ids kept as aliases. This decision's scope (the
 curated layer is the only shipped catalog in Phase 2) is unchanged.
+
+## Amendment (2026-10-17, ADR 0014)
+
+The owner decided (PHASE2-TODO, Q3) to ship the generated period ≤12 core as a
+product feature rather than wait for this decision's evidence gate. It ships
+under the conditions set here: a pinned, reproducible toolchain (the Python
+standard library; byte-identical regeneration in CI) and independent
+validation (counts, residuals, divisor exclusion, conjugate closure, and a
+proof that each ray pair lands at its centre), recorded in
+[ADR 0014](0014-generated-catalog-core.md). The curated layer stays intact
+and the core is still not a performance dependency: the renderer never reads
+it.

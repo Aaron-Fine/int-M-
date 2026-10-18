@@ -36,7 +36,9 @@ are disjoint. So H is H_P, for every pair P. (Period 1 has one centre, 0.)
 Trust base. The proofs rely on these and nothing else:
 - IEEE-754 binary64 with round-to-nearest, where only +, -, *, /, math.sqrt and
   exact operations enter a bound; Python's integers, fractions and decimal
-  module (each decimal operation correctly rounded to the context's precision).
+  module (each decimal operation correctly rounded to the context's precision);
+  math.nextafter is exact, and float() of a Fraction or Decimal is correctly
+  rounded (faithful rounding would suffice where it is used).
 - Rouche's theorem, with the deviation bounds of disk_radii (proved there by
   induction from f_(n+1) = f_n^2 + c) and magnitude_bounds (integer square roots
   of truncated coordinates, floored and ceiled).
@@ -56,6 +58,9 @@ Trust base. The proofs rely on these and nothing else:
   those of his algorithm, recomputed by lavaurs_pairs.
 - The wake theorem (Douady and Hubbard; Milnor 2000, Theorem 1.2): the dynamic
   rays of a pair land together only for c in the closed wake of the pair.
+- The step from the closed wake to the open wake of the Association: the centre
+  lies in M, so it is on no parameter ray (Douady and Hubbard (c)), and it is
+  not the parabolic root (Douady and Hubbard (d)).
 - Everything in tools/crosscheck_rays.py's own trust base (Bottcher's theorem,
   the maximum principle, the Schwarz-Pick lemma, Banach's fixed-point theorem).
 - Proved here, as elementary lemmas: exact period from |f^d(0)| bounded away

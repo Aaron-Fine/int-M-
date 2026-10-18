@@ -121,3 +121,13 @@ rather than time them.
 - Item 7 supplies the data and an asynchronous hand-over: the loader, the order, the index, the policy and
   the panel are tested at its size. A find field for its 2,010-entry
   period-12 group is left to item 7.
+
+## Amendment (2026-10-17, ADR 0014)
+
+[ADR 0014](0014-generated-catalog-core.md) adds the find field this decision
+left to item 7, puts the panel's one description on its region instead of on
+every entry, scrolls a selection made outside the panel into view inside its
+group's list, adds periods 5 to 12 when the core arrives without disturbing
+the groups already shown, and widens the marker label maximum to 14rem. On the
+real core the default view places 29 markers on a 922×576 canvas and 16 on
+300×225; the policy is unchanged.

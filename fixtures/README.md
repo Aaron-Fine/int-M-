@@ -110,6 +110,14 @@ rasters, so `default-stability.png`, `period-four-126x-period.png` and
 `cf414cc`. The selected-marker baselines (`selected-marker.png` and
 `selected-marker-evidence.png`) still await the owner.
 
+Pending (2026-10-17, PHASE2-TODO item 7): periods 5 to 12 of the catalog
+now load after the first stable frame, and the UI-state screenshots wait for
+them (`data-catalog-core="ready"`). `catalog-overlay.png` and
+`selected-marker.png` show 29 markers instead of 11, with the period-4 labels
+by their rays, in both engines until the owner regenerates them in the
+container. The raster views and both golden files are unchanged, because
+markers are DOM outside the colourised buffer.
+
 ## Orbit fixtures
 
 `orbits.v1.json` is an independently generated high-precision reference set for

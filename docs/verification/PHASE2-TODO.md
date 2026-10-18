@@ -24,6 +24,7 @@ mechanical items go straight to implementation.
   candidate. It ships only when its components are displayed the way the
   existing catalog markers are
   ([closeout, F](PHASE-2-CLOSEOUT.md#conditional-workstream-dispositions)).
+  It shipped with item 7 ([ADR 0014](../decisions/0014-generated-catalog-core.md)).
 - User-programmable colour curves remain a non-goal (PLAN §4).
 
 ## Owner design questions
@@ -135,13 +136,17 @@ Estimates are engineering days. They are planning figures and may overlap.
 - [ ] **Merge PR #25** (owner). This also clears the Dependabot `source-map-js`
       alert on `main`.
 - [ ] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
-- [ ] **Phone feedback after a list activation** (decided 2026-10-17:
+- [x] **Phone feedback after a list activation** (decided 2026-10-17:
       an in-panel confirmation; built in item 7). At 320 px the catalog panel stacks below the canvas and the
       inspector, and the "Zoomed to" toast sits inside the canvas stack, so a
       tap on an entry changes things only off-screen. Either scroll the canvas
       into view on narrow layouts (focus stays on the button and leaves the
       viewport), or show a short confirmation in the panel next to the list.
       The list grows long at item 7.
+      Done 2026-10-17 (item 7, ADR 0014): at 68rem and narrower a list
+      activation shows "Zoomed to …" with a Show the view button, sticky at
+      the bottom of the panel; it is not a live region (the toast announces
+      once), and focus stays on the entry.
 - [ ] **Controls bar at 1280 px.** The Pan and Zoom area buttons overlap the
       Quality select. The overlap does not depend on the catalog panel.
 - [x] **Deep-view first frame: re-diagnosed, no coarse change.** The
@@ -344,49 +349,68 @@ marker count stays bounded at any zoom.
 [ADR 0004](../decisions/0004-catalog-disposition.md). **Estimate:** 7–10.
 **Needs:** Q3, items 4 and 6.
 
-- [ ] A generator for exact-period centres through period 12 with a pinned
-      arbitrary-precision root isolator.
-- [ ] An independent cross-check: counts per period against the known totals,
-      residuals, exclusion of divisor periods, conjugate closure.
-- [ ] Generated labels, plus curated names where they exist; the encoded size
-      budget (≤256 KiB) and a loader off the main thread.
-- [ ] Display through item 6's markers and panel.
-- [ ] Lazy period groups (ADR 0012): a group of more than 8 entries builds
+- [x] A generator for exact-period centres through period 12 with a pinned
+      arbitrary-precision root isolator. Done: `tools/catalog_certify.py`
+      (ball arithmetic, Krawczyk test, divisor exclusion) and
+      `tools/generate_catalog_core.py`, standard library only, about 100 s;
+      [ADR 0014](../decisions/0014-generated-catalog-core.md).
+- [x] An independent cross-check: counts per period against the known totals,
+      residuals, exclusion of divisor periods, conjugate closure. Done:
+      `tools/crosscheck_catalog_core.py`, exact integer arithmetic and
+      Rouché's theorem at every stored centre, and `tools/crosscheck_rays.py`,
+      which proves each pair's two dynamic rays land together at its centre,
+      so that with the wake theorem every pair is proved to belong to its
+      centre (owner decision 2026-10-17); about 3 minutes in parallel. The
+      `Catalog core` workflow runs both when the catalog or its tools change
+      and on pushes to main.
+- [x] Generated labels, plus curated names where they exist; the encoded size
+      budget (≤256 KiB) and a loader off the main thread. Done:
+      `catalog/core.v1.bin`, 136,560 bytes; `src/worker/catalog-core.worker.ts`.
+- [x] Display through item 6's markers and panel.
+- [x] Lazy period groups (ADR 0012): a group of more than 8 entries builds
       its buttons on first open. Over the real 4,016-entry catalog, add an
       e2e for build on first open, no duplicates on re-open, and a link
       `sel=` to an entry in an unbuilt group marking it current once built.
       Measure the main-thread time to build the 2,010-entry period-12 group,
       which `setSelected` builds synchronously on any selection in it.
-- [ ] Asynchronous catalog hand-over. A loader off the main thread means the
+      Done: `Catalog core (ADR 0014)` scenarios; 34–39 ms in Chromium and
+      47–55 ms in Firefox.
+- [x] Asynchronous catalog hand-over. A loader off the main thread means the
       index and the panel can no longer be built at mount from a synchronous
       import (`application.ts`). Add an update path (for example
       `catalogPanel.setGroups` and an index swap) and decide what the panel
-      shows while loading.
-- [ ] Keyboard efficiency in long groups: a find field filtering by label, id
+      shows while loading. Done: `catalogPanel.addGroups`, an index swap, and
+      "Loading periods 5 to 12…" where the groups will appear.
+- [x] Keyboard efficiency in long groups: a find field filtering by label, id
       or ray numerators (owner decision 2026-10-17; no roving tabindex).
-- [ ] Screen-reader verbosity: replace the per-entry `aria-describedby` hint
+      Done: `src/catalog/find.ts`.
+- [x] Screen-reader verbosity: replace the per-entry `aria-describedby` hint
       with one description on the region or on each list, and include the
-      panel at full size in the manual screen-reader record.
-- [ ] Scroll the current entry into view inside its 20rem list when the
+      panel at full size in the manual screen-reader record. Done: one
+      description on the region; PHASE1-HOME-TEST step 3 (owner to run).
+- [x] Scroll the current entry into view inside its 20rem list when the
       selection comes from a marker or a link, without moving focus.
-- [ ] Q4 measurement on real geometry (the synthetic centres are not real).
+- [x] Q4 measurement on real geometry (the synthetic centres are not real).
       Record the placed-marker count at the default and representative zooms
       on desktop (922×576) and phone (300×225) canvases. If collisions leave
       far fewer than about 40, decide whether to keep walking periods. Check
       the label-width estimate against real generated labels ("Period 12,
       rays a/4095 and b/4095" hits the 11rem maximum), and whether 40 markers
-      is too dense on a phone canvas.
-- [ ] Sizes: the generator's cross-check asserts that `componentSizeEstimate`
+      is too dense on a phone canvas. Done: 29 and 16 at the default view;
+      the walk is kept (the phone saturates at 18 even over all 4,016); labels
+      measure 9.5–13.7rem, so the maximum is 14rem (ADR 0014).
+- [x] Sizes: the generator's cross-check asserts that `componentSizeEstimate`
       is finite and greater than 0 for every entry.
-- [ ] E2e at scale: a marker left off by the policy; selecting from the list
+- [x] E2e at scale: a marker left off by the policy; selecting from the list
       an entry the policy had left off, which forces it in and exercises the
       JS re-plan that CSS alone cannot pass; and a re-check of the
       data-dependent preconditions (the `.catalog-marker--label-hidden` count
-      and the compact pairs).
-- [ ] Labels by rays for every generated entry, period 4 included
+      and the compact pairs). Done (Period 5, rays 7/31 and 8/31):
+      `selects from the list an entry the policy left off, and a link forces it in`.
+- [x] Labels by rays for every generated entry, period 4 included
       ("Period 4, rays 6/15 and 9/15"); curated names only for the five named
       components (owner decision 2026-10-17; ADR 0011).
-- [ ] An ADR 0004 amendment recording the product decision.
+- [x] An ADR 0004 amendment recording the product decision.
 
 **Done when:** the full core ships, is validated independently, stays within
 its size budget, and is displayed like the curated markers.

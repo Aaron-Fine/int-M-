@@ -218,7 +218,15 @@ package MandelbrotInteriority {
 
         part def HighPrecisionFixtureGenerator;
 
-        part def CatalogGenerator;
+        part def CatalogGenerator {
+            doc /*
+             * Generates the curated catalog and the period <=12 core from
+             * first principles: Lavaurs ray pairs, Newton refinement in
+             * 80-digit decimals and Krawczyk certification of every centre,
+             * with an independent cross-check in exact arithmetic that also
+             * proves each ray pair lands at its centre (ADR 0014).
+             */
+        }
 
         part def EvidenceHarness {
             doc /*
@@ -602,6 +610,8 @@ package MandelbrotInteriority {
                 by app.renderingWorker.orbitEngine;
             satisfy PerformanceRequirements::CuratedCatalogIntegrity
                 by app.catalogData;
+            satisfy PerformanceRequirements::CuratedCatalogIntegrity
+                by toolchain.catalogGenerator;
             satisfy PerformanceRequirements::CommonAcceptance
                 by app.renderingWorker.cycleVerifier;
             satisfy PerformanceRequirements::GuardedAcceleratedKernel
@@ -750,7 +760,11 @@ package MandelbrotInteriority {
              * generated layer ships, and keyboard, focus, and marker-cap
              * accessibility of catalog presentation. Schema v2 entries carry
              * residuals, method and provenance; ids derive from the
-             * characteristic rays and v1 ids remain aliases (ADR 0011).
+             * characteristic rays and v1 ids remain aliases (ADR 0011). The
+             * period <=12 core regenerates byte for byte, an independent
+             * cross-check proves every centre again and that each ray pair
+             * lands at its centre, and the loader rejects a damaged or
+             * unreachable core while the curated layer stays (ADR 0014).
              */
             objective catalogDeterminism {
                 verify PerformanceRequirements::CuratedCatalogIntegrity;
