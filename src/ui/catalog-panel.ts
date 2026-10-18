@@ -195,6 +195,12 @@ export function createCatalogPanel(options: {
   const runFind = (): void => {
     const result = findInCatalog(searchable, findInput.value);
     if (countTimer !== undefined) clearTimeout(countTimer);
+    // Rebuilding the results (the core landing, say) must not drop focus from one.
+    const focused = document.activeElement;
+    const focusedId =
+      focused instanceof HTMLElement && resultList.contains(focused)
+        ? focused.dataset['catalogId']
+        : undefined;
     results.clear();
     if (result === undefined) {
       resultList.replaceChildren();
@@ -208,6 +214,7 @@ export function createCatalogPanel(options: {
     );
     resultList.hidden = false;
     groupsBox.hidden = true;
+    if (focusedId !== undefined) (results.get(focusedId) ?? findInput).focus();
     countTimer = setTimeout(() => {
       findCount.textContent = resultText(result, coreState === 'loading');
     }, COUNT_DELAY_MS);

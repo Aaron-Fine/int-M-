@@ -2179,6 +2179,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     page,
   }) => {
     await openExplorer(page);
+    await waitForCatalogCore(page);
     const panel = page.getByRole('region', { name: 'Catalog' });
     await panel.getByText('About periods, rays and addresses').click();
     await expect(panel.getByText('Angled internal address', { exact: true })).toBeVisible();
@@ -2713,6 +2714,28 @@ test.describe('Catalog core (ADR 0014)', () => {
     release();
     await waitForCatalogCore(page);
     await expect(count).toHaveText('2,010 components match; showing the first 50.');
+  });
+
+  test('keeps focus on a find result when the core lands and rebuilds the results', async ({
+    page,
+  }) => {
+    const release = await holdCore(page);
+    await openExplorer(page);
+    const panel = panelOf(page);
+    const find = panel.getByRole('searchbox', { name: 'Find a component' });
+    await find.fill('rabbit');
+    await find.press('Tab');
+    const rabbit = panel
+      .getByRole('list', { name: 'Matching components' })
+      .getByRole('button', { name: 'Douady rabbit', exact: true });
+    await expect(rabbit).toBeFocused();
+    release();
+    await waitForCatalogCore(page);
+    await expect(panel).toHaveAttribute('data-catalog-core', 'ready');
+    await expect(rabbit).toBeFocused();
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('data-catalog-id'))).toBe(
+      'mi-p3-1-2',
+    );
   });
 
   test('clears the find field on Escape before Escape ends a legend isolation', async ({
