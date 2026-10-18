@@ -6,6 +6,12 @@ export {
 } from './analytic-period-three';
 export type { PeriodThreeTarget } from './analytic-period-three';
 export {
+  classifyPeriodFourInto,
+  PERIOD_FOUR_ANALYTIC_REVISION,
+  PERIOD_FOUR_EVALUATION_BOUND,
+} from './analytic-period-four';
+export type { PeriodFourCertificate, PeriodFourTarget } from './analytic-period-four';
+export {
   AIRPLANE_BOX,
   inPeriodThreeGate,
   PERIOD_THREE_BOXES,
