@@ -8,6 +8,12 @@ import {
   rayModulus,
   type CatalogComponent,
 } from '../../../src/catalog/components';
+import {
+  angledInternalAddressOf,
+  hasExactRayPeriod,
+  internalAddressOf,
+  kneadingSequence as kneading,
+} from '../../../src/catalog/combinatorics';
 import { V1_CATALOG } from './v1-catalog';
 
 /** Hyperbolic components of exact period p (OEIS A000740), p = 1..12; 4,016 in all. */
@@ -25,73 +31,6 @@ const orbitAbs = (component: CatalogComponent, n: number): number => {
   }
   return Math.hypot(re, im);
 };
-
-/** Kneading sequence of numerator / (2^p - 1): '1' inside (θ/2, (θ+1)/2), '0' outside, '*' on it. */
-const kneading = (numerator: number, period: number): string => {
-  const modulus = rayModulus(period);
-  let angle = numerator;
-  let symbols = '';
-  for (let step = 0; step < period; step += 1) {
-    const doubled = 2 * angle;
-    if (doubled === numerator || doubled === numerator + modulus) symbols += '*';
-    else symbols += doubled > numerator && doubled < numerator + modulus ? '1' : '0';
-    angle = doubled % modulus;
-  }
-  return symbols;
-};
-
-/** Schleicher's ρ: the first m > n where the kneading sequence differs from its n-shift. */
-const rhoOf =
-  (symbols: string) =>
-  (start: number): number => {
-    const symbol = (index: number): string => symbols[(index - 1) % symbols.length] ?? '';
-    let candidate = start + 1;
-    while (candidate < symbols.length && symbol(candidate) === symbol(candidate - start)) {
-      candidate += 1;
-    }
-    return candidate;
-  };
-
-const internalAddressOf = (numerator: number, period: number): number[] => {
-  const address = [1];
-  if (period === 1) return address;
-  const rho = rhoOf(kneading(numerator, period));
-  while (address.at(-1)! < period) address.push(rho(address.at(-1)!));
-  return address;
-};
-
-/** Schleicher's denominator of the angle at `from` on the way to `to`. */
-const angledDenominatorOf = (numerator: number, period: number, from: number, to: number) => {
-  const rho = rhoOf(kneading(numerator, period));
-  const remainder = to % from || from;
-  const orbit = new Set([remainder]);
-  for (let current = remainder; current < period;) {
-    current = rho(current);
-    orbit.add(current);
-  }
-  return (to - remainder) / from + (orbit.has(from) ? 1 : 2);
-};
-
-/** Schleicher: p_k counts j in 0..q_k-2 with 2^(j·S_k)·θ mod 1 in (0, θ], θ the lower ray. */
-const angledNumeratorOf = (
-  numerator: number,
-  period: number,
-  from: number,
-  denominator: number,
-): number => {
-  const modulus = rayModulus(period);
-  let count = 0;
-  for (let j = 0, angle = numerator; j < denominator - 1; j += 1) {
-    if (angle !== 0 && angle <= numerator) count += 1;
-    angle = (angle * 2 ** from) % modulus;
-  }
-  return count;
-};
-
-const hasExactRayPeriod = (numerator: number, period: number): boolean =>
-  properDivisors(period).every(
-    (divisor) => (numerator * rayModulus(divisor)) % rayModulus(period) !== 0,
-  );
 
 const raysOf = (component: CatalogComponent): readonly [number, number] => {
   const rays = component.characteristicRays;
@@ -165,21 +104,9 @@ describe('component catalog', () => {
   it('states angled addresses recomputed from the lower ray', () => {
     for (const component of COMPONENT_CATALOG.filter((entry) => entry.period > 1)) {
       const [lower] = raysOf(component);
-      const address = internalAddressOf(lower, component.period);
-      const steps = component.angledInternalAddress;
-      expect(steps, component.id).toBeDefined();
-      expect(steps, component.id).toHaveLength(address.length - 1);
-      steps!.forEach((step, index) => {
-        const from = address[index]!;
-        const to = address[index + 1]!;
-        expect(step.fromPeriod, component.id).toBe(from);
-        expect(step.toPeriod, component.id).toBe(to);
-        const denominator = angledDenominatorOf(lower, component.period, from, to);
-        expect(step.rotation, `${component.id} ${from}->${to}`).toEqual({
-          numerator: angledNumeratorOf(lower, component.period, from, denominator),
-          denominator,
-        });
-      });
+      expect(component.angledInternalAddress, component.id).toEqual(
+        angledInternalAddressOf(lower, component.period),
+      );
     }
   });
 
