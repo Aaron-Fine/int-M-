@@ -2230,6 +2230,13 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     const panel = page.getByRole('region', { name: 'Catalog' });
     await panel.getByText('About periods, rays and addresses').click();
     await expect(panel.getByText('Angled internal address', { exact: true })).toBeVisible();
+    // Schleicher's notation: the internal angle is a subscript on the arrow, spoken separately.
+    const glossaryChains = panel.locator('.catalog-glossary .angled-address');
+    await expect(glossaryChains.locator('sub')).toHaveText(['1/3', '2/3']);
+    await expect(glossaryChains.locator('.visually-hidden')).toHaveText([
+      '1, to 3 at angle 1/3',
+      '1, to 3 at angle 2/3',
+    ]);
     await panel.getByRole('button', { name: '1/3-bulb (Douady rabbit)', exact: true }).click();
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,

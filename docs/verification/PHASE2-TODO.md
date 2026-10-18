@@ -212,7 +212,8 @@ Estimates are engineering days. They are planning figures and may overlap.
       on screen; the folded first-use flow is marked slow. The full suite
       passed `--repeat-each 3 --workers 8` beside eight busy loops (225 passed,
       3 skipped, 0 failed, both engines). Not run: `--repeat-each 5` on a quiet
-      machine (substituted by the loaded run; owner to confirm).
+      machine (substituted by the loaded run; the owner accepted the substitution
+      on 2026-10-18).
 - [x] **Catalog marker target size at 320 px.** axe reports a `target-size`
       violation on catalog markers at 320 px width (for example the button
       "Airplane component, period 3"), found while planning item 3. Enlarge the hit
