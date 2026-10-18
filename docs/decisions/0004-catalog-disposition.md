@@ -82,7 +82,8 @@ product feature rather than wait for this decision's evidence gate. It ships
 under the conditions set here: a pinned, reproducible toolchain (the Python
 standard library; byte-identical regeneration in CI) and independent
 validation (counts, residuals, divisor exclusion, conjugate closure, and a
-proof that each ray pair lands at its centre), recorded in
+proof that, for c at each centre, its ray pair lands together, so that the
+pair's parameter rays land at the root of that component), recorded in
 [ADR 0014](0014-generated-catalog-core.md). The curated layer stays intact
 and the core is still not a performance dependency: the renderer never reads
 it.

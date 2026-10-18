@@ -135,11 +135,11 @@ each centre is refined from its rays' landing point and certified by the
 Krawczyk test (method `krawczyk-decimal-80`); the eleven centres are
 unchanged. The six period-4 entries are now labelled by their rays ("Period 4,
 rays 6/15 and 9/15"); their ids and v1 aliases are unchanged, and their
-provenance is `curated-aliases`. The earlier line that left the period-4 labels as placeholders
-("Period-4 component N") is historical: since ADR 0014 (owner decision
-2026-10-17) the six period-4 entries are labelled by their rays, and ids and
-aliases are unchanged. The encoded form of "Scaling to item 7" is
+provenance is `curated-aliases`. The earlier line that left the period-4
+labels as placeholders ("Period-4 component N") is historical. The encoded form of "Scaling to item 7" is
 built with 34 bytes per record: one method and one provenance cover the whole
 core, so the manifest holds them instead of an index per entry. The loader
 derives the angled addresses by Schleicher's closed-form rules, which agree
-with the generator's on all 4,015 entries of period 2 to 12.
+with the generator's on all 4,015 entries of period 2 to 12, which
+`tests/unit/catalog/core/angled-addresses.test.ts` pins against
+`fixtures/angled-addresses.p12.json` (ADR 0014).

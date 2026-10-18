@@ -224,7 +224,7 @@ package MandelbrotInteriority {
              * first principles: Lavaurs ray pairs, Newton refinement in
              * 80-digit decimals and Krawczyk certification of every centre,
              * with an independent cross-check in exact arithmetic that also
-             * proves each ray pair lands at its centre (ADR 0014).
+             * proves that, for c at each centre, its ray pair lands together (ADR 0014).
              */
         }
 
@@ -762,8 +762,8 @@ package MandelbrotInteriority {
              * residuals, method and provenance; ids derive from the
              * characteristic rays and v1 ids remain aliases (ADR 0011). The
              * period <=12 core regenerates byte for byte, an independent
-             * cross-check proves every centre again and that each ray pair
-             * lands at its centre, and the loader rejects a damaged or
+             * cross-check proves every centre again and that, for c at each
+             * centre, its ray pair lands together, and the loader rejects a damaged or
              * unreachable core while the curated layer stays (ADR 0014).
              */
             objective catalogDeterminism {

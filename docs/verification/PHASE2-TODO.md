@@ -358,9 +358,10 @@ marker count stays bounded at any zoom.
       residuals, exclusion of divisor periods, conjugate closure. Done:
       `tools/crosscheck_catalog_core.py`, exact integer arithmetic and
       Rouché's theorem at every stored centre, and `tools/crosscheck_rays.py`,
-      which proves each pair's two dynamic rays land together at its centre,
-      so that with the wake theorem every pair is proved to belong to its
-      centre (owner decision 2026-10-17); about 3 minutes in parallel. The
+      which proves that for c at each centre the pair's two dynamic rays land
+      together at a repelling periodic point, so that with the wake theorem
+      every pair's parameter rays are proved to land at the root of its
+      centre's component (owner decision 2026-10-17); about 3 minutes in parallel. The
       `Catalog core` workflow runs both when the catalog or its tools change
       and on pushes to main.
 - [x] Generated labels, plus curated names where they exist; the encoded size
@@ -411,6 +412,10 @@ marker count stays bounded at any zoom.
       ("Period 4, rays 6/15 and 9/15"); curated names only for the five named
       components (owner decision 2026-10-17; ADR 0011).
 - [x] An ADR 0004 amendment recording the product decision.
+- [ ] Owner: regenerate the advisory `catalog-overlay.png` and
+      `selected-marker.png` baselines in the container for both engines
+      (`npm run test:visual:container`, with the owner's update flag), since
+      the default view now shows 18 more markers (`fixtures/README.md`).
 
 **Done when:** the full core ships, is validated independently, stays within
 its size budget, and is displayed like the curated markers.

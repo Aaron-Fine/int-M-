@@ -43,7 +43,7 @@ cross-check (`tools/crosscheck_rays.py`). For every c in the proved disk about
 a record's centre, the dynamic rays of f_c with the record's angles a/M and b/M
 land at one point:
 
-1. Far out the Böttcher map is close to the identity: for |z| ≥ 2 and |c| ≤ 2,
+1. Far out the Böttcher map is close to the identity: for |z| ≥ 3 and |c| ≤ 2.01,
    φ_c(z) = z·e^δ with |δ| ≤ η = (|c|/|z|²)/(1 − |c|/|z|²). Disks about the
    straight rays therefore enclose every ray of the two doubling cycles for
    |w| in [20, 400], one fundamental domain of potential.
@@ -67,8 +67,8 @@ Lavaurs' pairs, which the cross-check recomputes.
 The rest is mathematics. By the wake theorem (Douady and Hubbard; Milnor 2000,
 "Periodic orbits, external rays and the Mandelbrot set", Theorem 1.2 and its
 Corollary 1.3), the dynamic rays of a characteristic pair land together
-exactly for c in the wake of that pair, so each centre lies in its pair's
-wake. Every other period-p component in a wake lies in the wake of a smaller
+only for c in the closed wake of that pair (and they do for every c in the
+wake), so each centre lies in its pair's wake. Every other period-p component in a wake lies in the wake of a smaller
 period-p pair. The centres are proved distinct and complete, so by induction
 from the innermost pairs, each centre is the one at whose root its pair's
 parameter rays land. The full argument, with its induction, is the
@@ -163,8 +163,8 @@ _Elementary lemmas, proved in the code comments._
   induction on wake nesting, each record's centre is the centre of the
   component rooted at its pair's landing point.
 
-**Citations.** Checked on 2026-10-18 (task 7 report): J. Milnor, "Periodic
-orbits, externals rays and the Mandelbrot set: an expository account",
+**Citations.** Checked against arXiv math/9905169 on 2026-10-18: J. Milnor, "Periodic
+orbits, external rays and the Mandelbrot set: an expository account",
 Astérisque 261 (2000), 277–333 (arXiv math/9905169), where Theorem 1.2 is "The
 Wake W_P", Corollary 1.3 gives the nesting or disjointness of closed wakes,
 and Theorem 3.1 is the version proved in §3. P. Lavaurs, "Une description
@@ -176,6 +176,8 @@ numbers. J. Milnor, _Dynamics in One Complex Variable_ (Böttcher's theorem and
 external rays), cited without a section number. C. J. Earle and R. S.
 Hamilton, "A fixed point theorem for holomorphic mappings" (1970), cited
 without a page number. The last three could not be checked against the text.
+The Milnor entries were checked by reading the paper's statements of Theorem
+1.2, Corollary 1.3 and Theorem 3.1 against the uses above.
 
 **Independent cross-check.** `tools/crosscheck_catalog_core.py` reads only the
 shipped files and imports none of the generator's modules. It recomputes the
@@ -184,7 +186,11 @@ f_c^p(0) and its derivative exactly in integer arithmetic at each stored
 binary64 centre. Rouché's theorem then proves that a disk of four Newton steps
 about it holds exactly one simple root (the generator uses the Krawczyk test
 at the 80-digit point), with f_c^d(0) bounded away from 0 for every proper
-divisor. It also checks the residuals to three digits, every exact-period
+divisor. It checks the stored `orbitAbs` and `centerError` to three digits against its
+own exact values; for the proper-divisor residual it checks only that the
+stored value is positive (its exact-period proof bounds the divisor orbits
+independently), and `centerPrecisionDigits` is not recomputed. It also checks
+every exact-period
 angle used once, both rays sharing a kneading sequence, exact conjugate
 closure, the half-plane invariant, real centres exactly where the rays are
 symmetric and in angle order along the axis, disjoint disks, and a finite,
@@ -197,7 +203,7 @@ positive `componentSizeEstimate` for every entry.
 | Components per period                                    | 1, 1, 3, 6, 15, 27, 63, 120, 252, 495, 1023, 2010 |
 | Largest distance from a stored centre to its proved root | 1.12e-16                                          |
 | Largest \|f_c^p(0)\| at a stored centre (period 12)      | 1.33e-10                                          |
-| Smallest proper-divisor \|f_c^d(0)\| at a stored centre  | 0.00154                                           |
+| Smallest stored proper-divisor \|f_c^d(0)\| (generator)  | 0.00154                                           |
 | Closest centres of one period (period 12)                | 7.06e-6 apart                                     |
 | `catalog/core.v1.bin`                                    | 136,560 bytes (133.4 KiB; 88.7 kB compressed)     |
 
@@ -212,7 +218,12 @@ holds them, with the counts per period, the length, the SHA-256 and the
 SHA-256 of each generator source. Ids, labels and both addresses are derived
 on load; the angled addresses by Schleicher's closed-form rules
 (`src/catalog/combinatorics.ts`), which agree with the generator's tuned
-sub-wake method on all 4,015 entries of period 2 to 12. The curated JSON
+sub-wake method on all 4,015 entries of period 2 to 12. That agreement is
+pinned: `tools/dump_angled_addresses.py` writes the generator's addresses to
+`fixtures/angled-addresses.p12.json`, the `Catalog core` workflow and
+`catalog:core:verify` regenerate them to check the file, and
+`tests/unit/catalog/core/angled-addresses.test.ts` compares the closed form
+with it in `npm run check`. The curated JSON
 stays as it is: it is reviewed text, and the five names, the aliases and the
 annotations come from it.
 
@@ -228,7 +239,10 @@ to main, and on request (owner decision 2026-10-17);
 
 **Loader off the main thread.** After the first stable frame, a worker fetches
 the binary, checks its length and SHA-256 against the manifest, decodes it to
-validate every record, and transfers the bytes back. The main thread decodes
+validate every record, and transfers the bytes back. The client gives up after 30 s and also fails on a
+worker error or an unreadable message, terminating the worker on every exit;
+any failure, including a throw while handing the core over, leaves the curated
+catalog, says so in the panel and logs the reason. The main thread decodes
 them again, without the addresses, which are computed when first read: 8.5 ms
 in Chromium and 20 ms in Firefox, then 7 ms and 16 ms to merge the curated
 entries, build the index and add the panel's groups. A structured clone of the
@@ -315,13 +329,19 @@ still stops at the first period that brings the candidates to 40.
 
 ## Consequences
 
-- The catalog grows from 11 to 4,016 entries; the main bundle grows by
-  12.8 kB (28.4 kB compressed), and a 5.5 kB worker and the 136.6 kB core
-  load after the first frame.
+- The catalog grows from 11 to 4,016 entries; the main chunk grows by
+  13.1 kB to 85.4 kB (28.7 kB compressed, +4.5 kB); the worker (5.5 kB) and
+  the core asset `core.v1.bin` (136.6 kB) are separate files that load after
+  the first frame.
 - The six period-4 labels change: "Period-4 component 2" is now "Period 4,
   rays 6/15 and 9/15". Their ids and v1 aliases are unchanged.
 - At the default desktop view the core adds 18 markers of periods 5 and 6;
   the advisory `catalog-overlay.png` and `selected-marker.png` baselines
   change, and the owner regenerates them in the container. The colourised
   goldens do not change: markers are DOM outside the buffer.
+- The core needs a secure context, because the SHA-256 check uses Web Crypto
+  (`crypto.subtle`). Production (https), `localhost` and Playwright are
+  fine; a phone test over `http://<LAN-IP>` is not, and ends in "Periods 5 to
+  12 could not be loaded." with the reason ("the catalog core needs a secure
+  context") in the console. Test on the Pages preview instead.
 - Regenerating the core needs about 100 s; `catalog/README.md` says how.

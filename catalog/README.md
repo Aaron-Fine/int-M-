@@ -55,7 +55,7 @@ because share links (ADR 0009) name them in `sel=`. Never remove an alias.
 npm run catalog:test            # the generator, certification and cross-check unit tests (Python)
 npm run catalog:check           # regenerates components.v2.json and requires byte equality
 npm run catalog:core:inputs     # the core's manifest matches its sources and its bytes (fast)
-npm run catalog:core:verify     # regenerates the core byte for byte, then cross-checks it
+npm run catalog:core:verify     # regenerates the core byte for byte, cross-checks it, checks the angled-address fixture
 ```
 
 `npm run check` runs the first three. `catalog:core:verify` takes about 4.5
@@ -64,12 +64,20 @@ minutes (three of them the cross-check, in parallel processes); the
 every push to main. The cross-check (`tools/crosscheck_catalog_core.py` and
 `tools/crosscheck_rays.py`) shares no code with the generator. It proves each
 stored centre's root again in exact integer arithmetic, checks the counts
-against OEIS A000740, the residuals, divisor periods and conjugate closure,
-recomputes Lavaurs' ray pairs, and proves that each pair's two dynamic rays
-land together at its centre; with the wake theorem this proves which pair
-belongs to which centre (ADR 0014). The unit tests in `tests/unit/catalog/`
-check the loaded files, and the loaders (`src/catalog/schema.ts`,
+against OEIS A000740, the `orbitAbs` and `centerError` residuals to three digits (the proper-divisor residual only for being positive), divisor periods and conjugate closure,
+recomputes Lavaurs' ray pairs, and proves that for c at each centre the pair's
+two dynamic rays land together at a repelling periodic point of f_c; with the
+wake theorem this proves which pair's parameter rays land at the root of which
+centre's component (ADR 0014). The unit tests in `tests/unit/catalog/`
+check the loaded files, `fixtures/angled-addresses.p12.json` pins the angled
+addresses (`tools/dump_angled_addresses.py`), and the loaders (`src/catalog/schema.ts`,
 `src/catalog/core.ts`) reject a malformed file.
+
+The browser loads the core in a worker and checks its SHA-256 with Web Crypto,
+which exists only in secure contexts. Production (https) and `localhost` are
+fine; over `http://<LAN-IP>` (a phone test, say) the core fails to load with
+"the catalog core needs a secure context" in the console, and the panel says
+periods 5 to 12 could not be loaded.
 
 The catalog data is dedicated to the public domain under
 [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). The generator
