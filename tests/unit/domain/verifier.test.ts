@@ -19,9 +19,10 @@ import type { VerifierVerdict } from '../../../src/domain';
 /**
  * Unit tests for the common numerical verifier (plan section 3, PR 3):
  * three-way proper-divisor reduction, closure ambiguity, attraction margin,
- * superattracting identity, and non-finite refusal. The differential that
- * pins the classifyInto lag-scan inline mirror to this canonical body lives
- * in orbit-scalar-parity.test.ts.
+ * superattracting identity, and non-finite refusal. The production kernels
+ * call verifyCycleInto directly (no inline copy); the last test replays
+ * classifyInto's lag-scan acceptances through it, and verifier-prefix.test.ts
+ * pins it to a frozen separate-walk reference.
  */
 
 /** Plain binary64 orbit walk used only to place test cycle starts. */

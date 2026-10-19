@@ -152,14 +152,18 @@ export type VerifierVerdict =
  * are caller-owned provenance). On every non-accepted verdict `out` is left
  * untouched. Returns a VERIFIER_VERDICT code.
  *
- * The classifyInto lag scan mirrors this body verbatim at its call site
- * (V8 constraint documented there); this function is the reference
- * implementation and the differential tests pin the two together.
+ * Both production kernels call this function on every lag-scan proposal:
+ * the scalar triggered kernel (src/domain/orbit-triggered.ts, behind
+ * classifyInto) and the two-lane row kernel (src/render/triggered-rows.ts).
+ * There is no inline copy of the policy.
+ * tests/unit/domain/verifier-prefix.test.ts pins this body to a frozen
+ * separate-walk reference, and verifier.test.ts replays classifyInto's
+ * lag-scan acceptances through it.
  */
 // The branch count is the policy itself: finite-value refusal, the three-way
 // closure policy, proper-divisor reduction with its own three-way policy, and
-// the attraction margin. Splitting it into helpers would either allocate or
-// break the single-body correspondence with the inline mirror.
+// the attraction margin. Splitting it into helpers would allocate (several
+// results per step) or spread the one policy over several bodies.
 export const verifyCycleInto = (
   cRe: number,
   cIm: number,
@@ -282,8 +286,7 @@ export const verifyCycleInto = (
 
 /**
  * Rich boundary wrapper: verifies a proposed cycle and materializes the
- * verdict as an object. Allocates; hot paths use verifyCycleInto (or the
- * mirrored inline body in the classifyInto lag scan).
+ * verdict as an object. Allocates; hot paths use verifyCycleInto.
  */
 export const verifyCycle = (
   cRe: number,

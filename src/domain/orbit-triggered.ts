@@ -182,8 +182,7 @@ export const classifyTriggeredOrbitInto = (
       // orbit loop, so every double the loop carries round-trips through the
       // scratch spill and is reloaded afterwards: nothing of the orbit state
       // is live across the call (orbit.ts hot-loop rule). Proposals are rare
-      // here (about one per accepted pixel), unlike the legacy every-iteration
-      // scan that needs the inline mirror.
+      // here (about one per accepted pixel), so the call costs little.
       spill[SPILL_Z_RE] = zRe;
       spill[SPILL_Z_IM] = zIm;
       spill[SPILL_NEAREST] = nearestSquared;
