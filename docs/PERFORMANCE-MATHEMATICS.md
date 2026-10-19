@@ -578,7 +578,7 @@ The computed test fl(ĥ·fl(8K̂ + 16ĥ)) < D̂ (8K̂ and 16ĥ are exact) gives 
 
 T = fl(1 − attractMargin) ≤ 1 − 10⁻¹² with 4.88u to spare, so |λ\*| < 1 − 10⁻¹².
 
-> **Acceptance implies |λ\*| < 1 − 10⁻¹² for a root of the exact cubic at the binary64 parameter c, hence (12.2) an attracting cycle of exact period 4. The reported λ̃ = 16μ̃ lies within 32ĥ(1 + 2⁻⁴⁰) < Â/2 of λ\*.**
+> **Acceptance implies |λ\*| < 1 − 10⁻¹² for a root of the exact cubic at the binary64 parameter c, hence (12.2) an attracting cycle of exact period 4. The reported λ̃ = 16μ̃ lies within 32ĥ(1 + 2⁻⁴⁰) of λ\*, about Â/2.**
 
 ### 12.5 Floating-point error budget [paper]
 
@@ -609,7 +609,7 @@ The answer is never wrong; it is only less often fast.
 
 ### 12.7 Verification
 
-- **Exact audit** ([period-four-certificate.test.ts](../tests/unit/domain/period-four-certificate.test.ts)). For 19,664 parameters (a grid over every box and its conjugate, rings around the cusps, the satellite roots and the centres down to radius 10⁻¹⁶, and both sides of the acceptance edge on every box midline), every binary64 number is converted to an exact dyadic rational; the test recomputes the exact cubic at the binary64 c and its exact value at the binary64 candidate in BigInt arithmetic, and checks F̂ ≥ |M|, D̂ ≤ |M′|, K̂ ≥ |M″|/2, the Rouché inequality for r = 2ĥ(1 + 2⁻⁴⁰) and, at acceptance, 16|μ̃| + 16r < T, with no rounding at all. It checks the conclusions of 12.5 point by point, not the argument.
+- **Exact audit** ([period-four-certificate.test.ts](../tests/unit/domain/period-four-certificate.test.ts)). For 19,664 parameters (a grid over every box and its conjugate, rings around the cusps, the satellite roots and the centres down to radius 10⁻¹⁶, and both sides of the acceptance edge on every box midline), every binary64 number is converted to an exact dyadic rational. For each parameter the code certifies, the test recomputes the exact cubic at the binary64 c and its exact value at the binary64 candidate in BigInt arithmetic, and checks F̂ ≥ |M|, D̂ ≤ |M′|, K̂ ≥ |M″|/2, the Rouché inequality for r = 2ĥ(1 + 2⁻⁴⁰) and, at acceptance, 16|μ̃| + 16r < T, with no rounding at all; for the others it checks that the code refuses. It checks the conclusions of 12.5 point by point, not the argument.
 - **High-precision sweep** (planning, 2026-10-17: Python mpmath at 50 digits on a bit-exact binary64 mirror of the code; the mirror's decisions matched the TypeScript on 3,000 random box points). 132,152 parameters: grids over the boxes, rings around the cusps, satellite roots and centres down to 10⁻¹⁶, inverse-map points at |λ| = 1 − 10⁻ᵏ for k = 1…14, the 6,000,000× view, and random points over |c| < 4. No acceptance with |λ\*| ≥ 1 − 10⁻¹²; worst |λ̃ − λ\*| = 4.2·10⁻³ of the allowance.
 - **Independent oracle** ([period-four-golden-oracle.test.ts](../tests/unit/render/period-four-golden-oracle.test.ts)). Every analytic period-4 pixel of the golden raster is certified period 4 by the dd period-4 cycle, which uses no cubic, with |λ̃ − λ_dd| ≤ A + 10⁻¹².
 

@@ -73,7 +73,8 @@ period 3 now and period 4 after a rigorous root-error bound.
 - Colour: the multiplier change alone alters no colorized byte on the golden
   raster in any view; only the status changes are visible. No colorized-buffer
   goldens exist yet (PHASE2-TODO item 5), so none are regenerated; item 5
-  generates its goldens on top of this change.
+  generates its goldens on top of this change (item 5 has since added them;
+  ADR 0013 regenerated seven).
 - The differential tests against the frozen legacy port and the PoC control
   kernel gain one documented divergence class, analytic period 3, each case
   adjudicated in `tests/unit/domain/orbit-oracle-adjudication.test.ts`.
