@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ddPeriodFourCycle, ddPeriodThreeCycle } from './dd-oracle';
+import { ddPeriodFourCycle } from './dd-oracle';
 
 /**
  * The dd period-4 adjudicator (ADR 0013) uses no cubic: a binary64 orbit
@@ -63,10 +63,5 @@ describe('ddPeriodFourCycle', () => {
         expect(verdict.cycle.primitive).toBe(primitive);
       }
     }
-  });
-
-  it('leaves the period-3 adjudicator unchanged', () => {
-    const verdict = ddPeriodThreeCycle(-0.1205, 0.8268);
-    expect(verdict.status === 'attracting-cycle' && verdict.cycle.primitive).toBe(3);
   });
 });

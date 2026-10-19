@@ -12,6 +12,7 @@ import { prepareRealColumns, preparedRowImaginary } from '../../../src/render/cl
 import { PERIOD_FOUR_BOXES } from '../../../src/domain/period-four-gate';
 import { PERIOD_THREE_BOXES } from '../../../src/domain/period-three-gate';
 import { TriggeredRowKernel } from '../../../src/render/triggered-rows';
+import { stepUlps } from '../domain/analytic-test-helpers';
 
 /**
  * The two-lane row kernel must reproduce the scalar triggered kernel bit for
@@ -30,7 +31,7 @@ const VIEWS: readonly Viewport[] = [
   { center: { re: -1.7548776662466927, im: 0 }, spanY: 0.03 },
   { center: { re: -1.75, im: 0 }, spanY: 1e-6 },
   { center: { re: -0.0458, im: 0.6923 }, spanY: 0.002 },
-  // The co-rabbit (Im c < 0): the row window must use |Im c|.
+  // The corabbit (Im c < 0): the row window must use |Im c|.
   { center: { re: -0.1225611668766535, im: -0.7448617666197435 }, spanY: 0.3 },
   // Period-4 gate boxes (ADR 0013): the cardioid satellite and its
   // conjugate, the complex primitive, the real primitive and its cusp, and
@@ -158,95 +159,55 @@ describe('TriggeredRowKernel', () => {
     }
   });
 
-  it('matches the scalar kernel at every period-3 gate box edge (rows and columns)', () => {
-    // Calls classifyRow directly with row imaginary parts and columns at each
-    // box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
-    // half-planes, so a drift in the kernel's per-row window (versus
-    // inPeriodThreeGate) shows up as an answer-changing drift.
-    const bits = new DataView(new ArrayBuffer(8));
-    const step = (value: number, ulps: number): number => {
-      bits.setFloat64(0, value);
-      bits.setBigInt64(0, bits.getBigInt64(0) + BigInt(value < 0 ? -ulps : ulps));
-      return bits.getFloat64(0);
-    };
-    const around = (value: number): number[] => [step(value, -1), value, step(value, 1)];
-    const rows = new Set<number>([0, -0]);
-    const columnSet = new Set<number>();
-    for (const box of PERIOD_THREE_BOXES) {
-      for (const edge of [box.absImMin, box.absImMax]) {
-        for (const v of around(edge)) {
-          rows.add(v);
-          rows.add(-v);
+  for (const gate of [
+    { period: 3, boxes: PERIOD_THREE_BOXES },
+    { period: 4, boxes: PERIOD_FOUR_BOXES },
+  ] as const) {
+    it(`matches the scalar kernel at every period-${String(gate.period)} gate box edge (rows and columns)`, () => {
+      // Calls classifyRow directly with row imaginary parts and columns at
+      // each box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
+      // half-planes, plus each box's Re c midpoint: bit identity with the
+      // scalar kernel on those rows and columns. The edge pixels themselves
+      // are not accepted by the solve (the gate contains every acceptance
+      // with room to spare), so a wrong window at an edge would change no
+      // answer; the acceptances counted below are box midpoints. The exact
+      // window-versus-gate equivalence is checked in
+      // tests/unit/domain/period-three-gate.test.ts and
+      // period-four-gate.test.ts.
+      const around = (value: number): number[] => [stepUlps(value, -1), value, stepUlps(value, 1)];
+      const rows = new Set<number>([0, -0]);
+      const columnSet = new Set<number>();
+      for (const box of gate.boxes) {
+        for (const edge of [box.absImMin, box.absImMax]) {
+          for (const v of around(edge)) {
+            rows.add(v);
+            rows.add(-v);
+          }
         }
+        for (const edge of [box.reMin, box.reMax]) for (const v of around(edge)) columnSet.add(v);
+        columnSet.add((box.reMin + box.reMax) / 2);
       }
-      for (const edge of [box.reMin, box.reMax]) for (const v of around(edge)) columnSet.add(v);
-      columnSet.add((box.reMin + box.reMax) / 2);
-    }
-    const columns = Float64Array.from(columnSet);
-    for (const options of [
-      { maxIterations: 512, maxPeriod: 32 },
-      { maxIterations: 100, maxPeriod: 7, cycleWarmup: 0 },
-      { maxIterations: 33, maxPeriod: 1, cycleWarmup: 2 },
-    ] satisfies Partial<OrbitOptions>[]) {
-      const kernel = new TriggeredRowKernel(options);
-      const scalar = new OrbitClassifier(options);
-      const sample = createOrbitSample();
-      let mismatches = 0;
-      let accepted = 0;
-      for (const cIm of rows) {
-        const result = compareOneRow(kernel, scalar, sample, columns, cIm);
-        mismatches += result.mismatches;
-        accepted += result.period3;
-      }
-      expect(mismatches).toBe(0);
-      if (options.maxIterations === 512) expect(accepted).toBeGreaterThan(0);
-    }
-  });
-
-  it('matches the scalar kernel at every period-4 gate box edge (rows and columns)', () => {
-    // Calls classifyRow directly with row imaginary parts and columns at each
-    // box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
-    // half-planes, so a drift in the kernel's per-row windows (versus
-    // inPeriodFourGate) shows up as an answer-changing drift.
-    const bits = new DataView(new ArrayBuffer(8));
-    const step = (value: number, ulps: number): number => {
-      bits.setFloat64(0, value);
-      bits.setBigInt64(0, bits.getBigInt64(0) + BigInt(value < 0 ? -ulps : ulps));
-      return bits.getFloat64(0);
-    };
-    const around = (value: number): number[] => [step(value, -1), value, step(value, 1)];
-    const rows = new Set<number>([0, -0]);
-    const columnSet = new Set<number>();
-    for (const box of PERIOD_FOUR_BOXES) {
-      for (const edge of [box.absImMin, box.absImMax]) {
-        for (const v of around(edge)) {
-          rows.add(v);
-          rows.add(-v);
+      const columns = Float64Array.from(columnSet);
+      for (const options of [
+        { maxIterations: 512, maxPeriod: 32 },
+        { maxIterations: 100, maxPeriod: 7, cycleWarmup: 0 },
+        { maxIterations: 33, maxPeriod: 1, cycleWarmup: 2 },
+      ] satisfies Partial<OrbitOptions>[]) {
+        const kernel = new TriggeredRowKernel(options);
+        const scalar = new OrbitClassifier(options);
+        const sample = createOrbitSample();
+        let mismatches = 0;
+        let accepted = 0;
+        for (const cIm of rows) {
+          const result = compareOneRow(kernel, scalar, sample, columns, cIm);
+          mismatches += result.mismatches;
+          accepted += gate.period === 3 ? result.period3 : result.period4;
         }
+        expect(mismatches).toBe(0);
+        if (options.maxIterations === 512) expect(accepted).toBeGreaterThan(0);
       }
-      for (const edge of [box.reMin, box.reMax]) for (const v of around(edge)) columnSet.add(v);
-      columnSet.add((box.reMin + box.reMax) / 2);
-    }
-    const columns = Float64Array.from(columnSet);
-    for (const options of [
-      { maxIterations: 512, maxPeriod: 32 },
-      { maxIterations: 100, maxPeriod: 7, cycleWarmup: 0 },
-      { maxIterations: 33, maxPeriod: 1, cycleWarmup: 2 },
-    ] satisfies Partial<OrbitOptions>[]) {
-      const kernel = new TriggeredRowKernel(options);
-      const scalar = new OrbitClassifier(options);
-      const sample = createOrbitSample();
-      let mismatches = 0;
-      let accepted = 0;
-      for (const cIm of rows) {
-        const result = compareOneRow(kernel, scalar, sample, columns, cIm);
-        mismatches += result.mismatches;
-        accepted += result.period4;
-      }
-      expect(mismatches).toBe(0);
-      if (options.maxIterations === 512) expect(accepted).toBeGreaterThan(0);
-    }
-  });
+    });
+  }
 
   it('never writes outside its row when a parked lane would escape (offset > 0)', () => {
     // A lane parked at z = 0 would iterate c = i * cIm (the shared row

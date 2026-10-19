@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyOrbit,
   classifyPeriodThreeInto,
-  createOrbitSample,
   ORBIT_EVIDENCE_CODE,
   PERIOD_THREE_ALLOWANCE_COEFFICIENT,
   PERIOD_THREE_ANALYTIC_REVISION,
   type OrbitSample,
 } from '../../../src/domain';
+import { sentinelSample } from './analytic-test-helpers';
 
 /**
  * Analytic period-3 fast path (ADR 0010). Expected multipliers are mpmath
@@ -17,20 +17,6 @@ import {
  * the boundary points come from the inverse map lambda = r e^{i theta}
  * (theta = 1 rad), continued from the rabbit centre.
  */
-
-const SENTINEL = -7;
-
-const sentinelSample = (): OrbitSample => ({
-  ...createOrbitSample(),
-  status: SENTINEL as OrbitSample['status'],
-  iterations: SENTINEL,
-  evidence: SENTINEL,
-  period: SENTINEL,
-  multiplierRe: SENTINEL,
-  multiplierIm: SENTINEL,
-  multiplierMagnitude: SENTINEL,
-  multiplierAngle: SENTINEL,
-});
 
 const accept = (re: number, im: number): OrbitSample => {
   const sample = sentinelSample();
@@ -68,7 +54,8 @@ describe('classifyPeriodThreeInto', () => {
   });
 
   it('accepts just inside the cusp and refuses just outside it', () => {
-    // c = -7/4 - delta (inside the airplane): lambda = 1 - 4 delta - 14 sqrt(delta).
+    // c = -7/4 - delta (inside the airplane):
+    // lambda = 1 - 4 delta - (14 + 8 delta) sqrt(delta).
     expect(Math.abs(accept(-1.750001, 0).multiplierMagnitude - 0.9859959920005762)).toBeLessThan(
       1e-13,
     );

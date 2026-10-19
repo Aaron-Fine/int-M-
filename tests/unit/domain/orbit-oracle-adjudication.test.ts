@@ -17,9 +17,9 @@ import {
   classifyDDMinimal,
   ddPeriodFourCycle,
   ddPeriodThreeCycle,
-  type DDOracleCycle,
   type DDOracleVerdict,
 } from './dd-oracle';
+import { multiplierDistance } from './analytic-test-helpers';
 
 /**
  * Oracle adjudication of every legacy-versus-verifier disagreement (PR 3 M3,
@@ -334,18 +334,6 @@ const ANALYTIC_PERIOD_THREE_TOLERANCE = 1e-12;
  * certificate's own allowance (dd rounding and dd Newton error; ADR 0013).
  */
 const ANALYTIC_PERIOD_FOUR_DD_TOLERANCE = 1e-12;
-
-/** |lambda_production - lambda_dd| from magnitude and angle. */
-const multiplierDistance = (
-  production: { readonly multiplierMagnitude: number; readonly multiplierAngle: number },
-  cycle: DDOracleCycle,
-): number =>
-  Math.hypot(
-    production.multiplierMagnitude * Math.cos(production.multiplierAngle) -
-      cycle.magnitude * Math.cos(cycle.angle),
-    production.multiplierMagnitude * Math.sin(production.multiplierAngle) -
-      cycle.magnitude * Math.sin(cycle.angle),
-  );
 
 /** Declared binary64 multiplier tolerance (fixtures/orbits.v1.json policy). */
 const MULTIPLIER_TOLERANCE = 1e-7;

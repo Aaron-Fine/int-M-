@@ -37,14 +37,14 @@ describe('placement of the period-4 cubic solve', () => {
     });
   });
 
-  it('never answers for a pixel inside the gate that escapes first', () => {
+  it('a gate pixel that escapes keeps its escape record', () => {
     for (const [c, escapeIteration] of [
       [{ re: 0.235528, im: 0.570191 }, 18],
       [{ re: -0.152875, im: 1.02712 }, 21],
       [{ re: -1.37015, im: 0.0605981 }, 19],
-      // Escapes at iteration 24 itself: the escape test comes first.
-      // An escaping c is exterior and the solve would refuse it anyway, so
-      // this pins the escape record, not the order of the two tests.
+      // Escapes at iteration 24 itself. An escaping c is exterior and the
+      // solve would refuse it anyway, so this pins the escape record, not the
+      // order of the two tests.
       [{ re: 0.239189, im: 0.567903 }, 24],
     ] as const) {
       expect(inPeriodFourGate(c.re, c.im)).toBe(true);

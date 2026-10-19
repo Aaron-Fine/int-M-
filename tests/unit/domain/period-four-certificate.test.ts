@@ -14,7 +14,8 @@ import {
  * dyadic rational, so the cubic's exact coefficients at the binary64 c, its
  * exact value at the binary64 candidate, and every inequality of the
  * certificate can be checked in exact BigInt arithmetic. For each sampled c
- * this test checks, with no rounding at all:
+ * the code certifies, this test checks, with no rounding at all (for the
+ * others it checks only that the code refuses):
  *
  * 1. F >= |M(mu~)|, D <= |M'(mu~)| and K >= |3 mu~ + a2| for the exact cubic;
  * 2. whenever the code says "certified", the Rouché inequality
@@ -98,7 +99,7 @@ interface Tally {
   accepted: number;
 }
 
-/** Audits one parameter; returns whether the code accepted it. */
+/** Audits one parameter and tallies it. */
 const audit = (cRe: number, cIm: number, tally: Tally): void => {
   const cert = certificate();
   const accepted = classifyPeriodFourInto(cRe, cIm, createOrbitSample(), cert);
@@ -130,7 +131,7 @@ const audit = (cRe: number, cIm: number, tally: Tally): void => {
   expect(compare(norm2(slope), mul(d, d))).toBeGreaterThanOrEqual(0);
   // Stricter than 12.5 item 7 needs (K̂(1 + 8u) >= |M''|/2), on purpose.
   expect(compare(norm2(curvature), mul(k, k))).toBeLessThanOrEqual(0);
-  // 2. Rouché on |h| = r with r = 2h (1 + 2^-40).
+  // 2. Rouché on |w| = r with r = 2h (1 + 2^-40).
   const r = mul(mul(int(2), exact(cert.radiusRatio)), RADIUS_INFLATION);
   const lhs = add(add(f, mul(k, mul(r, r))), mul(r, mul(r, r)));
   expect(compare(lhs, mul(d, r))).toBe(-1);

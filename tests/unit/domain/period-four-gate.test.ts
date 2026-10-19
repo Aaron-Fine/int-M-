@@ -11,6 +11,7 @@ import {
   PERIOD_THREE_BOXES,
   REAL_PRIMITIVE_BOX,
 } from '../../../src/domain';
+import { stepUlps } from './analytic-test-helpers';
 
 /**
  * The gate decides only whether the cubic solve is tried, so it must contain
@@ -57,9 +58,11 @@ describe('period-4 gate', () => {
     expect(BULB_SATELLITE_BOX.absImMin).toBe(0);
     expect(REAL_PRIMITIVE_BOX.absImMin).toBe(0);
     expect(REAL_PRIMITIVE_BOX.absImMax).toBeLessThan(BULB_SATELLITE_BOX.absImMax);
-    // The kernel's windows, written as in triggered-rows.ts (keep in sync with
-    // it; tests/unit/render/triggered-rows.test.ts compares the kernel itself
-    // with the scalar gate at every box edge).
+    // The kernel's windows, copied from the "Period-4 gate" block of
+    // TriggeredRowKernel.classifyRow in src/render/triggered-rows.ts (keep in
+    // sync with it). This is the exact check of the row windows against the
+    // gate: tests/unit/render/triggered-rows.test.ts checks the kernel's bit
+    // identity at the box edges, where a wrong window would change no answer.
     const inRowWindows = (cRe: number, cIm: number): boolean => {
       const absIm = Math.abs(cIm);
       let reMin = Number.POSITIVE_INFINITY;
@@ -85,21 +88,17 @@ describe('period-4 gate', () => {
       }
       return (cRe >= reMin && cRe <= reMax) || (cRe >= axisReMin && cRe <= axisReMax);
     };
-    const bits = new DataView(new ArrayBuffer(8));
-    const step = (value: number, ulps: number): number => {
-      bits.setFloat64(0, value);
-      bits.setBigInt64(0, bits.getBigInt64(0) + BigInt(value < 0 ? -ulps : ulps));
-      return bits.getFloat64(0);
-    };
     const res = [-2.2, -1.6, -0.9, 0, 0.3];
     const ims = [0, -0, 0.3, 0.9, 1.2, Number.NaN, Number.POSITIVE_INFINITY];
     for (const box of PERIOD_FOUR_BOXES) {
       for (const value of [box.reMin, box.reMax]) {
-        res.push(step(value, -1), value, step(value, 1));
+        res.push(stepUlps(value, -1), value, stepUlps(value, 1));
       }
       res.push(0.5 * (box.reMin + box.reMax));
       for (const value of [box.absImMin, box.absImMax]) {
-        for (const v of value === 0 ? [0, -0, 5e-324] : [step(value, -1), value, step(value, 1)]) {
+        for (const v of value === 0
+          ? [0, -0, 5e-324]
+          : [stepUlps(value, -1), value, stepUlps(value, 1)]) {
           ims.push(v, -v);
         }
       }

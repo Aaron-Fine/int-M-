@@ -14,11 +14,12 @@ import { packStatusPeriod } from '../../../src/render/packed-semantic';
 import { GOLDEN_RASTER } from '../../../tools/generate_kernel_golden';
 import { loadCorpusCases, profileQuality } from '../../../tools/benchmark/judge/corpus';
 import { ddPeriodThreeCycle } from '../domain/dd-oracle';
+import { multiplierDistance } from '../domain/analytic-test-helpers';
 
 /**
  * ADR 0007/0010: every pixel the analytic period-3 path answers on the golden
  * raster is checked against the dd period-3 cycle (no closed form). This is
- * a superset of the pixels the change moved: unresolved -> attracting p3, and
+ * the set of pixels the change moved: unresolved -> attracting p3, and
  * attracting p3 with the closed-form multiplier instead of the orbit product
  * (evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/).
  */
@@ -64,13 +65,7 @@ describe('analytic period-3 pixels on the golden raster', () => {
           if (oracle.status !== 'attracting-cycle' || oracle.cycle.primitive !== 3) {
             throw new Error(`dd did not certify period 3 at ${cRe} + ${cIm}i (${oracle.status})`);
           }
-          const error = Math.hypot(
-            sample.multiplierMagnitude * Math.cos(sample.multiplierAngle) -
-              oracle.cycle.magnitude * Math.cos(oracle.cycle.angle),
-            sample.multiplierMagnitude * Math.sin(sample.multiplierAngle) -
-              oracle.cycle.magnitude * Math.sin(oracle.cycle.angle),
-          );
-          expect(error).toBeLessThanOrEqual(TOLERANCE);
+          expect(multiplierDistance(sample, oracle.cycle)).toBeLessThanOrEqual(TOLERANCE);
         }
       }
       expect(analytic).toBe(EXPECTED_ANALYTIC_PIXELS[corpusCase.id] ?? 0);

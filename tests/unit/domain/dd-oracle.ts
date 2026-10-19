@@ -370,11 +370,11 @@ export const strataOracleVerdict = (index: number, total: number): DDOracleVerdi
 };
 
 // ---------------------------------------------------------------------------
-// Period-3 adjudicator for the analytic fast path (ADR 0010).
+// Period-p adjudicator for the analytic fast paths (ADR 0010, ADR 0013).
 // ---------------------------------------------------------------------------
 
-/** Seed orbit length and Newton budget of ddPeriodThreeCycle. */
-export const DD_PERIOD_THREE_OPTIONS = Object.freeze({
+/** Seed orbit length and Newton budget of ddPeriodicCycle. */
+const DD_PERIODIC_CYCLE_OPTIONS = Object.freeze({
   seedIterations: 4096,
   newtonSteps: 64,
 } as const);
@@ -382,7 +382,7 @@ export const DD_PERIOD_THREE_OPTIONS = Object.freeze({
 /**
  * Independent check of an analytic period-p claim (p = 3: ADR 0010; p = 4:
  * ADR 0013). It uses no closed form and no cubic: the binary64 critical
- * orbit runs DD_PERIOD_THREE_OPTIONS.seedIterations steps (a seed only; an
+ * orbit runs DD_PERIODIC_CYCLE_OPTIONS.seedIterations steps (a seed only; an
  * escape is reported as escaped), then each of the next p iterates is
  * polished as a period-p cycle start by dd Newton on f_c^p(z) - z and
  * certified by ddCertifiedCycle (dd divisor test, dd |lambda| < 1). The first
@@ -398,7 +398,7 @@ export const DD_PERIOD_THREE_OPTIONS = Object.freeze({
 export const ddPeriodicCycle = (cRe: number, cIm: number, period: number): DDOracleVerdict => {
   let zRe = 0;
   let zIm = 0;
-  for (let iteration = 1; iteration <= DD_PERIOD_THREE_OPTIONS.seedIterations; iteration += 1) {
+  for (let iteration = 1; iteration <= DD_PERIODIC_CYCLE_OPTIONS.seedIterations; iteration += 1) {
     const nextRe = zRe * zRe - zIm * zIm + cRe;
     zIm = 2 * zRe * zIm + cIm;
     zRe = nextRe;
@@ -412,7 +412,7 @@ export const ddPeriodicCycle = (cRe: number, cIm: number, period: number): DDOra
       cIm,
       { re: { hi: zRe, lo: 0 }, im: { hi: zIm, lo: 0 } },
       period,
-      DD_PERIOD_THREE_OPTIONS.newtonSteps,
+      DD_PERIODIC_CYCLE_OPTIONS.newtonSteps,
     );
     if (cycle !== undefined) {
       return { status: 'attracting-cycle', cycle };

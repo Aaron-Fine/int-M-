@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyOrbit,
   classifyPeriodFourInto,
-  createOrbitSample,
   DERIVATIVE_DEFLATION,
   ORBIT_EVIDENCE_CODE,
   PERIOD_FOUR_ANALYTIC_REVISION,
@@ -11,24 +10,16 @@ import {
   type OrbitSample,
   type PeriodFourCertificate,
 } from '../../../src/domain';
+import { sentinelSample } from './analytic-test-helpers';
 
 /**
  * Analytic period-4 fast path (ADR 0013). Expected multipliers are mpmath
  * values (50 digits) of the smallest root of the exact cubic at the binary64
  * parameter shown, computed for
  * docs/superpowers/plans/2026-10-17-analytic-period-four.md; the boundary
- * points come from the inverse map lambda = r e^{i}, continued from the
- * cardioid satellite's centre.
+ * points come from the inverse map lambda = r e^{i theta} (theta = 1 rad),
+ * continued from the cardioid satellite's centre.
  */
-
-const SENTINEL = -7;
-
-const sentinelSample = (): OrbitSample => ({
-  ...createOrbitSample(),
-  status: 0,
-  period: SENTINEL,
-  multiplierMagnitude: SENTINEL,
-});
 
 const emptyCertificate = (): PeriodFourCertificate => ({
   productRe: Number.NaN,
@@ -56,8 +47,7 @@ const refuse = (re: number, im: number): PeriodFourCertificate => {
   const certificate = emptyCertificate();
   expect(classifyPeriodFourInto(re, im, sample, certificate)).toBe(false);
   // A refusal leaves the record untouched.
-  expect(sample.period).toBe(SENTINEL);
-  expect(sample.multiplierMagnitude).toBe(SENTINEL);
+  expect(sample).toEqual(sentinelSample());
   return certificate;
 };
 
@@ -84,7 +74,7 @@ describe('classifyPeriodFourInto', () => {
     expect(refuse(0.25, 0.5).certified).toBe(true);
   });
 
-  it('resolves the 6,000,000x view: inside the 1/2 satellite of the period-2 bulb', () => {
+  it('resolves the 6,000,000x view: inside the 1/2 satellite of the 1/2-bulb', () => {
     // c = -5/4 - delta: lambda = 1 - 16 delta + O(delta^2), real.
     expect(Math.abs(accept(-1.250000001, 0).multiplierMagnitude - 0.9999999839999987)).toBeLessThan(
       1e-11,
@@ -92,7 +82,7 @@ describe('classifyPeriodFourInto', () => {
     expect(Math.abs(accept(-1.2500001, 0).multiplierMagnitude - 0.9999983999999223)).toBeLessThan(
       1e-11,
     );
-    // c = -5/4 + delta lies in the period-2 bulb: the 4-cycle repels.
+    // c = -5/4 + delta lies in the 1/2-bulb: the 4-cycle repels.
     refuse(-1.249999999, 0);
     refuse(-1.2499999, 0);
   });
@@ -183,7 +173,7 @@ describe('classifyPeriodFourInto', () => {
     }
   });
 
-  it('reports its certificate when asked, and the kernels never need it', () => {
+  it('reports its certificate when asked', () => {
     const certificate = emptyCertificate();
     const sample = sentinelSample();
     expect(classifyPeriodFourInto(-1.250000001, 0, sample, certificate)).toBe(true);

@@ -36,10 +36,12 @@ describe('placement of the period-3 closed form', () => {
     });
   });
 
-  it('never answers for a pixel inside the gate that escapes first', () => {
+  it('a gate pixel that escapes keeps its escape record', () => {
     for (const [c, escapeIteration] of [
       [{ re: -0.03, im: 0.84 }, 13],
-      // Escapes at iteration 24 itself: the escape test comes first.
+      // Escapes at iteration 24 itself. An escaping c is exterior and the
+      // closed form would refuse it anyway, so this pins the escape record,
+      // not the order of the two tests.
       [{ re: -0.2, im: 0.66 }, 24],
       [{ re: -1.768, im: 0.012 }, 21],
     ] as const) {
