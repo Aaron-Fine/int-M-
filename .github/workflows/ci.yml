@@ -77,7 +77,7 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
-      - name: Test catalog combinatorics
+      - name: Test the catalog tools (Python)
         run: npm run catalog:test
 
       - name: Validate generated catalog

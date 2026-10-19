@@ -1,8 +1,9 @@
 # Component catalog
 
 The Mandelbrot Interiority catalog lists every hyperbolic-component centre of
-exact period one through twelve: 4,016 entries. It has two files of data and
-one of curation.
+exact period one through twelve: 4,016 entries. It has two data files
+(`components.v2.json`, and `core.v1.bin` with its manifest), a shared
+reference table and a curation file.
 
 ## Files
 
@@ -69,20 +70,31 @@ npm run catalog:core:inputs     # the core's manifest matches its sources and it
 npm run catalog:core:verify     # regenerates the core byte for byte, cross-checks it, checks the angled-address fixture
 ```
 
-`npm run check` runs the first three. `catalog:core:verify` takes about 4.5
-minutes (three of them the cross-check, in parallel processes); the
-`Catalog core` workflow runs it when the catalog or its tools change and on
-every push to main. The cross-check (`tools/crosscheck_catalog_core.py` and
-`tools/crosscheck_rays.py`) shares no code with the generator. It proves each
-stored centre's root again in exact integer arithmetic, checks the counts
-against OEIS A000740, the `orbitAbs` and `centerError` residuals to three digits (the proper-divisor residual only for being positive), divisor periods and conjugate closure,
-recomputes Lavaurs' ray pairs, and proves that for c at each centre the pair's
-two dynamic rays land together at a repelling periodic point of f_c; with the
-wake theorem this proves which pair's parameter rays land at the root of which
-centre's component (ADR 0014). The unit tests in `tests/unit/catalog/`
-check the loaded files, `fixtures/angled-addresses.p12.json` pins the angled
-addresses (`tools/dump_angled_addresses.py`), and the loaders (`src/catalog/schema.ts`,
-`src/catalog/core.ts`) reject a malformed file.
+`npm run check` runs the first three. Generating the core takes about 100 s,
+the cross-check about 3 minutes in parallel processes, and the whole
+`catalog:core:verify` about 5 minutes; the `Catalog core` workflow runs it
+when the catalog or its tools change and on every push to main.
+
+The cross-check (`tools/crosscheck_catalog_core.py` and
+`tools/crosscheck_rays.py`) shares no code with the generator. It proves or
+checks:
+
+- roots: each stored centre is within a proved disk holding one simple root
+  of exact period, proved again in exact integer arithmetic;
+- counts: the entries per period match OEIS A000740;
+- residuals: `orbitAbs` and `centerError` to three digits, and the
+  proper-divisor residual only for being positive;
+- closure: every entry's conjugate is present, exactly;
+- ray pairs: they are Lavaurs' pairs, recomputed, and for c at each centre
+  the pair's two dynamic rays land together at a repelling periodic point of
+  f_c, which with the wake theorem proves which pair's parameter rays land at
+  the root of which centre's component.
+
+[ADR 0014](../docs/decisions/0014-generated-catalog-core.md) gives the full
+list and the proofs' trust base. The unit tests in `tests/unit/catalog/` check
+the loaded files, `fixtures/angled-addresses.p12.json` pins the angled
+addresses (`tools/dump_angled_addresses.py`), and the loaders
+(`src/catalog/schema.ts`, `src/catalog/core.ts`) reject a malformed file.
 
 The browser loads the core in a worker and checks its SHA-256 with Web Crypto,
 which exists only in secure contexts. Production (https) and `localhost` are

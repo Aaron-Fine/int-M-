@@ -3,7 +3,9 @@
 - Status: Accepted
 - Date: 2026-10-17
 - Amends: [ADR 0004](0004-catalog-disposition.md) (workstream F ships as a
-  product feature), [ADR 0011](0011-catalog-schema-v2-and-stable-ids.md) (the
+  product feature), [ADR 0009](0009-shareable-url-schema.md) (a link's `sel`
+  may name a period 5 to 12 id that the core confirms when it loads),
+  [ADR 0011](0011-catalog-schema-v2-and-stable-ids.md) (the
   generation method, the period-4 labels, the encoded form),
   [ADR 0012](0012-catalog-navigation-and-marker-density.md) (the find field,
   one panel description, the asynchronous hand-over, the label width)
@@ -72,25 +74,30 @@ wake), so each centre lies in its pair's wake. Every other period-p component in
 period-p pair. The centres are proved distinct and complete, so by induction
 from the innermost pairs, each centre is the one at whose root its pair's
 parameter rays land. The full argument, with its induction, is the
-Association paragraph of the docstring of `tools/crosscheck_catalog_core.py`.
+Association lemma under "Elementary lemmas" below.
 
-**What stays unproved.** The proofs rely on the following and on nothing
-else. The same lists stand in the docstrings of `tools/crosscheck_rays.py` and
-`tools/crosscheck_catalog_core.py`.
+**Trust base.** What stays unproved: the proofs rely on the following and on
+nothing else. This is the one full list. The docstrings of
+`tools/crosscheck_rays.py` and `tools/crosscheck_catalog_core.py` point here,
+and each elementary lemma is stated and proved in the code, next to the
+function it justifies.
 
 _Arithmetic._ IEEE-754 binary64 with round-to-nearest: only +, −, ×, ÷,
 `math.sqrt` and exact operations (the absolute value of a real, negation,
 `frexp`, `ldexp`, comparisons) enter a bound. Magnitudes are sqrt(x² + y²) and
 complex square roots the real formulas, with each rounding inside the
-allowance of 8 × 4.5e-16 relative per operation; the rays' directions come
-from decimal Taylor series with a bounded remainder; no C-library function
-(`hypot`, `cmath`, `exp`, `sin`, `cos`) enters a bound. Python's exact
+allowance of 8 × 4.5e-16 relative per operation (8 × 1e-37 in the 40-digit
+decimal fallback), and every radius is inflated by 2e-15 relative (1e-35 in
+the fallback); the rays' directions come from decimal Taylor series with a
+bounded remainder; no C-library function (`hypot`, `cmath`, `exp`, `sin`,
+`cos`) enters a bound. Python's exact
 integers and `fractions`, and `decimal`, each operation of which is correctly
 rounded to the context's precision. `math.nextafter` is exact, and `float()`
 of a `Fraction` or `Decimal` is correctly rounded (faithful rounding would
 suffice where it is used).
 
-_Published theorems._
+_Published theorems._ Douady and Hubbard's results are cited from their Orsay
+notes (1984–85) and Milnor (2000); see Citations.
 
 - Rouché's theorem: a holomorphic g with
   |g(c₀)| < ρ(|g′(c₀)| − sup|g′ − g′(c₀)|) on B(c₀, ρ) has exactly one zero
@@ -102,7 +109,8 @@ _Published theorems._
   exactly when 0 has exact period p under f_c. Each component has exactly one
   centre and one root.
 - Douady–Hubbard (b): for p ≥ 2, each root of a period-p component is the
-  landing point of exactly two parameter rays, both of period p. The
+  landing point of exactly two parameter rays, both of period p and landing
+  nowhere else. The
   component lies in their wake, and distinct components have distinct roots.
 - Douady–Hubbard (c): parameter rays are pairwise disjoint and lie outside M,
   so the wakes of distinct period-p pairs are nested or disjoint.
@@ -115,16 +123,16 @@ _Published theorems._
   the pair (a, b).
 - Böttcher's theorem: for c in M, φ_c is a conformal isomorphism from the
   complement of K_c onto the complement of the closed unit disk, tangent to
-  the identity, with φ_c(f_c(z)) = φ_c(z)² and the product formula
+  the identity at infinity, with φ_c(f_c(z)) = φ_c(z)² and the product formula
   φ_c(z) = z ∏ₙ (1 + c/zₙ²)^(1/2ⁿ⁺¹). The ray R_c(θ) is the preimage of the
   straight ray, and f_c maps R_c(θ) onto R_c(2θ), doubling the potential.
-- |c| ≤ 2 for c in M (also checked: the bound on |c| over each disk is at
-  most 2.01).
-- The maximum principle for the subharmonic Green's function log|φ_c|.
+- The maximum principle for the subharmonic Green's function log|φ_c| (for
+  the Böttcher estimate).
 - The Schwarz–Pick lemma, or equivalently the Earle–Hamilton theorem: a
-  holomorphic self-map of the disk does not increase hyperbolic distance.
+  holomorphic self-map of the disk does not increase hyperbolic distance (for
+  the landing lemma).
 - Banach's fixed-point theorem, and the mean-value inequality for holomorphic
-  maps on a convex set.
+  maps on a convex set (for the Krawczyk test).
 
 _Association._ The step from the wake theorem's closed wake to the open wake
 holds because the centre lies in M, so it is on no parameter ray
@@ -134,7 +142,8 @@ _Elementary lemmas, proved in the code comments._
 
 - The Böttcher estimate (`start_chain`): for |z| ≥ 3 and |c| ≤ 2.01,
   |log(φ_c(z)/z)| ≤ η = q/(1 − q) with q = |c|/|z|², and |z| ≥ 0.99|w| whenever
-  |w| ≥ 20.
+  |w| ≥ 20. The bound |c| ≤ 2.01 is not assumed: `prove_landing` checks it over
+  each disk and refuses a disk that fails it. (It holds because |c| ≤ 2 on M.)
 - The square-root perturbation bound (`pull_back`): if |u′ − u| ≤ s < |u| = S,
   then |√u′ − √u| ≤ s/(√S(1 + √(1 − s/S))) on the continuous branch.
 - The branch choice (`pull_back`): the two preimage disks are disjoint, the
@@ -151,17 +160,31 @@ _Elementary lemmas, proved in the code comments._
   `unit_direction`: each is within a stated number of units, inside the
   allowance.
 - The Rouché bounds (`disk_radii`, `magnitude_bounds`): the deviation
-  recurrences e₍ₙ₊₁₎ ≤ 2|zₙ|eₙ + eₙ² + ρ (and the derivative analogue), with
-  outward integer magnitudes.
+  recurrences e₍ₙ₊₁₎ ≤ 2|zₙ|eₙ + eₙ² + ρ (and the derivative analogue), by
+  induction from fₙ₊₁ = fₙ² + c, with outward magnitudes: integer square roots
+  of the truncated coordinates, floored and ceiled.
 - Exact period (`prove_root_at`): |f^d(0)| is bounded away from 0 on the disk
   for every proper divisor d.
 - Distinct centres (`check_collection`): the disks of one period are pairwise
   disjoint, and the scan stops only past the largest radius.
 - The refined disk (`refined_disk`): |c₁ − c₀| + ρ₁ ≤ ρ in exact fractions, so
   the refined root is the record's root.
-- Association (the docstring of `tools/crosscheck_catalog_core.py`): by
-  induction on wake nesting, each record's centre is the centre of the
-  component rooted at its pair's landing point.
+- Association (`check_record` and `check_collection` together): by induction
+  on wake nesting, each record's centre is the centre of the component rooted
+  at its pair's landing point. Let H_P be the period-p component at whose root
+  the parameter rays of the pair P land. The record's centre c_P is the centre
+  of a period-p component H (Douady–Hubbard (a)), and H lies in the wake W_P:
+  H is connected, meets W_P at c_P, and misses its boundary, which is two
+  parameter rays outside M and a root, which is in no hyperbolic component
+  (Douady–Hubbard (d)). Suppose H is not H_P. Its root pair P′ differs from P
+  (Douady–Hubbard (a), (b)), and H lies in W_P′, so the two wakes nest
+  (Douady–Hubbard (c)). W_P inside W_P′ is impossible: the root of P′ lies on
+  the boundary of H, so in the closure of W_P; it is neither on P's rays nor
+  P's root (Douady–Hubbard (b)), so it would lie in W_P, inside the open W_P′,
+  on whose boundary it lies. So W_P′ lies strictly inside W_P, and by
+  induction on the number of period-p wakes inside a wake, the record of P′
+  holds H's centre. Two records would then share a centre, but their disks are
+  disjoint. So H is H_P, for every pair P. (Period 1 has one centre, 0.)
 
 **Citations.** Checked against arXiv math/9905169 on 2026-10-18: J. Milnor, "Periodic
 orbits, external rays and the Mandelbrot set: an expository account",
@@ -227,8 +250,9 @@ with it in `npm run check`. The curated JSON
 stays as it is: it is reviewed text, and the five names, the aliases and the
 annotations come from it.
 
-**Checks.** Regeneration takes about 100 s and the cross-check about three
-minutes (the whole `catalog:core:verify` about 4.5 minutes), so `npm run check` runs only `catalog:core:inputs` (0.15 s): the
+**Checks.** Regeneration takes about 100 s, the cross-check about 3 minutes
+in parallel processes, and the whole `catalog:core:verify` about 5 minutes, so
+`npm run check` runs only `catalog:core:inputs` (0.15 s): the
 generator sources must hash to the manifest's `inputs` and the binary to its
 SHA-256, so a generator change without a regeneration fails at once. The
 `Catalog core` workflow (`.github/workflows/catalog-core.yml`) regenerates the
@@ -237,16 +261,23 @@ core byte for byte and runs the cross-check on pull requests that change
 to main, and on request (owner decision 2026-10-17);
 `npm run catalog:core:verify` runs the same locally.
 
-**Loader off the main thread.** After the first stable frame, a worker fetches
-the binary, checks its length and SHA-256 against the manifest, decodes it to
-validate every record, and transfers the bytes back. The client gives up after 30 s and also fails on a
-worker error or an unreadable message, terminating the worker on every exit;
-any failure, including a throw while handing the core over, leaves the curated
-catalog, says so in the panel and logs the reason. The main thread decodes
-them again, without the addresses, which are computed when first read: 8.5 ms
-in Chromium and 20 ms in Firefox, then 7 ms and 16 ms to merge the curated
-entries, build the index and add the panel's groups. A structured clone of the
-decoded objects instead cost 63 ms of main-thread time in Chromium.
+**Loader off the main thread.** The core loads in two steps after the first
+stable frame:
+
+1. A worker fetches the binary, checks its length and SHA-256 against the
+   manifest, decodes it to validate every record, and transfers the bytes
+   back.
+2. The main thread decodes the transferred bytes again, without the
+   addresses, which are computed when first read: 8.5 ms in Chromium and
+   20 ms in Firefox. It then merges the curated entries, builds the index and
+   adds the panel's groups: 7 ms and 16 ms.
+
+The client gives up after 30 s and also fails on a worker error or an
+unreadable message, terminating the worker on every exit. A failed load,
+including a core that fails to build in step 2 (an inconsistent merge, before
+any state changes), leaves the curated catalog, says so in the panel and logs
+the reason. A throw after the hand-over has begun is a bug, not a failed load,
+and is only logged.
 
 **While the core loads**, the panel lists periods 1 to 4 and says "Loading
 periods 5 to 12…" where the new groups will appear, so nothing above them
@@ -317,8 +348,8 @@ still stops at the first period that brings the candidates to 40.
   standard library's `decimal` and integers suffice.
 - **A JSON or text core**: shortest round-trip decimals and three residuals
   cost about 87 bytes per entry (about 350 kB), over the budget.
-- **Regenerating the core in `npm run check`**: it would double the check
-  (52 s) for a file that changes only with its generator, which the input
+- **Regenerating the core in `npm run check`**: it would add about 100 s to
+  the 52 s check for a file that changes only with its generator, which the input
   hashes already catch.
 - **Posting decoded objects from the worker**: 63 ms of structured-clone
   time on the main thread.
