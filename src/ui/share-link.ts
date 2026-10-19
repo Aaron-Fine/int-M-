@@ -38,9 +38,7 @@ const ISSUE_TEXT: Readonly<Record<ShareFieldIssue, string>> = Object.freeze({
   selection: 'the selected point or component was not found, so nothing is selected',
 });
 
-export const rejectionNotice = (
-  result: Extract<ShareDecodeResult, { kind: 'rejected' }>,
-): string => {
+const rejectionNotice = (result: Extract<ShareDecodeResult, { kind: 'rejected' }>): string => {
   if (result.reason === 'missing-version') {
     return `This link has no format version, so it was not applied. ${DEFAULT_VIEW_SUFFIX}`;
   }

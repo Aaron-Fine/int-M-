@@ -2,9 +2,9 @@ import { REFERENCE_TABLE, type CatalogReference } from '../catalog/schema';
 import { element } from './dom';
 
 /** The label that opens a reference line. */
-export const REFERENCES_LABEL = 'References: ';
+const REFERENCES_LABEL = 'References: ';
 /** Between two links of a line. */
-export const REFERENCES_SEPARATOR = ' · ';
+const REFERENCES_SEPARATOR = ' · ';
 
 /** A link as the line draws it: the visible title, the target and the spoken suffix. */
 export interface ReferenceLinkModel {
@@ -20,7 +20,7 @@ export interface ReferenceLinkModel {
 export type ReferenceLineRun = string | ReferenceLinkModel;
 
 /** The literature link of a key in the shared table; throws for a key the table lacks. */
-export function referenceFor(key: string): CatalogReference {
+function referenceFor(key: string): CatalogReference {
   const reference = Object.hasOwn(REFERENCE_TABLE, key) ? REFERENCE_TABLE[key] : undefined;
   if (reference === undefined) throw new Error(`unknown reference ${key}`);
   return reference;

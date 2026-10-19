@@ -225,7 +225,7 @@ export const decodeShareState = (search: string): ShareDecodeResult => {
   return decodeVersion1(params);
 };
 
-export const isDefaultShareState = (state: ShareState): boolean =>
+const isDefaultShareState = (state: ShareState): boolean =>
   isDefaultViewport(state.viewport) &&
   state.semanticView === DEFAULT_SHARE_STATE.semanticView &&
   state.qualityProfile === DEFAULT_SHARE_STATE.qualityProfile &&

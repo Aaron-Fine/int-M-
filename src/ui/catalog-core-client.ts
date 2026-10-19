@@ -29,15 +29,13 @@ export function loadCatalogCore(
 ): Promise<readonly CatalogComponent[]> {
   return new Promise((resolve, reject) => {
     const worker = createWorker();
-    const finish = (settle: () => void): void => {
+    const finish = (): void => {
       clearTimeout(timer);
       worker.terminate();
-      settle();
     };
     const fail = (message: string): void => {
-      finish(() => {
-        reject(new Error(message));
-      });
+      finish();
+      reject(new Error(message));
     };
     const timer = setTimeout(() => {
       fail(`the catalog core did not arrive within ${CATALOG_CORE_TIMEOUT_MS / 1000} s`);
@@ -50,9 +48,8 @@ export function loadCatalogCore(
       }
       try {
         const components = decodeCatalogCore(reply.bytes, parseCoreManifest(request.manifest));
-        finish(() => {
-          resolve(components);
-        });
+        finish();
+        resolve(components);
       } catch (error) {
         fail(error instanceof Error ? error.message : String(error));
       }

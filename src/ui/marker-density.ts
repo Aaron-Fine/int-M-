@@ -38,14 +38,14 @@ export const MARKER_HIT_REM = 2.75;
 /** Hit box of a compact marker: its dot (`.catalog-marker--compact`). */
 export const COMPACT_HIT_REM = 1.5;
 /** A label starts this far from its marker's centre (`.catalog-marker__label`). */
-export const LABEL_OFFSET_REM = 1.475;
+const LABEL_OFFSET_REM = 1.475;
 /** Label box estimate: 0.67rem text, 0.35rem side padding, at most 14rem wide (styles.css). */
 const LABEL_HEIGHT_REM = 1.2;
 const LABEL_CHARACTER_REM = 0.42;
 const LABEL_PADDING_REM = 0.7;
 const LABEL_MAX_REM = 14;
 /** Markers right of this fraction of the width put their label on their left. */
-export const LEFT_FACING_FROM = 0.76;
+const LEFT_FACING_FROM = 0.76;
 
 export interface MarkerPlanInput {
   readonly index: CatalogIndex;

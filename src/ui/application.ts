@@ -14,7 +14,12 @@ import {
 } from '../domain/viewport';
 import coreUrl from '../../catalog/core.v1.bin?url';
 import coreManifest from '../../catalog/core.v1.json';
-import { CATALOG, COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components';
+import {
+  CATALOG,
+  COMPONENT_CATALOG,
+  catalogNames,
+  type CatalogComponent,
+} from '../catalog/components';
 import { mergeCatalog } from '../catalog/core';
 import { catalogGroups, zoomSpanFor } from '../catalog/navigation';
 import { createCatalogIndex } from '../catalog/viewport-index';
@@ -97,6 +102,8 @@ const RENDER_DELAY_MS = 65;
 const URL_WRITE_DELAY_MS = 500;
 const LABEL_MAGNIFICATION_THRESHOLD = 2;
 const MIN_REGION_SIZE_PX = 12;
+const ZOOM_LIMIT_MESSAGE =
+  'Reached the current reliable zoom limit for this renderer and numerical budget.';
 
 declare global {
   interface Window {
@@ -266,7 +273,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   const catalogToggle = button('Catalog', {
     className: 'toggle-button',
-    title: 'Show named components and internal addresses',
+    title: 'Show or hide the catalog markers on the image',
     pressed: state.catalogVisible,
   });
   const catalogStatus = element('span', {
@@ -538,13 +545,15 @@ export function mountApplication(host: HTMLElement): () => void {
     );
   }
 
+  // The query the page opened with: a refused or adjusted link stays in the
+  // address bar until the view differs from it.
+  const openedQuery = encodeShareState(startup);
+
   /**
    * Records the view in the address bar once it has settled (ADR 0009):
    * `replaceState`, so Back still leaves the explorer, and never mid-drag or
    * while a newer render is pending, whose stable frame reschedules this.
    */
-  const openedQuery = encodeShareState(startup);
-
   function scheduleUrlWrite(): void {
     if (urlTimer !== undefined) clearTimeout(urlTimer);
     urlTimer = setTimeout(() => {
@@ -624,7 +633,7 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasShell.classList.toggle(
       'explorer--expanded-labels',
       DEFAULT_VIEWPORT.spanY / state.viewport.spanY >= LABEL_MAGNIFICATION_THRESHOLD &&
-        Number.parseFloat(getComputedStyle(document.documentElement).fontSize) <= 22,
+        remPx() <= 22,
     );
     updateSelectedPointMarker();
   }
@@ -798,9 +807,7 @@ export function mountApplication(host: HTMLElement): () => void {
     const nextScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, requestedScale));
     if (nextScale === state.viewport.spanY) {
       showFeedback(
-        direction === 'in'
-          ? 'Reached the current reliable zoom limit for this renderer and numerical budget.'
-          : 'Already showing the complete Mandelbrot set.',
+        direction === 'in' ? ZOOM_LIMIT_MESSAGE : 'Already showing the complete Mandelbrot set.',
       );
       canvasShell.classList.remove('explorer--bounded');
       requestAnimationFrame(() => canvasShell.classList.add('explorer--bounded'));
@@ -952,19 +959,6 @@ export function mountApplication(host: HTMLElement): () => void {
     scheduleRender(true);
   }
 
-  function updateCatalogSelection(): void {
-    catalogPanel.setSelected(state.selectedCatalogId);
-    for (const marker of catalogOverlay.querySelectorAll<HTMLButtonElement>('.catalog-marker')) {
-      const selected = marker.dataset['catalogId'] === state.selectedCatalogId;
-      marker.classList.toggle('catalog-marker--selected', selected);
-      if (selected) {
-        marker.setAttribute('aria-current', 'true');
-      } else {
-        marker.removeAttribute('aria-current');
-      }
-    }
-  }
-
   /** One live button per shown catalog component, keyed by catalog id. */
   const catalogMarkers = new Map<string, HTMLButtonElement>();
   /**
@@ -972,16 +966,8 @@ export function mountApplication(host: HTMLElement): () => void {
    * the curated entries until the core arrives, then all 4,016 (ADR 0014).
    */
   let catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
-  let catalogByName = namesOf(COMPONENT_CATALOG);
+  let catalogByName = catalogNames(COMPONENT_CATALOG);
   let catalogCoreRequested = false;
-
-  function namesOf(components: readonly CatalogComponent[]): ReadonlyMap<string, CatalogComponent> {
-    return new Map(
-      components.flatMap((component) =>
-        [component.id, ...component.aliases].map((name) => [name, component] as const),
-      ),
-    );
-  }
 
   /** The loaded entry with this id or alias. */
   function lookupCatalog(idOrAlias: string | undefined): CatalogComponent | undefined {
@@ -993,7 +979,7 @@ export function mountApplication(host: HTMLElement): () => void {
     const merged = mergeCatalog(COMPONENT_CATALOG, components);
     return {
       index: createCatalogIndex(merged),
-      names: namesOf(merged),
+      names: catalogNames(merged),
       groups: catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod),
     };
   }
@@ -1141,7 +1127,15 @@ export function mountApplication(host: HTMLElement): () => void {
         catalogOverlay.insertBefore(marker, cursor);
       }
     }
-    updateCatalogSelection();
+    for (const marker of catalogOverlay.querySelectorAll<HTMLButtonElement>('.catalog-marker')) {
+      const selected = marker.dataset['catalogId'] === state.selectedCatalogId;
+      marker.classList.toggle('catalog-marker--selected', selected);
+      if (selected) {
+        marker.setAttribute('aria-current', 'true');
+      } else {
+        marker.removeAttribute('aria-current');
+      }
+    }
   }
 
   const onDocumentKeydown = (event: KeyboardEvent): void => {
@@ -1288,7 +1282,7 @@ export function mountApplication(host: HTMLElement): () => void {
         if (next.spanY === session.viewport.spanY) {
           showFeedback(
             session.viewport.spanY <= MIN_SCALE
-              ? 'Reached the current reliable zoom limit for this renderer and numerical budget.'
+              ? ZOOM_LIMIT_MESSAGE
               : 'That selection already covers the current view.',
           );
         } else {
@@ -1322,6 +1316,20 @@ export function mountApplication(host: HTMLElement): () => void {
     cancelPointerSession(false);
   });
 
+  /** One arrow-key pan of a tenth of the view; the image moves by (sx, sy) steps. */
+  function panByKey(sx: number, sy: number): void {
+    applyPresentationPreview(`translate3d(${sx * 10}%, ${sy * 10}%, 0)`);
+    performance.mark('mi:interaction-feedback');
+    const size = dimensions();
+    state.viewport = panViewport(
+      state.viewport,
+      size,
+      sx * size.width * 0.1,
+      sy * size.height * 0.1,
+    );
+    scheduleRender();
+  }
+
   renderCanvas.addEventListener('keydown', (event) => {
     switch (event.key) {
       case '+':
@@ -1337,28 +1345,16 @@ export function mountApplication(host: HTMLElement): () => void {
         resetView();
         break;
       case 'ArrowLeft':
-        applyPresentationPreview('translate3d(10%, 0, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), dimensions().width * 0.1, 0);
-        scheduleRender();
+        panByKey(1, 0);
         break;
       case 'ArrowRight':
-        applyPresentationPreview('translate3d(-10%, 0, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), dimensions().width * -0.1, 0);
-        scheduleRender();
+        panByKey(-1, 0);
         break;
       case 'ArrowUp':
-        applyPresentationPreview('translate3d(0, 10%, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), 0, dimensions().height * 0.1);
-        scheduleRender();
+        panByKey(0, 1);
         break;
       case 'ArrowDown':
-        applyPresentationPreview('translate3d(0, -10%, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), 0, dimensions().height * -0.1);
-        scheduleRender();
+        panByKey(0, -1);
         break;
       case 'Enter':
         inspectAt({ x: 0.5, y: 0.5 });
@@ -1515,20 +1511,18 @@ function createGuidance(): {
     tips.append(element('li', { text: tip }));
   }
   const dismiss = button('Explore', { className: 'primary-button' });
-  dismiss.addEventListener('click', () => {
+  const hide = (): void => {
     performance.mark('mi:guidance-interaction');
     root.classList.remove('guidance--visible');
-  });
+  };
+  dismiss.addEventListener('click', hide);
   const close = button('', {
     className: 'icon-button icon-button--quiet guidance__close',
     title: 'Dismiss guide',
   });
   setIcon(close, 'close');
   close.setAttribute('aria-label', 'Dismiss guide');
-  close.addEventListener('click', () => {
-    performance.mark('mi:guidance-interaction');
-    root.classList.remove('guidance--visible');
-  });
+  close.addEventListener('click', hide);
   root.append(close, heading, copy, tips, dismiss);
   return {
     element: root,
@@ -1598,20 +1592,24 @@ function createInspector(): {
       ? undefined
       : element('p', { className: 'inspector__annotation', text: component.annotation });
 
+  const head = (coordinate: string, component: CatalogComponent | undefined) => [
+    component
+      ? element('h3', {
+          className: 'inspector__selection',
+          text: component.label,
+        })
+      : undefined,
+    annotation(component),
+    referencesLine(component?.references),
+    element('p', {
+      className: 'inspector__coordinate',
+      text: `c = ${coordinate}`,
+    }),
+  ];
+
   const loading = (coordinate: string, component?: CatalogComponent): void => {
     replaceChildren(body, [
-      component
-        ? element('h3', {
-            className: 'inspector__selection',
-            text: component.label,
-          })
-        : undefined,
-      annotation(component),
-      referencesLine(component?.references),
-      element('p', {
-        className: 'inspector__coordinate',
-        text: `c = ${coordinate}`,
-      }),
+      ...head(coordinate, component),
       element('p', { className: 'loading-line', text: 'Computing evidence…' }),
     ]);
   };
@@ -1683,22 +1681,7 @@ function createInspector(): {
         : 'No conclusive evidence at current quality',
       'inspector__evidence',
     );
-    replaceChildren(body, [
-      component
-        ? element('h3', {
-            className: 'inspector__selection',
-            text: component.label,
-          })
-        : undefined,
-      annotation(component),
-      referencesLine(component?.references),
-      element('p', {
-        className: 'inspector__coordinate',
-        text: `c = ${coordinate}`,
-      }),
-      badge,
-      facts,
-    ]);
+    replaceChildren(body, [...head(coordinate, component), badge, facts]);
   };
 
   clear();

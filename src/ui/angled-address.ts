@@ -1,11 +1,8 @@
+import type { AngledAddressStep } from '../catalog/schema';
 import { element } from './dom';
 
 /** The parts of an angled internal address step the chain draws. */
-export interface AddressStep {
-  readonly fromPeriod: number;
-  readonly toPeriod: number;
-  readonly rotation: { readonly numerator: number; readonly denominator: number };
-}
+export type AddressStep = AngledAddressStep;
 
 const angle = (step: AddressStep): string =>
   `${step.rotation.numerator}/${step.rotation.denominator}`;
