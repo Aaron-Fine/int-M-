@@ -3,8 +3,8 @@ import type { CatalogComponent } from './schema';
 
 /**
  * Catalog order, grouping and zoom framing (PHASE2-TODO item 6, ADR 0012).
- * Pure functions of the entries, so they hold for the 4,016-entry core of
- * item 7 as well as for today's eleven.
+ * Pure functions of the entries, so they serve both the curated eleven and
+ * the merged 4,016-entry catalog.
  */
 
 /** The lower characteristic ray's numerator over 2^p − 1; the main cardioid's root angle is 0. */

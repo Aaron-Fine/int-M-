@@ -66,7 +66,7 @@ const labelMatcher = (text: string): Matcher | undefined => {
 };
 
 /** The matcher for a query, or undefined when the query is empty or cannot match. */
-export const catalogMatcher = (query: string): Matcher | undefined => {
+const catalogMatcher = (query: string): Matcher | undefined => {
   const text = query.trim().replace(/\s+/g, ' ').toLowerCase();
   if (text === '') return undefined;
   const fractions = FRACTIONS.exec(text);

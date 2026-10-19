@@ -1,9 +1,8 @@
 import {
   angledInternalAddressOf,
   generatedLabel,
-  hasExactRayPeriod,
   internalAddressOf,
-  kneadingSequence,
+  rayPairProblem,
 } from './combinatorics';
 import type { Complex } from '../domain/types';
 import {
@@ -140,15 +139,8 @@ const checkRays = (period: number, lower: number, upper: number, index: number):
       fail(`record ${index}`, 'the main cardioid has rays 0/1 and 1/1');
     return;
   }
-  if (!(lower > 0 && lower < upper && upper < rayModulus(period))) {
-    fail(`record ${index}`, 'rays must satisfy 0 < lower < upper < 2^p − 1');
-  }
-  if (!hasExactRayPeriod(lower, period) || !hasExactRayPeriod(upper, period)) {
-    fail(`record ${index}`, 'both rays must have exact period p');
-  }
-  if (kneadingSequence(lower, period) !== kneadingSequence(upper, period)) {
-    fail(`record ${index}`, 'both rays must have one kneading sequence');
-  }
+  const problem = rayPairProblem(period, lower, upper);
+  if (problem !== undefined) fail(`record ${index}`, problem);
 };
 
 /**
@@ -219,7 +211,7 @@ const decodeRecord = (view: DataView, index: number, manifest: CoreManifest): Ca
     im: view.getFloat64(offset + 13, true) + 0,
   };
   if (!Number.isFinite(center.re) || !Number.isFinite(center.im)) {
-    fail(`record ${index}`, 'centre must be finite');
+    fail(`record ${index}`, 'center must be finite');
   }
   const digits = view.getUint8(offset + 21);
   if (digits < 1 || digits > 17)
@@ -303,7 +295,7 @@ export const mergeCatalog = (
       !Object.is(named.center.re, entry.center.re) ||
       !Object.is(named.center.im, entry.center.im)
     ) {
-      fail(entry.id, 'the curated centre differs from the core');
+      fail(entry.id, 'the curated center differs from the core');
     }
     byId.delete(entry.id);
     return named;
@@ -329,10 +321,6 @@ export const isCoreCandidateId = (text: string, curatedMaxPeriod: number): boole
   return (
     period > curatedMaxPeriod &&
     period <= MAX_CATALOG_PERIOD &&
-    lower < upper &&
-    upper < rayModulus(period) &&
-    hasExactRayPeriod(lower, period) &&
-    hasExactRayPeriod(upper, period) &&
-    kneadingSequence(lower, period) === kneadingSequence(upper, period)
+    rayPairProblem(period, lower, upper) === undefined
   );
 };

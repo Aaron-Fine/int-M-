@@ -9,7 +9,7 @@ import referenceData from '../../catalog/references.v1.json';
  */
 
 export const CATALOG_SCHEMA_VERSION_2 = 2;
-/** The generated core of PHASE2-TODO item 7 stops at period 12. */
+/** The generated catalog core (ADR 0014) stops at period 12; no catalog or manifest may name a higher period. */
 export const MAX_CATALOG_PERIOD = 12;
 /** The longest annotation, in characters (code points): a sentence or two (ADR 0012). */
 export const ANNOTATION_MAX_LENGTH = 280;
@@ -94,7 +94,7 @@ export class CatalogSchemaError extends Error {
 }
 
 const ALIAS_PATTERN = /^mi-[a-z0-9-]+$/;
-/** The shape of a canonical id; an alias with it could collide once more periods are generated. */
+/** The shape of a canonical id. An alias with this shape could collide with a generated id (periods 5 to 12, ADR 0014). */
 const CANONICAL_ID_SHAPE = /^mi-p\d+-\d+-\d+$/;
 
 /** The canonical id of a component from its period and characteristic ray numerators. */
@@ -407,7 +407,17 @@ const parseComponent = (
   };
 };
 
-/** One pass with a set: the period ≤12 core has 4,016 entries (PHASE2-TODO item 7). */
+/** Every id and alias of the components, mapped to its component. */
+export const catalogNames = (
+  components: readonly CatalogComponent[],
+): ReadonlyMap<string, CatalogComponent> =>
+  new Map(
+    components.flatMap((component) =>
+      [component.id, ...component.aliases].map((name) => [name, component] as const),
+    ),
+  );
+
+/** Rejects an id or alias that appears twice (one pass with a set). */
 const requireUniqueNames = (components: readonly CatalogComponent[]): void => {
   const seen = new Set<string>();
   for (const name of components.flatMap((component) => [component.id, ...component.aliases])) {

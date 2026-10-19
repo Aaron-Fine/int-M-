@@ -9,22 +9,13 @@ import { rayModulus, type AngledAddressStep } from './schema';
  * them; tests/unit/catalog/ checks them against the Python generator's.
  */
 
-/** For each period p up to 12, the moduli 2^d − 1 of its proper divisors d. */
-const DIVISOR_MODULI: readonly (readonly number[])[] = Array.from({ length: 13 }, (_, period) =>
-  Array.from({ length: Math.max(0, period - 1) }, (_, index) => index + 1)
-    .filter((divisor) => period % divisor === 0)
-    .map(rayModulus),
-);
-
 /** True when numerator / (2^period − 1) has exact period `period` under doubling. */
 export const hasExactRayPeriod = (numerator: number, period: number): boolean => {
   const modulus = rayModulus(period);
-  const divisors =
-    DIVISOR_MODULI[period] ??
-    Array.from({ length: period - 1 }, (_, index) => index + 1)
-      .filter((divisor) => period % divisor === 0)
-      .map(rayModulus);
-  return divisors.every((divisorModulus) => (numerator * divisorModulus) % modulus !== 0);
+  return Array.from({ length: period - 1 }, (_, index) => index + 1)
+    .filter((divisor) => period % divisor === 0)
+    .map(rayModulus)
+    .every((divisorModulus) => (numerator * divisorModulus) % modulus !== 0);
 };
 
 /** ν_1 … ν_p of θ = numerator / (2^p − 1): '1' inside (θ/2, (θ+1)/2), '0' outside, '*' on it. */
@@ -111,4 +102,27 @@ export const angledInternalAddressOf = (numerator: number, period: number): Angl
 export const generatedLabel = (period: number, lower: number, upper: number): string => {
   const modulus = rayModulus(period);
   return `Period ${period}, rays ${lower}/${modulus} and ${upper}/${modulus}`;
+};
+
+/**
+ * Why a ray pair of period p >= 2 is not a Lavaurs pair, or undefined when it
+ * is one: lower < upper < 2^p − 1, both rays of exact period p, one kneading
+ * sequence. The catalog core's record check and the share-link id check both
+ * use it.
+ */
+export const rayPairProblem = (
+  period: number,
+  lower: number,
+  upper: number,
+): string | undefined => {
+  if (!(lower > 0 && lower < upper && upper < rayModulus(period))) {
+    return 'rays must satisfy 0 < lower < upper < 2^p − 1';
+  }
+  if (!hasExactRayPeriod(lower, period) || !hasExactRayPeriod(upper, period)) {
+    return 'both rays must have exact period p';
+  }
+  if (kneadingSequence(lower, period) !== kneadingSequence(upper, period)) {
+    return 'both rays must have one kneading sequence';
+  }
+  return undefined;
 };
