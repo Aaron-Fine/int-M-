@@ -7,75 +7,35 @@ exact integer arithmetic in place of the generator's decimals. For every
 record it proves, at the stored binary64 centre c0 itself, that the disk
 B(c0, rho) holds exactly one root of g(c) = f_c^p(0), a simple one, of exact
 period p (Rouche's theorem, where the generator uses the Krawczyk test). It
-also checks the counts per period against OEIS A000740, the residuals,
-conjugate closure, that the disks of one period are disjoint, the half-plane
-and real-axis order invariants, and that the component size estimate is
-finite and positive.
+also checks the counts per period against OEIS A000740, the stored orbitAbs
+and centerError residuals to three digits (the proper-divisor residual only
+for being positive), conjugate closure, that the disks of one period are
+disjoint, the half-plane and real-axis order invariants, and that the
+component size estimate is finite and positive.
 
 It then proves that each record's rays belong to its centre. The pairs must
 be Lavaurs' pairs (recomputed here), and tools/crosscheck_rays.py proves
 that the two dynamic rays of each pair land together for f_c, c in the
 proved disk of the record's centre (or, for the decimal fallback, in a
 smaller proved disk shown to lie inside it). By the wake theorem the centre
-c_P of the record of pair P then lies in the wake W_P, and induction gives
-the association:
+c_P of the record of pair P then lies in the wake W_P, and induction on wake
+nesting gives the association: each record's centre is the centre of the
+component rooted where its pair's parameter rays land.
 
-Association. Let H_P be the period-p component whose root the parameter rays
-of P land at. c_P is a centre of a period-p component H (fact a), and H lies
-in W_P: H is connected, meets W_P at c_P, and misses its boundary, which is
-two parameter rays outside M and a root, which is in no hyperbolic component
-(fact d). Suppose H is not H_P. Its root pair P' differs from P (facts a, b),
-and H lies in W_P', so the two wakes nest (fact c). W_P inside W_P' is
-impossible: the root of P' lies on the boundary of H, so in the closure of
-W_P; it is neither on P's rays nor P's root (fact b), so it would lie in W_P,
-inside the open W_P', on whose boundary it lies. So W_P' lies strictly inside
-W_P, and by induction on the number of period-p wakes inside a wake, the record
-of P' holds H's centre. Two records would then share a centre, but their disks
-are disjoint. So H is H_P, for every pair P. (Period 1 has one centre, 0.)
+Trust base. The proofs rely only on what ADR 0014
+(docs/decisions/0014-generated-catalog-core.md) lists under "Trust base" and
+"Elementary lemmas", where the association's induction is written out. Each
+other elementary lemma is stated and proved here, in the docstring or comment
+of the function it justifies.
 
-Trust base. The proofs rely on these and nothing else:
-- IEEE-754 binary64 with round-to-nearest, where only +, -, *, /, math.sqrt and
-  exact operations enter a bound; Python's integers, fractions and decimal
-  module (each decimal operation correctly rounded to the context's precision);
-  math.nextafter is exact, and float() of a Fraction or Decimal is correctly
-  rounded (faithful rounding would suffice where it is used).
-- Rouche's theorem, with the deviation bounds of disk_radii (proved there by
-  induction from f_(n+1) = f_n^2 + c) and magnitude_bounds (integer square roots
-  of truncated coordinates, floored and ceiled).
-- Gleason's lemma: the roots of f_c^p(0) are simple, so the Mobius count
-  (1/2) sum over d | p of mu(p/d) 2^d is the number of period-p centres, and
-  the records, being that many distinct roots of exact period p, are all of them.
-- Douady and Hubbard (Orsay notes, 1984-85; Milnor 2000), the facts used above:
-  (a) c is the centre of a period-p hyperbolic component exactly when 0 has
-  exact period p under f_c, and each component has one centre and one root;
-  (b) for p >= 2 each root of a period-p component is the landing point of
-  exactly two parameter rays, both of period p and landing nowhere else, the
-  component lies in their wake, and distinct components have distinct roots;
-  (c) parameter rays are disjoint and lie outside M, so wakes of distinct
-  period-p pairs are nested or disjoint; (d) roots are parabolic parameters,
-  in no hyperbolic component.
-- Lavaurs (1986): the pairs of period-p parameter rays that land together are
-  those of his algorithm, recomputed by lavaurs_pairs.
-- The wake theorem (Douady and Hubbard; Milnor 2000, Theorem 1.2): the dynamic
-  rays of a pair land together only for c in the closed wake of the pair.
-- The step from the closed wake to the open wake of the Association: the centre
-  lies in M, so it is on no parameter ray (Douady and Hubbard (c)), and it is
-  not the parabolic root (Douady and Hubbard (d)).
-- Everything in tools/crosscheck_rays.py's own trust base (Bottcher's theorem,
-  the maximum principle, the Schwarz-Pick lemma, Banach's fixed-point theorem).
-- Proved here, as elementary lemmas: exact period from |f^d(0)| bounded away
-  from 0 on the disk for each proper divisor d (prove_root_at); distinct
-  centres from disjoint disks, with a scan that stops only past the largest
-  radius (check_collection); the refined disk's root being the record's own,
-  by |c1 - c0| + rho1 <= rho in exact fractions (refined_disk).
-
-Usage: python3 tools/crosscheck_catalog_core.py catalog [--workers N]
+Usage: python3 tools/crosscheck_catalog_core.py [catalog] [--workers N]
 
 This module is application source code, licensed under GPL-3.0-only.
 """
 
 from __future__ import annotations
 
+import argparse
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from decimal import Decimal, localcontext
@@ -88,13 +48,17 @@ from pathlib import Path
 import struct
 import sys
 
-from crosscheck_rays import Landing, prove_rays_land_together
+from crosscheck_rays import (
+    Landing,
+    prove_rays_land_together,
+    prove_rays_land_together_in_decimals,
+)
 
 # Hyperbolic components of exact period p = 1..12 (OEIS A000740); 4,016 in all.
 A000740 = (1, 1, 3, 6, 15, 27, 63, 120, 252, 495, 1023, 2010)
 HEADER = struct.Struct("<6sHHHI")
 RECORD = struct.Struct("<BHHddBfff")
-# Radii are kept as fractions rounded up to this many significant bits.
+# Radii are kept as fractions rounded up to RADIUS_BITS or RADIUS_BITS + 1 significant bits.
 RADIUS_BITS = 64
 # The disk radius: at least four Newton steps, and never below 2^-80.
 SMALLEST_RADIUS = Fraction(1, 1 << 80)
@@ -131,15 +95,17 @@ def mobius(n: int) -> int:
 
 
 def component_count(period: int) -> int:
-    """Centres of exact period p: (1/2) sum over d | p of mu(p/d) 2^d (p >= 2)."""
-    if period == 1:
-        return 1
+    """Centres of exact period p: (1/2) sum over d | p of mu(p/d) 2^d."""
     total = sum(mobius(period // d) * 2**d for d in range(1, period + 1) if period % d == 0)
     return total // 2
 
 
 def round_up(value: Fraction) -> Fraction:
-    """An upper bound of value >= 0 with at most RADIUS_BITS significant bits."""
+    """An upper bound of value >= 0 with RADIUS_BITS or RADIUS_BITS + 1 significant bits.
+
+    The quotient value / 2^shift lies in [2^(RADIUS_BITS - 1), 2^(RADIUS_BITS + 1)), so
+    its ceiling has RADIUS_BITS or RADIUS_BITS + 1 bits.
+    """
     if value == 0:
         return value
     shift = value.numerator.bit_length() - value.denominator.bit_length() - RADIUS_BITS
@@ -246,6 +212,8 @@ def prove_root_at(orbit: ExactOrbit, period: int) -> Proof:
     # |g'(c) - g'(c0)| <= slope_radius on the disk; Rouche needs |g(c0)| < rho (|g'(c0)| - that).
     if not (slope_radius < slope_low and value_up < rho * (slope_low - slope_radius)):
         raise ValueError("Rouche's test fails")
+    # Exact period: on the disk |f^d(c) - f^d(c0)| <= radii[d - 1][0] < |f^d(c0)|, so
+    # f^d(0) has no zero there for any proper divisor d, and the root's period is p.
     for divisor in range(1, period):
         if period % divisor:
             continue
@@ -411,9 +379,8 @@ def check_record(task: tuple[Record, bool]) -> tuple[Proof, list[str], Landing |
         except ValueError:
             refined = None
         if refined is not None:
-            landing = prove_rays_land_together(
-                record.re, record.im, radius, record.period, record.lower, record.upper,
-                refined=refined,
+            landing = prove_rays_land_together_in_decimals(
+                refined, record.period, record.lower, record.upper
             )
     if landing is None:
         name = f"mi-p{record.period}-{record.lower}-{record.upper}"
@@ -511,13 +478,22 @@ def check_all(
         return list(pool.map(check_record, tasks, chunksize=16))
 
 
-def main(argv: list[str]) -> int:
-    arguments = [argument for argument in argv[1:] if not argument.startswith("--workers=")]
-    workers = next(
-        (int(a.split("=", 1)[1]) for a in argv[1:] if a.startswith("--workers=")),
-        os.cpu_count() or 1,
+def parse_arguments(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog=Path(argv[0]).name)
+    parser.add_argument(
+        "directory", nargs="?", type=Path, default=Path("catalog"),
+        help="The directory holding core.v1.bin and core.v1.json (default: catalog).",
     )
-    directory = Path(arguments[0] if arguments else "catalog")
+    parser.add_argument(
+        "--workers", type=int, metavar="N", default=os.cpu_count() or 1,
+        help="Worker processes (default: one per CPU).",
+    )
+    return parser.parse_args(argv[1:])
+
+
+def main(argv: list[str]) -> int:
+    arguments = parse_arguments(argv)
+    directory, workers = arguments.directory, arguments.workers
     manifest, records = read(directory)
     max_period = manifest["maxPeriod"]
     expected = [component_count(period) for period in range(1, max_period + 1)]
