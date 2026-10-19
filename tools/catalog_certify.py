@@ -7,9 +7,10 @@ root of g_p and that it is simple. Enclosing f_c^d(0) over the same disk and
 finding it bounded away from 0 for every proper divisor d of p proves that the
 root's period is exactly p.
 
-Every rounding is accounted for: a midpoint operation adds `ROUNDING` times
-its operands' magnitudes to the radius, and every radius and magnitude bound
-is inflated by `INFLATE`. With 80 digits a decimal operation errs by at most
+Every rounding is accounted for: a midpoint operation adds `Arithmetic.rounding`
+(10^(3 - precision)) times its operands' magnitudes to the radius, and every
+radius and magnitude bound is inflated by `Arithmetic.inflate`
+(1 + 10^(5 - precision)). With 80 digits a decimal operation errs by at most
 5e-80 relative, so the margins below are generous.
 
 This module is application source code, licensed under GPL-3.0-only.

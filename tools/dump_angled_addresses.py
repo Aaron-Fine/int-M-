@@ -23,14 +23,13 @@ from pathlib import Path
 import sys
 
 from catalog_combinatorics import angled_internal_address, lavaurs_pairs
-
-MAX_PERIOD = 12
+from generate_catalog import MAX_SUPPORTED_PERIOD
 
 
 def render() -> str:
-    pairs = lavaurs_pairs(MAX_PERIOD)
+    pairs = lavaurs_pairs(MAX_SUPPORTED_PERIOD)
     entries: dict[str, str] = {}
-    for period in range(2, MAX_PERIOD + 1):
+    for period in range(2, MAX_SUPPORTED_PERIOD + 1):
         for lower, _upper in pairs[period]:
             steps = angled_internal_address(lower, period, pairs)
             entries[f"{period}/{lower}"] = " ".join(

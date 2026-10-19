@@ -180,10 +180,6 @@ class ResidualFormatTest(unittest.TestCase):
         self.assertEqual(three_digits(Decimal("1.7548")), 1.75)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class ReferencesTest(unittest.TestCase):
     KEYS = {"julia-set", "gaston-julia"}
 
@@ -244,3 +240,7 @@ class ReferencesTest(unittest.TestCase):
     def test_accepts_known_keys(self) -> None:
         curation = {"mi-p1-0-1": {"label": "Main", "references": ["julia-set", "gaston-julia"]}}
         check_curation(curation, self.components(), self.KEYS)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -19,7 +19,6 @@ This generator is application source code and is licensed under GPL-3.0-only.
 from __future__ import annotations
 
 import argparse
-from decimal import Decimal
 import hashlib
 import json
 from pathlib import Path
@@ -29,17 +28,17 @@ from typing import Any
 
 from catalog_combinatorics import lavaurs_pairs
 from generate_catalog import (
-    DecimalComplex,
-    binary64,
+    MAX_SUPPORTED_PERIOD,
+    ROOT,
     certified_centers,
+    check_settings,
     method_key,
     method_text,
-    residual_fields,
+    stored_center,
 )
 
 FORMAT = "mi-catalog-core"
 FORMAT_VERSION = 1
-CORE_MAX_PERIOD = 12
 BINARY_NAME = "core.v1.bin"
 MANIFEST_NAME = "core.v1.json"
 MAGIC = b"MICORE"
@@ -49,7 +48,6 @@ HEADER = struct.Struct("<6sHHHI")
 # centerPrecisionDigits, residuals orbitAbs, centerError, properDivisorOrbitMinAbs
 # (float32 of the three-significant-digit value; 0 for period 1)
 RECORD = struct.Struct("<BHHddBfff")
-ROOT = Path(__file__).resolve().parent.parent
 INPUTS = (
     "tools/catalog_certify.py",
     "tools/catalog_combinatorics.py",
@@ -65,17 +63,14 @@ def build_records(max_period: int, precision: int) -> list[tuple[Any, ...]]:
     records: list[tuple[Any, ...]] = []
     for period in range(1, max_period + 1):
         for (lower, upper), refined in sorted(centers[period], key=lambda item: item[0]):
-            stored = DecimalComplex(
-                Decimal(binary64(refined.real)), Decimal(binary64(refined.imaginary))
-            )
-            residual, digits = residual_fields(stored, refined, period, precision)
+            re, im, residual, digits = stored_center(refined, period, precision)
             records.append(
                 (
                     period,
                     lower,
                     upper,
-                    binary64(stored.real),
-                    binary64(stored.imaginary),
+                    re,
+                    im,
                     digits,
                     residual["orbitAbs"],
                     residual["centerError"],
@@ -151,7 +146,7 @@ def check_inputs(directory: Path) -> list[str]:
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--max-period", type=int, default=CORE_MAX_PERIOD)
+    parser.add_argument("--max-period", type=int, default=MAX_SUPPORTED_PERIOD)
     parser.add_argument("--precision", type=int, default=80)
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--write", type=Path, help="Write both files into this directory.")
@@ -162,8 +157,7 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
-    if not 1 <= arguments.max_period <= CORE_MAX_PERIOD:
-        raise ValueError(f"max-period must be between 1 and {CORE_MAX_PERIOD}")
+    check_settings(arguments.max_period, arguments.precision)
     if arguments.inputs is not None:
         problems = check_inputs(arguments.inputs)
         for problem in problems:

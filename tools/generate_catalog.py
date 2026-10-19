@@ -2,10 +2,12 @@
 """Generate and validate the low-period Mandelbrot component catalog (schema v2).
 
 Writes catalog/components.v2.json from first principles plus the curated
-names and v1 aliases in catalog/curation.v2.json. `--check` regenerates the
-file and requires it to be byte-identical to the committed one. Every centre
-is certified (tools/catalog_certify.py, ADR 0014); tools/generate_catalog_core.py
-writes the period <=12 core from the same centres.
+names, v1 aliases, annotations and reference keys in catalog/curation.v2.json;
+each reference key must name an entry of catalog/references.v1.json, which is
+validated too. `--check` regenerates the file and requires it to be
+byte-identical to the committed one. Every centre is certified
+(tools/catalog_certify.py, ADR 0014); tools/generate_catalog_core.py writes
+the period <=12 core from the same centres.
 
 The generated numerical data is dedicated to the public domain under CC0-1.0.
 This generator is application source code and is licensed under GPL-3.0-only.
@@ -36,8 +38,11 @@ from catalog_combinatorics import (
 )
 
 SCHEMA_VERSION = 2
-DEFAULT_CURATION = Path("catalog/curation.v2.json")
-DEFAULT_REFERENCES = Path("catalog/references.v1.json")
+# The default inputs, resolved from the repository root so the tools and their
+# tests run from any working directory.
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_CURATION = ROOT / "catalog" / "curation.v2.json"
+DEFAULT_REFERENCES = ROOT / "catalog" / "references.v1.json"
 REFERENCES_SCHEMA_VERSION = 1
 # A reference links to one of these hosts only, and its source names that host (ADR 0012).
 REFERENCE_HOSTS = {"Wikipedia": "en.wikipedia.org", "arXiv": "arxiv.org"}
@@ -51,8 +56,10 @@ MATCH_TOLERANCE = 1e-9
 # 80 digits. At any precision the radius is far outside the Newton refinement
 # error; whether the Krawczyk test then passes is checked, and a failure raises.
 CERTIFIED_RADIUS_MARGIN = 30
-# The highest period the generator supports (PHASE2-TODO item 7, ADR 0014).
+# The highest period the generators support (PHASE2-TODO item 7, ADR 0014).
 MAX_SUPPORTED_PERIOD = 12
+# The lowest working precision, in decimal digits, the generators accept.
+MIN_PRECISION = 40
 # The longest curated annotation, in characters (ADR 0012; src/catalog/schema.ts).
 ANNOTATION_MAX_LENGTH = 280
 
@@ -226,6 +233,24 @@ def three_digits(value: Decimal) -> float:
     return float(f"{value:.2e}")
 
 
+def check_settings(max_period: int, precision: int) -> None:
+    """The generators' common argument checks."""
+    if not 1 <= max_period <= MAX_SUPPORTED_PERIOD:
+        raise ValueError(f"max-period must be between 1 and {MAX_SUPPORTED_PERIOD}")
+    if precision < MIN_PRECISION:
+        raise ValueError(f"precision must be at least {MIN_PRECISION} decimal digits")
+
+
+def stored_center(
+    refined: DecimalComplex, period: int, precision: int
+) -> tuple[float, float, dict[str, float], int]:
+    """The stored centre (the nearest binary64 to the refined one), its residuals and digits."""
+    re, im = binary64(refined.real), binary64(refined.imaginary)
+    stored = DecimalComplex(Decimal(re), Decimal(im))
+    residual, digits = residual_fields(stored, refined, period, precision)
+    return re, im, residual, digits
+
+
 def residual_fields(
     stored: DecimalComplex,
     refined: DecimalComplex,
@@ -282,10 +307,7 @@ def build_entry(
     precision: int,
 ) -> dict[str, Any]:
     lower, upper = pair
-    stored = DecimalComplex(
-        Decimal(binary64(refined.real)), Decimal(binary64(refined.imaginary))
-    )
-    residual, digits = residual_fields(stored, refined, period, precision)
+    re, im, residual, digits = stored_center(refined, period, precision)
     entry: dict[str, Any] = {"id": f"mi-p{period}-{lower}-{upper}"}
     if curated is not None and curated.get("aliases"):
         entry["aliases"] = list(curated["aliases"])
@@ -296,7 +318,7 @@ def build_entry(
     if curated is not None and "references" in curated:
         entry["references"] = list(curated["references"])
     entry["period"] = period
-    entry["center"] = {"re": binary64(stored.real), "im": binary64(stored.imaginary)}
+    entry["center"] = {"re": re, "im": im}
     entry["centerPrecisionDigits"] = digits
     entry["internalAddress"] = internal_address(lower, period)
     if period > 1:
@@ -337,7 +359,8 @@ def build_catalog(
                     period, pair, refined, pairs, curation.get(identifier), precision
                 )
             )
-    # Presentation (and keyboard focus) order: by period, then by centre.
+    # File order: by period, then by centre. The application sorts the entries
+    # into catalog order, by period, then lower ray, as the core is stored.
     components.sort(
         key=lambda entry: (entry["period"], entry["center"]["re"], entry["center"]["im"])
     )
@@ -493,10 +516,7 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> int:
     arguments = parse_arguments()
-    if arguments.max_period < 1 or arguments.max_period > MAX_SUPPORTED_PERIOD:
-        raise ValueError(f"max-period must be between 1 and {MAX_SUPPORTED_PERIOD}")
-    if arguments.precision < 40:
-        raise ValueError("precision must be at least 40 decimal digits")
+    check_settings(arguments.max_period, arguments.precision)
 
     text = render(
         build_catalog(

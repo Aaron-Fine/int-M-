@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
+import struct
 import tempfile
 import unittest
 
@@ -21,6 +22,10 @@ from generate_catalog_core import (
 )
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def float32(value: float) -> float:
+    return struct.unpack("<f", struct.pack("<f", value))[0]
 
 
 class CoreFormatTest(unittest.TestCase):
@@ -74,6 +79,8 @@ class CoreFormatTest(unittest.TestCase):
         decoded = [RECORD.unpack_from(data, 16 + 34 * i) for i in range(len(self.records))]
         for record, back in zip(self.records, decoded):
             self.assertEqual(record[:6], back[:6])
+            # The residuals are stored as float32 of their three-digit values.
+            self.assertEqual([float32(value) for value in record[6:]], list(back[6:]))
 
 
 class InputCheckTest(unittest.TestCase):

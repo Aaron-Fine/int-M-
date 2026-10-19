@@ -33,9 +33,9 @@
     }
   },
   "inputs": {
-    "tools/catalog_certify.py": "63ce4e2c88236717960b7f7c1f8c46efc6972056e12ca54722a691128f6b3ca4",
+    "tools/catalog_certify.py": "b56a6c5e8354944631f1fe8d79bbca26555b34e51891897eb6be858d9c98f4a5",
     "tools/catalog_combinatorics.py": "dcb3c2ad19f4f320b9f211183ed5e18c67ba3c4c90c65a651bfc8b1df9cdfcb5",
-    "tools/generate_catalog.py": "5cb186687d023ac5fc32dc5fa85ae95f48bb2199f2e8554c58dd3c28cd667094",
-    "tools/generate_catalog_core.py": "427073dc36f1b45dd738adbd3367683f058df00acbac34a56f97cd8fe1ccc0c8"
+    "tools/generate_catalog.py": "4469c9e8d83bb321d129982bd4d8cdb1c6c036c80a3b666d3aae2e1d23c7fc1d",
+    "tools/generate_catalog_core.py": "6680ae6f4fe69e7f14596e04610bec5ba4cf97b1aa9d72229e4c57eaa0170c24"
   }
 }
