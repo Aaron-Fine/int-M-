@@ -15,7 +15,7 @@ import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
  * distance was smallest — and between full scans tests only that WATCHED lag,
  * with the proposal test of the full scan (squared distance <= cycleTolerance^2).
  * A full scan, identical to the full scan of that iteration (ascending lags,
- * inline verifier), runs when
+ * verifyCycleInto on each proposal), runs when
  *
  * - the watched lag proposes (a "fire"). Fires are not capped: while the
  *   verifier keeps refusing a proposing lag, the pixel scans every iteration,

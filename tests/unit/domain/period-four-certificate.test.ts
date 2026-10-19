@@ -18,8 +18,7 @@ import {
  * others it checks only that the code refuses):
  *
  * 1. F >= |M(mu~)|, D <= |M'(mu~)| and K >= |3 mu~ + a2| for the exact cubic;
- * 2. whenever the code says "certified", the Rouché inequality
- *    F + K r^2 + r^3 < D r holds for r = 2h (1 + 2^-40), so exactly one root
+ * 2. the Rouché inequality F + K r^2 + r^3 < D r holds for r = 2h (1 + 2^-40), so exactly one root
  *    of the exact cubic lies within r of mu~;
  * 3. whenever the code accepts, 16 |mu~| + 16 r < 1 - attractMargin, so that
  *    root's multiplier is attracting beyond the margin.

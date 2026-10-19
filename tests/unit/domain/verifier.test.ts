@@ -315,7 +315,9 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
       { re: -1.6291666666666667, im: 0, period: 10, lag: 10 },
       { re: -0.7, im: 0.28, period: 11, lag: 11 },
       { re: -1.3458333333333332, im: 0.056, period: 12, lag: 12 },
-      // Divisor reductions: the scan proposes a multiple of the period.
+      // Divisor reductions: the scan proposes a multiple of the period. Near the
+      // 1/2 or 1/3 satellite of the period-p component (multiplier argument about
+      // ±1/2 or ±1/3 turn), z_n − z_{n−p} stays large while z_n − z_{n−kp} closes.
       { re: -0.5291666666666666, im: 0.572, period: 5, lag: 10 },
       { re: -0.5333333333333334, im: 0.5559999999999999, period: 5, lag: 15 },
       { re: -1.1416666666666666, im: 0.256, period: 6, lag: 12 },
