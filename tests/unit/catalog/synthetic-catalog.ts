@@ -7,10 +7,10 @@ import {
 } from '../../../src/catalog/components';
 
 /**
- * A synthetic catalog with the shape of PHASE2-TODO item 7's period ≤12 core:
+ * A synthetic catalog with the shape of the period ≤12 core (ADR 0014):
  * the true number of components per period, unique ray-derived ids and
  * generated labels. The ray pairs and centres are NOT the real ones (the real
- * core is item 7's generator): exact-period angles are paired in ascending
+ * core is catalog/core.v1.bin, tested in tests/unit/catalog/core/): exact-period angles are paired in ascending
  * order, and each centre sits just outside the main cardioid at its pair's
  * mid-angle, pushed out further for lower periods. Conjugate pairs mirror
  * each other. It exists to test scale: the loader, the catalog order, the
@@ -20,7 +20,7 @@ import {
 /** Hyperbolic components of exact period p (OEIS A000740), p = 1..12; 4,016 in all. */
 export const COMPONENT_COUNTS = [1, 1, 3, 6, 15, 27, 63, 120, 252, 495, 1023, 2010] as const;
 
-const properDivisors = (n: number): number[] =>
+export const properDivisors = (n: number): number[] =>
   Array.from({ length: n - 1 }, (_, index) => index + 1).filter((d) => n % d === 0);
 
 /** Numerators k of the angles k / (2^p − 1) of exact period p under doubling, ascending. */

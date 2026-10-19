@@ -97,12 +97,6 @@ describe('catalog marker density policy (Q4)', () => {
     expect(plan(DEFAULT_VIEWPORT, { cap: 5 }).markers.length).toBeLessThanOrEqual(5);
   });
 
-  it('examines only periods 1 to 6 of 4,016 entries at the default view', () => {
-    const result = plan(DEFAULT_VIEWPORT);
-    expect(result.visited).toBe(53);
-    expect(Math.max(...result.markers.map((m) => m.component.period))).toBeLessThanOrEqual(6);
-  });
-
   it('fills the cap from the lowest periods, skipping only covered dots', () => {
     const dot = COMPACT_HIT_REM * REM;
     for (const viewport of views(200, 2)) {

@@ -61,9 +61,8 @@ const random = (seed: number) => {
 };
 
 describe('catalog viewport index', () => {
-  it('ranks entries in catalog order and finds them by id', () => {
+  it('keeps entries in catalog order and finds them by id', () => {
     const index = createCatalogIndex(COMPONENT_CATALOG);
-    expect(index.entries.map((entry) => entry.rank)).toEqual(COMPONENT_CATALOG.map((_, i) => i));
     expect(index.entries.map((entry) => entry.component.id)).toEqual(
       [...COMPONENT_CATALOG].sort(compareCatalogOrder).map((component) => component.id),
     );

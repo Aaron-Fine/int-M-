@@ -14,13 +14,8 @@ import {
   internalAddressOf,
   kneadingSequence as kneading,
 } from '../../../src/catalog/combinatorics';
+import { COMPONENT_COUNTS, properDivisors } from './synthetic-catalog';
 import { V1_CATALOG } from './v1-catalog';
-
-/** Hyperbolic components of exact period p (OEIS A000740), p = 1..12; 4,016 in all. */
-const COMPONENT_COUNTS = [1, 1, 3, 6, 15, 27, 63, 120, 252, 495, 1023, 2010];
-
-const properDivisors = (n: number): number[] =>
-  Array.from({ length: n - 1 }, (_, index) => index + 1).filter((d) => n % d === 0);
 
 /** |f_c^n(0)| in binary64. */
 const orbitAbs = (component: CatalogComponent, n: number): number => {

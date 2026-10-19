@@ -13,10 +13,9 @@ import {
 } from '../../../../src/catalog/core';
 import { componentSizeEstimate } from '../../../../src/catalog/navigation';
 import { rayModulus } from '../../../../src/catalog/schema';
+import { COMPONENT_COUNTS } from '../synthetic-catalog';
 import { CORE_MANIFEST, CORE_MANIFEST_DATA, coreBytes, fullCatalog } from './core-bytes';
 
-/** Hyperbolic components of exact period p (OEIS A000740), p = 1..12; 4,016 in all. */
-const COMPONENT_COUNTS = [1, 1, 3, 6, 15, 27, 63, 120, 252, 495, 1023, 2010];
 const CORE = decodeCatalogCore(coreBytes(), CORE_MANIFEST);
 
 /** A copy of the committed core with one record field rewritten. */
@@ -277,13 +276,13 @@ describe('catalog core loader rejects a damaged file (MI-PERF-003)', () => {
     const [first, ...rest] = COMPONENT_CATALOG;
     const flipped = { ...first!, center: { re: first!.center.re, im: -0 } };
     expect(Object.is(first!.center.im, 0)).toBe(true);
-    expect(() => mergeCatalog([flipped, ...rest], CORE)).toThrow(/curated centre differs/);
+    expect(() => mergeCatalog([flipped, ...rest], CORE)).toThrow(/curated center differs/);
   });
 
   it('rejects a curated entry whose centre differs from the core', () => {
     const [first, ...rest] = COMPONENT_CATALOG;
     const moved = { ...first!, center: { re: 1e-9, im: 0 } };
-    expect(() => mergeCatalog([moved, ...rest], CORE)).toThrow(/curated centre differs/);
+    expect(() => mergeCatalog([moved, ...rest], CORE)).toThrow(/curated center differs/);
   });
 });
 

@@ -2121,7 +2121,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
     await expect(pointEvidence.getByRole('heading', { name: 'Airplane component' })).toBeVisible();
     await expect(pointEvidence.locator('.inspector__annotation')).toHaveText(
-      "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; at its centre the Julia set is the airplane. On the real line the logistic map's period-3 window opens here. The parameter rays 3/7 and 4/7 land at its root, c = −7/4.",
+      "The period-3 component on the real axis, the main cardioid of a small copy of the Mandelbrot set; at its center the Julia set is the airplane. On the real line the logistic map's period-3 window opens here. The parameter rays 3/7 and 4/7 land at its root, c = −7/4.",
     );
     await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
       timeout: 20_000,
@@ -2321,9 +2321,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     await expectNoAccessibilityViolations(page);
   });
 
-  test('keeps markers on the presented frame when an entry is activated (final review I1)', async ({
-    page,
-  }) => {
+  test('keeps markers on the presented frame when an entry is activated', async ({ page }) => {
     await openExplorer(page);
     const result = await page.evaluate(() => {
       const marker = document.querySelector<HTMLElement>(
@@ -2360,9 +2358,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
       .toBeCloseTo(50, 0);
   });
 
-  test('does not shift markers twice after a keyboard pan and inspect (final review I1)', async ({
-    page,
-  }) => {
+  test('does not shift markers twice after a keyboard pan and inspect', async ({ page }) => {
     await openExplorer(page);
     const result = await page.evaluate(() => {
       const canvas = document.querySelector<HTMLElement>('.explorer__canvas');
@@ -2381,9 +2377,7 @@ test.describe('Catalog panel (MI-UX-020)', () => {
     expect(result.after).toBe(result.before);
   });
 
-  test('keeps the panel mark in step while the catalog markers are hidden (final review I2)', async ({
-    page,
-  }) => {
+  test('keeps the panel mark in step while the catalog markers are hidden', async ({ page }) => {
     await openExplorer(page);
     await page.getByRole('button', { name: /Catalog/ }).click();
     await expect(page.locator('.catalog-marker')).toHaveCount(0);
@@ -2799,7 +2793,7 @@ test.describe('Catalog core (ADR 0014)', () => {
     await expect(panel.locator('.catalog-panel__confirmation')).toBeHidden();
   });
 
-  test('says the count covers periods 1 to 4 while the core loads, then updates it', async ({
+  test('says periods 5 to 12 are still loading in the find count, then updates it', async ({
     page,
   }) => {
     const release = await holdCore(page);
@@ -2814,7 +2808,7 @@ test.describe('Catalog core (ADR 0014)', () => {
     await expect(count).toHaveText('2,010 components match; showing the first 50.');
   });
 
-  test('says the count covers periods 1 to 4 after the core fails to load', async ({ page }) => {
+  test('says periods 5 to 12 could not be loaded in the find count', async ({ page }) => {
     await page.route(CORE_FILE, (route) => route.abort('internetdisconnected'));
     await openExplorer(page);
     const panel = panelOf(page);
