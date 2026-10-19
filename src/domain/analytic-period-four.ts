@@ -13,9 +13,10 @@ import { VERIFIER_THRESHOLDS } from './verifier';
  *   a0 = -(c^2 (c^2 (c^2 + 3c + 3) + 3c + 2) + 1) = -G4(c),
  *
  * and each cycle's multiplier is lambda = 16 mu (Lean: period4_product_root,
- * period4_seedDerivative in proof/IntMProof/PeriodFourMultiplier.lean). A
- * root with |lambda| < 1 belongs to a cycle of exact period 4 (Lean:
- * period4_minimalPeriod_of_attracting): a root of the period-4 dynatomic
+ * period4_seedDerivative in proof/IntMProof/PeriodFourMultiplier.lean). Each
+ * root is the product of one 4-cycle (the resultant identity, sympy-checked,
+ * not in Lean); a root with |lambda| < 1 belongs to a cycle of exact period 4
+ * (Lean: period4_minimalPeriod_of_attracting): a root of the period-4 dynatomic
  * factor that returns in one or two steps has four-step multiplier exactly 1
  * (Lean: period4_not_period_two_of_attracting).
  *

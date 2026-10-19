@@ -6,7 +6,7 @@
  * boundary (lambda = e^{i theta}, 4096 angles, Newton-continued from the
  * Gleason centre) and padded each box by 2% of its larger side
  * (boxes.json). Conjugate pairs are folded through |Im c|, so the rabbit and
- * co-rabbit share one box.
+ * corabbit share one box.
  *
  * The gate decides only whether the closed form is tried. It must contain
  * every parameter the closed form accepts; then it changes speed, never
@@ -22,7 +22,7 @@ export interface PeriodThreeBox {
   readonly absImMax: number;
 }
 
-/** Douady rabbit (Im c > 0) and co-rabbit (Im c < 0). */
+/** Douady rabbit (Im c > 0) and corabbit (Im c < 0). */
 export const RABBIT_BOX: PeriodThreeBox = Object.freeze({
   reMin: -0.2232411450425719,
   reMax: -0.026495368185881676,

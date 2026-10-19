@@ -4,11 +4,13 @@ import { DEFAULT_VIEWPORT, MAX_MAGNIFICATION } from '../domain';
 export const COARSE_BASE_ITERATIONS = 256;
 
 /**
- * Unwired: nothing in the app imports this module. The 2026-10-16 study
+ * The app uses only COARSE_BASE_ITERATIONS (the coarse pass in
+ * cpu-renderer.ts). The ramp below is unwired: the 2026-10-16 study
  * (docs/verification/COARSE-BUDGET-STUDY-2026-10-16.md) found no deep-view
  * coarse-budget gap, so the default ramp is the identity at 256
- * (`deepIterations` equals the base). The module is kept for the optional
- * per-view coarse-budget item in docs/verification/PHASE2-TODO.md.
+ * (`deepIterations` equals the base), and on 2026-10-18 the per-view coarse
+ * budget was not adopted (docs/verification/PHASE2-TODO.md). The ramp is kept
+ * only for tools/benchmark/coarse-budget-study.ts.
  *
  * The budget rises log-linearly in magnification from the base at
  * `startMagnification` to `deepIterations` at MAX_MAGNIFICATION.

@@ -256,10 +256,12 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  *
  * Acceptance policy (PR 3): every orbit-path attracting result passes the
  * common numerical verifier (src/domain/verifier.ts, revision
- * VERIFIER_REVISION) via verifyCycleInto. The closed forms (periods 1-3)
- * accept by the verifier's attraction margin instead, period 3 with a derived
- * binary64 allowance (ADR 0010). The lag-scan candidate proposal (proximity
- * below OrbitOptions.cycleTolerance) is unchanged; only acceptance migrated.
+ * VERIFIER_REVISION) via verifyCycleInto. The analytic paths (closed forms
+ * for periods 1-3, the certified solve for period 4) accept by the verifier's
+ * attraction margin instead: period 3 with a derived binary64 allowance
+ * (ADR 0010), period 4 with its certified allowance (ADR 0013). The lag-scan
+ * candidate proposal (proximity below OrbitOptions.cycleTolerance) is
+ * unchanged; only acceptance migrated.
  *
  * Semantic changes versus the legacy classifier, enumerated per plan
  * section 3 ("A changed legacy answer may ship only when the oracle supports
@@ -375,7 +377,7 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
       verifierRevision: VERIFIER_REVISION,
       // Origin metadata (PR 5, plan section 4): the single evidence flag an
       // attracting result carries identifies its proposal path — the
-      // closed forms are 'analytic', everything else is the lag scan
+      // analytic paths are 'analytic', everything else is the lag scan
       // ('fallback'). Acceptance above is source-blind; this stamp must
       // stay descriptive (workstream D kill condition: no candidate-source
       // leakage into confidence semantics).

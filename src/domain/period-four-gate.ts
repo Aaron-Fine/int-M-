@@ -1,3 +1,5 @@
+import type { PeriodThreeBox } from './period-three-gate';
+
 /**
  * Speed gate for the analytic period-4 fast path (ADR 0013): padded bounding
  * boxes of the six period-4 hyperbolic components, as data.
@@ -17,13 +19,8 @@
  * only has to contain the six components.
  */
 
-export interface PeriodFourBox {
-  readonly reMin: number;
-  readonly reMax: number;
-  /** Bounds on |Im c|. */
-  readonly absImMin: number;
-  readonly absImMax: number;
-}
+/** The same box shape as the period-3 gate's. */
+export type PeriodFourBox = PeriodThreeBox;
 
 /** The 1/4 and 3/4 satellites of the main cardioid (centre 0.2823 ± 0.5301i). */
 export const CARDIOID_SATELLITE_BOX: PeriodFourBox = Object.freeze({
@@ -41,7 +38,7 @@ export const COMPLEX_PRIMITIVE_BOX: PeriodFourBox = Object.freeze({
   absImMax: 1.0381904413114849,
 });
 
-/** The 1/2 satellite of the period-2 bulb, on the real axis (centre -1.3107). */
+/** The 1/2 satellite of the 1/2-bulb, on the real axis (centre -1.3107). */
 export const BULB_SATELLITE_BOX: PeriodFourBox = Object.freeze({
   reMin: -1.3704609181790832,
   reMax: -1.247638021212175,

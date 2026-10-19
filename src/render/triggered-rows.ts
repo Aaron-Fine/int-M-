@@ -44,7 +44,7 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * but only used from the first scanning iteration.
  *
  * Hot-loop rules from orbit.ts: the lockstep loop has no calls. The rare
- * calls (verifier on a proposal, analytic closed forms on a region hit) run
+ * calls (verifier on a proposal, analytic solves on a gate hit) run
  * with every double the loops carry round-tripped through `spill`.
  * classifyRow adds no inlinable call for the period-3 and period-4 paths
  * (ADR 0010, ADR 0013): each gate is evaluated once per row as windows on
@@ -162,7 +162,7 @@ export class TriggeredRowKernel {
 
     // Period-4 gate (ADR 0013), per row, as two Re c windows: the off-axis
     // boxes' |Im c| bands are disjoint from each other and from the axis
-    // band, and on the axis band the 1/2 satellite of the period-2 bulb and
+    // band, and on the axis band the 1/2 satellite of the 1/2-bulb and
     // the real primitive component both apply. Empty windows when no band
     // holds |cIm| (NaN included). Written out, not called.
     let p4ReMin = Number.POSITIVE_INFINITY;

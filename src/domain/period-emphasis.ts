@@ -7,8 +7,7 @@ import type { Rgba } from './semantic';
  * ascending period order, so a period's colour can change between views, and
  * every other period is OTHER_PERIODS_COLOR. The key is a pure function of
  * the frame's period histogram, so a recolor of a cached frame reproduces it
- * and no semantic field is added (the semantic algorithm version is
- * unchanged).
+ * without a semantic field or a SEMANTIC_ALGORITHM_VERSION bump.
  */
 
 export const PERIOD_EMPHASIS_LIMIT = 5;

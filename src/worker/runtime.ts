@@ -143,11 +143,7 @@ export class RenderWorkerRuntime {
     },
   ): void {
     const colorizeStarted = performance.now();
-    // Renderers that predate isolation see the two-argument call unchanged.
-    const raster =
-      isolatedPeriod === undefined
-        ? this.#renderer.colorize(frame, view)
-        : this.#renderer.colorize(frame, view, isolatedPeriod);
+    const raster = this.#renderer.colorize(frame, view, isolatedPeriod);
     const colorizeMs = performance.now() - colorizeStarted;
     const computed = origin.source === 'computed';
     const workerTiming = frameTiming(frame, colorizeMs, computed);

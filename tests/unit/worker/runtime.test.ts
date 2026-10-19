@@ -395,7 +395,7 @@ describe('RenderWorkerRuntime', () => {
     await first;
 
     expect(recolor).toHaveBeenCalledOnce();
-    expect(recolor).toHaveBeenCalledWith(expect.anything(), 'multiplier');
+    expect(recolor.mock.calls.at(-1)?.[1]).toBe('multiplier');
     expect(messages).toContainEqual(
       expect.objectContaining({ type: 'frame', requestId: 'multiplier' }),
     );
