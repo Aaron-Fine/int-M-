@@ -1,8 +1,7 @@
 /**
  * Palette metric record (owner decision Q5, MI-UX-021): CIEDE2000 minima under
  * normal and simulated protan, deutan and tritan vision for the Phase 1
- * palette, each period-palette candidate and, once it ships, the production
- * palette. Writes palette-metrics.json and summary.md into the directory
+ * palette, each period-palette candidate and the shipped palette. Writes palette-metrics.json and summary.md into the directory
  * given; format both with Prettier and emit manifest.sha256 afterwards.
  * Usage: npm run evidence:palette -- <output directory>
  */

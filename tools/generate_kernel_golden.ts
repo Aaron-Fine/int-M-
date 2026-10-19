@@ -12,8 +12,9 @@ import process from 'node:process';
 import type { RenderQuality, Viewport } from '../src/domain';
 import { classifyRows } from '../src/render/classify-rows';
 import { loadCorpusCases, profileQuality } from './benchmark/judge/corpus';
+import { GOLDEN_RASTER } from './golden-raster';
 
-export const GOLDEN_RASTER = { width: 160, height: 100 } as const;
+export { GOLDEN_RASTER };
 // Resolved from the repo root (npm runs scripts there): the SSR bundle's import.meta.dirname is the build directory.
 const FIXTURE = path.resolve(process.cwd(), 'fixtures/kernel-golden.v1.json');
 

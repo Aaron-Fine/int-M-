@@ -1,6 +1,6 @@
 /**
- * Fallback-overhead microbenchmark for the analytic period-3 path (ADR 0010;
- * plan section 5, workstream H gate "fallback <=5%"). Directional Node
+ * Fallback-overhead microbenchmark for the analytic fast paths (ADR 0010,
+ * ADR 0013; plan section 5, workstream H gate "fallback <=5%"). Directional Node
  * evidence, not a release measurement.
  *
  * Three arms run interleaved in one Node process, each an SSR bundle of

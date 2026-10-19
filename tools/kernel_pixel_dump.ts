@@ -1,7 +1,7 @@
 /**
  * Per-pixel kernel dump (evidence aid, not a fixture): the stable-pass output
  * channels of classifyRows for every frozen-corpus case at the golden raster
- * (tools/generate_kernel_golden.ts), written as JSON so two builds can be
+ * (tools/golden-raster.ts), written as JSON so two builds can be
  * compared pixel by pixel. JSON numbers round-trip binary64 exactly.
  * Usage: npm run fixtures:pixel-dump -- <out.json> [--raster WxH] [--cases id,id]
  * --raster and --cases select another raster (the shipping 1024x640 for the
@@ -13,9 +13,8 @@ import path from 'node:path';
 import process from 'node:process';
 import type { RasterSize } from '../src/domain';
 import { classifyRows } from '../src/render/classify-rows';
-import { loadCorpusCases, profileQuality } from './benchmark/judge/corpus';
-
-export const DUMP_RASTER = { width: 160, height: 100 } as const;
+import { loadCorpusCases, parseRaster, profileQuality } from './benchmark/judge/corpus';
+import { GOLDEN_RASTER } from './golden-raster';
 
 export interface PixelDumpCase {
   readonly packedStatusPeriod: number[];
@@ -31,7 +30,7 @@ export interface PixelDump {
 }
 
 export const dumpPixels = async (
-  raster: RasterSize = DUMP_RASTER,
+  raster: RasterSize = GOLDEN_RASTER,
   caseIds?: readonly string[],
 ): Promise<PixelDump> => {
   const cases: Record<string, PixelDumpCase> = {};
@@ -70,12 +69,7 @@ const main = async (): Promise<void> => {
     return index === -1 ? undefined : args[index + 1];
   };
   const rasterText = option('--raster');
-  const match = rasterText === undefined ? null : /^(\d+)x(\d+)$/.exec(rasterText);
-  if (rasterText !== undefined && match === null) {
-    throw new RangeError('--raster must look like 1024x640');
-  }
-  const raster =
-    match === null ? DUMP_RASTER : { width: Number(match[1]), height: Number(match[2]) };
+  const raster = rasterText === undefined ? GOLDEN_RASTER : parseRaster(rasterText);
   const caseIds = option('--cases')?.split(',');
   // Resolved from the repo root (npm runs scripts there).
   writeFileSync(

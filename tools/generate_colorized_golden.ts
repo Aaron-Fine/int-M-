@@ -21,12 +21,9 @@ import type { SemanticFrame } from '../src/render';
 import { classifyRows } from '../src/render/classify-rows';
 import { colorizeFrame, periodHistogram } from '../src/render/colorize';
 import { loadCorpusCases, profileQuality } from './benchmark/judge/corpus';
+import { GOLDEN_RASTER } from './golden-raster';
 
-/**
- * The kernel golden's raster (tools/generate_kernel_golden.ts). Not imported
- * from there: bundled together, that tool's entry guard would run its main.
- */
-export const GOLDEN_RASTER = { width: 160, height: 100 } as const;
+export { GOLDEN_RASTER };
 
 // Resolved from the repo root (npm runs scripts there), as in generate_kernel_golden.ts.
 const FIXTURE = path.resolve(process.cwd(), 'fixtures/colorized-golden.v1.json');
