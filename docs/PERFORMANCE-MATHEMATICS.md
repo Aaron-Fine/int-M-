@@ -474,15 +474,28 @@ The gate ([period-three-gate.ts](../src/domain/period-three-gate.ts)) holds
 the padded bounding boxes of the three components, traced from the inverse
 map in the spike. It must contain every accepted parameter, which a unit test
 checks on a 1200 × 1200 grid (11,602 accepted points, all inside) and just
-outside every box edge: it is measured, not proved. The scalar kernel calls
-the straight-line gate. The row kernel evaluates it once per row as a window
-on Re c, which is exact because the boxes' |Im c| bands are disjoint and lie
-inside the hull; calling the gate from the row kernel cost about 10% on the
-far-exterior stable pass in Node through TurboFan's inlining budget (bimodal: it appeared in some compiles and not others; the CPU-level reason is not pinned down), though no
-pixel there reaches the gate ([ADR 0010](decisions/0010-analytic-period-three.md)). The fix depends on V8
-inlining heuristics; rerun `tools/benchmark/fallback-overhead.ts` after any
-change to `classifyRow` or a V8 upgrade. The coarse (scalar) pass, which keeps
-the inlined gate call, was not measured.
+outside every box edge: it is measured, not proved.
+
+Neither kernel tests the gate itself. Both call `classifyGatedAnalyticInto`
+([analytic-period-three.ts](../src/domain/analytic-period-three.ts)) for every
+pixel that reaches the first scanning iteration. It reads the period-3 and
+period-4 gates (§12.8) as windows on Re c for the row's Im c
+([analytic-gate-windows.ts](../src/domain/analytic-gate-windows.ts), exact
+because the boxes' |Im c| bands are disjoint and lie inside the hull),
+recomputed when Im c changes, and runs at most one solve. Its answer and
+record equal testing the gates first and calling the solve
+([gated-analytic.test.ts](../tests/unit/domain/gated-analytic.test.ts), box
+edges ± 1 ulp, signed zeros, NaN, infinities and grids). Where the gate is
+evaluated changes no bit but changes speed, through the engines' compilers
+only: an inlined gate call in the row kernel cost about 10% on the
+far-exterior stable pass in Node (2026-10-17, bimodal), and from 2026-10-17 to
+2026-10-20 the row kernel's per-row windows and gated call blocks, first run
+only when a gate row or gate pixel arrived, cost cold tile workers repeated
+recompiles of the kernel in both browsers
+([ADR 0010](decisions/0010-analytic-period-three.md), amendment of
+2026-10-20). Rerun `tools/benchmark/fallback-overhead.ts` (stable and coarse
+pass) and `tools/benchmark/cold-workers.ts` (both engines) after any change
+to either kernel or to `classifyGatedAnalyticInto`, or an engine upgrade.
 
 ### 11.6 What is proved and what is not
 
@@ -615,9 +628,9 @@ The answer is never wrong; it is only less often fast.
 
 ### 12.8 Placement and gate
 
-Both kernels, [orbit-triggered.ts](../src/domain/orbit-triggered.ts) and the two-lane [triggered-rows.ts](../src/render/triggered-rows.ts), try the solve once per pixel at the first scanning iteration, `max(cycleWarmup, 2)` = 24, before that iteration's full scan, in the same branch as the period-3 closed form (§11.5). The period-3 and period-4 boxes are disjoint, so the branch runs at most one solve. A pixel that escapes earlier never reaches it (c = 0.239189 + 0.567903i, inside the cardioid satellites' box, escapes at iteration 24 and stays escaped: the escape test comes first). The record depends on c alone, so it is bit-identical in both kernels and both passes. With `maxIterations` below the first scanning iteration the solve never runs and the pixel stays unresolved, as the orbit path would leave it.
+Both kernels, [orbit-triggered.ts](../src/domain/orbit-triggered.ts) and the two-lane [triggered-rows.ts](../src/render/triggered-rows.ts), try the solve once per pixel at the first scanning iteration, `max(cycleWarmup, 2)` = 24, before that iteration's full scan, through the same call as the period-3 closed form (§11.5). The period-3 and period-4 boxes are disjoint, so the call runs at most one solve. A pixel that escapes earlier never reaches it (c = 0.239189 + 0.567903i, inside the cardioid satellites' box, escapes at iteration 24 and stays escaped: the escape test comes first). The record depends on c alone, so it is bit-identical in both kernels and both passes. With `maxIterations` below the first scanning iteration the solve never runs and the pixel stays unresolved, as the orbit path would leave it.
 
-The gate ([period-four-gate.ts](../src/domain/period-four-gate.ts)) holds four boxes: the cardioid's 1/4 and 3/4 satellites and the complex primitive pair, each folded by conjugation, the 1/2 satellite of the period-2 bulb, and the real primitive component. It must contain every accepted parameter. A unit test checks a 1200 × 1200 grid (4,782 accepted points, all inside), finer grids around every box and points just outside every box edge: measured, not proved, although every accepted parameter does lie in one of the six components (12.2). The scalar kernel calls the straight-line gate. The row kernel evaluates it once per row as two windows on Re c: the off-axis bands are disjoint from each other and from the axis band, and on rows with |Im c| ≤ 6.7·10⁻⁴ both real-axis boxes apply. Each lane has one spill block and one call site, which picks the period-3 or the period-4 solve by a ternary, so `classifyRow` gains no inlinable call (ADR 0010: an inlined gate call there cost about 10% on the far-exterior stable pass). Measured in Node (directional, 2026-10-17, [evidence](../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md)): the candidate's overhead on `mi-easy-exterior-heavy` and `mi-fallback-ambiguous-boundary` was 0.06% and -0.43% in the stable pass and -0.44% and -0.40% in the coarse pass, every 95% interval within ±1% (limit 5%); a run whose A/A control moved by more than 2% was discarded and rerun. Rerun `tools/benchmark/fallback-overhead.ts`, with and without `--stride`, after any change to `classifyRow`, `classifyTriggeredOrbitInto`, the size of either analytic solve, or a V8 upgrade.
+The gate ([period-four-gate.ts](../src/domain/period-four-gate.ts)) holds four boxes: the cardioid's 1/4 and 3/4 satellites and the complex primitive pair, each folded by conjugation, the 1/2 satellite of the period-2 bulb, and the real primitive component. It must contain every accepted parameter. A unit test checks a 1200 × 1200 grid (4,782 accepted points, all inside), finer grids around every box and points just outside every box edge: measured, not proved, although every accepted parameter does lie in one of the six components (12.2). Both kernels reach it through `classifyGatedAnalyticInto` (§11.5), which tries the solve when c is outside the period-3 window of its row and inside one of the two period-4 windows: the off-axis bands are disjoint from each other and from the axis band, and on rows with |Im c| ≤ 6.7·10⁻⁴ both real-axis boxes apply. Measured in Node for the earlier placement, in the row kernel (directional, 2026-10-17, [evidence](../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md)): the overhead on `mi-easy-exterior-heavy` and `mi-fallback-ambiguous-boundary` was 0.06% and -0.43% in the stable pass and -0.44% and -0.40% in the coarse pass, every 95% interval within ±1% (limit 5%). That form cost cold tile workers in both browsers; the current form and its measurements are in [ADR 0010](decisions/0010-analytic-period-three.md), amendment of 2026-10-20.
 
 Cost: about 190 ns per attempt in Node (the period-3 closed form: about 50 ns), against 1.6–1.7 µs per period-4 pixel on the orbit path in the spike, and unbounded for the near-parabolic pixels the orbit path leaves unresolved.
 
