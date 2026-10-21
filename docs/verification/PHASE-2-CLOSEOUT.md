@@ -208,6 +208,12 @@ then. The open work is PHASE2-TODO item 0, "Easy default view in Chrome".
 `ab73117`, `af4522b`; [evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md));
 the headed release re-measure is pending, and the approval below stays blank.
 
+2026-10-21: owner decision, ADR 0010's 5% limit is measured in the browsers
+(cold tile workers, both engines) and Node is a diagnostic. First run on
+`f97dd6a`: pass, default view +1.3% (Firefox) and −2.4% (Chromium) against the
+same build without the analytic call
+([evidence](../../evidence/phase-2/2026-10-21-f97dd6a-browser-overhead-gate/summary.md)).
+
 Other results of the session:
 
 - **Bands per worker:** 8 adopted (commit `b642fd6`): paired wins of 6-8% on

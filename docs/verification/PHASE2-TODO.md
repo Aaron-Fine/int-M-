@@ -110,23 +110,23 @@ Estimates are engineering days. They are planning figures and may overlap.
 
 ### 0. Worth doing now
 
-- [ ] **Before release:** rerun `tools/benchmark/fallback-overhead.ts` (Node),
-      with and without `--stride`, after any change to
-      `TriggeredRowKernel.classifyRow`, `classifyTriggeredOrbitInto`, the size
-      of either analytic solve, or a V8/Node upgrade; the overhead fix for
-      periods 3 and 4 depends on V8 inlining heuristics (ADR 0010, ADR 0013).
-      Both passes were measured for period 4 (2026-10-17, within 5%). After
-      the 2026-10-20 kernel change ([evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md))
-      the far-exterior stable pass measures +7.0% [+5.9%, +9.9%] and weak
-      attraction +3.7% [+2.9%, +11.7%] in Node, with quiet controls; the other
-      views are within about 5%. The browsers measure the far-exterior view
-      faster and weak attraction unchanged within noise.
-      Rerun `tools/benchmark/cold-workers.ts` (both engines) together with it.
-- [ ] **Node fallback-overhead gate (owner):** far-exterior +7.0% [+5.9%,
-      +9.9%] and weak attraction +3.7% after the 2026-10-20 kernel change,
-      while both browsers measure the far-exterior view faster and weak
-      attraction unchanged within noise; decide whether Node
-      stays the gate for ADR 0010's 5% limit.
+- [ ] **Before release:** rerun the analytic-path overhead gate,
+      `tools/benchmark/cold-workers.ts` in both bundled engines against the
+      same commit with the analytic call removed, after any change to
+      `TriggeredRowKernel.classifyRow`, `classifyTriggeredOrbitInto`,
+      `classifyGatedAnalyticInto`, or a browser engine upgrade (ADR 0010,
+      amendment of 2026-10-21). `tools/benchmark/fallback-overhead.ts` (Node)
+      stays a diagnostic and the only measurement of the coarse pass. Last
+      run: 2026-10-21 on `f97dd6a`, pass
+      ([evidence](../../evidence/phase-2/2026-10-21-f97dd6a-browser-overhead-gate/summary.md)).
+- [x] **Node fallback-overhead gate (owner):** far-exterior +7.0% [+5.9%,
+      +9.9%] and weak attraction +3.7% in Node after the 2026-10-20 kernel
+      change, while both browsers measured the far-exterior view faster and
+      weak attraction unchanged within noise. Decided 2026-10-21: the browsers
+      are the gate, Node a diagnostic (ADR 0010, amendment of 2026-10-21).
+      First browser gate run: pass in both engines; default view +1.3%
+      (Firefox) and −2.4% (Chromium) against the build without the analytic
+      call.
 - [ ] **Flake watch** (all unrelated to item 8; each failed once under heavy
       load on 2026-10-17 and passed on rerun). `classify-rows-allocation.test.ts`
       failed its GC-count assertion `bandOnlyGc ≤ scalarGc + 1` with 2 against
