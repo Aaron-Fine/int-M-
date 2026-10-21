@@ -68,11 +68,11 @@ Each entry should be able to carry:
 - exact period;
 - internal address;
 - angled internal address using exact rational angles;
-- characteristic parameter-ray pair when known, also as exact rationals;
+- parameter ray pair when known, also as exact rationals;
 - validation residuals and method;
 - provenance and schema version.
 
-Internal addresses alone are not guaranteed to uniquely identify a component. Angled addresses and characteristic rays provide the distinguishing combinatorics; the stable project identifier provides durable software identity.
+Internal addresses alone are not guaranteed to uniquely identify a component. Angled addresses and parameter ray pairs provide the distinguishing combinatorics; the stable project identifier provides durable software identity.
 
 ### 3.4 Inspector and interaction
 
@@ -262,8 +262,8 @@ The period view will not assign dozens of equally prominent categorical colors. 
 
 The active normative first-release UX requirements are `MI-UX-001` through
 `MI-UX-013`, `MI-UX-015` through `MI-UX-017`, and the Phase 2 `MI-UX-018`
-(period view emphasis), `MI-UX-019` (shareable versioned links) and
-`MI-UX-021` (palette acceptance) in
+(period view emphasis), `MI-UX-019` (shareable versioned links),
+`MI-UX-020` (catalog navigation) and `MI-UX-021` (palette acceptance) in
 [the SysML v2 system model](../model/MandelbrotInteriority.sysml).
 `MI-UX-014` is retained as OBE and superseded by `MI-UX-017` rather than
 reusing its identifier. The active requirements cover the first-use render and
@@ -383,12 +383,19 @@ The performance part of this phase is governed by a separate reviewed
 contract, the [performance improvement plan](plans/int-m-performance-plan.html),
 with its own invariants, workstream gates, and benchmark protocol. The
 implementation roadmap and current status of that work — PoC harness, frozen
-benchmark corpus, allocation-free scalar kernel, common verifier, checkpoint
-classifier behind a differential flag, and period policy — are tracked in
+benchmark corpus, allocation-free scalar kernel, common verifier, watched-lag
+classifier (ADR 0006), analytic periods 1 to 4 (ADR 0010, 0013), and period
+policy — are tracked in
 [PERFORMANCE-PLAN.md](PERFORMANCE-PLAN.md), with the underlying mathematics
 and tolerance policy in
 [PERFORMANCE-MATHEMATICS.md](PERFORMANCE-MATHEMATICS.md). Those documents
 extend this plan; they do not change its story or its bounded-zoom thesis.
+
+**Status (2026-10-20):** the core atlas items above are delivered; the
+remaining owner items are in
+[PHASE2-TODO.md](verification/PHASE2-TODO.md), and the performance part is
+assessed in [PHASE-2-CLOSEOUT.md](verification/PHASE-2-CLOSEOUT.md), whose
+approval is still open.
 
 ### Phase 3 — measured numerical extension
 

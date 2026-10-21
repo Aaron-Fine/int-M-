@@ -39,8 +39,15 @@ Vite serves the application at `http://127.0.0.1:5173`. The other common command
 | `npm run format:check`           | Check formatting without changing files                  |
 | `npm run lint`                   | Run ESLint with typed, strict TypeScript rules           |
 | `npm run typecheck`              | Check UI, worker, Node, and browser-test projects        |
+| `npm run catalog:test`           | Run the Python unit tests of the catalog tools           |
 | `npm run catalog:check`          | Independently regenerate and validate catalog data       |
+| `npm run catalog:core:inputs`    | Check the core's input hashes and digest (fast)          |
+| `npm run catalog:core:verify`    | Regenerate the core and cross-check it (several minutes) |
 | `npm run fixtures:check`         | Regenerate high-precision orbit fixtures                 |
+| `npm run fixtures:golden:check`  | Check the kernel and colorized golden fixtures           |
+| `npm run evidence:release`       | Run the release evidence harness (plan section 9)        |
+| `npm run evidence:palette`       | Compute the palette acceptance metrics                   |
+| `npm run test:visual:container`  | Compare advisory screenshots in the pinned container     |
 | `npm run evidence:cpu`           | Measure the CPU renderer and print environment data      |
 | `npm run poc:perf`               | Run the PoC differential harness (directional evidence)  |
 | `npm run poc:bench:pr2`          | Run the pr2 allocation microbench (directional evidence) |
@@ -140,6 +147,16 @@ control. The benchmark parameters in `src/ui/benchmark-params.ts` stay separate:
 orthogonal to a share link, and `view=<re>,<im>,<spanY>&quality=` applies only to a URL without
 share fields.
 
+The catalog follows [ADR 0012](decisions/0012-catalog-navigation-and-marker-density.md) and
+[ADR 0014](decisions/0014-generated-catalog-core.md); the data and its checks are described in
+[catalog/README.md](../catalog/README.md). The renderer never reads the catalog. The curated layer
+(`catalog/components.v2.json`) is bundled with the application, and the generated period 1 to 12
+core (`catalog/core.v1.bin`) loads in a worker (`src/worker/catalog-core.worker.ts`, through
+`src/ui/catalog-core-client.ts`) after the first stable frame, is verified by SHA-256, and is handed
+to the panel and the viewport index asynchronously; if it cannot load, the curated layer stays.
+Markers are bounded by `src/ui/marker-density.ts` and the lookup by `src/catalog/viewport-index.ts`;
+the list and find field are `src/ui/catalog-panel.ts` and `src/catalog/find.ts`.
+
 ## Testing boundaries
 
 - Verification is layered. Pure domain mathematics uses deterministic inputs
@@ -170,6 +187,11 @@ share fields.
   cover the round trip, copy link, malformed and unknown-version links, and the harness parameters.
   Copy tests stub `navigator.clipboard` with `page.addInitScript`, because Playwright cannot grant
   clipboard permissions in Firefox.
+- Catalog and goldens: the catalog tools, the core and its cross-check are covered by
+  [catalog/README.md](../catalog/README.md#validation), and the golden fixtures, their update
+  procedure and the advisory screenshots by
+  [fixtures/README.md](../fixtures/README.md#golden-fixture-policy); this document does not restate
+  them.
 - Numerical fixtures must state their provenance and tolerances. Independently generated fixtures
   intended for reuse belong under CC0-1.0; application tests remain GPL-3.0-only.
 - Performance assertions should use broad budgets and recorded hardware context. Avoid making CI
@@ -178,14 +200,26 @@ share fields.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs two jobs for pull requests and changes to `main`:
+`.github/workflows/ci.yml` runs four jobs for pull requests, changes to `main`, and on request:
 
-- static checks, unit tests, and a production build;
-- Playwright tests against current managed Chromium and Firefox binaries.
+- Lean pilot: builds the pinned Lean project, verifies the pilot theorem axioms, and checks source
+  style;
+- Static checks and unit tests (`quality`): formatting, lint, type-check, the Python catalog tool
+  tests, catalog and core-input checks, orbit and golden fixtures, unit tests, and a production build;
+- Browser tests (`browser`): Playwright against current managed Chromium and Firefox binaries;
+- Advisory screenshots (`visual`): the screenshot comparison in the pinned Playwright container, with
+  `continue-on-error`, so it can never fail the workflow.
+
+A second workflow, `.github/workflows/catalog-core.yml` (`Catalog core`), regenerates and
+cross-checks the period 1 to 12 core (several minutes). It runs only when the catalog or its tools
+change, on pushes to `main`, and on request.
 
 The jobs use `npm ci` and the checked-in lockfile. Failed browser runs upload their Playwright report;
 successful quality runs retain the built `dist/` directory briefly for inspection. Branch protection
-should require both jobs before merge.
+should require the `Lean pilot`, `Static checks and unit tests` and `Browser tests` jobs before
+merge. It should not require `Advisory screenshots` (advisory by decision) or `Catalog core` (its
+path filter means it does not run on every pull request, and a required check that never starts
+blocks the merge).
 
 ## Cloudflare Pages
 
@@ -243,13 +277,10 @@ workstream and gate.
   cancellation is acknowledged (`cancel-ack`) separately from quiescence
   (`cancelled`, after every nested tile worker has stopped). The UI maps
   frames to the bounded trace ring through one adapter (`frameDelivery`).
-  Legend isolation (hover, focus or activation of a period entry) never
-  reclassifies: a `recolor`, or an `inflight-replay` during a
-  computation. It never changes the semantic cache key, the status line or
-  the URL. Escape clears it from anywhere when no pointer session is active,
-  and a second activation clears it; a touch tap toggles it, and keyboard
-  focus is kept across redraws. A pressed isolation survives coarse frames
-  and clears only on a stable frame without its period.
+- Legend isolation ([`MI-UX-018`](verification/REQUIREMENTS.md#phase-2-ux-requirements))
+  recolors the current frame and never reclassifies: its frame is a `recolor`,
+  or an `inflight-replay` during a computation. It is outside the semantic
+  cache key and is not in the URL.
 - Browser evidence comes from one release harness, `tools/benchmark/run-release.ts`
   (`npm run evidence:release`); `--release` runs the plan §9 protocol (branded
   stable browsers, headed, ≥22 repetitions, BCa intervals). `--compare` adds
@@ -271,9 +302,7 @@ This foundation directly supports:
 | MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback                                                                                                       |
 | MI-UX-018                   | Period emphasis key ranked per frame, palette-derived legend, and legend isolation recolored outside the cache key                                                                          |
 | MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices                                                                                                     |
+| MI-UX-020                   | Catalog panel, find field and bounded markers over the curated layer and the worker-loaded generated core; the core's SHA-256 check and fallback to the curated layer                       |
 | MI-UX-021                   | Palette floors set from the simulated minima of the Phase 1 palette (which passed the Phase 1 colour-vision sign-off), checked by Node unit tests; legend colors from the colorizer palette |
 | Phase 1 deployment          | Reproducible Vite build and documented Cloudflare Pages settings                                                                                                                            |
 | Phase 1 quality             | Strict TypeScript, ESLint, Prettier, Vitest, Playwright, and required CI                                                                                                                    |
-
-These entries establish the verification hooks; they do not claim that the user-visible requirement
-is satisfied before the corresponding behavior and tests exist.
