@@ -119,9 +119,10 @@ after one hash repetition; cross-origin isolated. Paired median change against
 | mi-fallback-weak-attraction |            83.6 | +0.2% (0.0%)      |            103.0 | −1.6% (−1.9%)      |
 
 Against `pre` the candidate is +9% (Firefox) and −2% (Chromium) on the
-default view and keeps every gain: `pre` is 41–49% slower on 126× and the
-rabbit boundary and 3.4–10.5 times slower on the 6,000,000× and
-weak-attraction views.
+default view and keeps every gain: `pre` is slower than the
+candidate on 126× and the rabbit boundary by 55–66% (Firefox) and 25–39%
+(Chromium), and 3.5–10.7 times slower on the 6,000,000× and weak-attraction
+views (paired medians of the stored samples).
 
 Command, per engine, with bundles built by
 `npx rolldown tools/benchmark/cold-worker-entry.ts --format esm --platform browser -m`
@@ -185,15 +186,24 @@ interleaved, `taskset -c 5`, every arm first warmed on the whole corpus at
 | stable, 10                       | mi-fallback-unknown-high-period |      933.71 | −4.03% [−5.42%, −1.49%]     |  +0.05% |
 
 The far-exterior stable pass fails ADR 0010's 5% limit in Node (warm, V8
-13.6) with a quiet control, while the same view is 6–9% faster than `base`
-cold in both browsers (11–14% in the full harness) and was faster warm in
-Chromium 156 (main-thread diagnostic: −8% against `base` for the
-`fe68c59`-shaped build). No pixel of that view reaches the analytic call; the
-difference is code generation of the rest of `classifyRow`, which has been
-bimodal in Node since ADR 0010 (in multi-arm processes `base` itself landed
-10–20% slower in some processes). Variants that kept the per-row windows in
+13.6) with a quiet control, and weak attraction measures +3.66% [+2.87%,
++11.72%] against a control of +0.99%: the interval excludes 0 and its upper
+end is above 5%. Both views are faster than `base` in the browsers. The
+far-exterior view is 8.5% faster cold in Chromium and 37.3% faster in
+Firefox (11–14% in the full harness), and was faster warm in Chromium 156
+(main-thread diagnostic: −8% against `base` for the `fe68c59`-shaped build).
+Weak attraction is unchanged within noise there (+0.2% Firefox, −1.6%
+Chromium cold). No pixel of the far-exterior view reaches the analytic call;
+the difference is code generation of the rest of `classifyRow`, which has
+been bimodal in Node since ADR 0010 (in multi-arm processes `base` itself
+landed 10–20% slower in some processes). Variants that kept the per-row windows in
 the row kernel were neutral there in Node but cost cold Chromium about 8% on
 the same view. Whether Node keeps gating this view is an owner decision.
+
+Cold-worker output hashes differ between Firefox and Chromium for the same
+arm, `pre` included (for example `mi-easy-exterior-heavy`, where all three
+arms agree within each engine), so "bit-identical" means within each engine;
+this predates the change.
 
 ## Limits
 

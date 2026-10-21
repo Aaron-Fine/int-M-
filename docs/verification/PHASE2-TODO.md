@@ -115,7 +115,16 @@ Estimates are engineering days. They are planning figures and may overlap.
       `TriggeredRowKernel.classifyRow`, `classifyTriggeredOrbitInto`, the size
       of either analytic solve, or a V8/Node upgrade; the overhead fix for
       periods 3 and 4 depends on V8 inlining heuristics (ADR 0010, ADR 0013).
-      Both passes were measured for period 4 (2026-10-17, within 5%).
+      Both passes were measured for period 4 (2026-10-17, within 5%). After
+      the 2026-10-20 kernel change ([evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md))
+      the far-exterior stable pass measures +7.0% [+5.9%, +9.9%] and weak
+      attraction +3.7% [+2.9%, +11.7%] in Node, with quiet controls; the other
+      views are within about 5%, and the browsers measure these views faster.
+      Rerun `tools/benchmark/cold-workers.ts` (both engines) together with it.
+- [ ] **Node fallback-overhead gate (owner):** far-exterior +7.0% [+5.9%,
+      +9.9%] and weak attraction +3.7% after the 2026-10-20 kernel change,
+      while both browsers measure these views faster; decide whether Node
+      stays the gate for ADR 0010's 5% limit.
 - [ ] **Flake watch** (all unrelated to item 8; each failed once under heavy
       load on 2026-10-17 and passed on rerun). `classify-rows-allocation.test.ts`
       failed its GC-count assertion `bandOnlyGc ≤ scalarGc + 1` with 2 against
@@ -158,7 +167,12 @@ Estimates are engineering days. They are planning figures and may overlap.
       in Firefox the period-3 gates also cost about 10% on
       `mi-easy-exterior-heavy`, above ADR 0010's 5% limit (measured in Node
       only). Re-measure with `npm run evidence:release` in both browsers, then
-      decide whether the budget or the code changes.
+      decide whether the budget or the code changes. Analytic-path work done
+      (commits `fe68c59`, `ab73117`, `af4522b`; directional default-view
+      wall ratio against `b642fd6` 1.227 in Chromium and 1.237 in Firefox,
+      stable medians 194.4 and 197.0 ms in the bundled headless browsers;
+      [evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md)).
+      The headed release re-measure is still pending.
 - [x] **Merge PR #25** (owner). Merged 2026-10-18 (`5a4c611`). This also clears the Dependabot `source-map-js`
       alert on `main`.
 - [x] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).

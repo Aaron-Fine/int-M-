@@ -65,8 +65,9 @@ export const PERIOD_FOUR_BOXES: readonly PeriodFourBox[] = Object.freeze([
  * True when c lies in a period-4 box. NaN and infinite input give false
  * (every comparison with NaN is false; infinities fail the bounds).
  *
- * Straight-line on purpose. Neither kernel calls it directly: both call
- * classifyGatedAnalyticInto (src/domain/analytic-period-three.ts), which
+ * Reference definition and test oracle only: neither kernel calls it, and no
+ * production code does. Both kernels call classifyGatedAnalyticInto
+ * (src/domain/analytic-period-three.ts), which
  * evaluates inPeriodThreeGate and this gate as Re c windows of the row
  * (src/domain/analytic-gate-windows.ts; ADR 0010 amendment of 2026-10-20).
  */

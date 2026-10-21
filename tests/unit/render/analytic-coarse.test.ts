@@ -26,10 +26,10 @@ const CASES = [
     solve: classifyPeriodThreeInto,
   },
   {
-    // Inside the 1/2 satellite of the 1/2-bulb, on the real axis. The row
-    // kernel's real-primitive window is set on the axis rows but holds no
-    // column of this view; the gate-edge test in triggered-rows.test.ts
-    // covers it.
+    // Inside the 1/2 satellite of the 1/2-bulb, on the real axis. The real
+    // primitive's Re c window of the axis rows
+    // (src/domain/analytic-gate-windows.ts) holds no column of this view; the
+    // gate-edge test in triggered-rows.test.ts covers it.
     period: 4,
     view: { center: { re: -1.310702641336833, im: 0 }, spanY: 0.02 },
     solve: classifyPeriodFourInto,

@@ -1,15 +1,5 @@
 export * from './complex';
 export {
-  fillGateWindows,
-  GATE_WINDOW_COUNT,
-  P3_MAX,
-  P3_MIN,
-  P4_AXIS_MAX,
-  P4_AXIS_MIN,
-  P4_MAX,
-  P4_MIN,
-} from './analytic-gate-windows';
-export {
   classifyGatedAnalyticInto,
   classifyPeriodThreeInto,
   PERIOD_THREE_ALLOWANCE_COEFFICIENT,

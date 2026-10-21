@@ -23,7 +23,7 @@
  * header). The first arm is the reference of the paired ratios. Runs only on
  * the bundled Playwright browsers, headless.
  */
-import { copyFileSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -79,6 +79,10 @@ const bandsPerWorker = Number(values['bands-per-worker']);
 
 // Serve the bundles cross-origin isolated (fine-grained timers in Firefox).
 const root = mkdtempSync(path.join(os.tmpdir(), 'cold-workers-'));
+// Also runs on process.exit and after a thrown error.
+process.on('exit', () => {
+  rmSync(root, { recursive: true, force: true });
+});
 for (const arm of arms) copyFileSync(arm.file, path.join(root, `${arm.name}.js`));
 writeFileSync(
   path.join(root, 'index.html'),
@@ -195,8 +199,10 @@ for (const row of rows) {
     .join('  ');
   process.stdout.write(`${engine} ${row.caseId.padEnd(30)} ${row.metric.padEnd(13)} ${cells}\n`);
 }
+let outputDiffers = false;
 for (const caseId of cases) {
   const distinct = new Set(Object.values(result.hashes[caseId] ?? {}));
+  if (distinct.size !== 1) outputDiffers = true;
   process.stdout.write(
     `${caseId}: ${distinct.size === 1 ? 'identical output in every arm' : 'OUTPUT DIFFERS between arms'}\n`,
   );
@@ -207,4 +213,4 @@ if (values.out !== undefined) {
     `${JSON.stringify({ engine, load, reps, raster: values.raster, workerCount, bandsPerWorker, userAgent: result.userAgent, crossOriginIsolated: result.isolated, arms, rows, hashes: result.hashes, samples: result.samples }, null, 2)}\n`,
   );
 }
-process.exit(0);
+process.exit(outputDiffers ? 1 : 0);

@@ -36,6 +36,10 @@ interface BandResult {
   readonly hash: number;
 }
 
+interface BandFailure {
+  readonly error: string;
+}
+
 /** One cold sample: wall time of the stable pass and the summed band times. */
 export interface ColdSample {
   readonly wallMs: number;
@@ -117,8 +121,12 @@ export const coldSample = async (
   const bandsByWorker = workers.map(() => [] as { band: number; classifyMs: number }[]);
   let next = 0;
   const started = performance.now();
-  await new Promise<void>((resolve) => {
+  await new Promise<void>((resolve, reject) => {
     let done = 0;
+    const fail = (error: Error): void => {
+      for (const worker of workers) worker.terminate();
+      reject(error);
+    };
     const post = (index: number): void => {
       const band = order[next];
       const range = band === undefined ? undefined : bands[band];
@@ -136,7 +144,14 @@ export const coldSample = async (
       workers[index]?.postMessage(job);
     };
     workers.forEach((worker, index) => {
-      worker.onmessage = (event: MessageEvent<BandResult>) => {
+      worker.onerror = (event) => {
+        fail(new Error(event.message));
+      };
+      worker.onmessage = (event: MessageEvent<BandResult | BandFailure>) => {
+        if ('error' in event.data) {
+          fail(new Error(event.data.error));
+          return;
+        }
         hashes[event.data.band] = event.data.hash;
         bandsByWorker[index]?.push({ band: event.data.band, classifyMs: event.data.classifyMs });
         done += 1;
@@ -161,9 +176,14 @@ if (typeof document === 'undefined') {
     addEventListener(type: 'message', listener: (event: MessageEvent<BandJob>) => void): void;
   };
   scope.addEventListener('message', (event) => {
-    void classifyBand(event.data).then((result) => {
-      scope.postMessage(result);
-    });
+    classifyBand(event.data).then(
+      (result) => {
+        scope.postMessage(result);
+      },
+      (error: unknown) => {
+        scope.postMessage({ error: error instanceof Error ? error.message : String(error) });
+      },
+    );
   });
   scope.postMessage({ ready: true });
 }

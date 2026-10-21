@@ -204,6 +204,10 @@ they mostly refuse, adopt 8 bands per worker, re-measure, then decide the
 budget.** The "Phase 2 performance closed" approval below stays blank until
 then. The open work is PHASE2-TODO item 0, "Easy default view in Chrome".
 
+2026-10-20 (later): the analytic-path optimization landed (commits `fe68c59`,
+`ab73117`, `af4522b`; [evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md));
+the headed release re-measure is pending, and the approval below stays blank.
+
 Other results of the session:
 
 - **Bands per worker:** 8 adopted (commit `b642fd6`): paired wins of 6-8% on

@@ -78,7 +78,10 @@ let gateWindowsIm = Number.NaN;
  * limit (460 bytes), so no engine inlines it, or the solve calls inside it,
  * into a kernel. A small dispatcher would be inlined, and its solve calls,
  * first taken only when the first gate pixel arrives, would then deoptimize
- * the whole kernel (ADR 0010 amendment of 2026-10-20). The arithmetic of the
+ * the whole kernel (ADR 0010 amendment of 2026-10-20; the variant measured
+ * +25% on the default view in cold Chromium). Rerun
+ * tools/benchmark/cold-workers.ts and tools/benchmark/fallback-overhead.ts
+ * after changing this function's size or shape. The arithmetic of the
  * closed form does not depend on `gated`.
  */
 const periodThreeOrGatedInto = (

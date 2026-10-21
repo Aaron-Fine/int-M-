@@ -4,20 +4,30 @@ import {
   classifyGatedAnalyticInto,
   classifyPeriodFourInto,
   classifyPeriodThreeInto,
-  fillGateWindows,
-  GATE_WINDOW_COUNT,
   inPeriodFourGate,
   inPeriodThreeGate,
   PERIOD_FOUR_BOXES,
+  PERIOD_THREE_BOXES,
+  PERIOD_THREE_HULL,
+  type OrbitSample,
+} from '../../../src/domain';
+import {
+  fillGateWindows,
+  GATE_WINDOW_COUNT,
   P3_MAX,
   P3_MIN,
   P4_AXIS_MAX,
   P4_AXIS_MIN,
   P4_MAX,
   P4_MIN,
-  PERIOD_THREE_BOXES,
-  type OrbitSample,
-} from '../../../src/domain';
+} from '../../../src/domain/analytic-gate-windows';
+import {
+  BULB_SATELLITE_BOX,
+  CARDIOID_SATELLITE_BOX,
+  COMPLEX_PRIMITIVE_BOX,
+  REAL_PRIMITIVE_BOX,
+} from '../../../src/domain/period-four-gate';
+import { AIRPLANE_BOX, RABBIT_BOX } from '../../../src/domain/period-three-gate';
 import { sentinelSample, stepUlps } from './analytic-test-helpers';
 
 /**
@@ -68,6 +78,39 @@ const edgePoints = (): { res: number[]; ims: number[] } => {
   }
   return { res, ims };
 };
+
+/** True when the closed |Im c| bands of two boxes share no value. */
+const bandsDisjoint = (a: { absImMin: number; absImMax: number }, b: typeof a): boolean =>
+  a.absImMax < b.absImMin || b.absImMax < a.absImMin;
+
+/**
+ * fillGateWindows picks at most one box per gate from a chain of |Im c| band
+ * tests, which is exact only under these preconditions (module comment of
+ * src/domain/analytic-gate-windows.ts).
+ */
+describe('gate window preconditions', () => {
+  it('has disjoint period-3 bands, every box inside the period-3 hull', () => {
+    expect(bandsDisjoint(RABBIT_BOX, AIRPLANE_BOX)).toBe(true);
+    for (const box of PERIOD_THREE_BOXES) {
+      expect(box.reMin).toBeGreaterThanOrEqual(PERIOD_THREE_HULL.reMin);
+      expect(box.reMax).toBeLessThanOrEqual(PERIOD_THREE_HULL.reMax);
+      expect(box.absImMin).toBeGreaterThanOrEqual(PERIOD_THREE_HULL.absImMin);
+      expect(box.absImMax).toBeLessThanOrEqual(PERIOD_THREE_HULL.absImMax);
+    }
+  });
+
+  it('has off-axis period-4 bands disjoint from each other and from the axis band', () => {
+    expect(bandsDisjoint(CARDIOID_SATELLITE_BOX, COMPLEX_PRIMITIVE_BOX)).toBe(true);
+    expect(bandsDisjoint(CARDIOID_SATELLITE_BOX, BULB_SATELLITE_BOX)).toBe(true);
+    expect(bandsDisjoint(COMPLEX_PRIMITIVE_BOX, BULB_SATELLITE_BOX)).toBe(true);
+  });
+
+  it('has the real primitive band inside the 1/2 satellite band, both reaching the axis', () => {
+    expect(BULB_SATELLITE_BOX.absImMin).toBe(0);
+    expect(REAL_PRIMITIVE_BOX.absImMin).toBe(0);
+    expect(REAL_PRIMITIVE_BOX.absImMax).toBeLessThanOrEqual(BULB_SATELLITE_BOX.absImMax);
+  });
+});
 
 describe('classifyGatedAnalyticInto', () => {
   it('matches the gated dispatch on a grid over every box, accepting in both paths', () => {
