@@ -1,8 +1,5 @@
-import { classifyPeriodFourInto } from './analytic-period-four';
-import { classifyPeriodThreeInto } from './analytic-period-three';
+import { classifyGatedAnalyticInto } from './analytic-period-three';
 import type { OrbitSample, OrbitScratch } from './orbit';
-import { inPeriodFourGate } from './period-four-gate';
-import { inPeriodThreeGate } from './period-three-gate';
 import { VERIFIER_VERDICT, verifyCycleInto } from './verifier';
 import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
 
@@ -66,8 +63,9 @@ const SPILL_NEAREST = 2;
  * Orbit loop of the triggered kernel, from z = 0. The caller has already
  * handled the period-1 and period-2 analytic fast paths; the period-3 closed
  * form and the period-4 cubic solve run inside the loop at the first scanning
- * iteration (ADR 0010, ADR 0013). `scratch` must have power-of-two capacity
- * of at least maxPeriod + 1 (OrbitScratch guarantees it).
+ * iteration, through classifyGatedAnalyticInto (ADR 0010, ADR 0013).
+ * `scratch` must have power-of-two capacity of at least maxPeriod + 1
+ * (OrbitScratch guarantees it).
  */
 export const classifyTriggeredOrbitInto = (
   cRe: number,
@@ -131,27 +129,22 @@ export const classifyTriggeredOrbitInto = (
     }
     // Analytic period-3 and period-4 fast paths (ADR 0010, ADR 0013): once
     // per pixel, at the first scanning iteration and before its full scan. A
-    // pixel that escapes earlier never reaches this test. The period-3 and
-    // period-4 boxes are disjoint, so at most one solve runs. Each record
-    // depends on c alone, so it is the same wherever it runs. The orbit
-    // doubles round-trip through the spill across the call (hot-loop rule).
+    // pixel that escapes earlier never reaches this call. The gates are
+    // tested inside the call, which every pixel reaching this iteration
+    // makes, so the call site runs early in every view that has such pixels
+    // (ADR 0010 amendment of 2026-10-20). Each record depends on c alone, so
+    // it is the same wherever it runs. The orbit doubles round-trip through
+    // the spill across the call (hot-loop rule).
     if (iteration === scanStart) {
-      const periodThree = inPeriodThreeGate(cRe, cIm);
-      if (periodThree || inPeriodFourGate(cRe, cIm)) {
-        spill[SPILL_Z_RE] = zRe;
-        spill[SPILL_Z_IM] = zIm;
-        if (
-          periodThree
-            ? classifyPeriodThreeInto(cRe, cIm, out)
-            : classifyPeriodFourInto(cRe, cIm, out)
-        ) {
-          return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-        zRe = spill[SPILL_Z_RE]!;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-        zIm = spill[SPILL_Z_IM]!;
+      spill[SPILL_Z_RE] = zRe;
+      spill[SPILL_Z_IM] = zIm;
+      if (classifyGatedAnalyticInto(cRe, cIm, out)) {
+        return;
       }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+      zRe = spill[SPILL_Z_RE]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+      zIm = spill[SPILL_Z_IM]!;
     }
     if (iteration === due) {
       due = iteration + interval;

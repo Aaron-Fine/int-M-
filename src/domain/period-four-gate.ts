@@ -65,12 +65,9 @@ export const PERIOD_FOUR_BOXES: readonly PeriodFourBox[] = Object.freeze([
  * True when c lies in a period-4 box. NaN and infinite input give false
  * (every comparison with NaN is false; infinities fail the bounds).
  *
- * Straight-line on purpose: the scalar kernel inlines this test into its
- * orbit loop. The row kernel does not call it: it evaluates the same test
- * once per row as two windows on Re c (src/render/triggered-rows.ts), because
- * the off-axis boxes' |Im c| bands are disjoint from each other and from the
- * axis band, and on the axis only the two real boxes overlap in |Im c|
- * (tests/unit/domain/period-four-gate.test.ts checks this).
+ * Straight-line on purpose. Neither kernel calls it directly: both call
+ * classifyGatedAnalyticInto (src/domain/analytic-period-three.ts), which
+ * tests inPeriodThreeGate and this gate (ADR 0010 amendment of 2026-10-20).
  */
 export const inPeriodFourGate = (cRe: number, cIm: number): boolean => {
   const absIm = cIm < 0 ? -cIm : cIm;

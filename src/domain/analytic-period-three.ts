@@ -1,3 +1,6 @@
+import { classifyPeriodFourInto } from './analytic-period-four';
+import { inPeriodFourGate } from './period-four-gate';
+import { inPeriodThreeGate } from './period-three-gate';
 import { VERIFIER_THRESHOLDS } from './verifier';
 import { ORBIT_EVIDENCE_CODE } from './types';
 
@@ -50,11 +53,26 @@ export interface PeriodThreeTarget {
   multiplierAngle: number;
 }
 
-export const classifyPeriodThreeInto = (
+/**
+ * The closed form, and with `gated` the kernels' whole analytic attempt in
+ * one body: when c lies outside the period-3 gate, the period-4 gate and the
+ * cubic solve decide instead (the boxes are disjoint, so at most one solve
+ * runs). One function on purpose: its bytecode is far above V8's inlining
+ * limit (460 bytes), so no engine inlines it, or the solve calls inside it,
+ * into a kernel. A small dispatcher would be inlined, and its solve calls,
+ * first taken only when the first gate pixel arrives, would then deoptimize
+ * the whole kernel (ADR 0010 amendment of 2026-10-20). The arithmetic of the
+ * closed form does not depend on `gated`.
+ */
+const periodThreeOrGatedInto = (
   cRe: number,
   cIm: number,
   out: PeriodThreeTarget,
+  gated: boolean,
 ): boolean => {
+  if (gated && !inPeriodThreeGate(cRe, cIm)) {
+    return inPeriodFourGate(cRe, cIm) && classifyPeriodFourInto(cRe, cIm, out);
+  }
   // w = 4c + 7. 4 * cRe and 4 * cIm are exact; for cRe in [-3.5, -0.875]
   // (which contains the airplane box) 4 * cRe + 7 is exact as well (Sterbenz).
   const wRe = 4 * cRe + 7;
@@ -107,3 +125,28 @@ export const classifyPeriodThreeInto = (
   out.multiplierAngle = multiplierMagnitude === 0 ? 0 : Math.atan2(multiplierIm, multiplierRe);
   return true;
 };
+
+/** The period-3 closed form alone, for every c (no gate). */
+export const classifyPeriodThreeInto = (
+  cRe: number,
+  cIm: number,
+  out: PeriodThreeTarget,
+): boolean => periodThreeOrGatedInto(cRe, cIm, out, false);
+
+/**
+ * The kernels' analytic period-3/period-4 attempt (ADR 0010, ADR 0013): the
+ * same answer and record as
+ *
+ *   inPeriodThreeGate(c) ? classifyPeriodThreeInto(c)
+ *     : inPeriodFourGate(c) && classifyPeriodFourInto(c)
+ *
+ * for every c, NaN and infinities included. Both kernels call it for every
+ * pixel that reaches the first scanning iteration, so its call site in the
+ * kernel runs from the first such pixel on instead of first running when a
+ * gate pixel arrives (ADR 0010 amendment of 2026-10-20).
+ */
+export const classifyGatedAnalyticInto = (
+  cRe: number,
+  cIm: number,
+  out: PeriodThreeTarget,
+): boolean => periodThreeOrGatedInto(cRe, cIm, out, true);

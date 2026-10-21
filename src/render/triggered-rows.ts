@@ -1,16 +1,9 @@
 import {
-  AIRPLANE_BOX,
-  BULB_SATELLITE_BOX,
-  CARDIOID_SATELLITE_BOX,
   classifyAnalyticInto,
-  classifyPeriodFourInto,
-  classifyPeriodThreeInto,
-  COMPLEX_PRIMITIVE_BOX,
+  classifyGatedAnalyticInto,
   createOrbitSample,
   ORBIT_EVIDENCE_CODE,
   OrbitScratch,
-  RABBIT_BOX,
-  REAL_PRIMITIVE_BOX,
   resolveOrbitOptions,
   TRIGGERED_SCAN_INTERVAL_FIRST,
   TRIGGERED_SCAN_INTERVAL_MAX,
@@ -44,21 +37,28 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * but only used from the first scanning iteration.
  *
  * Hot-loop rules from orbit.ts: the lockstep loop has no calls. The rare
- * calls (verifier on a proposal, analytic solves on a gate hit) run
- * with every double the loops carry round-tripped through `spill`.
- * classifyRow adds no inlinable call for the period-3 and period-4 paths
- * (ADR 0010, ADR 0013): each gate is evaluated once per row as windows on
- * Re c (one for period 3, two for period 4) computed from the box data before
- * the lanes start, one call site per lane picks the solve, and only the
- * solves, which are large, are called. Observed with V8 in Node 24: calling
- * inPeriodThreeGate here made the far-exterior stable pass, where no pixel
- * reaches the gate, about 10% slower in some compiles. The working
- * explanation is that the inlined gate spent TurboFan's inlining budget and
- * left a refill call to classifyAnalyticInto out of line. This depends on V8
- * heuristics and is unguarded: rerun tools/benchmark/fallback-overhead.ts
- * (stable and coarse pass, with and without --stride) after changing
- * classifyRow, classifyTriggeredOrbitInto or the size of either analytic
- * solve, or upgrading V8.
+ * calls (verifier on a proposal, the analytic attempt) run with every double
+ * the loops carry round-tripped through `spill`.
+ *
+ * Analytic period-3 and period-4 paths (ADR 0010, ADR 0013): each lane calls
+ * classifyGatedAnalyticInto, which tests both gates and runs at most one
+ * solve, for every pixel that reaches the first scanning iteration, and an
+ * acceptance there takes the verifier acceptance's write path. classifyRow
+ * therefore holds no code that first runs when the first gate pixel arrives,
+ * and no gate. That matters in cold workers, where every page load starts:
+ * SpiderMonkey compiles branches not yet taken as bailouts and recompiles
+ * classifyRow after ten of them; V8 deoptimizes on operations without
+ * feedback. The earlier form (per-row gate windows, a gated call site per
+ * lane) cost the default view about 70% in Firefox and 20% in Chrome in
+ * cold tile workers (ADR 0010 amendment of 2026-10-20). The called function
+ * is too large for V8 to inline, so the solve calls inside it stay out of
+ * classifyRow's code. Code generation remains engine-dependent: in Node 24,
+ * an inlined gate call made the far-exterior stable pass, where no pixel
+ * reaches iteration 24, about 10% slower in some compiles (ADR 0010).
+ * Rerun tools/benchmark/fallback-overhead.ts (stable and coarse pass, with
+ * and without --stride) and the cold-worker benchmark after changing
+ * classifyRow, classifyTriggeredOrbitInto or classifyGatedAnalyticInto, or
+ * upgrading an engine.
  *
  * Lockstep shape: each lane raises an event on one of three tests, so the
  * common iteration is three compares per lane:
@@ -143,47 +143,6 @@ export class TriggeredRowKernel {
     const maxIterations = options.maxIterations;
     const maxPeriod = options.maxPeriod;
     const scanStart = Math.max(options.cycleWarmup, 2);
-    // Period-3 gate (ADR 0010), per row. The boxes' |Im c| bands are
-    // disjoint and every box lies inside the hull, so on this row
-    // inPeriodThreeGate(c, cIm) is exactly p3ReMin <= c <= p3ReMax for the box
-    // whose band holds |cIm|, and an empty window (false for every c, NaN
-    // included) when none does. Math.abs(-0) is +0, which compares as -0
-    // does. Written out, not called (see the module comment).
-    const absIm = Math.abs(cIm);
-    let p3ReMin = Number.POSITIVE_INFINITY;
-    let p3ReMax = Number.NEGATIVE_INFINITY;
-    if (absIm >= RABBIT_BOX.absImMin && absIm <= RABBIT_BOX.absImMax) {
-      p3ReMin = RABBIT_BOX.reMin;
-      p3ReMax = RABBIT_BOX.reMax;
-    } else if (absIm >= AIRPLANE_BOX.absImMin && absIm <= AIRPLANE_BOX.absImMax) {
-      p3ReMin = AIRPLANE_BOX.reMin;
-      p3ReMax = AIRPLANE_BOX.reMax;
-    }
-
-    // Period-4 gate (ADR 0013), per row, as two Re c windows: the off-axis
-    // boxes' |Im c| bands are disjoint from each other and from the axis
-    // band, and on the axis band the 1/2 satellite of the 1/2-bulb and
-    // the real primitive component both apply. Empty windows when no band
-    // holds |cIm| (NaN included). Written out, not called.
-    let p4ReMin = Number.POSITIVE_INFINITY;
-    let p4ReMax = Number.NEGATIVE_INFINITY;
-    let p4AxisReMin = Number.POSITIVE_INFINITY;
-    let p4AxisReMax = Number.NEGATIVE_INFINITY;
-    if (absIm >= CARDIOID_SATELLITE_BOX.absImMin && absIm <= CARDIOID_SATELLITE_BOX.absImMax) {
-      p4ReMin = CARDIOID_SATELLITE_BOX.reMin;
-      p4ReMax = CARDIOID_SATELLITE_BOX.reMax;
-    } else if (absIm >= COMPLEX_PRIMITIVE_BOX.absImMin && absIm <= COMPLEX_PRIMITIVE_BOX.absImMax) {
-      p4ReMin = COMPLEX_PRIMITIVE_BOX.reMin;
-      p4ReMax = COMPLEX_PRIMITIVE_BOX.reMax;
-    } else if (absIm <= BULB_SATELLITE_BOX.absImMax) {
-      p4ReMin = BULB_SATELLITE_BOX.reMin;
-      p4ReMax = BULB_SATELLITE_BOX.reMax;
-      if (absIm <= REAL_PRIMITIVE_BOX.absImMax) {
-        p4AxisReMin = REAL_PRIMITIVE_BOX.reMin;
-        p4AxisReMax = REAL_PRIMITIVE_BOX.reMax;
-      }
-    }
-
     let nextX = 0;
     // Lane state. A parked lane (no pixel left) holds z = NaN with a disarmed
     // threshold and an unreachable due iteration: no event, ever. (z = 0 is
@@ -386,45 +345,33 @@ export class TriggeredRowKernel {
         }
       } else if (watchedA <= armA || itA === dueA) {
         // Analytic period-3 and period-4 fast paths at the first scanning
-        // iteration, as in classifyTriggeredOrbitInto (ADR 0010, ADR 0013).
-        let analyticA = false;
+        // iteration, as in classifyTriggeredOrbitInto (ADR 0010, ADR 0013):
+        // the call runs for every pixel that gets here, gate or not, and an
+        // analytic acceptance skips the full scan and shares its write below.
+        let acceptedA = false;
         if (itA === scanStart) {
-          const periodThreeA = cA >= p3ReMin && cA <= p3ReMax;
-          if (
-            periodThreeA ||
-            (cA >= p4ReMin && cA <= p4ReMax) ||
-            (cA >= p4AxisReMin && cA <= p4AxisReMax)
-          ) {
-            spill[S_ZA_RE] = zaRe;
-            spill[S_ZA_IM] = zaIm;
-            spill[S_ZB_RE] = zbRe;
-            spill[S_ZB_IM] = zbIm;
-            spill[S_CA] = cA;
-            spill[S_CB] = cB;
-            analyticA = periodThreeA
-              ? classifyPeriodThreeInto(cA, cIm, out)
-              : classifyPeriodFourInto(cA, cIm, out);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zaRe = spill[S_ZA_RE]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zaIm = spill[S_ZA_IM]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zbRe = spill[S_ZB_RE]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zbIm = spill[S_ZB_IM]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            cA = spill[S_CA]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            cB = spill[S_CB]!;
-          }
+          spill[S_ZA_RE] = zaRe;
+          spill[S_ZA_IM] = zaIm;
+          spill[S_ZB_RE] = zbRe;
+          spill[S_ZB_IM] = zbIm;
+          spill[S_CA] = cA;
+          spill[S_CB] = cB;
+          acceptedA = classifyGatedAnalyticInto(cA, cIm, out);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zaRe = spill[S_ZA_RE]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zaIm = spill[S_ZA_IM]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zbRe = spill[S_ZB_RE]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zbIm = spill[S_ZB_IM]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          cA = spill[S_CA]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          cB = spill[S_CB]!;
         }
-        if (analyticA) {
-          const o = offset + xA;
-          packed[o] = ATTRACTING_BASE | out.period;
-          primary[o] = out.multiplierMagnitude;
-          angle[o] = out.multiplierAngle;
-          pendingA = true;
-        } else {
+        let nearestLag = 1;
+        if (!acceptedA) {
           if (itA === scheduledA) {
             scheduledA = itA + intervalA;
             intervalA = Math.min(2 * intervalA, TRIGGERED_SCAN_INTERVAL_MAX);
@@ -432,9 +379,7 @@ export class TriggeredRowKernel {
           // Full scan of lane A: the legacy lag scan of this iteration.
           const currentSlot = ((itA - 1) & mask) << 2;
           const largestPeriod = Math.min(maxPeriod, itA - 1);
-          let nearestLag = 1;
           let nearestSquared = Number.POSITIVE_INFINITY;
-          let accepted = false;
           for (let period = 1; period <= largestPeriod; period += 1) {
             const previousSlot = (currentSlot - (period << 2)) & ((mask << 2) | 3);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
@@ -481,25 +426,25 @@ export class TriggeredRowKernel {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
             nearestSquared = spill[S_NEAREST]!;
             if (verdict === VERIFIER_VERDICT.accepted) {
-              accepted = true;
+              acceptedA = true;
               break;
             }
           }
-          const o = offset + xA;
-          if (accepted) {
-            packed[o] = ATTRACTING_BASE | out.period;
-            primary[o] = out.multiplierMagnitude;
-            angle[o] = out.multiplierAngle;
-            pendingA = true;
-          } else if (itA === maxIterations) {
-            packed[o] = UNRESOLVED_WORD;
-            primary[o] = 0;
-            angle[o] = 0;
-            pendingA = true;
-          } else {
-            watchA = nearestLag;
-            dueA = Math.min(scheduledA, maxIterations);
-          }
+        }
+        const o = offset + xA;
+        if (acceptedA) {
+          packed[o] = ATTRACTING_BASE | out.period;
+          primary[o] = out.multiplierMagnitude;
+          angle[o] = out.multiplierAngle;
+          pendingA = true;
+        } else if (itA === maxIterations) {
+          packed[o] = UNRESOLVED_WORD;
+          primary[o] = 0;
+          angle[o] = 0;
+          pendingA = true;
+        } else {
+          watchA = nearestLag;
+          dueA = Math.min(scheduledA, maxIterations);
         }
       }
 
@@ -523,53 +468,37 @@ export class TriggeredRowKernel {
           dueB = Math.min(scheduledB, maxIterations);
         }
       } else if (watchedB <= armB || itB === dueB) {
-        let analyticB = false;
+        let acceptedB = false;
         if (itB === scanStart) {
-          const periodThreeB = cB >= p3ReMin && cB <= p3ReMax;
-          if (
-            periodThreeB ||
-            (cB >= p4ReMin && cB <= p4ReMax) ||
-            (cB >= p4AxisReMin && cB <= p4AxisReMax)
-          ) {
-            spill[S_ZA_RE] = zaRe;
-            spill[S_ZA_IM] = zaIm;
-            spill[S_ZB_RE] = zbRe;
-            spill[S_ZB_IM] = zbIm;
-            spill[S_CA] = cA;
-            spill[S_CB] = cB;
-            analyticB = periodThreeB
-              ? classifyPeriodThreeInto(cB, cIm, out)
-              : classifyPeriodFourInto(cB, cIm, out);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zaRe = spill[S_ZA_RE]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zaIm = spill[S_ZA_IM]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zbRe = spill[S_ZB_RE]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            zbIm = spill[S_ZB_IM]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            cA = spill[S_CA]!;
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
-            cB = spill[S_CB]!;
-          }
+          spill[S_ZA_RE] = zaRe;
+          spill[S_ZA_IM] = zaIm;
+          spill[S_ZB_RE] = zbRe;
+          spill[S_ZB_IM] = zbIm;
+          spill[S_CA] = cA;
+          spill[S_CB] = cB;
+          acceptedB = classifyGatedAnalyticInto(cB, cIm, out);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zaRe = spill[S_ZA_RE]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zaIm = spill[S_ZA_IM]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zbRe = spill[S_ZB_RE]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          zbIm = spill[S_ZB_IM]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          cA = spill[S_CA]!;
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+          cB = spill[S_CB]!;
         }
-        if (analyticB) {
-          const o = offset + xB;
-          packed[o] = ATTRACTING_BASE | out.period;
-          primary[o] = out.multiplierMagnitude;
-          angle[o] = out.multiplierAngle;
-          pendingB = true;
-        } else {
+        let nearestLag = 1;
+        if (!acceptedB) {
           if (itB === scheduledB) {
             scheduledB = itB + intervalB;
             intervalB = Math.min(2 * intervalB, TRIGGERED_SCAN_INTERVAL_MAX);
           }
           const currentSlot = (((itB - 1) & mask) << 2) + 2;
           const largestPeriod = Math.min(maxPeriod, itB - 1);
-          let nearestLag = 1;
           let nearestSquared = Number.POSITIVE_INFINITY;
-          let accepted = false;
           for (let period = 1; period <= largestPeriod; period += 1) {
             const previousSlot = (currentSlot - (period << 2)) & ((mask << 2) | 3);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- masked slot < ring length
@@ -616,25 +545,25 @@ export class TriggeredRowKernel {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
             nearestSquared = spill[S_NEAREST]!;
             if (verdict === VERIFIER_VERDICT.accepted) {
-              accepted = true;
+              acceptedB = true;
               break;
             }
           }
-          const o = offset + xB;
-          if (accepted) {
-            packed[o] = ATTRACTING_BASE | out.period;
-            primary[o] = out.multiplierMagnitude;
-            angle[o] = out.multiplierAngle;
-            pendingB = true;
-          } else if (itB === maxIterations) {
-            packed[o] = UNRESOLVED_WORD;
-            primary[o] = 0;
-            angle[o] = 0;
-            pendingB = true;
-          } else {
-            watchB = nearestLag;
-            dueB = Math.min(scheduledB, maxIterations);
-          }
+        }
+        const o = offset + xB;
+        if (acceptedB) {
+          packed[o] = ATTRACTING_BASE | out.period;
+          primary[o] = out.multiplierMagnitude;
+          angle[o] = out.multiplierAngle;
+          pendingB = true;
+        } else if (itB === maxIterations) {
+          packed[o] = UNRESOLVED_WORD;
+          primary[o] = 0;
+          angle[o] = 0;
+          pendingB = true;
+        } else {
+          watchB = nearestLag;
+          dueB = Math.min(scheduledB, maxIterations);
         }
       }
     }

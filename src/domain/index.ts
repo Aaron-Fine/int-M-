@@ -1,5 +1,6 @@
 export * from './complex';
 export {
+  classifyGatedAnalyticInto,
   classifyPeriodThreeInto,
   PERIOD_THREE_ALLOWANCE_COEFFICIENT,
   PERIOD_THREE_ANALYTIC_REVISION,

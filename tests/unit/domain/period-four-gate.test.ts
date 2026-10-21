@@ -1,17 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  BULB_SATELLITE_BOX,
-  CARDIOID_SATELLITE_BOX,
   classifyPeriodFourInto,
-  COMPLEX_PRIMITIVE_BOX,
   createOrbitSample,
   inPeriodFourGate,
   PERIOD_FOUR_BOXES,
   PERIOD_THREE_BOXES,
-  REAL_PRIMITIVE_BOX,
 } from '../../../src/domain';
-import { stepUlps } from './analytic-test-helpers';
 
 /**
  * The gate decides only whether the cubic solve is tried, so it must contain
@@ -44,72 +39,6 @@ describe('period-4 gate', () => {
         const reOverlap = four.reMin <= three.reMax && three.reMin <= four.reMax;
         const imOverlap = four.absImMin <= three.absImMax && three.absImMin <= four.absImMax;
         expect(reOverlap && imOverlap).toBe(false);
-      }
-    }
-  });
-
-  it('reduces to two Re c windows per row (the row kernel form)', () => {
-    // TriggeredRowKernel.classifyRow evaluates the gate once per row as two
-    // windows on Re c (src/render/triggered-rows.ts). That is exact because
-    // the off-axis bands are disjoint from each other and from the axis band,
-    // and only the two axis boxes share |Im c| values.
-    expect(CARDIOID_SATELLITE_BOX.absImMin).toBeGreaterThan(BULB_SATELLITE_BOX.absImMax);
-    expect(COMPLEX_PRIMITIVE_BOX.absImMin).toBeGreaterThan(CARDIOID_SATELLITE_BOX.absImMax);
-    expect(BULB_SATELLITE_BOX.absImMin).toBe(0);
-    expect(REAL_PRIMITIVE_BOX.absImMin).toBe(0);
-    expect(REAL_PRIMITIVE_BOX.absImMax).toBeLessThan(BULB_SATELLITE_BOX.absImMax);
-    // The kernel's windows, copied from the "Period-4 gate" block of
-    // TriggeredRowKernel.classifyRow in src/render/triggered-rows.ts (keep in
-    // sync with it). This is the exact check of the row windows against the
-    // gate: tests/unit/render/triggered-rows.test.ts checks the kernel's bit
-    // identity at the box edges, where a wrong window would change no answer.
-    const inRowWindows = (cRe: number, cIm: number): boolean => {
-      const absIm = Math.abs(cIm);
-      let reMin = Number.POSITIVE_INFINITY;
-      let reMax = Number.NEGATIVE_INFINITY;
-      let axisReMin = Number.POSITIVE_INFINITY;
-      let axisReMax = Number.NEGATIVE_INFINITY;
-      if (absIm >= CARDIOID_SATELLITE_BOX.absImMin && absIm <= CARDIOID_SATELLITE_BOX.absImMax) {
-        reMin = CARDIOID_SATELLITE_BOX.reMin;
-        reMax = CARDIOID_SATELLITE_BOX.reMax;
-      } else if (
-        absIm >= COMPLEX_PRIMITIVE_BOX.absImMin &&
-        absIm <= COMPLEX_PRIMITIVE_BOX.absImMax
-      ) {
-        reMin = COMPLEX_PRIMITIVE_BOX.reMin;
-        reMax = COMPLEX_PRIMITIVE_BOX.reMax;
-      } else if (absIm <= BULB_SATELLITE_BOX.absImMax) {
-        reMin = BULB_SATELLITE_BOX.reMin;
-        reMax = BULB_SATELLITE_BOX.reMax;
-        if (absIm <= REAL_PRIMITIVE_BOX.absImMax) {
-          axisReMin = REAL_PRIMITIVE_BOX.reMin;
-          axisReMax = REAL_PRIMITIVE_BOX.reMax;
-        }
-      }
-      return (cRe >= reMin && cRe <= reMax) || (cRe >= axisReMin && cRe <= axisReMax);
-    };
-    const res = [-2.2, -1.6, -0.9, 0, 0.3];
-    const ims = [0, -0, 0.3, 0.9, 1.2, Number.NaN, Number.POSITIVE_INFINITY];
-    for (const box of PERIOD_FOUR_BOXES) {
-      for (const value of [box.reMin, box.reMax]) {
-        res.push(stepUlps(value, -1), value, stepUlps(value, 1));
-      }
-      res.push(0.5 * (box.reMin + box.reMax));
-      for (const value of [box.absImMin, box.absImMax]) {
-        for (const v of value === 0
-          ? [0, -0, 5e-324]
-          : [stepUlps(value, -1), value, stepUlps(value, 1)]) {
-          ims.push(v, -v);
-        }
-      }
-      ims.push(0.5 * (box.absImMin + box.absImMax));
-    }
-    res.push(Number.NaN, Number.NEGATIVE_INFINITY);
-    for (let i = 0; i < 200; i += 1) res.push(-2.1 + (2.4 * (i + 0.5)) / 200);
-    for (let j = 0; j < 200; j += 1) ims.push(-1.1 + (2.2 * (j + 0.5)) / 200);
-    for (const cRe of res) {
-      for (const cIm of ims) {
-        expect(inRowWindows(cRe, cIm)).toBe(inPeriodFourGate(cRe, cIm));
       }
     }
   });

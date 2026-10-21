@@ -165,15 +165,14 @@ describe('TriggeredRowKernel', () => {
   ] as const) {
     it(`matches the scalar kernel at every period-${String(gate.period)} gate box edge (rows and columns)`, () => {
       // Calls classifyRow directly with row imaginary parts and columns at
-      // each box's |Im c| band and Re c window edges, +-0 and +-1 ulp, in both
+      // each box's |Im c| and Re c edges, +-0 and +-1 ulp, in both
       // half-planes, plus each box's Re c midpoint: bit identity with the
       // scalar kernel on those rows and columns. The edge pixels themselves
       // are not accepted by the solve (the gate contains every acceptance
-      // with room to spare), so a wrong window at an edge would change no
-      // answer; the acceptances counted below are box midpoints. The exact
-      // window-versus-gate equivalence is checked in
-      // tests/unit/domain/period-three-gate.test.ts and
-      // period-four-gate.test.ts.
+      // with room to spare); the acceptances counted below are box
+      // midpoints. That the kernels' gated call equals the gate-then-solve
+      // dispatch, edges included, is checked in
+      // tests/unit/domain/gated-analytic.test.ts.
       const around = (value: number): number[] => [stepUlps(value, -1), value, stepUlps(value, 1)];
       const rows = new Set<number>([0, -0]);
       const columnSet = new Set<number>();

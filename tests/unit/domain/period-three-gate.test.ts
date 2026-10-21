@@ -1,15 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  AIRPLANE_BOX,
   classifyPeriodThreeInto,
   createOrbitSample,
   inPeriodThreeGate,
   PERIOD_THREE_BOXES,
   PERIOD_THREE_HULL,
-  RABBIT_BOX,
 } from '../../../src/domain';
-import { stepUlps } from './analytic-test-helpers';
 
 /**
  * The gate decides only whether the closed form is tried, so it must
@@ -38,63 +35,6 @@ describe('period-3 gate', () => {
       for (let j = 0; j < 400; j += 1) {
         const im = -1.1 + (2.2 * (j + 0.5)) / 400;
         expect(inPeriodThreeGate(re, im)).toBe(inAnyBox(re, im));
-      }
-    }
-  });
-
-  it('reduces to one Re c window per row (the row kernel form)', () => {
-    // TriggeredRowKernel.classifyRow evaluates the gate once per row as a
-    // window on Re c (src/render/triggered-rows.ts). That is exact because
-    // the boxes' |Im c| bands are disjoint and every box lies inside the hull.
-    const boxes = [...PERIOD_THREE_BOXES].sort((a, b) => a.absImMin - b.absImMin);
-    for (let k = 1; k < boxes.length; k += 1) {
-      expect(boxes[k - 1]?.absImMax ?? Number.NaN).toBeLessThan(boxes[k]?.absImMin ?? Number.NaN);
-    }
-    for (const box of PERIOD_THREE_BOXES) {
-      expect(box.reMin).toBeGreaterThanOrEqual(PERIOD_THREE_HULL.reMin);
-      expect(box.reMax).toBeLessThanOrEqual(PERIOD_THREE_HULL.reMax);
-      expect(box.absImMax).toBeLessThanOrEqual(PERIOD_THREE_HULL.absImMax);
-    }
-    // The kernel's window, copied from the "Period-3 gate" block of
-    // TriggeredRowKernel.classifyRow in src/render/triggered-rows.ts (keep in
-    // sync with it). This is the exact check of the row window against the
-    // gate: tests/unit/render/triggered-rows.test.ts checks the kernel's bit
-    // identity at the box edges, where a wrong window would change no answer.
-    const inRowWindow = (cRe: number, cIm: number): boolean => {
-      const absIm = Math.abs(cIm);
-      let reMin = Number.POSITIVE_INFINITY;
-      let reMax = Number.NEGATIVE_INFINITY;
-      if (absIm >= RABBIT_BOX.absImMin && absIm <= RABBIT_BOX.absImMax) {
-        reMin = RABBIT_BOX.reMin;
-        reMax = RABBIT_BOX.reMax;
-      } else if (absIm >= AIRPLANE_BOX.absImMin && absIm <= AIRPLANE_BOX.absImMax) {
-        reMin = AIRPLANE_BOX.reMin;
-        reMax = AIRPLANE_BOX.reMax;
-      }
-      return cRe >= reMin && cRe <= reMax;
-    };
-    const res = [-2.2, -1.9, -0.9, 0, 0.3];
-    const ims = [0, -0, 0.3, 0.9, 1.2, Number.NaN, Number.POSITIVE_INFINITY];
-    for (const box of PERIOD_THREE_BOXES) {
-      for (const value of [box.reMin, box.reMax]) {
-        if (value !== 0) res.push(stepUlps(value, -1), value, stepUlps(value, 1));
-        res.push(0.5 * (box.reMin + box.reMax));
-      }
-      for (const value of [box.absImMin, box.absImMax]) {
-        for (const v of value === 0
-          ? [0, -0, 5e-324]
-          : [stepUlps(value, -1), value, stepUlps(value, 1)]) {
-          ims.push(v, -v);
-        }
-        ims.push(0.5 * (box.absImMin + box.absImMax));
-      }
-    }
-    res.push(Number.NaN, Number.NEGATIVE_INFINITY);
-    for (let i = 0; i < 200; i += 1) res.push(-2.1 + (2.4 * (i + 0.5)) / 200);
-    for (let j = 0; j < 200; j += 1) ims.push(-1.1 + (2.2 * (j + 0.5)) / 200);
-    for (const cRe of res) {
-      for (const cIm of ims) {
-        expect(inRowWindow(cRe, cIm)).toBe(inPeriodThreeGate(cRe, cIm));
       }
     }
   });
