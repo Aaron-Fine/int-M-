@@ -127,7 +127,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       First browser gate run: pass in both engines; default view +1.3%
       (Firefox) and −2.4% (Chromium) against the build without the analytic
       call.
-- [ ] **Flake watch** (all unrelated to item 8; each failed once under heavy
+- [x] **Flake watch** (all unrelated to item 8; each failed once under heavy
       load on 2026-10-17 and passed on rerun). `classify-rows-allocation.test.ts`
       failed its GC-count assertion `bandOnlyGc ≤ scalarGc + 1` with 2 against
       ≤ 1 at load around 8: it fails when the band-only baseline collects more
@@ -139,6 +139,9 @@ Estimates are engineering days. They are planning figures and may overlap.
       `period-three-gate.test.ts` failed its grid test once at load 12–17
       during the item 8 fix wave and passed at load about 5. Rerun on a quiet
       machine before treating any of them as a regression.
+      Done 2026-10-21 on `f97dd6a`: the three files passed five consecutive
+      runs (10 of 10 tests each) at a 1-minute load of about 2, and in the
+      full `npm run check` (931 of 931) just before; closed as load noise.
 - [x] **Inspector source label for period 4** (owner wording decision). The
       inspector says "Analytic closed form" for the certified period-4 solve,
       which is not a closed form (ADR 0013 Decision 5). Options: "Analytic
