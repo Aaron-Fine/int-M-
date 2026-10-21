@@ -28,8 +28,11 @@ const CHILD_DRAIN_TIMEOUT_MS = 250;
  * first and hand out the remaining bands as workers free up, so mid-screen
  * rows are classified before the periphery without idle workers. The band
  * split stays static and deterministic for a given size and pool size.
+ * Eight, not four: paired wins of 6-8% on three Chrome hard views and one
+ * Firefox view, no loss (release session 2026-10-20, evidence/phase-2/
+ * 2026-10-20-d3d0490-release, "compare bands8").
  */
-const BANDS_PER_WORKER = 4;
+const BANDS_PER_WORKER = 8;
 
 export function clampTileWorkers(value: number | undefined): number {
   const n = value ?? 0;
