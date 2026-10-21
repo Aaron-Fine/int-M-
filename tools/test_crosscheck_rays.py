@@ -19,6 +19,7 @@ from crosscheck_rays import (
     float_sqrt,
     prove_landing,
     prove_rays_land_together,
+    prove_rays_land_together_in_decimals,
     unit_direction,
 )
 
@@ -104,6 +105,17 @@ class RayLandingTest(unittest.TestCase):
                 Decimal("1e-15"), 3, 1, 2, DecimalBalls(), 90,
             )
         self.assertIsNotNone(found)
+
+    def test_the_decimal_prover_proves_the_rabbit_pair(self) -> None:
+        with localcontext() as context:
+            context.prec = DECIMAL_DIGITS
+            disk = (Decimal(RABBIT[0]), Decimal(RABBIT[1]), Decimal("1e-15"))
+        landing = prove_rays_land_together_in_decimals(disk, 3, 1, 2)
+        self.assertIsNotNone(landing)
+        assert landing is not None
+        self.assertTrue(landing.decimal)
+        alpha = (1 - cmath.sqrt(1 - 4 * complex(*RABBIT))) / 2
+        self.assertLess(abs(landing.centre - alpha), 1e-12)
 
     def test_refuses_parameters_beyond_the_bottcher_bound(self) -> None:
         # |z| >= 0.99 |w| on the starting chain is proved only for |c| <= 2.01.

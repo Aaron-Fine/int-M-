@@ -34,8 +34,9 @@ an inflation of 1e-35), serves where binary64 cannot resolve the landing point.
 
 Trust base. The proof relies only on what ADR 0014
 (docs/decisions/0014-generated-catalog-core.md) lists under "Trust base" and
-"Elementary lemmas". Each elementary lemma is stated and proved here, in the
-docstring or comment of the function it justifies.
+"Elementary lemmas". The lemmas about this module's functions are stated and
+proved here, in the docstring or comment of the function each justifies; ADR
+0014 holds the full list.
 
 It shares no code with the generator. GPL-3.0-only.
 """

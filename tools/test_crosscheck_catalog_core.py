@@ -8,6 +8,7 @@ from fractions import Fraction
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import struct
 import tempfile
@@ -61,6 +62,18 @@ class CrossCheckTest(unittest.TestCase):
         data = bytearray(self.data)
         RECORD.pack_into(data, offset, *values)
         return bytes(data)
+
+    def test_workers_accepts_both_spellings_in_either_order(self) -> None:
+        for argv in (
+            ["x", "--workers", "4", "dir"],
+            ["x", "--workers=4", "dir"],
+            ["x", "dir", "--workers", "4"],
+            ["x", "dir", "--workers=4"],
+        ):
+            with self.subTest(argv=argv):
+                arguments = crosscheck.parse_arguments(argv)
+                self.assertEqual((arguments.workers, arguments.directory), (4, Path("dir")))
+        self.assertEqual(crosscheck.parse_arguments(["x"]).workers, os.cpu_count() or 1)
 
     def test_accepts_the_generated_core(self) -> None:
         self.assertEqual(self.run_on(self.data), 0)

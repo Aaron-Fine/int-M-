@@ -80,7 +80,7 @@ Association lemma under "Elementary lemmas" below.
 nothing else. This is the one full list. The docstrings of
 `tools/crosscheck_rays.py` and `tools/crosscheck_catalog_core.py` point here,
 and each elementary lemma is stated and proved in the code, next to the
-function it justifies.
+function it justifies, except Association, which is proved here.
 
 _Arithmetic._ IEEE-754 binary64 with round-to-nearest: only +, −, ×, ÷,
 `math.sqrt` and exact operations (the absolute value of a real, negation,
@@ -138,7 +138,7 @@ _Association._ The step from the wake theorem's closed wake to the open wake
 holds because the centre lies in M, so it is on no parameter ray
 (Douady–Hubbard (c)), and it is not the parabolic root (Douady–Hubbard (d)).
 
-_Elementary lemmas, proved in the code comments._
+_Elementary lemmas, proved in the code comments, except Association, which is proved here._
 
 - The Böttcher estimate (`start_chain`): for |z| ≥ 3 and |c| ≤ 2.01,
   |log(φ_c(z)/z)| ≤ η = q/(1 − q) with q = |c|/|z|², and |z| ≥ 0.99|w| whenever
