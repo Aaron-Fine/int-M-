@@ -57,7 +57,8 @@ export const PERIOD_THREE_HULL: PeriodThreeBox = Object.freeze({
  *
  * Straight-line on purpose. Neither kernel calls it directly: both call
  * classifyGatedAnalyticInto (src/domain/analytic-period-three.ts), which
- * tests this gate and inPeriodFourGate (ADR 0010 amendment of 2026-10-20).
+ * evaluates this gate and inPeriodFourGate as Re c windows of the row
+ * (src/domain/analytic-gate-windows.ts; ADR 0010 amendment of 2026-10-20).
  */
 export const inPeriodThreeGate = (cRe: number, cIm: number): boolean => {
   const absIm = cIm < 0 ? -cIm : cIm;

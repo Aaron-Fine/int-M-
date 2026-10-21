@@ -1,6 +1,14 @@
+import {
+  fillGateWindows,
+  GATE_WINDOW_COUNT,
+  P3_MAX,
+  P3_MIN,
+  P4_AXIS_MAX,
+  P4_AXIS_MIN,
+  P4_MAX,
+  P4_MIN,
+} from './analytic-gate-windows';
 import { classifyPeriodFourInto } from './analytic-period-four';
-import { inPeriodFourGate } from './period-four-gate';
-import { inPeriodThreeGate } from './period-three-gate';
 import { VERIFIER_THRESHOLDS } from './verifier';
 import { ORBIT_EVIDENCE_CODE } from './types';
 
@@ -54,6 +62,15 @@ export interface PeriodThreeTarget {
 }
 
 /**
+ * The gates as Re c windows for the Im c of the last gated call
+ * (src/domain/analytic-gate-windows.ts). The kernels classify row by row, so
+ * the windows change once per row; a pure cache, keyed on Im c (-0 and +0
+ * share windows, a NaN key never matches and refills, to empty windows).
+ */
+const gateWindows = new Float64Array(GATE_WINDOW_COUNT);
+let gateWindowsIm = Number.NaN;
+
+/**
  * The closed form, and with `gated` the kernels' whole analytic attempt in
  * one body: when c lies outside the period-3 gate, the period-4 gate and the
  * cubic solve decide instead (the boxes are disjoint, so at most one solve
@@ -69,9 +86,23 @@ const periodThreeOrGatedInto = (
   cIm: number,
   out: PeriodThreeTarget,
   gated: boolean,
+  // eslint-disable-next-line complexity -- the closed form and the gated dispatch share one body on purpose
 ): boolean => {
-  if (gated && !inPeriodThreeGate(cRe, cIm)) {
-    return inPeriodFourGate(cRe, cIm) && classifyPeriodFourInto(cRe, cIm, out);
+  if (gated) {
+    if (cIm !== gateWindowsIm) {
+      fillGateWindows(cIm, gateWindows);
+      gateWindowsIm = cIm;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size windows
+    if (!(cRe >= gateWindows[P3_MIN]! && cRe <= gateWindows[P3_MAX]!)) {
+      return (
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size windows
+        ((cRe >= gateWindows[P4_MIN]! && cRe <= gateWindows[P4_MAX]!) ||
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size windows
+          (cRe >= gateWindows[P4_AXIS_MIN]! && cRe <= gateWindows[P4_AXIS_MAX]!)) &&
+        classifyPeriodFourInto(cRe, cIm, out)
+      );
+    }
   }
   // w = 4c + 7. 4 * cRe and 4 * cIm are exact; for cRe in [-3.5, -0.875]
   // (which contains the airplane box) 4 * cRe + 7 is exact as well (Sterbenz).

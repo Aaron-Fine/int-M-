@@ -41,6 +41,7 @@
     "tools/adjudication.ts",
     "tools/golden-raster.ts",
     "tools/benchmark/fallback-overhead.ts",
+    "tools/benchmark/cold-workers.ts",
     "tools/palette_metrics.ts"
   ]
 }

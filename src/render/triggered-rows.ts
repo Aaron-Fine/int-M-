@@ -41,24 +41,23 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * the loops carry round-tripped through `spill`.
  *
  * Analytic period-3 and period-4 paths (ADR 0010, ADR 0013): each lane calls
- * classifyGatedAnalyticInto, which tests both gates and runs at most one
- * solve, for every pixel that reaches the first scanning iteration, and an
- * acceptance there takes the verifier acceptance's write path. classifyRow
- * therefore holds no code that first runs when the first gate pixel arrives,
- * and no gate. That matters in cold workers, where every page load starts:
- * SpiderMonkey compiles branches not yet taken as bailouts and recompiles
- * classifyRow after ten of them; V8 deoptimizes on operations without
- * feedback. The earlier form (per-row gate windows, a gated call site per
- * lane) cost the default view about 70% in Firefox and 20% in Chrome in
- * cold tile workers (ADR 0010 amendment of 2026-10-20). The called function
- * is too large for V8 to inline, so the solve calls inside it stay out of
- * classifyRow's code. Code generation remains engine-dependent: in Node 24,
- * an inlined gate call made the far-exterior stable pass, where no pixel
- * reaches iteration 24, about 10% slower in some compiles (ADR 0010).
- * Rerun tools/benchmark/fallback-overhead.ts (stable and coarse pass, with
- * and without --stride) and the cold-worker benchmark after changing
- * classifyRow, classifyTriggeredOrbitInto or classifyGatedAnalyticInto, or
- * upgrading an engine.
+ * classifyGatedAnalyticInto, which evaluates both gates (as Re c windows
+ * cached per row) and runs at most one solve, for every pixel that reaches
+ * the first scanning iteration, and an acceptance there takes the verifier
+ * acceptance's write path. classifyRow therefore holds no gate and no code
+ * that first runs when the first gate pixel or gate row arrives. That
+ * matters in cold workers, where every page load starts: SpiderMonkey
+ * compiles branches not yet taken as bailouts and recompiles classifyRow
+ * after ten of them; V8 deoptimizes on operations without feedback. The
+ * earlier form (per-row gate windows here, a gated call block per lane) cost
+ * the default view about 75% in Firefox and 25% in Chrome in cold tile
+ * workers (ADR 0010 amendment of 2026-10-20). The called function is too
+ * large for V8 to inline, so the solve calls inside it stay out of
+ * classifyRow's code. Code generation remains engine-dependent (ADR 0010):
+ * rerun tools/benchmark/fallback-overhead.ts (stable and coarse pass) and
+ * tools/benchmark/cold-workers.ts (both engines) after changing classifyRow,
+ * classifyTriggeredOrbitInto or classifyGatedAnalyticInto, or upgrading an
+ * engine.
  *
  * Lockstep shape: each lane raises an event on one of three tests, so the
  * common iteration is three compares per lane:

@@ -41,7 +41,11 @@ interface Arm {
   ) => Promise<number>;
 }
 
-const DEFAULT_CASES = ['mi-easy-exterior-heavy', 'mi-fallback-ambiguous-boundary'];
+const DEFAULT_CASES = [
+  'mi-easy-exterior-heavy',
+  'mi-fallback-ambiguous-boundary',
+  'mi-easy-default-full',
+];
 const OVERHEAD_LIMIT = 0.05;
 const CONTROL_LIMIT = 0.02;
 const SEED = 20_261_016;

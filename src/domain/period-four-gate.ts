@@ -67,7 +67,8 @@ export const PERIOD_FOUR_BOXES: readonly PeriodFourBox[] = Object.freeze([
  *
  * Straight-line on purpose. Neither kernel calls it directly: both call
  * classifyGatedAnalyticInto (src/domain/analytic-period-three.ts), which
- * tests inPeriodThreeGate and this gate (ADR 0010 amendment of 2026-10-20).
+ * evaluates inPeriodThreeGate and this gate as Re c windows of the row
+ * (src/domain/analytic-gate-windows.ts; ADR 0010 amendment of 2026-10-20).
  */
 export const inPeriodFourGate = (cRe: number, cIm: number): boolean => {
   const absIm = cIm < 0 ? -cIm : cIm;

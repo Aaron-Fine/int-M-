@@ -4,9 +4,17 @@ import {
   classifyGatedAnalyticInto,
   classifyPeriodFourInto,
   classifyPeriodThreeInto,
+  fillGateWindows,
+  GATE_WINDOW_COUNT,
   inPeriodFourGate,
   inPeriodThreeGate,
   PERIOD_FOUR_BOXES,
+  P3_MAX,
+  P3_MIN,
+  P4_AXIS_MAX,
+  P4_AXIS_MIN,
+  P4_MAX,
+  P4_MIN,
   PERIOD_THREE_BOXES,
   type OrbitSample,
 } from '../../../src/domain';
@@ -36,6 +44,31 @@ const expectSameAsDispatch = (cRe: number, cIm: number): boolean => {
   return accepted;
 };
 
+/** Re c and Im c values at and one ulp around every box edge, plus specials. */
+const edgePoints = (): { res: number[]; ims: number[] } => {
+  const res = [-2.2, -1.6, -0.9, 0, -0, 0.3, 4.5, Number.NaN];
+  const ims = [0, -0, 0.3, 0.9, 1.2, Number.NaN];
+  for (const infinity of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    res.push(infinity);
+    ims.push(infinity);
+  }
+  for (const box of [...PERIOD_THREE_BOXES, ...PERIOD_FOUR_BOXES]) {
+    for (const value of [box.reMin, box.reMax]) {
+      res.push(stepUlps(value, -1), value, stepUlps(value, 1));
+    }
+    res.push(0.5 * (box.reMin + box.reMax));
+    for (const value of [box.absImMin, box.absImMax]) {
+      for (const v of value === 0
+        ? [0, 5e-324]
+        : [stepUlps(value, -1), value, stepUlps(value, 1)]) {
+        ims.push(v, -v);
+      }
+    }
+    ims.push(0.5 * (box.absImMin + box.absImMax));
+  }
+  return { res, ims };
+};
+
 describe('classifyGatedAnalyticInto', () => {
   it('matches the gated dispatch on a grid over every box, accepting in both paths', () => {
     let accepted3 = 0;
@@ -61,29 +94,31 @@ describe('classifyGatedAnalyticInto', () => {
   });
 
   it('matches the gated dispatch at every box edge, signed zeros, NaN and infinities', () => {
-    const res = [-2.2, -1.6, -0.9, 0, -0, 0.3, 4.5, Number.NaN];
-    const ims = [0, -0, 0.3, 0.9, 1.2, Number.NaN];
-    for (const infinity of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
-      res.push(infinity);
-      ims.push(infinity);
-    }
-    for (const box of [...PERIOD_THREE_BOXES, ...PERIOD_FOUR_BOXES]) {
-      for (const value of [box.reMin, box.reMax]) {
-        res.push(stepUlps(value, -1), value, stepUlps(value, 1));
-      }
-      res.push(0.5 * (box.reMin + box.reMax));
-      for (const value of [box.absImMin, box.absImMax]) {
-        for (const v of value === 0
-          ? [0, 5e-324]
-          : [stepUlps(value, -1), value, stepUlps(value, 1)]) {
-          ims.push(v, -v);
-        }
-      }
-      ims.push(0.5 * (box.absImMin + box.absImMax));
-    }
+    const { res, ims } = edgePoints();
+    // Im c outer and inner: the gate windows are cached on Im c, so both
+    // repeated and alternating Im c must give the dispatch's answer.
     for (const cRe of res) {
-      for (const cIm of ims) {
-        expectSameAsDispatch(cRe, cIm);
+      for (const cIm of ims) expectSameAsDispatch(cRe, cIm);
+    }
+    for (const cIm of ims) {
+      for (const cRe of res) expectSameAsDispatch(cRe, cIm);
+    }
+  });
+
+  it('reads each gate as Re c windows of its row, exactly (fillGateWindows)', () => {
+    const { res, ims } = edgePoints();
+    for (let i = 0; i < 200; i += 1) res.push(-2.1 + (2.4 * (i + 0.5)) / 200);
+    for (let j = 0; j < 200; j += 1) ims.push(-1.1 + (2.2 * (j + 0.5)) / 200);
+    const windows = new Float64Array(GATE_WINDOW_COUNT);
+    for (const cIm of ims) {
+      fillGateWindows(cIm, windows);
+      const inside = (cRe: number, min: number, max: number): boolean =>
+        cRe >= (windows[min] ?? Number.NaN) && cRe <= (windows[max] ?? Number.NaN);
+      for (const cRe of res) {
+        expect(inside(cRe, P3_MIN, P3_MAX)).toBe(inPeriodThreeGate(cRe, cIm));
+        expect(inside(cRe, P4_MIN, P4_MAX) || inside(cRe, P4_AXIS_MIN, P4_AXIS_MAX)).toBe(
+          inPeriodFourGate(cRe, cIm),
+        );
       }
     }
   });
