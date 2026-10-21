@@ -151,8 +151,7 @@ package MandelbrotInteriority {
         part def CycleVerifier {
             doc /*
              * The single declared acceptance procedure: every candidate
-             * source (lag scan, watched lag, checkpoint, analytic paths)
-             * proposes, and only this verifier may accept an attracting
+             * source (watched lag, analytic paths) proposes, and only this verifier may accept an attracting
              * cycle and its primitive period.
              */
         }
@@ -491,10 +490,11 @@ package MandelbrotInteriority {
         requirement <'MI-PERF-003'> CuratedCatalogIntegrity {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * The curated identity layer shall remain intact. If workstream F
-             * ships, the generated period-12 core shall be deterministically
-             * reproducible and versioned extension shards shall load without
-             * blocking rendering or weakening the curated catalog.
+             * The curated identity layer shall remain intact. One generated
+             * catalog core of every exact period up to 12 shall be
+             * reproducible and independently cross-checked, and shall load
+             * off the main thread without blocking rendering or weakening the
+             * curated layer; there are no extension shards (ADR 0014).
              */
         }
 
@@ -543,10 +543,11 @@ package MandelbrotInteriority {
         requirement <'MI-PERF-008'> AccessibleCatalogPresentation {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Catalog presentation, the curated centers and, if F ships,
-             * dynamic marker loading and clustering, shall remain
-             * keyboard-operable, screen-reader understandable, focus-stable,
-             * and bounded in simultaneous interactive markers.
+             * Catalog presentation, the curated centers and the generated
+             * core, shall remain keyboard-operable, screen-reader
+             * understandable, focus-stable, and bounded in simultaneous
+             * interactive markers, through bounded markers plus the list and
+             * find field and no clustering (ADR 0012).
              */
         }
     }
@@ -744,7 +745,7 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * Adjudicate classifier results against the high-precision oracle
-             * and the reference lag scan, including candidate rejection and
+             * and the kernel golden fixture, including candidate rejection and
              * unresolved-rate checks.
              */
             objective classifierAgreement {
@@ -756,15 +757,15 @@ package MandelbrotInteriority {
         verification def <'MI-VER-PERF-003'> CatalogDeterminismTest {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Check catalog completeness, deterministic generation when a
-             * generated layer ships, and keyboard, focus, and marker-cap
-             * accessibility of catalog presentation. Schema v2 entries carry
-             * residuals, method and provenance; ids derive from the
-             * characteristic rays and v1 ids remain aliases (ADR 0011). The
-             * period <=12 core regenerates byte for byte, an independent
-             * cross-check proves every centre again and that, for c at each
-             * centre, its ray pair lands together, and the loader rejects a damaged or
-             * unreachable core while the curated layer stays (ADR 0014).
+             * Check catalog completeness, deterministic generation, and
+             * keyboard, focus, and marker-cap accessibility of catalog
+             * presentation. Schema v2 entries carry residuals, method and
+             * provenance; ids derive from the parameter ray pair and v1 ids
+             * remain aliases (ADR 0011). The period <=12 core regenerates
+             * byte for byte, an independent cross-check proves every centre
+             * again and that, for c at each centre, its ray pair lands
+             * together, and the loader rejects a damaged or unreachable core
+             * while the curated layer stays (ADR 0014).
              */
             objective catalogDeterminism {
                 verify PerformanceRequirements::CuratedCatalogIntegrity;
