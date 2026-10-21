@@ -51,7 +51,10 @@ A link has this form:
   nearest bound, with a notice. The centre need only be finite, because the
   explorer's own panning is unbounded. `view`, `q` and `sel` are optional;
   each malformed value falls back to its default and is listed in the notice.
-  `sel` names a catalog id that exists, or holds an exact `re,im` pair. A
+  `sel` names a catalog id that exists, or holds an exact `re,im` pair. Since
+  [ADR 0014](0014-generated-catalog-core.md) ("Links before the core"), a
+  well-formed period 5 to 12 id is accepted before the core loads and
+  confirmed once it does; if the core has no such entry, the notice says so. A
   repeated key is malformed. Parameters the schema does not own are ignored.
 - **Rejection.** A query with `c`, `s`, `q`, `sel` or a semantic-view `view`
   but no `v` is unversioned. A `v` other than exactly `1` is unsupported. In
@@ -85,9 +88,11 @@ A link has this form:
 
 - A copied or bookmarked link reopens the same viewport, semantic view,
   quality profile and selection. A selected point is inspected again on load.
-- Catalog ids become part of v1. PHASE2-TODO item 4 plans a stable id scheme
-  because today's `mi-p4-NN` ids are ordinal. If ids change, the old ids must
-  stay resolvable or `v` must be bumped.
+- Catalog ids become part of v1. PHASE2-TODO item 4 planned a stable id scheme
+  because the `mi-p4-NN` ids were ordinal, and it landed as ray-derived ids,
+  with every v1 id kept as an alias and `v` unchanged (see the
+  [amendment below](#amendment-2026-10-17)). If ids change again, the old ids
+  must stay resolvable or `v` must be bumped.
 - Changing a quality profile's budget or a semantic view's meaning bumps `v`.
   Classifier improvements that keep the common acceptance procedure
   (`MI-PERF-004`) do not: a link names a place, a view and a budget, not a

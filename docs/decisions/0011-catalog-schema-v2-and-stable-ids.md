@@ -45,7 +45,7 @@ Why rays:
   encoded core can store `(p, a, b)` and derive the id, the internal address
   and the angled internal address from them instead of storing strings.
 
-Rejected: the internal address alone is not unique (the rabbit and co-rabbit
+Rejected: the internal address alone is not unique (the rabbit and corabbit
 share `1 → 3`; PLAN §3.3 says so). The angled internal address is unique
 (Schleicher) but long at period 12, awkward in a URL, and itself computed from
 the rays. A centre hash depends on precision and rounding. Ordinals are what
@@ -95,7 +95,8 @@ the curated layer. The generated core keeps the same fields but encodes them:
 per entry the period, `a` and `b` (5 bytes), the centre (16), the three
 residuals as float32 (12) and the method and provenance indexes (2), about
 35 bytes, or about 137 KiB (140 kB) for 4,016 entries before compression, inside the
-256 KiB budget. Ids, addresses and generated labels are derived on load. Wherever the angled-address numerators are derived rather than stored (the
+256 KiB budget (an estimate; as built, 34 bytes per record and 136,560 bytes in all, see the
+ADR 0014 amendment below). Ids, addresses and generated labels are derived on load. Wherever the angled-address numerators are derived rather than stored (the
 tests today, the loader of the compact form), they use Schleicher's
 closed-form rule from θ alone, which needs no Lavaurs table.
 Curated labels and aliases stay in the small curation file, keyed by

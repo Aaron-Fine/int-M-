@@ -98,27 +98,13 @@ separate job that cannot fail the build (`continue-on-error`). A difference
 is a prompt to look at the report (`playwright-report-visual/`), not a
 failure. Commit new baselines with the change that explains them.
 
-Pending (2026-10-17, PHASE2-TODO item 6): the inspector now shows a curated
-entry's annotation, so `selected-marker-evidence.png` differs in both
-engines until the owner regenerates the baselines in the container. The
-three raster golden views are unaffected, since `tests/visual/raster-only.css`
-hides the marker and overlay layers. `catalog-overlay.png` and
-`selected-marker.png` shoot `#explorer` and may change where a label is now
-hidden; the advisory job reports any that do.
-
-Since ADR 0013 (2026-10-17) the period-4 path changes the default and 126×
-rasters, so `default-stability.png`, `period-four-126x-period.png` and
-`catalog-overlay.png` were regenerated in the container, in both engines, at
-`cf414cc`. The selected-marker baselines (`selected-marker.png` and
-`selected-marker-evidence.png`) still await the owner.
-
-Pending (2026-10-17, PHASE2-TODO item 7): periods 5 to 12 of the catalog
-now load after the first stable frame, and the UI-state screenshots wait for
-them (`data-catalog-core="ready"`). `catalog-overlay.png` and
-`selected-marker.png` show 29 markers instead of 11, with the period-4 labels
-by their rays, in both engines until the owner regenerates them in the
-container. The raster views and both golden files are unchanged, because
-markers are DOM outside the colourised buffer.
+Baselines regenerated 2026-10-20 (commit `5fe077d`): ten of the twelve baselines
+were rewritten in the container at `d3d0490`, in both engines (the two
+`period-four-126x-period.png` baselines were unchanged). The UI-state
+screenshots show the item 7 catalog (periods 5 to 12, the period-4 labels by
+their rays), the 2026-10-18 nomenclature and the references. The raster views
+moved because the canvas is one pixel shorter after the controls-bar
+wrap, so every raster pixel shifts.
 
 ## Orbit fixtures
 

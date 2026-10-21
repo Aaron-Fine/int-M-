@@ -9,7 +9,7 @@
 
 ## Context
 
-The catalog has eleven entries today, each drawn as a marker on the canvas and
+The catalog has eleven entries today (superseded: ADR 0014 amendment), each drawn as a marker on the canvas and
 reachable only through those markers. PHASE2-TODO item 7 will add the full
 period ≤12 core: 4,016 entries with ids `mi-p<p>-<a>-<b>`, generated labels
 and curated names where known. Drawing a marker per entry would put thousands
@@ -114,13 +114,15 @@ rather than time them.
   (the annotation line). `catalog-overlay.png` and `selected-marker.png` may
   change where a label is now hidden. The raster golden views are unaffected.
   The owner regenerates the affected baselines in the container; none has
-  been regenerated here.
+  been regenerated here (superseded: regenerated 2026-10-20, see
+  [fixtures/README.md](../../fixtures/README.md#advisory-screenshots)).
 - A group of more than 8 entries builds its buttons on first open, so the
   panel stays light at item 7's size (the period-12 group has 2,010 entries).
-  Item 7 owns the full-size check of that path.
+  Item 7 owns the full-size check of that path (done: ADR 0014 amendment).
 - Item 7 supplies the data and an asynchronous hand-over: the loader, the order, the index, the policy and
   the panel are tested at its size. A find field for its 2,010-entry
-  period-12 group is left to item 7.
+  period-12 group is left to item 7 (superseded: ADR 0014 amendment adds the find
+  field).
 
 ## Amendment (2026-10-17, ADR 0014)
 
@@ -134,17 +136,8 @@ real core the default view places 29 markers on a 922×576 canvas and 16 on
 
 ## Amendment (2026-10-18, nomenclature)
 
-Owner decision 2026-10-18: user-visible names follow the literature where it
-has them (Milnor 2000; Schleicher, "Internal addresses in the Mandelbrot set";
-Bartholdi and Nekrashevych, "Twisted rabbit problem"). A curated label is the
-literature component name, with the centre's Julia-set name in parentheses
-where the literature names one: "1/2-bulb (basilica)", "1/3-bulb (Douady
-rabbit)", "2/3-bulb (corabbit)", "Airplane component". The two rays that land
-at a component's root are the "parameter ray pair" (formerly "characteristic
-rays"), angles kept unreduced as a/(2^p − 1). The inspector writes the angled
-internal address as a chain with the rotation as a subscript on each arrow,
-1 →₁/₃ 3 →₁/₂ 6, with a spoken form for assistive technology. Ids, aliases
-and code identifiers are unchanged. Text above that names the entries or the glossary term by their old names is historical.
+Owner decision 2026-10-18: user-visible names follow the literature; the glossary term for the two rays that land at a component's root is "parameter ray pair" (formerly "characteristic rays").
+The full text is the [nomenclature amendment in ADR 0011](0011-catalog-schema-v2-and-stable-ids.md#amendment-2026-10-18-nomenclature); text above that names the glossary term or the entries by their old names is historical.
 
 ## Amendment (2026-10-18, references)
 
