@@ -51,9 +51,9 @@ import { PACK_PERIOD_BITS, PACK_PERIOD_MAX, PACK_STATUS_CODES } from './packed-s
  * after ten of them; V8 deoptimizes on operations without feedback. The
  * earlier form (per-row gate windows here, a gated call block per lane) cost
  * the default view about 71% in Firefox and 21% in Chromium over the build
- * without the analytic paths in cold tile workers (evidence/phase-2/
- * 2026-10-20-ab73117-analytic-cost; ADR 0010 amendment of 2026-10-20). The called function is too
- * large for V8 to inline, so the solve calls inside it stay out of
+ * without the analytic paths, in cold tile workers (ADR 0010 amendment of
+ * 2026-10-20; evidence/phase-2/2026-10-20-ab73117-analytic-cost). The called
+ * function is too large for V8 to inline, so the solve calls inside it stay out of
  * classifyRow's code. Code generation remains engine-dependent (ADR 0010):
  * rerun tools/benchmark/fallback-overhead.ts (stable and coarse pass) and
  * tools/benchmark/cold-workers.ts (both engines) after changing classifyRow,

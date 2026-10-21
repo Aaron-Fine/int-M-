@@ -188,7 +188,7 @@ interleaved, `taskset -c 5`, every arm first warmed on the whole corpus at
 The far-exterior stable pass fails ADR 0010's 5% limit in Node (warm, V8
 13.6) with a quiet control, and weak attraction measures +3.66% [+2.87%,
 +11.72%] against a control of +0.99%: the interval excludes 0 and its upper
-end is above 5%. Both views are faster than `base` in the browsers. The
+end is above 5%. In the browsers the
 far-exterior view is 8.5% faster cold in Chromium and 37.3% faster in
 Firefox (11–14% in the full harness), and was faster warm in Chromium 156
 (main-thread diagnostic: −8% against `base` for the `fe68c59`-shaped build).

@@ -119,11 +119,13 @@ Estimates are engineering days. They are planning figures and may overlap.
       the 2026-10-20 kernel change ([evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md))
       the far-exterior stable pass measures +7.0% [+5.9%, +9.9%] and weak
       attraction +3.7% [+2.9%, +11.7%] in Node, with quiet controls; the other
-      views are within about 5%, and the browsers measure these views faster.
+      views are within about 5%. The browsers measure the far-exterior view
+      faster and weak attraction unchanged within noise.
       Rerun `tools/benchmark/cold-workers.ts` (both engines) together with it.
 - [ ] **Node fallback-overhead gate (owner):** far-exterior +7.0% [+5.9%,
       +9.9%] and weak attraction +3.7% after the 2026-10-20 kernel change,
-      while both browsers measure these views faster; decide whether Node
+      while both browsers measure the far-exterior view faster and weak
+      attraction unchanged within noise; decide whether Node
       stays the gate for ADR 0010's 5% limit.
 - [ ] **Flake watch** (all unrelated to item 8; each failed once under heavy
       load on 2026-10-17 and passed on rerun). `classify-rows-allocation.test.ts`
