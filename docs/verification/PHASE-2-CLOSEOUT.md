@@ -166,6 +166,10 @@ browser:
 | Stable frame, Hard known (user-facing hard-view budget, Detailed where declared) | ≤ 600 ms   | 470 ms (rabbit boundary, Chrome)    |
 | Stable frame, Fallback and Scale                                                 | ≤ 1,500 ms | 1,010 ms (weak attraction, Firefox) |
 
+These figures are from the 2026-10-16 session. The 2026-10-20 session on the
+shipping build misses the Easy budget in Chrome (292.6 ms on the default view;
+see [Confirming release session (2026-10-20)](#confirming-release-session-2026-10-20)).
+
 The budgets were measured with conjugate mirroring on. On the mirror-free
 build, the paired run's mirror-off arm projected the default view at 238.4 ms
 (Chrome) and 173 ms (Firefox) against 250 ms.
@@ -203,7 +207,7 @@ then. The open work is PHASE2-TODO item 0, "Easy default view in Chrome".
 Other results of the session:
 
 - **Bands per worker:** 8 adopted (commit `b642fd6`): paired wins of 6-8% on
-  three Chrome hard views and one Firefox view, no significant loss, zero
+  three Chrome views and one Firefox view, no significant loss, zero
   parity mismatches. 16 rejected: losses on `mi-easy-exterior-heavy` in both
   engines and on two Chrome views.
 - **Hook overhead:** within 5% in both browsers; pooled plain/hook 1.002
@@ -357,7 +361,7 @@ F is still not a performance gate: this note changes no latency budget or perfor
 
 | Decision                                                                | Owner response                                                                                                                                                                                  |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Latency budgets as proposed                                             | Approved 2026-10-16 ("Latency is met with the changes that have been made")                                                                                                                     |
+| Latency budgets as proposed                                             | Approved 2026-10-16 ("Latency is met with the changes that have been made"); 2026-10-20: the Chrome Easy default view is not met on the shipping build (see the session note)                   |
 | Conditional dispositions as proposed (M decided separately)             | Approved 2026-10-16 for E, G, I, J, K, L, N, O ("approve the other eight dispositions"); F recast as a product feature candidate; H adopted after its spike (p3 now, p4 after a rigorous bound) |
 | Workstream M: conjugate mirroring                                       | Decided 2026-10-16: remove ("Considering its limited scope of applicability I do not think that the added complexity is worth it"); ADR 0008                                                    |
 | Opt-in diagnostics: counters mode moved out of the ≤5% budget (A above) | Approved 2026-10-16: counters offline only, implemented                                                                                                                                         |

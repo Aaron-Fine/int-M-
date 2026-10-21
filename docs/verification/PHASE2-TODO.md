@@ -201,7 +201,7 @@ Estimates are engineering days. They are planning figures and may overlap.
       at 8 and 16 against 4 with
       `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. Estimate: 1.
       Done 2026-10-20 ([evidence](../../evidence/phase-2/2026-10-20-d3d0490-release/summary.md)):
-      8 adopted (commit `b642fd6`): paired wins of 6-8% on three Chrome hard
+      8 adopted (commit `b642fd6`): paired wins of 6-8% on three Chrome
       views and one Firefox view, no significant loss, zero parity
       mismatches. 16 rejected: losses on `mi-easy-exterior-heavy` in both
       engines and on two Chrome views.

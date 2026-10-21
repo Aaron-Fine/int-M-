@@ -494,7 +494,7 @@ package MandelbrotInteriority {
              * catalog core of every exact period up to 12 shall be
              * reproducible and independently cross-checked, and shall load
              * off the main thread without blocking rendering or weakening the
-             * curated layer; there are no extension shards (ADR 0014).
+             * curated layer; there are no extension shards (ADR 0004 amendments, ADR 0014).
              */
         }
 
