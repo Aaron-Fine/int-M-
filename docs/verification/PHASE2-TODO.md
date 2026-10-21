@@ -7,6 +7,11 @@ recorded separately in [PHASE-2-CLOSEOUT.md](PHASE-2-CLOSEOUT.md). The other
 Phase 2 items had no closeout. The audit behind this list (2026-10-16) found
 each one partial or not started.
 
+**Status (2026-10-20):** items 1 to 8 are done. Open: the Chrome default-view
+budget ("Easy default view in Chrome", item 0), the pre-release overhead rerun
+and the flake watch (item 0), and the owner's approval of "Phase 2 performance
+closed" ([closeout](PHASE-2-CLOSEOUT.md#approval)).
+
 The owner's direction (2026-10-16): the Phase 1 performance regression is
 resolved; the remaining Phase 2 work is done with subagents. Items with
 user-visible choices get a short design for owner approval first, and
@@ -29,17 +34,17 @@ mechanical items go straight to implementation.
 
 ## Owner design questions
 
-Each needs an answer before the item it gates starts. The recommendations are
-from the audit.
+All six are answered; the full decisions are under
+[Owner decisions](#owner-decisions-2026-10-16).
 
-| #   | Question                                                                          | Options                                                                                         | Recommendation                                                                                                                                         | Gates |
-| --- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
-| Q1  | Period view scheme (PLAN §8: no "dozens of equally prominent categorical colors") | emphasize p1–p4 plus a neutral "higher"; emphasize the catalog's periods; keep a hue per period | p1–p4 plus neutral, each emphasized class also carrying a non-hue cue                                                                                  | 2     |
-| Q2  | URL schema                                                                        | query or hash; fields; `replaceState` vs `pushState`; version tag                               | `?v=1&c=<re>,<im>&s=<span>&view=&q=&sel=`, exact decimals, `replaceState` on settle, a notice on an unknown version                                    | 3     |
-| Q3  | How far to expand the catalog, and how to validate it                             | curated p ≤ 6–8 with reviewed addresses; the full p ≤ 12 core (F, 4,016 centres)                | F with generated labels plus optional curated names; a pinned arbitrary-precision tool and an independent count/residual cross-check; reopens ADR 0004 | 6, 7  |
-| Q4  | Marker density once the catalog is large                                          | zoom-dependent period cap; clustering; list-only for generated entries                          | zoom-dependent cap (about 40 interactive markers) plus the list                                                                                        | 6     |
-| Q5  | Palette acceptance thresholds                                                     | numeric ΔE and contrast floors; simulation review only                                          | keep the stability and multiplier palettes, change only the period view; floors from the existing CVD matrix                                           | 2     |
-| Q6  | Image regression gate                                                             | committed browser screenshots; deterministic colorized-buffer hashes                            | buffer hashes as the gate, screenshots advisory                                                                                                        | 5     |
+| #   | Question                                                                          | Decision                                                                                |
+| --- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Q1  | Period view scheme (PLAN §8: no "dozens of equally prominent categorical colors") | At most five emphasized periods per view, one neutral class (gates item 2)              |
+| Q2  | URL schema                                                                        | Versioned query string, `replaceState` on settle (gates item 3)                         |
+| Q3  | How far to expand the catalog, and how to validate it                             | The full period ≤12 core, independently cross-checked (gates items 6 and 7)             |
+| Q4  | Marker density once the catalog is large                                          | About 40 interactive markers, lowest periods first, plus the list (gates item 6)        |
+| Q5  | Palette acceptance thresholds                                                     | Keep the stability and multiplier palettes; numeric floors from the CVD matrix (item 2) |
+| Q6  | Image regression gate                                                             | Buffer hashes gate; browser screenshots advisory (gates item 5)                         |
 
 ## Ordered backlog
 
@@ -132,10 +137,28 @@ Estimates are engineering days. They are planning figures and may overlap.
       Decided 2026-10-18: a label per method. Periods 1–3 keep "Analytic
       closed form"; period 4 says "Certified analytic solve". The period 1–3
       e2e strings are unchanged.
-- [ ] **Confirming release session on the mirror-free build** (owner screen
-      time, about 19 minutes headed). It measures the Easy budget, now
-      projected at 238 ms against 250 ms in Chrome; it is the last input to the
-      "Phase 2 performance closed" approval.
+- [x] **Confirming release session on the mirror-free build** (owner screen
+      time, about 19 minutes headed). Done 2026-10-20 on `d3d0490` (branded
+      Chrome 155.0.8059.84 and Firefox 158.0, headed, 24 warm pairs,
+      [evidence](../../evidence/phase-2/2026-10-20-d3d0490-release/summary.md)).
+      Every budget passes in both browsers except Chrome
+      `mi-easy-default-full`: stable 292.6 ms against 250 ms (Not met);
+      Firefox 198 ms. Recorded in the
+      [closeout](PHASE-2-CLOSEOUT.md#confirming-release-session-2026-10-20);
+      the "Phase 2 performance closed" approval stays blank until the next
+      item is done.
+- [ ] **Easy default view in Chrome: optimize the analytic paths, re-measure**
+      (owner decision 2026-10-20: optimize the analytic paths' cost on the
+      views they mostly refuse, adopt 8 bands per worker, re-measure, then
+      decide the budget). Directional paired runs on 2026-10-20 (bundled
+      browsers, not committed evidence): the mirror-free build `47f07b5`
+      already runs the default view at about 275 ms in Chrome (the 238 ms
+      projection did not hold); the analytic period-3 work adds 6-9% in Chrome
+      and the period-3 plus period-4 work about 27% in Firefox on that view;
+      in Firefox the period-3 gates also cost about 10% on
+      `mi-easy-exterior-heavy`, above ADR 0010's 5% limit (measured in Node
+      only). Re-measure with `npm run evidence:release` in both browsers, then
+      decide whether the budget or the code changes.
 - [x] **Merge PR #25** (owner). Merged 2026-10-18 (`5a4c611`). This also clears the Dependabot `source-map-js`
       alert on `main`.
 - [x] **Review the five catalog annotations' wording** (`catalog/curation.v2.json`) (owner).
@@ -174,16 +197,25 @@ Estimates are engineering days. They are planning figures and may overlap.
       Decided 2026-10-18: not adopted; the coarse budget stays 256. The gap
       lasts one coarse frame and the stable pass closes it. The figures predate
       period 4 (item 8). Reopen only on a user-visible first-frame complaint.
-- [ ] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
+- [x] **Bands per worker.** Measure `BANDS_PER_WORKER` (`src/worker/tile-pool.ts`)
       at 8 and 16 against 4 with
-      `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. 1.
-- [ ] **Memory high-water (`MI-PERF-006`).** Harness pass landed 2026-10-17 (main-thread JS heap in Chromium; `retained` and Firefox not measured headless); stays open until a measured `retained` figure from branded Chrome and an owner decision on the Firefox gap. It is the one performance
+      `npm run evidence:release -- --compare name=dist:<dir>`. Adopt only on a paired win with no budget regression. Estimate: 1.
+      Done 2026-10-20 ([evidence](../../evidence/phase-2/2026-10-20-d3d0490-release/summary.md)):
+      8 adopted (commit `b642fd6`): paired wins of 6-8% on three Chrome hard
+      views and one Firefox view, no significant loss, zero parity
+      mismatches. 16 rejected: losses on `mi-easy-exterior-heavy` in both
+      engines and on two Chrome views.
+- [x] **Memory high-water (`MI-PERF-006`).** Harness pass landed 2026-10-17 (main-thread JS heap in Chromium; `retained` and Firefox not measured headless). It was the one performance
       requirement never measured in the release browsers. Add a
-      per-engine high-water figure to the release harness. 1–2.
+      per-engine high-water figure to the release harness. Estimate: 1–2.
       Decided 2026-10-18 (Firefox gap): the requirement passes on the
       branded-Chrome `retained` figure from the owner's screen session;
       Firefox is recorded as unmeasured, and a manual `about:memory` reading
-      is the reopen path. Still open until that Chrome figure exists.
+      is the reopen path.
+      Done 2026-10-20 ([evidence](../../evidence/phase-2/2026-10-20-d3d0490-release/summary.md)):
+      Chrome retained high-water 24.3 MiB (`mi-easy-default-full`),
+      main-thread JS heap 2.6 MiB; Firefox not measured (no API over
+      WebDriver BiDi).
 - [x] **Corpus rationale corrections.** `mi-fallback-weak-attraction` is
       period 3 (|λ| 0.848–0.902), not period 6. The left half of
       `mi-scale-6mx-basilica-rim` is period-4 interior, not near-parabolic
@@ -243,6 +275,8 @@ Estimates are engineering days. They are planning figures and may overlap.
       are CSS and can drift.
 - [x] Re-run the CVD matrix and axe on any palette change and record the
       evidence under `evidence/phase-2/`.
+- [x] Floors accepted by the owner 2026-10-18 (`MI-UX-021` has no remaining
+      evidence).
 
 **Done when:** each view's palette has numeric thresholds that a unit test
 checks, and the legend cannot drift from the rendered colours.
@@ -255,8 +289,8 @@ Q1, item 1.
 - [x] The period view emphasizes the (at most 5) periods covering the most
       area in the current view, coloured from a fixed five-colour CVD-safe
       palette in ascending period order; every other period is one neutral
-      colour (Q1). Today `src/domain/semantic.ts:52` gives every period its
-      own hue. The per-view ranking needs the frame's period histogram at
+      colour (Q1). (Before this item, `src/domain/semantic.ts` gave every period
+      its own hue.) The per-view ranking needs the frame's period histogram at
       colorize time, so a pan or zoom can recolour without reclassifying.
 - [x] Legend numeric scales for κ and |λ|; the period key lists exactly the
       emphasized classes plus "other".
@@ -303,7 +337,7 @@ silently.
 - [x] A catalog unit test: unique ids, exact period, ray pairs, schema.
       Done: `tests/unit/catalog/` and `npm run catalog:test`.
 - [x] A stable id scheme that survives regeneration (today's `mi-p4-NN` is
-      ordinal). Done: `mi-p<p>-<a>-<b>` from the characteristic rays; v1 ids
+      ordinal). Done: `mi-p<p>-<a>-<b>` from the parameter ray pair; v1 ids
       stay as aliases, `v` unchanged (ADR 0011, ADR 0009 amendment).
 - [x] Record internal and angled addresses for the six period-4 entries that
       lack them, or state why not. Done: generated from the rays (kneading
@@ -350,6 +384,8 @@ is regenerated in the same reviewed commit.
       five curated, named by the literature (owner decision 2026-10-18: "1/3-bulb
       (Douady rabbit)"); the glossary in the catalog panel
       (`src/ui/catalog-glossary.ts`) defines the parameter ray pair.
+- [x] References (owner decision 2026-10-18): see the
+      [ADR 0012 amendment](../decisions/0012-catalog-navigation-and-marker-density.md#amendment-2026-10-18-references).
 - [x] A marker density policy (Q4) with a stable focus order; handle label
       collisions. Done: `src/ui/marker-density.ts`: at most 40 markers,
       lowest periods first, catalog focus order, colliding labels hidden.
@@ -431,10 +467,12 @@ marker count stays bounded at any zoom.
       ("Period 4, rays 6/15 and 9/15"); curated names only for the five named
       components (owner decision 2026-10-17; ADR 0011).
 - [x] An ADR 0004 amendment recording the product decision.
-- [ ] Owner: regenerate the advisory `catalog-overlay.png` and
+- [x] Owner: regenerate the advisory `catalog-overlay.png` and
       `selected-marker.png` baselines in the container for both engines
       (`npm run test:visual:container`, with the owner's update flag), since
       the default view now shows 18 more markers (`fixtures/README.md`).
+      Done 2026-10-20 (commit `5fe077d`): all ten baselines regenerated at
+      `d3d0490` in both engines.
 
 **Done when:** the full core ships, is validated independently, stays within
 its size budget, and is displayed like the curated markers.
@@ -452,7 +490,12 @@ p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
 - [x] Evidence codes and flags for the analytic source; regenerate the golden
       kernel fixture in the same commit, with oracle evidence for every
       changed pixel (unresolved → attracting). Done: [adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md), 19,216 changed pixels, 0 unsupported.
-- [ ] A release-harness run in both browsers. Deferred to the owner's screen session (headed release harness). It now covers period 4 too.
+- [x] A release-harness run in both browsers. Done 2026-10-20 (`d3d0490`,
+      which includes periods 3 and 4): 0 hash mismatches between the hook and
+      plain arms in both browsers, and hook overhead within 5% (pooled
+      plain/hook 1.002 [0.986, 1.011] in Chrome, 0.993 [0.970, 1.014] in
+      Firefox); the Easy-view cost it exposed is the open item in section 0
+      ([evidence](../../evidence/phase-2/2026-10-20-d3d0490-release/summary.md)).
 - [x] **Period 4, after a rigorous root-error bound** (Kantorovich, or a cusp
       exclusion disk): the cubic solve inside the component boxes. This also
       resolves the unresolved half of the 6,000,000× basilica-rim view. Done: [ADR 0013](../decisions/0013-analytic-period-four.md), a certified root enclosure with a proved binary64 budget ([PERFORMANCE-MATHEMATICS §12](../PERFORMANCE-MATHEMATICS.md#12-period-4-cubic-with-a-certified-root-workstream-h-adr-0013)); [adjudication](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md): 12,435 changed golden-raster pixels and all 327,680 pixels of the 6,000,000× view's left half at 1024×640, 0 unsupported; Node [overhead and gain](../../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md).
@@ -460,33 +503,17 @@ p4 3–5 more. **Basis:** [H spike](WORKSTREAM-H-SPIKE-2026-10-16.md).
 **Done when:** the hard views gain as the spike measured, in the browsers, and
 every changed pixel is adjudicated against the oracle.
 
-## Proposed requirements
+## Requirements added in Phase 2
 
-To be added to [REQUIREMENTS.md](REQUIREMENTS.md) and the SysML model as each
-item lands:
+All landed in [REQUIREMENTS.md](REQUIREMENTS.md) and the SysML model:
 
-- `MI-UX-018` Period view emphasis: the period view emphasizes no more than
-  the agreed classes, each also distinguishable by a non-hue cue, and the
-  legend lists exactly what is emphasized. Added with items 1 and 2: the
-  non-hue identification is the ordered legend (exact periods, area shares)
-  plus isolation on legend hover, focus or activation.
-- `MI-UX-019` Shareable state: the viewport (exact decimal centre and span),
-  semantic view, quality profile and selection are encoded in a versioned URL
-  and restored on load; malformed or out-of-range values fall back to defaults
-  with a notice; an older version is never reinterpreted silently. Added
-  2026-10-16 with item 3.
-- `MI-UX-020` Catalog navigation: every catalog entry is reachable and
-  selectable by keyboard and by a list, with zoom-to-entry, annotation text,
-  and a bounded marker count. Added 2026-10-17 with item 6.
-- `MI-UX-021` Palette acceptance: each view's palette meets declared
-  monotonicity and distinguishability thresholds under normal and simulated
-  colour vision, and the legend derives from the rendered palette. Added with
-  item 1.
+- `MI-UX-018` Period view emphasis: added with items 1 and 2.
+- `MI-UX-019` Shareable state: added 2026-10-16 with item 3.
+- `MI-UX-020` Catalog navigation: added 2026-10-17 with item 6.
+- `MI-UX-021` Palette acceptance: added with item 1.
 - `MI-VER-UX-006` Image regression (proposed as `MI-VER-UX-001`, which the
-  SysML model already uses for the first-use verification case): each
-  semantic view has committed goldens for the default and two zoomed views,
-  with a documented tolerance and update procedure. Added 2026-10-17 with
-  item 5.
+  SysML model already uses for the first-use verification case): added
+  2026-10-17 with item 5.
 
 ## Not in Phase 2
 
