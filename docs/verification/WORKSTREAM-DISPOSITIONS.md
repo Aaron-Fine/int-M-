@@ -30,7 +30,7 @@ directional-pass-pending, D is directional-pass-pending — records in
 | E   | Dynamic microbands               | **Not started**; renderer-path details have directional evidence; N precedes E |
 | F   | Period-12 core + shards          | **Deferred by default; evidence gate does NOT fire on current evidence**       |
 | G   | Catalog/session/adjacent Newton  | **Not started**; directionally strong PoC evidence, ship shape known           |
-| H   | p3/p4 algebraic experiment       | **Not started**; no PoC measurement                                            |
+| H   | p3/p4 algebraic experiment       | **Period 3 and period 4 landed** (ADR 0010, ADR 0013)                          |
 | I   | Wasm SIMD backend                | **Not started**; direction accepted under ADR 0005 conditions                  |
 | J   | Rigorous subdivision (research)  | **Not started** (research track; gate quoted below)                            |
 | K   | Worker pool sizing               | **Hold** for the declared ≥8-core target class before any PR                   |
@@ -126,13 +126,27 @@ and the common verifier.
 
 ## Workstream H — p3/p4 algebraic experiment
 
-Disposition: **not started**; no PoC measurement exists. Gate (plan §5,
-verbatim): `Targeted ≥15% or weighted ≥5%; fallback ≤5%; zero incorrect
-results`. Kill: `Keep research-only if inversion/branch selection costs exceed
-orbit/Newton path`. What would start it: a feasibility measurement showing
-robust low-period candidate generation whose acceptance path repays its cost
-on the corpus — none has been proposed or recorded. No change to its standing
-from the first Stage A run.
+Disposition: **period 3 landed** (owner decision 2026-10-16 after the
+[spike](WORKSTREAM-H-SPIKE-2026-10-16.md); [ADR 0010](../decisions/0010-analytic-period-three.md)).
+The closed form is tried once per pixel at the first scanning iteration behind
+the component-box gate. Node evidence: every changed golden-raster pixel
+dd-adjudicated ([adjudication](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md)) and
+fallback overhead within 5% ([overhead](../../evidence/phase-2/2026-10-17-1bffe34-period-three-overhead/summary.md)).
+Gate (plan §5, verbatim): `Targeted ≥15% or weighted ≥5%; fallback ≤5%; zero
+incorrect results`; the targeted and weighted clauses still need the browser
+release run, which is deferred to the owner's screen session.
+Kill (plan §5, verbatim): `Keep research-only if inversion/branch selection
+costs exceed orbit/Newton path` — not triggered: the closed form is 5–37×
+cheaper per pixel handled ([spike](WORKSTREAM-H-SPIKE-2026-10-16.md)).
+Period 4 landed on 2026-10-17 ([ADR 0013](../decisions/0013-analytic-period-four.md)):
+its cubic solve accepts only through a certified root enclosure (an
+a-posteriori Rouché test with a proved binary64 budget,
+[PERFORMANCE-MATHEMATICS §12](../PERFORMANCE-MATHEMATICS.md#12-period-4-cubic-with-a-certified-root-workstream-h-adr-0013)).
+Every changed pixel is dd-adjudicated
+([adjudication](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md)), the fallback
+overhead is within 5% ([overhead](../../evidence/phase-2/2026-10-17-cf414cc-period-four-overhead/summary.md)),
+and the unresolved half of the 6,000,000× view resolves. The browser release
+run for both periods is deferred to the owner's screen session.
 
 ## Workstream I — Wasm SIMD backend
 

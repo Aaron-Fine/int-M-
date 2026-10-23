@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   classifyInto,
+  classifyPeriodFourInto,
   createOrbitSample,
   materializeOrbitResult,
   resolveOrbitOptions,
@@ -9,9 +10,16 @@ import {
   VERIFIER_REVISION,
   type OrbitOptions,
   type OrbitResult,
+  type PeriodFourCertificate,
 } from '../../../src/domain';
 import { legacyClassifyOrbit, STRATA } from './legacy-differential';
-import { classifyDDMinimal, type DDOracleVerdict } from './dd-oracle';
+import {
+  classifyDDMinimal,
+  ddPeriodFourCycle,
+  ddPeriodThreeCycle,
+  type DDOracleVerdict,
+} from './dd-oracle';
+import { multiplierDistance } from './analytic-test-helpers';
 
 /**
  * Oracle adjudication of every legacy-versus-verifier disagreement (PR 3 M3,
@@ -48,6 +56,10 @@ const PROFILES: readonly { readonly label: string; readonly options: Partial<Orb
 interface Adjudication {
   changed: number;
   periodReductions: string[];
+  analyticPeriodThree: number;
+  unresolvedToPeriodThree: number;
+  analyticPeriodFour: number;
+  unresolvedToPeriodFour: number;
   falseAttracting: number;
   wrongPrimitivePeriod: number;
   unsupported: string[];
@@ -81,6 +93,10 @@ describe('dd-oracle adjudication of every legacy-versus-verifier disagreement', 
       const adjudication: Adjudication = {
         changed: 0,
         periodReductions: [],
+        analyticPeriodThree: 0,
+        unresolvedToPeriodThree: 0,
+        analyticPeriodFour: 0,
+        unresolvedToPeriodFour: 0,
         falseAttracting: 0,
         wrongPrimitivePeriod: 0,
         unsupported: [],
@@ -118,6 +134,57 @@ describe('dd-oracle adjudication of every legacy-versus-verifier disagreement', 
           production.period !== oracle.cycle.primitive
         ) {
           adjudication.wrongPrimitivePeriod += 1;
+        }
+
+        if (
+          production.status === 'attracting-cycle' &&
+          production.evidence[0] === 'analytic-period-3-component'
+        ) {
+          // ADR 0010: the closed-form period-3 path. Every such answer,
+          // changed or not, is checked against the dd period-3 cycle, which
+          // uses no closed form and needs no orbit convergence.
+          adjudication.analyticPeriodThree += 1;
+          if (legacy.status === 'unresolved') {
+            adjudication.unresolvedToPeriodThree += 1;
+          }
+          const check = ddPeriodThreeCycle(point.re, point.im);
+          if (
+            check.status !== 'attracting-cycle' ||
+            check.cycle.primitive !== 3 ||
+            multiplierDistance(production, check.cycle) > ANALYTIC_PERIOD_THREE_TOLERANCE
+          ) {
+            adjudication.unsupported.push(
+              `${index}: analytic period 3 not dd-certified (dd ${check.status})`,
+            );
+          }
+          continue;
+        }
+
+        if (
+          production.status === 'attracting-cycle' &&
+          production.evidence[0] === 'analytic-period-4-component'
+        ) {
+          // ADR 0013: the certified period-4 cubic solve, checked against the
+          // dd period-4 cycle (no cubic, no orbit convergence). The multiplier
+          // must agree within the certificate's own allowance.
+          adjudication.analyticPeriodFour += 1;
+          if (legacy.status === 'unresolved') {
+            adjudication.unresolvedToPeriodFour += 1;
+          }
+          const certificate = {} as PeriodFourCertificate;
+          classifyPeriodFourInto(point.re, point.im, createOrbitSample(), certificate);
+          const check = ddPeriodFourCycle(point.re, point.im);
+          if (
+            check.status !== 'attracting-cycle' ||
+            check.cycle.primitive !== 4 ||
+            multiplierDistance(production, check.cycle) >
+              certificate.allowance + ANALYTIC_PERIOD_FOUR_DD_TOLERANCE
+          ) {
+            adjudication.unsupported.push(
+              `${index}: analytic period 4 not dd-certified (dd ${check.status})`,
+            );
+          }
+          continue;
         }
 
         if (
@@ -160,18 +227,47 @@ describe('dd-oracle adjudication of every legacy-versus-verifier disagreement', 
         );
       }
 
-      // Unresolved-rate delta vs legacy, quantified: zero on this grid
-      // (every disagreement is a period reduction, no status flips).
-      expect(adjudication.unresolvedDelta).toBe(0);
+      // Unresolved-rate delta vs legacy, quantified: the only status flips
+      // on this grid are unresolved -> analytic period 3 (ADR 0010) and
+      // unresolved -> analytic period 4 (ADR 0013), each dd-certified above.
+      expect(adjudication.unresolvedDelta).toBe(
+        -adjudication.unresolvedToPeriodThree - adjudication.unresolvedToPeriodFour,
+      );
       expect(adjudication.falseAttracting).toBe(0);
       expect(adjudication.wrongPrimitivePeriod).toBe(0);
       expect(adjudication.unsupported).toEqual([]);
       // Pin the disagreement shape and size per profile: every changed
       // legacy answer on this grid is a primitive-period reduction (the
       // documented flaw the verifier's three-way divisor policy fixes).
-      const expectedReductions: Record<string, number> = { quick: 6, balanced: 13, detailed: 17 };
+      // Since ADR 0010 the period-3 reductions (6 -> 3, 12 -> 3) and since
+      // ADR 0013 the period-4 ones (8 -> 4, 12 -> 4) are answered by the
+      // analytic paths and adjudicated above; the rest are period 5.
+      const expectedReductions: Record<string, number> = { quick: 0, balanced: 0, detailed: 2 };
       expect(adjudication.periodReductions.length).toBe(expectedReductions[profile.label]);
       expect(adjudication.periodReductions.length).toBe(adjudication.changed);
+      // ADR 0010: 39 grid points take the analytic period-3 path under every
+      // profile (the closed form ignores the budget); of those, the legacy
+      // scan left this many unresolved.
+      expect(adjudication.analyticPeriodThree).toBe(39);
+      const expectedUnresolvedToPeriodThree: Record<string, number> = {
+        quick: 16,
+        balanced: 10,
+        detailed: 8,
+      };
+      expect(adjudication.unresolvedToPeriodThree).toBe(
+        expectedUnresolvedToPeriodThree[profile.label],
+      );
+      // ADR 0013: 33 grid points take the certified period-4 path under every
+      // profile; of those, the legacy scan left this many unresolved.
+      expect(adjudication.analyticPeriodFour).toBe(33);
+      const expectedUnresolvedToPeriodFour: Record<string, number> = {
+        quick: 14,
+        balanced: 8,
+        detailed: 8,
+      };
+      expect(adjudication.unresolvedToPeriodFour).toBe(
+        expectedUnresolvedToPeriodFour[profile.label],
+      );
     });
   }
 
@@ -218,10 +314,26 @@ describe('dd-oracle adjudication of every legacy-versus-verifier disagreement', 
     }
     expect(certified).toBeGreaterThan(0);
     expect(unadjudicatedAttracting).toBeGreaterThan(0);
-    expect(missedDetections).toBe(14);
+    // Two budget misses of the lag scan are answered by the closed form
+    // since ADR 0010.
+    expect(missedDetections).toBe(12);
     expect(VERIFIER_REVISION).toBe('src-verifier-1.0.0');
   });
 });
+
+/**
+ * Complex distance allowed between the closed-form period-3 multiplier and
+ * the dd-certified one. The error budget (docs/PERFORMANCE-MATHEMATICS.md
+ * section 11) bounds the closed form by about 5e-14; measured worst 3e-15 on
+ * the golden raster.
+ */
+const ANALYTIC_PERIOD_THREE_TOLERANCE = 1e-12;
+
+/**
+ * Allowed excess of |lambda_analytic - lambda_dd| over the period-4
+ * certificate's own allowance (dd rounding and dd Newton error; ADR 0013).
+ */
+const ANALYTIC_PERIOD_FOUR_DD_TOLERANCE = 1e-12;
 
 /** Declared binary64 multiplier tolerance (fixtures/orbits.v1.json policy). */
 const MULTIPLIER_TOLERANCE = 1e-7;

@@ -96,7 +96,8 @@
           "im": "0.029603214108057098978115968501482121660504784151706960781536714920794519057813596",
           "magnitude": "0.058186257824726913946072725149398542527385340372923527654809551204205569112151791"
         }
-      }
+      },
+      "expectedEvidence": ["analytic-period-3-component"]
     },
     {
       "id": "period-four-off-center",
@@ -120,7 +121,208 @@
           "im": "0E-11346",
           "magnitude": "0.18054275318673077035218345347127029398673965503614893765819596156686775596756607"
         }
-      }
+      },
+      "expectedEvidence": ["analytic-period-4-component"]
+    },
+    {
+      "id": "period-four-basilica-rim",
+      "parameter": {
+        "re": "-1.250625",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 65536,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 4,
+        "settledAfterIterations": 23441,
+        "cycleClosureResidualSquared": "9.9784157253635135261752793252395369808035856448939290128677509360061927768036129E-61",
+        "multiplier": {
+          "re": "0.98999699948762809572304890204215599057460100043785883547404766165645171051719657",
+          "im": "0E-1000078",
+          "magnitude": "0.98999699948762809572304890204215599057460100043785883547404766165645171051719657"
+        }
+      },
+      "expectedEvidence": ["analytic-period-4-component"]
+    },
+    {
+      "id": "period-four-real-primitive-near-cusp",
+      "parameter": {
+        "re": "-1.9405508139761496",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 65536,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 4,
+        "settledAfterIterations": 20925,
+        "cycleClosureResidualSquared": "9.9477112719810714678383054232743290757243033416994573069648676035110935844178994E-61",
+        "multiplier": {
+          "re": "0.99002309841361240809617517801946335270090983276647022366292833225028460052542647",
+          "im": "-0E-1000078",
+          "magnitude": "0.99002309841361240809617517801946335270090983276647022366292833225028460052542647"
+        }
+      },
+      "expectedEvidence": ["analytic-period-4-component"]
+    },
+    {
+      "id": "period-four-cardioid-satellite-rim",
+      "parameter": {
+        "re": "0.32045830055798563",
+        "im": "0.5123032453806926"
+      },
+      "classificationBudget": {
+        "maxIterations": 65536,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 4,
+        "settledAfterIterations": 26173,
+        "cycleClosureResidualSquared": "9.8495248598142890785941231116950856231790291725341884599927469475798090135978500E-61",
+        "multiplier": {
+          "re": "-0.41198536818167125067201501451660015053117569888659212879486591390383775778546066",
+          "im": "0.90020445255742418485071018406029585043386820474834457468769490369976380741020579",
+          "magnitude": "0.98999999999999948897987242292771763818353209745673354890514374002387325883275355"
+        }
+      },
+      "expectedEvidence": ["analytic-period-4-component"]
+    },
+    {
+      "id": "period-eight-cardioid-satellite-satellite",
+      "parameter": {
+        "re": "0.32484",
+        "im": "0.56386"
+      },
+      "classificationBudget": {
+        "maxIterations": 16384,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 8,
+        "settledAfterIterations": 81,
+        "cycleClosureResidualSquared": "1.2222797876035440220743540909209239049638759158760194314811609619702679926867709E-61",
+        "multiplier": {
+          "re": "-0.0039797848888853286806399580073049897325047527338855125478152294969985730719363476",
+          "im": "-0.0022838109359414301205502590574859880992979752856515411277604798635385254619620111",
+          "magnitude": "0.0045885161166684027444934009591903134726783299229157338304879978151463135100823445"
+        }
+      },
+      "expectedEvidence": ["converged-cycle"]
+    },
+    {
+      "id": "period-three-weak-attraction-centre",
+      "parameter": {
+        "re": "-0.1205",
+        "im": "0.8268"
+      },
+      "classificationBudget": {
+        "maxIterations": 4096,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 1486,
+        "cycleClosureResidualSquared": "8.0318313008562903010237346286494672239479981356005003525073675532634321516145225E-61",
+        "multiplier": {
+          "re": "-0.87467751818668860448058196704238286587559907476260586709754277907499717016878041",
+          "im": "-0.04004509961793428740411437317654950486689297681394320591167096012151629149218975",
+          "magnitude": "0.87559372475174538293782753988933973555268728529414890080374574269801235993895567"
+        }
+      },
+      "expectedEvidence": ["analytic-period-3-component"]
+    },
+    {
+      "id": "period-three-airplane-near-cusp",
+      "parameter": {
+        "re": "-1.750001",
+        "im": "0"
+      },
+      "classificationBudget": {
+        "maxIterations": 32768,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 11923,
+        "cycleClosureResidualSquared": "9.9445884942538329313354509904661604939374502461824334174629506750091065547345992E-61",
+        "multiplier": {
+          "re": "0.98599599199999999999999998843375629057745831223952899281185171198777951934828655",
+          "im": "-0E-941850",
+          "magnitude": "0.98599599199999999999999998843375629057745831223952899281185171198777951934828655"
+        }
+      },
+      "expectedEvidence": ["analytic-period-3-component"]
+    },
+    {
+      "id": "period-three-rabbit-rim",
+      "parameter": {
+        "re": "-0.046545032326946937",
+        "im": "0.69276818807760281"
+      },
+      "classificationBudget": {
+        "maxIterations": 65536,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 3,
+        "settledAfterIterations": 19672,
+        "cycleClosureResidualSquared": "9.9358858697760557597584619171080118905021768025891825008297054794755681827563926E-61",
+        "multiplier": {
+          "re": "0.53489928280945830041269565043075490714572602587766124303396438466650990114745432",
+          "im": "0.83305627495981753709976100711578960111157620512826017827082794241447164708258230",
+          "magnitude": "0.98999999999999998551930414171104174315013125758076851977456336048011301087435682"
+        }
+      },
+      "expectedEvidence": ["analytic-period-3-component"]
+    },
+    {
+      "id": "period-six-rabbit-satellite",
+      "parameter": {
+        "re": "-0.1155037469844854",
+        "im": "0.8402560718860035"
+      },
+      "classificationBudget": {
+        "maxIterations": 16384,
+        "maxPeriod": 8,
+        "cycleTolerance": 1e-10,
+        "cycleWarmup": 24
+      },
+      "expected": {
+        "status": "attracting-cycle",
+        "period": 6,
+        "settledAfterIterations": 3547,
+        "cycleClosureResidualSquared": "9.5215262682816629798616770568859303478592259147216728354417191531249533846765165E-61",
+        "multiplier": {
+          "re": "0.90149878564250468779286584247445739216971421344243349956306589057179682559161557",
+          "im": "0.00063558704192878595310023841463641412304307002198715182629946637238459538876599",
+          "magnitude": "0.90149900969762495019813751639313837981577776438155287733170369685765602546321019"
+        }
+      },
+      "expectedEvidence": ["converged-cycle"]
     },
     {
       "id": "parabolic-boundary-minus-three-quarters",

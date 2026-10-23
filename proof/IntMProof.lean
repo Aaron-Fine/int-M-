@@ -71,6 +71,8 @@ import IntMProof.StoredReference
 import IntMProof.StoredDisk
 import IntMProof.StoredReferenceExamples
 import IntMProof.FastPath
+import IntMProof.PeriodThreeMultiplier
+import IntMProof.PeriodFourMultiplier
 import IntMProof.VerifierModel
 import IntMProof.VerifierPrefixCache
 import IntMProof.UniformVerdict

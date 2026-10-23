@@ -20,5 +20,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["tests/e2e/**/*.ts"]
+  "include": ["tests/e2e/**/*.ts", "tests/visual/**/*.ts"]
 }

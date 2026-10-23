@@ -1,4 +1,4 @@
-import type { Complex, EvidenceSource } from '../domain';
+import type { Complex, EvidenceFlag, EvidenceSource } from '../domain';
 import type {
   FrameMessage,
   InspectionResult,
@@ -12,14 +12,36 @@ import {
   zoomViewportAt,
   zoomViewportToRect,
 } from '../domain/viewport';
-import { COMPONENT_CATALOG, type CatalogComponent } from '../catalog/components';
+import coreUrl from '../../catalog/core.v1.bin?url';
+import coreManifest from '../../catalog/core.v1.json';
+import {
+  CATALOG,
+  COMPONENT_CATALOG,
+  catalogNames,
+  type CatalogComponent,
+} from '../catalog/components';
+import { mergeCatalog } from '../catalog/core';
+import { catalogGroups, zoomSpanFor } from '../catalog/navigation';
+import { createCatalogIndex } from '../catalog/viewport-index';
+import { loadCatalogCore } from './catalog-core-client';
+import { createCatalogPanel } from './catalog-panel';
+import { angledAddressChain } from './angled-address';
+import { referencesLine } from './references';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
+import { planMarkers } from './marker-density';
 import { createSemanticLegend } from './semantic-legend';
-import { parseBenchmarkParams } from './benchmark-params';
+import {
+  addressBarSearch,
+  isEncodableShareState,
+  issuesNotice,
+  resolveStartupState,
+  shareLink,
+} from './share-link';
+import { encodeShareState } from './share-state';
+import type { ShareSelection, ShareState } from './share-state';
 import {
   DEFAULT_VIEWPORT,
-  DEFAULT_QUALITY_PROFILE_ID,
   formatCoordinate,
   formatCoordinateForViewport,
   formatMagnification,
@@ -48,9 +70,15 @@ import {
 interface ApplicationState {
   viewport: Viewport;
   semanticView: SemanticView;
+  /** Period isolated from the legend (MI-UX-018): a palette input, never in the cache key. */
+  isolatedPeriod?: number | undefined;
   catalogVisible: boolean;
   requestId: number;
   activeRequestId: number;
+  /** Viewport the active render request was made for. */
+  activeRequestViewport?: Viewport | undefined;
+  /** Viewport of the frame on screen: the overlay is planned from it, not from the target. */
+  presentedViewport?: Viewport | undefined;
   activeInspectionRequestId: number;
   frameStage: 'none' | 'coarse' | 'stable';
   dragging: boolean;
@@ -58,6 +86,8 @@ interface ApplicationState {
   qualityProfile: QualityProfileId;
   selectedPoint?: Complex;
   selectedCatalogId?: string;
+  /** A link's generated entry (period 5 to 12) awaiting the catalog core (ADR 0014). */
+  pendingCatalogId?: string;
   requestStartedAtMs: number;
 }
 
@@ -68,8 +98,12 @@ interface CanvasPoint {
 
 type InteractionMode = 'pan' | 'region';
 const RENDER_DELAY_MS = 65;
+/** Quiet time after a settled view before the address bar records it (ADR 0009). */
+const URL_WRITE_DELAY_MS = 500;
 const LABEL_MAGNIFICATION_THRESHOLD = 2;
 const MIN_REGION_SIZE_PX = 12;
+const ZOOM_LIMIT_MESSAGE =
+  'Reached the current reliable zoom limit for this renderer and numerical budget.';
 
 declare global {
   interface Window {
@@ -92,13 +126,13 @@ declare global {
 
 export function mountApplication(host: HTMLElement): () => void {
   performance.mark('mi:app-mount');
-  // Opt-in benchmark parameters (plan §8/§9): validated query parameters for
-  // the Stage A evidence harness. Absent parameters leave every default —
-  // viewport, quality profile, and trace hook — untouched.
-  const benchmark = parseBenchmarkParams(window.location.search);
+  // The starting view (ADR 0009): a v1 share link, else the benchmark
+  // harness's opt-in parameters (plan §8/§9), else the defaults. `perf=1`
+  // enables the render-trace hook in every case.
+  const startup = resolveStartupState(window.location.search);
   let perfHook: NonNullable<Window['__miRenderTrace']> | undefined;
   const renderTraces = createRenderTraceRing({
-    ...(benchmark.perfEnabled
+    ...(startup.perfEnabled
       ? {
           onTraceCompleted: (trace: RenderTrace) => {
             if (perfHook !== undefined) perfHook.lastTrace = trace;
@@ -118,8 +152,8 @@ export function mountApplication(host: HTMLElement): () => void {
     : undefined;
   longTaskObserver?.observe({ type: 'longtask', buffered: true });
   const state: ApplicationState = {
-    viewport: benchmark.viewport ? { ...benchmark.viewport } : { ...DEFAULT_VIEWPORT },
-    semanticView: 'stability',
+    viewport: { ...startup.viewport },
+    semanticView: startup.semanticView,
     catalogVisible: true,
     requestId: 0,
     activeRequestId: 0,
@@ -127,10 +161,10 @@ export function mountApplication(host: HTMLElement): () => void {
     frameStage: 'none',
     dragging: false,
     interactionMode: 'pan',
-    qualityProfile: benchmark.qualityProfile ?? DEFAULT_QUALITY_PROFILE_ID,
+    qualityProfile: startup.qualityProfile,
     requestStartedAtMs: 0,
   };
-  if (benchmark.perfEnabled) {
+  if (startup.perfEnabled) {
     perfHook = {
       snapshot: () => renderTraces.snapshot(),
       viewport: () => ({ ...state.viewport }),
@@ -212,9 +246,10 @@ export function mountApplication(host: HTMLElement): () => void {
   for (const view of SEMANTIC_VIEWS) {
     semanticSelect.append(element('option', { text: view.label, attributes: { value: view.id } }));
   }
+  semanticSelect.value = state.semanticView;
   const semanticDescription = element('p', {
     className: 'control-description',
-    text: SEMANTIC_VIEWS[0].description,
+    text: semanticViewDescription(state.semanticView),
     attributes: { id: 'semantic-view-description' },
   });
   const qualitySelect = element('select', {
@@ -238,7 +273,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   const catalogToggle = button('Catalog', {
     className: 'toggle-button',
-    title: 'Show named components and internal addresses',
+    title: 'Show or hide the catalog markers on the image',
     pressed: state.catalogVisible,
   });
   const catalogStatus = element('span', {
@@ -252,6 +287,12 @@ export function mountApplication(host: HTMLElement): () => void {
     title: 'Restore the full-set view (0)',
   });
   setIcon(resetButton, 'reset', 'Reset');
+  const copyLinkButton = button('', {
+    className: 'icon-button',
+    title: 'Copy a link to this view',
+  });
+  setIcon(copyLinkButton, 'link', 'Copy link');
+  copyLinkButton.setAttribute('aria-label', 'Copy link to this view');
   const zoomOutButton = button('', {
     className: 'icon-button icon-button--compact',
     title: 'Zoom out (−)',
@@ -286,10 +327,31 @@ export function mountApplication(host: HTMLElement): () => void {
       'aria-atomic': 'true',
     },
   });
+  // Always in the document so that filling it is announced; empty, it takes
+  // no space (styles.css `.link-notice:empty`).
+  const linkNotice = element('div', {
+    className: 'link-notice',
+    attributes: {
+      role: 'status',
+      'aria-label': 'Link notice',
+      'aria-live': 'polite',
+      'aria-atomic': 'true',
+    },
+  });
 
   const guidance = createGuidance();
   const inspector = createInspector();
   const legend = createSemanticLegend();
+  legend.update(state.semanticView);
+  const catalogPanel = createCatalogPanel({
+    groups: catalogGroups(COMPONENT_CATALOG),
+    onActivate: (component) => {
+      activateCatalogEntry(component);
+    },
+    onShowView: () => {
+      canvasShell.scrollIntoView({ block: 'start' });
+    },
+  });
   const catalogOverlay = element('div', {
     className: 'catalog-overlay',
     attributes: {
@@ -355,7 +417,7 @@ export function mountApplication(host: HTMLElement): () => void {
     attributes: { role: 'group', 'aria-label': 'Zoom controls' },
   });
   zoomGroup.append(zoomOutButton, zoomInButton);
-  controlActions.append(pointerToolGroup, catalogToggle, zoomGroup, resetButton);
+  controlActions.append(pointerToolGroup, catalogToggle, zoomGroup, resetButton, copyLinkButton);
   controls.append(controlFields, controlActions);
 
   const canvasShell = element('section', {
@@ -400,11 +462,11 @@ export function mountApplication(host: HTMLElement): () => void {
     className: 'side-panel',
     attributes: { 'aria-label': 'Interpretation' },
   });
-  sidePanel.append(inspector.element, legend.element);
+  sidePanel.append(inspector.element, legend.element, catalogPanel.element);
 
   const workspace = element('main', { className: 'workspace' });
   const primary = element('div', { className: 'primary' });
-  primary.append(controls, canvasShell);
+  primary.append(linkNotice, controls, canvasShell);
   workspace.append(primary, sidePanel);
 
   replaceChildren(host, [header, workspace, guidance.element]);
@@ -412,6 +474,8 @@ export function mountApplication(host: HTMLElement): () => void {
 
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
   let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
+  let urlTimer: ReturnType<typeof setTimeout> | undefined;
+  let noticeTimer: ReturnType<typeof setTimeout> | undefined;
   let pointerSession:
     | {
         readonly pointerId: number;
@@ -437,6 +501,124 @@ export function mountApplication(host: HTMLElement): () => void {
     }, 2600);
   }
 
+  function showLinkNotice(message: string): void {
+    const dismiss = button('Dismiss', { className: 'link-notice__dismiss' });
+    dismiss.setAttribute('aria-label', 'Dismiss link notice');
+    dismiss.addEventListener('click', () => {
+      linkNotice.replaceChildren();
+      renderCanvas.focus();
+    });
+    linkNotice.replaceChildren(
+      element('p', { className: 'link-notice__text', text: message }),
+      dismiss,
+    );
+  }
+
+  function currentSelection(): ShareSelection | undefined {
+    const catalogId = state.selectedCatalogId ?? state.pendingCatalogId;
+    if (catalogId !== undefined) return { kind: 'catalog', id: catalogId };
+    return state.selectedPoint === undefined
+      ? undefined
+      : { kind: 'point', point: state.selectedPoint };
+  }
+
+  function currentShareState(): ShareState {
+    return {
+      viewport: state.viewport,
+      semanticView: state.semanticView,
+      qualityProfile: state.qualityProfile,
+      selection: currentSelection(),
+    };
+  }
+
+  function replaceAddressBar(): void {
+    const shareState = currentShareState();
+    // Panning is unbounded: a non-finite view cannot be encoded, so the
+    // address keeps its last settled value rather than throwing.
+    if (!isEncodableShareState(shareState)) return;
+    const search = addressBarSearch(window.location.search, shareState);
+    if (search === window.location.search) return;
+    history.replaceState(
+      history.state,
+      '',
+      `${window.location.pathname}${search}${window.location.hash}`,
+    );
+  }
+
+  // The query the page opened with: a refused or adjusted link stays in the
+  // address bar until the view differs from it.
+  const openedQuery = encodeShareState(startup);
+
+  /**
+   * Records the view in the address bar once it has settled (ADR 0009):
+   * `replaceState`, so Back still leaves the explorer, and never mid-drag or
+   * while a newer render is pending, whose stable frame reschedules this.
+   */
+  function scheduleUrlWrite(): void {
+    if (urlTimer !== undefined) clearTimeout(urlTimer);
+    urlTimer = setTimeout(() => {
+      urlTimer = undefined;
+      if (pointerSession !== undefined || renderTimer !== undefined) return;
+      if (state.frameStage !== 'stable') return;
+      // A link that was refused or adjusted stays in the address bar, beside
+      // its notice, until the view differs from the one the page opened with.
+      if (
+        startup.notice !== undefined &&
+        isEncodableShareState(currentShareState()) &&
+        encodeShareState(currentShareState()) === openedQuery
+      ) {
+        return;
+      }
+      replaceAddressBar();
+    }, URL_WRITE_DELAY_MS);
+  }
+
+  /**
+   * Copies the v1 link for the current view. The shared link never carries
+   * `perf` or foreign parameters. Without clipboard access (an insecure
+   * origin, a denied permission) the address bar is brought up to date
+   * instead, so the link is still one step away.
+   */
+  async function copyShareLink(): Promise<void> {
+    const shareState = currentShareState();
+    // A non-finite view cannot be encoded: say so instead of throwing.
+    if (!isEncodableShareState(shareState)) {
+      showFeedback('Could not create a link for this view.');
+      return;
+    }
+    const link = shareLink(window.location.origin, window.location.pathname, shareState);
+    try {
+      await navigator.clipboard.writeText(link);
+      showFeedback('Link to this view copied.');
+    } catch {
+      replaceAddressBar();
+      showFeedback(
+        'Could not copy automatically. The address bar now shows the link to this view.',
+      );
+    }
+  }
+
+  /** Applies the link's notice and selection; needs the worker client. */
+  function restoreFromLink(): void {
+    const notice = startup.notice;
+    if (notice !== undefined) {
+      // Filled after mount: screen readers announce changes to a live
+      // region, not the content it starts with.
+      noticeTimer = setTimeout(() => {
+        showLinkNotice(notice);
+      }, 0);
+    }
+    const selection = startup.selection;
+    if (selection?.kind === 'point') {
+      inspectPoint(selection.point);
+    } else if (selection?.kind === 'catalog') {
+      const component = lookupCatalog(selection.id);
+      // Only a well-formed period 5 to 12 id decodes without an entry (share-state.ts).
+      if (component) inspectPoint(component.center, component);
+      else state.pendingCatalogId = selection.id;
+    }
+  }
+
   function updateCoordinateReadout(): void {
     magnification.value = formatMagnification(state.viewport.spanY);
     magnification.textContent = magnification.value;
@@ -451,7 +633,7 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasShell.classList.toggle(
       'explorer--expanded-labels',
       DEFAULT_VIEWPORT.spanY / state.viewport.spanY >= LABEL_MAGNIFICATION_THRESHOLD &&
-        Number.parseFloat(getComputedStyle(document.documentElement).fontSize) <= 22,
+        remPx() <= 22,
     );
     updateSelectedPointMarker();
   }
@@ -533,6 +715,7 @@ export function mountApplication(host: HTMLElement): () => void {
     const size = dimensions();
     state.requestId += 1;
     state.activeRequestId = state.requestId;
+    state.activeRequestViewport = state.viewport;
     state.frameStage = 'none';
     canvasShell.dataset['renderStage'] = 'requested';
     canvasShell.dataset['renderRequestId'] = String(state.activeRequestId);
@@ -548,6 +731,9 @@ export function mountApplication(host: HTMLElement): () => void {
       size,
       semanticView: state.semanticView,
       quality: quality.quality,
+      ...(state.semanticView === 'period' && state.isolatedPeriod !== undefined
+        ? { isolatedPeriod: state.isolatedPeriod }
+        : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,
@@ -562,8 +748,14 @@ export function mountApplication(host: HTMLElement): () => void {
     });
   }
 
+  /** Writes the render status only when it changes, so a recolor is not re-announced. */
+  function showRenderStatus(text: string): void {
+    if (statusText.textContent !== text) statusText.textContent = text;
+  }
+
   function presentFrame(frame: FrameMessage): void {
     if (frame.requestId !== state.activeRequestId) return;
+    state.presentedViewport = state.activeRequestViewport;
 
     const pixels = new ImageData(frame.rgba, frame.width, frame.height);
     renderCanvas.width = frame.width;
@@ -571,6 +763,10 @@ export function mountApplication(host: HTMLElement): () => void {
     canvasContext.imageSmoothingEnabled = false;
     canvasContext.putImageData(pixels, 0, 0);
     state.frameStage = frame.stage;
+    canvasShell.toggleAttribute('data-isolated-period', frame.isolatedPeriod !== undefined);
+    if (frame.isolatedPeriod !== undefined) {
+      canvasShell.dataset['isolatedPeriod'] = String(frame.isolatedPeriod);
+    }
     canvasShell.dataset['renderStage'] = frame.stage;
     canvasShell.dataset['renderRequestId'] = String(frame.requestId);
     retryRendererButton.hidden = true;
@@ -588,14 +784,21 @@ export function mountApplication(host: HTMLElement): () => void {
     });
 
     if (frame.stage === 'coarse') {
-      statusText.textContent = `Refining view · ${Math.round(frame.progress * 100)}%`;
+      showRenderStatus(`Refining view · ${Math.round(frame.progress * 100)}%`);
     } else {
+      requestCatalogCore();
       status.className = 'status status--ready';
-      statusText.textContent = 'Stable frame';
+      showRenderStatus('Stable frame');
       presentationCanvas.width = frame.width;
       presentationCanvas.height = frame.height;
       presentationContext.drawImage(renderCanvas, 0, 0);
+      scheduleUrlWrite();
     }
+    // Last, because the legend can synchronously start an isolation recolor
+    // (a new request), which must not find this frame's dataset written over
+    // its own. The period key ranks this frame (coarse and stable can
+    // differ); show the mapping of the raster on screen, never a stale one.
+    if (state.semanticView === 'period') legend.update('period', frame.periodKey, frame.stage);
   }
 
   function zoom(direction: 'in' | 'out', anchor: CanvasPoint = { x: 0.5, y: 0.5 }): void {
@@ -604,9 +807,7 @@ export function mountApplication(host: HTMLElement): () => void {
     const nextScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, requestedScale));
     if (nextScale === state.viewport.spanY) {
       showFeedback(
-        direction === 'in'
-          ? 'Reached the current reliable zoom limit for this renderer and numerical budget.'
-          : 'Already showing the complete Mandelbrot set.',
+        direction === 'in' ? ZOOM_LIMIT_MESSAGE : 'Already showing the complete Mandelbrot set.',
       );
       canvasShell.classList.remove('explorer--bounded');
       requestAnimationFrame(() => canvasShell.classList.add('explorer--bounded'));
@@ -630,16 +831,21 @@ export function mountApplication(host: HTMLElement): () => void {
   }
 
   function resetView(): void {
+    // A pan or area selection still in progress would otherwise resume from its saved view.
+    cancelPointerSession(false);
     state.viewport = {
       center: { ...DEFAULT_VIEWPORT.center },
       spanY: DEFAULT_VIEWPORT.spanY,
     };
     delete state.selectedPoint;
     delete state.selectedCatalogId;
+    delete state.pendingCatalogId;
+    // A reply for the point just cleared must not re-select it (ids start at 1).
+    state.activeInspectionRequestId = 0;
     inspector.clear();
     selectedPointStatus.textContent = 'No point selected.';
     clearPresentationPreview();
-    updateCatalogSelection();
+    updateCatalogOverlay();
     updateCoordinateReadout();
     showFeedback('Full-set view restored.');
     scheduleRender(true);
@@ -718,6 +924,7 @@ export function mountApplication(host: HTMLElement): () => void {
 
   function inspectPoint(complexPoint: Complex, component?: CatalogComponent): void {
     state.selectedPoint = complexPoint;
+    delete state.pendingCatalogId;
     if (component) {
       state.selectedCatalogId = component.id;
     } else {
@@ -735,11 +942,191 @@ export function mountApplication(host: HTMLElement): () => void {
       point: complexPoint,
       quality: currentQualityProfile().quality,
     } satisfies MainToWorkerMessage);
-    updateCatalogSelection();
+    updateCatalogOverlay();
     updateSelectedPointMarker();
+    scheduleUrlWrite();
   }
 
-  function updateCatalogSelection(): void {
+  /** Zooms to a catalog entry and selects it: the catalog panel's action (MI-UX-020). */
+  function activateCatalogEntry(component: CatalogComponent): void {
+    cancelPointerSession(false);
+    clearPresentationPreview();
+    state.viewport = { center: { ...component.center }, spanY: zoomSpanFor(component) };
+    updateCoordinateReadout();
+    inspectPoint(component.center, component);
+    showFeedback(`Zoomed to ${component.label}.`);
+    catalogPanel.confirm(component);
+    scheduleRender(true);
+  }
+
+  /** One live button per shown catalog component, keyed by catalog id. */
+  const catalogMarkers = new Map<string, HTMLButtonElement>();
+  /**
+   * The density policy queries the index on every frame (ADR 0012). It holds
+   * the curated entries until the core arrives, then all 4,016 (ADR 0014).
+   */
+  let catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
+  let catalogByName = catalogNames(COMPONENT_CATALOG);
+  let catalogCoreRequested = false;
+
+  /** The loaded entry with this id or alias. */
+  function lookupCatalog(idOrAlias: string | undefined): CatalogComponent | undefined {
+    return idOrAlias === undefined ? undefined : catalogByName.get(idOrAlias);
+  }
+
+  /** The merged index, names and new panel groups; throws on an inconsistent core. */
+  function buildCatalogCore(components: readonly CatalogComponent[]) {
+    const merged = mergeCatalog(COMPONENT_CATALOG, components);
+    return {
+      index: createCatalogIndex(merged),
+      names: catalogNames(merged),
+      groups: catalogGroups(merged).filter((group) => group.period > CATALOG.maxPeriod),
+    };
+  }
+
+  /**
+   * Hands the core over once the worker has verified it: the index, the
+   * panel's periods 5 to 12, and a link's pending selection (ADR 0014).
+   */
+  function adoptCatalogCore(components: readonly CatalogComponent[]): void {
+    // Build everything first: a throw here leaves the state untouched and is a failed load.
+    let built: ReturnType<typeof buildCatalogCore>;
+    try {
+      built = buildCatalogCore(components);
+    } catch (error) {
+      onCatalogCoreFailure(error);
+      return;
+    }
+    const { index, names, groups } = built;
+    catalogIndex = index;
+    catalogByName = names;
+    catalogPanel.addGroups(groups);
+    catalogPanel.setCoreState('ready');
+    const pending = state.pendingCatalogId;
+    delete state.pendingCatalogId;
+    const component = lookupCatalog(pending);
+    if (component) inspectPoint(component.center, component);
+    else if (pending !== undefined) showLinkNotice(issuesNotice(['selection']));
+    updateCatalogOverlay();
+  }
+
+  function onCatalogCoreFailure(reason: unknown): void {
+    console.error('catalog core:', reason);
+    catalogPanel.setCoreState('failed');
+    if (state.pendingCatalogId === undefined) return;
+    delete state.pendingCatalogId;
+    showLinkNotice(
+      'This link names a catalog component from periods 5 to 12, which could not be loaded, so nothing is selected.',
+    );
+  }
+
+  /** Loads periods 5 to 12 off the main thread, after the first stable frame (MI-PERF-003). */
+  function requestCatalogCore(): void {
+    if (catalogCoreRequested) return;
+    catalogCoreRequested = true;
+    loadCatalogCore({ url: coreUrl, manifest: coreManifest })
+      .then(adoptCatalogCore, onCatalogCoreFailure)
+      // A throw after the hand-over has committed is a bug, not a failed load.
+      .catch((error: unknown) => {
+        console.error('catalog core hand-over:', error);
+      });
+  }
+
+  /** "Airplane, period 3"; a generated label already starts with its period. */
+  function markerName(component: CatalogComponent): string {
+    return component.label.startsWith(`Period ${component.period},`)
+      ? component.label
+      : `${component.label}, period ${component.period}`;
+  }
+
+  function createCatalogMarker(component: CatalogComponent): HTMLButtonElement {
+    const marker = button('', {
+      className: `catalog-marker catalog-marker--period-${component.period}`,
+      title: markerName(component),
+    });
+    marker.dataset['catalogId'] = component.id;
+    marker.setAttribute('aria-label', `Inspect ${markerName(component)}`);
+    marker.append(
+      element('span', {
+        className: 'catalog-marker__dot',
+        attributes: { 'aria-hidden': 'true' },
+      }),
+      element('span', {
+        className: 'catalog-marker__label',
+        text: component.label,
+      }),
+    );
+    marker.addEventListener('pointerdown', (event) => {
+      startPointerSession(event, component);
+    });
+    marker.addEventListener('click', (event) => {
+      if (event.detail !== 0) return;
+      inspectPoint(component.center, component);
+    });
+    return marker;
+  }
+
+  /** CSS pixels per rem: marker and label sizes are set in rem (styles.css). */
+  function remPx(): number {
+    return Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  }
+
+  /**
+   * Shows the markers the density policy chooses (src/ui/marker-density.ts):
+   * at most 40, lowest periods first, in catalog order. Moves the existing
+   * buttons instead of rebuilding them on every frame. A rebuilt button drops
+   * keyboard focus and vanishes under a pointer or a test between two reads.
+   * Stale buttons are removed first so the survivors keep their order and
+   * never move (moving a focused node blurs it).
+   */
+  function updateCatalogOverlay(): void {
+    // The panel's mark must follow the selection even while the markers are hidden.
+    catalogPanel.setSelected(state.selectedCatalogId);
+    if (!state.catalogVisible) {
+      catalogMarkers.clear();
+      catalogOverlay.replaceChildren();
+      return;
+    }
+    const rect = canvasStack.getBoundingClientRect();
+    // The 1 px floor only matters before layout, while the canvas is 0x0.
+    const plan = planMarkers({
+      index: catalogIndex,
+      // The frame on screen, so markers stay registered to the image until a new one arrives.
+      viewport: state.presentedViewport ?? state.viewport,
+      width: Math.max(1, Math.round(rect.width)),
+      height: Math.max(1, Math.round(rect.height)),
+      remPx: remPx(),
+      selectedId: state.selectedCatalogId,
+    });
+    const visible: HTMLButtonElement[] = [];
+    for (const planned of plan.markers) {
+      const { component } = planned;
+      let marker = catalogMarkers.get(component.id);
+      if (marker === undefined) {
+        marker = createCatalogMarker(component);
+        catalogMarkers.set(component.id, marker);
+      }
+      marker.classList.toggle('catalog-marker--left-facing', planned.leftFacing);
+      marker.classList.toggle('catalog-marker--compact', planned.compact);
+      marker.classList.toggle('catalog-marker--label-hidden', !planned.labelVisible);
+      marker.style.left = `${planned.x * 100}%`;
+      marker.style.top = `${planned.y * 100}%`;
+      visible.push(marker);
+    }
+    for (const [id, marker] of catalogMarkers) {
+      if (!visible.includes(marker)) catalogMarkers.delete(id);
+    }
+    for (const child of [...catalogOverlay.children]) {
+      if (!visible.includes(child as HTMLButtonElement)) child.remove();
+    }
+    let cursor = catalogOverlay.firstElementChild;
+    for (const marker of visible) {
+      if (marker === cursor) {
+        cursor = cursor.nextElementSibling;
+      } else {
+        catalogOverlay.insertBefore(marker, cursor);
+      }
+    }
     for (const marker of catalogOverlay.querySelectorAll<HTMLButtonElement>('.catalog-marker')) {
       const selected = marker.dataset['catalogId'] === state.selectedCatalogId;
       marker.classList.toggle('catalog-marker--selected', selected);
@@ -751,68 +1138,33 @@ export function mountApplication(host: HTMLElement): () => void {
     }
   }
 
-  function updateCatalogOverlay(): void {
-    if (!state.catalogVisible) {
-      catalogOverlay.replaceChildren();
+  const onDocumentKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape') return;
+    if (pointerSession !== undefined) {
+      // An active pan or selection keeps Escape for itself.
+      event.preventDefault();
+      cancelPointerSession(true);
       return;
     }
-    const size = dimensions();
-    const markers = COMPONENT_CATALOG.flatMap((component) => {
-      const point = complexToPixel(state.viewport, size, component.center);
-      if (point.x < 0 || point.x > size.width || point.y < 0 || point.y > size.height) {
-        return [];
-      }
-      const marker = button('', {
-        className: [
-          'catalog-marker',
-          `catalog-marker--period-${component.period}`,
-          component.id === state.selectedCatalogId ? 'catalog-marker--selected' : '',
-          point.x / size.width > 0.76 ? 'catalog-marker--left-facing' : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
-        title: `${component.label}, period ${component.period}`,
-      });
-      marker.dataset['catalogId'] = component.id;
-      marker.setAttribute('aria-label', `Inspect ${component.label}, period ${component.period}`);
-      if (component.id === state.selectedCatalogId) {
-        marker.setAttribute('aria-current', 'true');
-      }
-      marker.style.left = `${(point.x / size.width) * 100}%`;
-      marker.style.top = `${(point.y / size.height) * 100}%`;
-      marker.append(
-        element('span', {
-          className: 'catalog-marker__dot',
-          attributes: { 'aria-hidden': 'true' },
-        }),
-        element('span', {
-          className: 'catalog-marker__label',
-          text: component.label,
-        }),
-      );
-      marker.addEventListener('pointerdown', (event) => {
-        startPointerSession(event, component);
-      });
-      marker.addEventListener('click', (event) => {
-        if (event.detail !== 0) return;
-        inspectPoint(component.center, component);
-      });
-      return [marker];
-    });
-    replaceChildren(catalogOverlay, markers);
-  }
-
-  const onDocumentKeydown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || pointerSession === undefined) return;
-    event.preventDefault();
-    cancelPointerSession(true);
+    // Otherwise Escape anywhere restores a pressed legend isolation.
+    if (!event.defaultPrevented) legend.restore();
   };
   document.addEventListener('keydown', onDocumentKeydown);
 
+  // Legend isolation recolors the frame on screen, silently: the status line
+  // is a live region, and the legend's aria-pressed state is the
+  // announcement. The legend resets isolation on a view change before the
+  // new view is requested.
+  legend.onIsolate((period) => {
+    state.isolatedPeriod = period;
+    if (state.semanticView !== 'period') return;
+    if (renderTimer !== undefined) clearTimeout(renderTimer);
+    requestRender();
+  });
+
   semanticSelect.addEventListener('change', () => {
     state.semanticView = semanticSelect.value as SemanticView;
-    const selected = SEMANTIC_VIEWS.find((view) => view.id === state.semanticView);
-    semanticDescription.textContent = selected?.description ?? '';
+    semanticDescription.textContent = semanticViewDescription(state.semanticView);
     legend.update(state.semanticView);
     requestSemanticView();
   });
@@ -827,10 +1179,7 @@ export function mountApplication(host: HTMLElement): () => void {
     showFeedback(`${profile.label} quality selected · ${describePeriodPolicy(profile.policy)}`);
     scheduleRender(true);
     if (state.selectedPoint) {
-      inspectPoint(
-        state.selectedPoint,
-        COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
-      );
+      inspectPoint(state.selectedPoint, lookupCatalog(state.selectedCatalogId));
     }
   });
 
@@ -862,6 +1211,9 @@ export function mountApplication(host: HTMLElement): () => void {
   });
 
   resetButton.addEventListener('click', resetView);
+  copyLinkButton.addEventListener('click', () => {
+    void copyShareLink();
+  });
   zoomInButton.addEventListener('click', () => zoom('in'));
   zoomOutButton.addEventListener('click', () => zoom('out'));
 
@@ -930,7 +1282,7 @@ export function mountApplication(host: HTMLElement): () => void {
         if (next.spanY === session.viewport.spanY) {
           showFeedback(
             session.viewport.spanY <= MIN_SCALE
-              ? 'Reached the current reliable zoom limit for this renderer and numerical budget.'
+              ? ZOOM_LIMIT_MESSAGE
               : 'That selection already covers the current view.',
           );
         } else {
@@ -964,6 +1316,20 @@ export function mountApplication(host: HTMLElement): () => void {
     cancelPointerSession(false);
   });
 
+  /** One arrow-key pan of a tenth of the view; the image moves by (sx, sy) steps. */
+  function panByKey(sx: number, sy: number): void {
+    applyPresentationPreview(`translate3d(${sx * 10}%, ${sy * 10}%, 0)`);
+    performance.mark('mi:interaction-feedback');
+    const size = dimensions();
+    state.viewport = panViewport(
+      state.viewport,
+      size,
+      sx * size.width * 0.1,
+      sy * size.height * 0.1,
+    );
+    scheduleRender();
+  }
+
   renderCanvas.addEventListener('keydown', (event) => {
     switch (event.key) {
       case '+':
@@ -979,28 +1345,16 @@ export function mountApplication(host: HTMLElement): () => void {
         resetView();
         break;
       case 'ArrowLeft':
-        applyPresentationPreview('translate3d(10%, 0, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), dimensions().width * 0.1, 0);
-        scheduleRender();
+        panByKey(1, 0);
         break;
       case 'ArrowRight':
-        applyPresentationPreview('translate3d(-10%, 0, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), dimensions().width * -0.1, 0);
-        scheduleRender();
+        panByKey(-1, 0);
         break;
       case 'ArrowUp':
-        applyPresentationPreview('translate3d(0, 10%, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), 0, dimensions().height * 0.1);
-        scheduleRender();
+        panByKey(0, 1);
         break;
       case 'ArrowDown':
-        applyPresentationPreview('translate3d(0, -10%, 0)');
-        performance.mark('mi:interaction-feedback');
-        state.viewport = panViewport(state.viewport, dimensions(), 0, dimensions().height * -0.1);
-        scheduleRender();
+        panByKey(0, -1);
         break;
       case 'Enter':
         inspectAt({ x: 0.5, y: 0.5 });
@@ -1021,7 +1375,7 @@ export function mountApplication(host: HTMLElement): () => void {
         if (message.requestId !== state.activeInspectionRequestId) break;
         inspector.show(
           message.result,
-          COMPONENT_CATALOG.find((component) => component.id === state.selectedCatalogId),
+          lookupCatalog(state.selectedCatalogId),
           currentQualityProfile(),
           formattedSelectedPoint(message.result.point),
         );
@@ -1066,6 +1420,7 @@ export function mountApplication(host: HTMLElement): () => void {
         status.className = 'status status--error';
         statusText.textContent = 'Renderer could not recover. Controls remain available.';
         retryRendererButton.hidden = false;
+        requestCatalogCore();
       },
     },
   );
@@ -1084,10 +1439,13 @@ export function mountApplication(host: HTMLElement): () => void {
   const resizeObserver = new ResizeObserver(() => scheduleRender());
   resizeObserver.observe(canvasStack);
   scheduleRender(true);
+  restoreFromLink();
 
   return () => {
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     if (feedbackTimer !== undefined) clearTimeout(feedbackTimer);
+    if (urlTimer !== undefined) clearTimeout(urlTimer);
+    if (noticeTimer !== undefined) clearTimeout(noticeTimer);
     resizeObserver.disconnect();
     longTaskObserver?.disconnect();
     document.removeEventListener('keydown', onDocumentKeydown);
@@ -1153,20 +1511,18 @@ function createGuidance(): {
     tips.append(element('li', { text: tip }));
   }
   const dismiss = button('Explore', { className: 'primary-button' });
-  dismiss.addEventListener('click', () => {
+  const hide = (): void => {
     performance.mark('mi:guidance-interaction');
     root.classList.remove('guidance--visible');
-  });
+  };
+  dismiss.addEventListener('click', hide);
   const close = button('', {
     className: 'icon-button icon-button--quiet guidance__close',
     title: 'Dismiss guide',
   });
   setIcon(close, 'close');
   close.setAttribute('aria-label', 'Dismiss guide');
-  close.addEventListener('click', () => {
-    performance.mark('mi:guidance-interaction');
-    root.classList.remove('guidance--visible');
-  });
+  close.addEventListener('click', hide);
   root.append(close, heading, copy, tips, dismiss);
   return {
     element: root,
@@ -1231,18 +1587,29 @@ function createInspector(): {
     ]);
   };
 
+  const annotation = (component: CatalogComponent | undefined): HTMLElement | undefined =>
+    component?.annotation === undefined
+      ? undefined
+      : element('p', { className: 'inspector__annotation', text: component.annotation });
+
+  const head = (coordinate: string, component: CatalogComponent | undefined) => [
+    component
+      ? element('h3', {
+          className: 'inspector__selection',
+          text: component.label,
+        })
+      : undefined,
+    annotation(component),
+    referencesLine(component?.references),
+    element('p', {
+      className: 'inspector__coordinate',
+      text: `c = ${coordinate}`,
+    }),
+  ];
+
   const loading = (coordinate: string, component?: CatalogComponent): void => {
     replaceChildren(body, [
-      component
-        ? element('h3', {
-            className: 'inspector__selection',
-            text: component.label,
-          })
-        : undefined,
-      element('p', {
-        className: 'inspector__coordinate',
-        text: `c = ${coordinate}`,
-      }),
+      ...head(coordinate, component),
       element('p', { className: 'loading-line', text: 'Computing evidence…' }),
     ]);
   };
@@ -1264,35 +1631,21 @@ function createInspector(): {
       text: statusLabel[orbit.status],
     });
     const facts = element('dl', { className: 'facts' });
-    const addFact = (term: string, value: string, valueClassName?: string): void => {
-      facts.append(
-        element('dt', { text: term }),
-        element('dd', {
-          ...(valueClassName ? { className: valueClassName } : {}),
-          text: value,
-        }),
-      );
+    const addFact = (term: string, value: string | Node, valueClassName?: string): void => {
+      const description = element('dd', valueClassName ? { className: valueClassName } : {});
+      description.append(value);
+      facts.append(element('dt', { text: term }), description);
     };
     addFact('Parameter c', coordinate);
     if (component) {
       addFact('Catalog period', String(component.period));
-      if (component.internalAddress) {
-        addFact('Internal address', component.internalAddress.join(' → '));
-      }
+      addFact('Internal address', component.internalAddress.join(' → '));
       if (component.angledInternalAddress) {
-        addFact(
-          'Angled address',
-          component.angledInternalAddress
-            .map(
-              (step) =>
-                `${step.fromPeriod} → ${step.toPeriod} at ${step.rotation.numerator}/${step.rotation.denominator}`,
-            )
-            .join('; '),
-        );
+        addFact('Angled internal address', angledAddressChain(component.angledInternalAddress));
       }
       if (component.characteristicRays) {
         addFact(
-          'Characteristic rays',
+          'Parameter ray pair',
           component.characteristicRays
             .map((ray) => `${ray.numerator}/${ray.denominator}`)
             .join(' and '),
@@ -1318,7 +1671,7 @@ function createInspector(): {
       // origin. evidenceSource never changes acceptance or the quality
       // barrier — it names how the candidate was proposed.
       if (orbit.evidenceSource !== undefined) {
-        addFact('Evidence source', formatEvidenceSource(orbit.evidenceSource));
+        addFact('Evidence source', formatEvidenceSource(orbit.evidenceSource, orbit.evidence));
       }
     }
     addFact(
@@ -1328,24 +1681,15 @@ function createInspector(): {
         : 'No conclusive evidence at current quality',
       'inspector__evidence',
     );
-    replaceChildren(body, [
-      component
-        ? element('h3', {
-            className: 'inspector__selection',
-            text: component.label,
-          })
-        : undefined,
-      element('p', {
-        className: 'inspector__coordinate',
-        text: `c = ${coordinate}`,
-      }),
-      badge,
-      facts,
-    ]);
+    replaceChildren(body, [...head(coordinate, component), badge, facts]);
   };
 
   clear();
   return { element: root, loading, show, clear };
+}
+
+function semanticViewDescription(view: SemanticView): string {
+  return SEMANTIC_VIEWS.find((candidate) => candidate.id === view)?.description ?? '';
 }
 
 function formatEvidence(evidence: string): string {
@@ -1358,11 +1702,13 @@ function formatEvidence(evidence: string): string {
 /**
  * Human labels for the evidenceSource vocabulary (src/domain/period-policy.ts).
  * The 'fallback' label names the systematic orbit scan honestly — it is what
- * ran — without suggesting a degraded or less trustworthy result: acceptance
- * was identical (the common verifier) regardless of origin.
+ * ran — without suggesting a degraded or less trustworthy result: orbit-path
+ * acceptances go through the common verifier and the analytic paths (the
+ * closed forms of periods 1-3 and the certified period-4 solve) accept by its
+ * attraction margin; neither is a weaker claim.
  */
 const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.freeze({
-  analytic: 'Analytic closed form',
+  analytic: 'Analytic closed form', // periods 1-3; period 4 is labelled in formatEvidenceSource
   checkpoint: 'Checkpoint schedule',
   catalog: 'Catalog seed',
   chart: 'Local chart prediction',
@@ -1370,6 +1716,10 @@ const EVIDENCE_SOURCE_LABELS: Readonly<Record<EvidenceSource, string>> = Object.
   fallback: 'Systematic orbit scan',
 });
 
-function formatEvidenceSource(source: EvidenceSource): string {
+/** The period-4 solve is certified, not a closed form (ADR 0013 Decision 5). */
+function formatEvidenceSource(source: EvidenceSource, evidence: readonly EvidenceFlag[]): string {
+  if (source === 'analytic' && evidence.includes('analytic-period-4-component')) {
+    return 'Certified analytic solve';
+  }
   return EVIDENCE_SOURCE_LABELS[source];
 }

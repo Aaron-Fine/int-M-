@@ -1,6 +1,7 @@
 import type {
   Complex,
   OrbitResult,
+  PeriodKey,
   RasterSize,
   RenderQuality,
   SemanticView,
@@ -38,6 +39,10 @@ export interface RasterFrame {
   /** Complete row-major RGBA raster, including for the coarse preview. */
   readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   readonly progress: number;
+  /** Period view only: the period-to-color mapping this raster was drawn with. */
+  readonly periodKey?: PeriodKey;
+  /** Period view only: the period left undimmed (legend isolation, MI-UX-018). */
+  readonly isolatedPeriod?: number;
 }
 
 export interface DynamicsRenderRequest {
@@ -109,7 +114,12 @@ export interface Renderer {
 
   inspect(point: Complex, quality?: Partial<RenderQuality>): OrbitResult;
 
-  colorize(frame: SemanticFrame, view: SemanticView): RasterFrame;
+  /**
+   * Maps a semantic frame to RGBA. `isolatedPeriod` (period view only) dims
+   * every pixel not of that period; it is a palette input, so it never
+   * enters the semantic cache key.
+   */
+  colorize(frame: SemanticFrame, view: SemanticView, isolatedPeriod?: number): RasterFrame;
 
   /**
    * Resolves once no work of a cancelled render is still running anywhere,

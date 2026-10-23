@@ -1,5 +1,36 @@
 export * from './complex';
 export {
+  classifyGatedAnalyticInto,
+  classifyPeriodThreeInto,
+  PERIOD_THREE_ALLOWANCE_COEFFICIENT,
+  PERIOD_THREE_ANALYTIC_REVISION,
+} from './analytic-period-three';
+export type { PeriodThreeTarget } from './analytic-period-three';
+export {
+  classifyPeriodFourInto,
+  PERIOD_FOUR_ANALYTIC_REVISION,
+  DERIVATIVE_DEFLATION,
+  PERIOD_FOUR_EVALUATION_BOUND,
+} from './analytic-period-four';
+export type { PeriodFourCertificate, PeriodFourTarget } from './analytic-period-four';
+export {
+  AIRPLANE_BOX,
+  inPeriodThreeGate,
+  PERIOD_THREE_BOXES,
+  PERIOD_THREE_HULL,
+  RABBIT_BOX,
+} from './period-three-gate';
+export type { PeriodThreeBox } from './period-three-gate';
+export {
+  BULB_SATELLITE_BOX,
+  CARDIOID_SATELLITE_BOX,
+  COMPLEX_PRIMITIVE_BOX,
+  inPeriodFourGate,
+  PERIOD_FOUR_BOXES,
+  REAL_PRIMITIVE_BOX,
+} from './period-four-gate';
+export type { PeriodFourBox } from './period-four-gate';
+export {
   classifyAnalyticInto,
   classifyInto,
   classifyOrbit,
@@ -39,11 +70,28 @@ export {
 } from './verifier';
 export type { VerifierVerdict, VerifierVerdictCode, VerifierCycleTarget } from './verifier';
 export {
+  buildPeriodKey,
+  colorForPeriod,
+  dimChannel,
+  dimColor,
+  EMPTY_PERIOD_KEY,
+  ISOLATION_DIM_FACTOR,
+  OTHER_PERIODS_COLOR,
+  PERIOD_EMPHASIS_LIMIT,
+  PERIOD_EMPHASIS_PALETTE,
+} from './period-emphasis';
+export type { PeriodKey, PeriodKeyEntry } from './period-emphasis';
+export {
   colorForAttracting,
   colorForEscaped,
   colorForOrbit,
   colorForUnresolved,
+  ESCAPE_BAND_RATE,
   modulateForMultiplierAngle,
+  modulateForMultiplierDirection,
+  MULTIPLIER_STRIPE_AMPLITUDE,
+  MULTIPLIER_STRIPE_FREQUENCY,
+  unresolvedTextureColors,
 } from './semantic';
 export type { Rgba } from './semantic';
 export type {

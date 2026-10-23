@@ -144,7 +144,10 @@ const finishAttractingCycle = (
  * attracting record and returns true when c lies in the main cardioid or the
  * period-2 bulb with a multiplier inside the attraction margin; returns false
  * (record untouched) otherwise, including margin-adjacent points, which fall
- * through to the orbit loop.
+ * through to the orbit loop. The period-3 closed form and the period-4 cubic
+ * solve (src/domain/analytic-period-three.ts, analytic-period-four.ts) are not
+ * tried here: they run inside the orbit loop at the first scanning iteration,
+ * so pixels that escape early never pay for them (ADR 0010, ADR 0013).
  */
 export const classifyAnalyticInto = (cRe: number, cIm: number, out: OrbitSample): boolean => {
   // Analytic fast paths (closed form): main cardioid and period-2 bulb.
@@ -251,10 +254,14 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  * Observable semantics are identical to classifyOrbit, which materializes
  * the rich result boundary from this core.
  *
- * Acceptance policy (PR 3): every attracting result — analytic fast paths
- * included — passes the common numerical verifier (src/domain/verifier.ts,
- * revision VERIFIER_REVISION). The lag-scan candidate proposal (proximity
- * below OrbitOptions.cycleTolerance) is unchanged; only acceptance migrated.
+ * Acceptance policy (PR 3): every orbit-path attracting result passes the
+ * common numerical verifier (src/domain/verifier.ts, revision
+ * VERIFIER_REVISION) via verifyCycleInto. The analytic paths (closed forms
+ * for periods 1-3, the certified solve for period 4) accept by the verifier's
+ * attraction margin instead: period 3 with a derived binary64 allowance
+ * (ADR 0010), period 4 with its certified allowance (ADR 0013). The lag-scan
+ * candidate proposal (proximity below OrbitOptions.cycleTolerance) is
+ * unchanged; only acceptance migrated.
  *
  * Semantic changes versus the legacy classifier, enumerated per plan
  * section 3 ("A changed legacy answer may ship only when the oracle supports
@@ -296,6 +303,21 @@ export const resolveOrbitOptions = (options: Partial<OrbitOptions> = {}): OrbitO
  * 5. Frozen acceptance. Closure acceptance no longer scales with
  *    OrbitOptions.cycleTolerance, which remains the proposal gate only.
  *    With the default 1e-10 the numeric bounds equal the legacy ones.
+ * 6. Analytic period 3 (ADR 0010). At the first scanning iteration the
+ *    kernels try the period-3 closed form (src/domain/analytic-period-three.ts)
+ *    inside padded component boxes. It accepts with iterations 0 and the
+ *    closed-form multiplier, so pixels the legacy scan left unresolved become
+ *    attracting period 3, and period-3 pixels carry the closed-form multiplier
+ *    instead of the orbit product. Every such answer is checked against the
+ *    dd period-3 cycle in tests/unit/domain/orbit-oracle-adjudication.test.ts.
+ * 7. Analytic period 4 (ADR 0013). At the same iteration the kernels try the
+ *    certified period-4 cubic solve (src/domain/analytic-period-four.ts)
+ *    inside padded component boxes. It accepts with iterations 0 and the
+ *    certified multiplier, so pixels the legacy scan left unresolved become
+ *    attracting period 4 (the left half of the 6,000,000x view among them),
+ *    and period-4 pixels carry the certified multiplier instead of the orbit
+ *    product. Every such answer is checked against the dd period-4 cycle in
+ *    tests/unit/domain/orbit-oracle-adjudication.test.ts.
  *
  * Every accepted attracting result carries the verifier revision at the rich
  * boundary (AttractingCycleOrbitResult.verifierRevision).
@@ -355,7 +377,7 @@ export const materializeOrbitResult = (sample: Readonly<OrbitSample>): OrbitResu
       verifierRevision: VERIFIER_REVISION,
       // Origin metadata (PR 5, plan section 4): the single evidence flag an
       // attracting result carries identifies its proposal path — the
-      // closed forms are 'analytic', everything else is the lag scan
+      // analytic paths are 'analytic', everything else is the lag scan
       // ('fallback'). Acceptance above is source-blind; this stamp must
       // stay descriptive (workstream D kill condition: no candidate-source
       // leakage into confidence semantics).

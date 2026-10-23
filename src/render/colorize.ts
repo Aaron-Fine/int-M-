@@ -1,5 +1,23 @@
-import type { SemanticView } from '../domain';
-import { unpackPeriod, unpackStatus } from './packed-semantic';
+import {
+  buildPeriodKey,
+  dimChannel,
+  EMPTY_PERIOD_KEY,
+  ESCAPE_BAND_RATE,
+  MULTIPLIER_STRIPE_AMPLITUDE,
+  MULTIPLIER_STRIPE_FREQUENCY,
+  OTHER_PERIODS_COLOR,
+  unresolvedTextureColors,
+  type PeriodKey,
+  type Rgba,
+  type SemanticView,
+} from '../domain';
+import {
+  PACK_PERIOD_BITS,
+  PACK_PERIOD_MAX,
+  PACK_STATUS_CODES,
+  unpackPeriod,
+  unpackStatus,
+} from './packed-semantic';
 import type { SemanticFrame } from './renderer';
 
 /**
@@ -8,8 +26,8 @@ import type { SemanticFrame } from './renderer';
  * colorForAttracting, modulateForMultiplierAngle, colorForUnresolved) plus
  * the unresolved texture, written straight into the RGBA buffer instead of
  * through per-pixel color tuples (tests/unit/render/colorize.test.ts pins the
- * bytes). The period view's color depends on the period alone and is
- * computed once per period.
+ * bytes). The period view's colors come from the frame's period key
+ * (src/domain/period-emphasis.ts), resolved once per frame.
  */
 
 const clampByte = (value: number): number => Math.max(0, Math.min(255, Math.round(value)));
@@ -78,19 +96,38 @@ const writeGray = (rgba: Uint8ClampedArray, offset: number, value: number): void
   rgba[offset + 3] = 255;
 };
 
-/** Period-view colors (RGBA packed in one integer), filled on first use. */
-const periodColors = new Map<number, number>();
-const periodScratch = new Uint8ClampedArray(4);
+/** RGB packed in one integer (0xRRGGBB). */
+const packRgb = (color: Rgba): number => (color[0] << 16) | (color[1] << 8) | color[2];
 
-const periodColor = (period: number): number => {
-  let packed = periodColors.get(period);
-  if (packed === undefined) {
-    writeHsl(periodScratch, 0, (period * 137.508) % 360, 0.72, 0.54);
-    packed =
-      ((periodScratch[0] ?? 0) << 16) | ((periodScratch[1] ?? 0) << 8) | (periodScratch[2] ?? 0);
-    periodColors.set(period, packed);
+const OTHER_PERIODS_PACKED = packRgb(OTHER_PERIODS_COLOR);
+
+/** Emphasized period -> packed color; every other period is OTHER_PERIODS_PACKED. */
+const periodColorLookup = (key: PeriodKey): ReadonlyMap<number, number> =>
+  new Map(key.emphasized.map((entry) => [entry.period, packRgb(entry.color)]));
+
+/**
+ * Attracting-cycle pixel count per period. Runs of equal period are counted
+ * before touching the map, since periods repeat along rows.
+ */
+export const periodHistogram = (frame: SemanticFrame): Map<number, number> => {
+  const counts = new Map<number, number>();
+  const attracting = PACK_STATUS_CODES.attracting;
+  let runPeriod = -1;
+  let runLength = 0;
+  for (const band of frame.bands) {
+    for (const word of band.packedStatusPeriod) {
+      const period = word >>> PACK_PERIOD_BITS === attracting ? unpackPeriod(word) : -1;
+      if (period === runPeriod) {
+        runLength += 1;
+        continue;
+      }
+      if (runPeriod >= 0) counts.set(runPeriod, (counts.get(runPeriod) ?? 0) + runLength);
+      runPeriod = period;
+      runLength = 1;
+    }
   }
-  return packed;
+  if (runPeriod >= 0) counts.set(runPeriod, (counts.get(runPeriod) ?? 0) + runLength);
+  return counts;
 };
 
 const writeEscaped = (
@@ -99,7 +136,7 @@ const writeEscaped = (
   smoothIteration: number,
   view: SemanticView,
 ): void => {
-  const band = fractionOf(fractionOf(smoothIteration * 0.037) + 1);
+  const band = fractionOf(fractionOf(smoothIteration * ESCAPE_BAND_RATE) + 1);
   if (view === 'stability') {
     writeGray(rgba, offset, clampByte(18 + 42 * band));
     return;
@@ -116,9 +153,10 @@ const writeAttracting = (
   x: number,
   y: number,
   view: SemanticView,
+  periodColors: ReadonlyMap<number, number>,
 ): void => {
   if (view === 'period') {
-    const packed = periodColor(period);
+    const packed = periodColors.get(period) ?? OTHER_PERIODS_PACKED;
     rgba[offset] = packed >>> 16;
     rgba[offset + 1] = (packed >>> 8) & 255;
     rgba[offset + 2] = packed & 255;
@@ -140,13 +178,20 @@ const writeAttracting = (
   );
   // Oriented lightness stripes (modulateForMultiplierAngle).
   const projection = x * Math.cos(multiplierAngle) + y * Math.sin(multiplierAngle);
-  const stripe = Math.sin(projection * 0.45) >= 0 ? 22 : -22;
+  const stripe =
+    Math.sin(projection * MULTIPLIER_STRIPE_FREQUENCY) >= 0
+      ? MULTIPLIER_STRIPE_AMPLITUDE
+      : -MULTIPLIER_STRIPE_AMPLITUDE;
   rgba[offset] = clampByte((rgba[offset] ?? 0) + stripe);
   rgba[offset + 1] = clampByte((rgba[offset + 1] ?? 0) + stripe);
   rgba[offset + 2] = clampByte((rgba[offset + 2] ?? 0) + stripe);
 };
 
-/** Unresolved gray (96) with the checker texture of cell 4 (stable) or the stride. */
+const [UNRESOLVED_DARK_COLOR, UNRESOLVED_LIGHT_COLOR] = unresolvedTextureColors();
+const UNRESOLVED_DARK = UNRESOLVED_DARK_COLOR[0];
+const UNRESOLVED_LIGHT = UNRESOLVED_LIGHT_COLOR[0];
+
+/** Unresolved gray with the checker texture of cell 4 (stable) or the stride. */
 const writeUnresolved = (
   rgba: Uint8ClampedArray,
   offset: number,
@@ -156,16 +201,46 @@ const writeUnresolved = (
 ): void => {
   const cellSize = stride === 1 ? 4 : stride;
   const alternate = (Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0;
-  writeGray(rgba, offset, alternate ? 84 : 108);
+  writeGray(rgba, offset, alternate ? UNRESOLVED_DARK : UNRESOLVED_LIGHT);
 };
 
+/** The period if it can isolate anything (an integer in [1, PACK_PERIOD_MAX]), else undefined. */
+export const validIsolatedPeriod = (period: number | undefined): number | undefined =>
+  period !== undefined && Number.isInteger(period) && period >= 1 && period <= PACK_PERIOD_MAX
+    ? period
+    : undefined;
+
+/** dimColor of src/domain, in place: the pixel is not of the isolated period. */
+const dimPixel = (rgba: Uint8ClampedArray, offset: number): void => {
+  rgba[offset] = dimChannel(rgba[offset] ?? 0);
+  rgba[offset + 1] = dimChannel(rgba[offset + 1] ?? 0);
+  rgba[offset + 2] = dimChannel(rgba[offset + 2] ?? 0);
+};
+
+/**
+ * Colorizes `frame` in `view`. The period view draws with `periodKey`, which
+ * defaults to the frame's own ranking; pass the key you report so the legend
+ * and the raster cannot disagree. With `isolatedPeriod` (period view only)
+ * every pixel that is not an attracting cycle of that period is dimmed.
+ */
 export const colorizeFrame = (
   frame: SemanticFrame,
   view: SemanticView,
+  periodKey: PeriodKey = view === 'period'
+    ? buildPeriodKey(periodHistogram(frame))
+    : EMPTY_PERIOD_KEY,
+  isolatedPeriod?: number,
 ): Uint8ClampedArray<ArrayBuffer> => {
   const { width } = frame.size;
   const rgba = new Uint8ClampedArray(width * frame.size.height * 4);
   const stride = frame.sampleStride;
+  const periodColors = periodColorLookup(periodKey);
+  // -1 never matches a packed word: no isolation.
+  const validIsolated = validIsolatedPeriod(isolatedPeriod);
+  const isolatedWord =
+    view === 'period' && validIsolated !== undefined
+      ? (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | validIsolated
+      : -1;
   // Bands partition the raster rows exactly, so iterating bands in order
   // covers every pixel once.
   for (const band of frame.bands) {
@@ -193,10 +268,12 @@ export const colorizeFrame = (
           x,
           y,
           view,
+          periodColors,
         );
       } else {
         writeUnresolved(rgba, offset, x, y, stride);
       }
+      if (isolatedWord !== -1 && word !== isolatedWord) dimPixel(rgba, offset);
       x += 1;
       if (x === width) {
         x = 0;

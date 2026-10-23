@@ -1,3 +1,4 @@
+import { classifyGatedAnalyticInto } from './analytic-period-three';
 import type { OrbitSample, OrbitScratch } from './orbit';
 import { VERIFIER_VERDICT, verifyCycleInto } from './verifier';
 import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
@@ -11,7 +12,7 @@ import { ORBIT_EVIDENCE_CODE, type OrbitOptions } from './types';
  * distance was smallest — and between full scans tests only that WATCHED lag,
  * with the proposal test of the full scan (squared distance <= cycleTolerance^2).
  * A full scan, identical to the full scan of that iteration (ascending lags,
- * inline verifier), runs when
+ * verifyCycleInto on each proposal), runs when
  *
  * - the watched lag proposes (a "fire"). Fires are not capped: while the
  *   verifier keeps refusing a proposing lag, the pixel scans every iteration,
@@ -60,8 +61,11 @@ const SPILL_NEAREST = 2;
 
 /**
  * Orbit loop of the triggered kernel, from z = 0. The caller has already
- * handled the analytic fast paths. `scratch` must have power-of-two capacity
- * of at least maxPeriod + 1 (OrbitScratch guarantees it).
+ * handled the period-1 and period-2 analytic fast paths; the period-3 closed
+ * form and the period-4 cubic solve run inside the loop at the first scanning
+ * iteration, through classifyGatedAnalyticInto (ADR 0010, ADR 0013).
+ * `scratch` must have power-of-two capacity of at least maxPeriod + 1
+ * (OrbitScratch guarantees it).
  */
 export const classifyTriggeredOrbitInto = (
   cRe: number,
@@ -123,6 +127,25 @@ export const classifyTriggeredOrbitInto = (
     if (!fired && iteration !== due && iteration !== maxIterations) {
       continue;
     }
+    // Analytic period-3 and period-4 fast paths (ADR 0010, ADR 0013): once
+    // per pixel, at the first scanning iteration and before its full scan. A
+    // pixel that escapes earlier never reaches this call. The gates are
+    // tested inside the call, which every pixel reaching this iteration
+    // makes, so the call site runs early in every view that has such pixels
+    // (ADR 0010 amendment of 2026-10-20). Each record depends on c alone, so
+    // it is the same wherever it runs. The orbit doubles round-trip through
+    // the spill across the call (hot-loop rule).
+    if (iteration === scanStart) {
+      spill[SPILL_Z_RE] = zRe;
+      spill[SPILL_Z_IM] = zIm;
+      if (classifyGatedAnalyticInto(cRe, cIm, out)) {
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+      zRe = spill[SPILL_Z_RE]!;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+      zIm = spill[SPILL_Z_IM]!;
+    }
     if (iteration === due) {
       due = iteration + interval;
       interval = Math.min(2 * interval, TRIGGERED_SCAN_INTERVAL_MAX);
@@ -152,8 +175,7 @@ export const classifyTriggeredOrbitInto = (
       // orbit loop, so every double the loop carries round-trips through the
       // scratch spill and is reloaded afterwards: nothing of the orbit state
       // is live across the call (orbit.ts hot-loop rule). Proposals are rare
-      // here (about one per accepted pixel), unlike the legacy every-iteration
-      // scan that needs the inline mirror.
+      // here (about one per accepted pixel), so the call costs little.
       spill[SPILL_Z_RE] = zRe;
       spill[SPILL_Z_IM] = zIm;
       spill[SPILL_NEAREST] = nearestSquared;

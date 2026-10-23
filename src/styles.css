@@ -206,11 +206,51 @@ button:disabled {
   min-width: 0;
 }
 
+.link-notice {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--warning);
+  border-left-width: 0.3rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+}
+
+.link-notice:empty {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.link-notice__text {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.link-notice__dismiss {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem;
+  flex: none;
+  color: var(--ink);
+  background: var(--surface-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 650;
+}
+
 .controls {
   min-height: 5.5rem;
   padding: 0.85rem 1rem;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1.25rem;
   background: var(--surface);
@@ -227,7 +267,6 @@ button:disabled {
 }
 
 .controls__fields {
-  min-width: 0;
   display: flex;
   align-items: start;
   gap: 1.25rem;
@@ -660,9 +699,34 @@ button:disabled {
   border-radius: 0;
 }
 
+/* Period-4 markers sit closest together. Up to about 447px wide their 44px box covers a
+   neighbour (axe target-size, WCAG 2.5.8), so below 28rem the box shrinks to the 24px dot
+   (34px still fails at 320px). The drawn diamond and its label stay where they were. */
+.catalog-marker--period-4 {
+  --p4-hit: 2.75rem;
+  /* Tips of the rotated 24px dot reach about 17px from the centre; rings start beyond them. */
+  --p4-ring: max(0.15rem, calc(1.1rem - var(--p4-hit) / 2));
+
+  width: var(--p4-hit);
+  height: var(--p4-hit);
+}
+
 .catalog-marker--period-4 .catalog-marker__dot {
+  inset: calc((var(--p4-hit) - 1.5rem) / 2);
   border-radius: 0;
   transform: rotate(45deg);
+}
+
+.catalog-marker--period-4:focus-visible {
+  box-shadow:
+    0 0 0 var(--p4-ring) var(--surface),
+    0 0 0 calc(var(--p4-ring) + 0.15rem) var(--focus);
+}
+
+@media (max-width: 28rem) {
+  .catalog-marker--period-4 {
+    --p4-hit: 1.5rem;
+  }
 }
 
 .explorer--region-tool .catalog-marker,
@@ -671,12 +735,15 @@ button:disabled {
 }
 
 .catalog-marker__label {
+  /* The dot is the target: a selected label may cover neighbours but must not catch their clicks. */
+  pointer-events: none;
   position: absolute;
   top: 50%;
   left: 2.85rem;
   display: none;
   width: max-content;
-  max-width: 11rem;
+  /* The longest generated label, "Period 12, rays 2047/4095 and 2048/4095", is 13.7rem (ADR 0014). */
+  max-width: 14rem;
   padding: 0.18rem 0.35rem;
   overflow: hidden;
   color: white;
@@ -710,13 +777,54 @@ button:disabled {
   left: auto;
 }
 
+.catalog-marker--period-4 .catalog-marker__label {
+  left: calc(var(--p4-hit) / 2 + 23.6px);
+}
+
+.catalog-marker--period-4.catalog-marker--left-facing .catalog-marker__label {
+  right: calc(var(--p4-hit) / 2 + 23.6px);
+  left: auto;
+}
+
+/* The density policy (src/ui/marker-density.ts) marks a marker compact when its 44px box would
+   overlap a neighbour's: the box shrinks to the 24px dot, so hit boxes never overlap. The dot and
+   the label (1.475rem from the centre) stay where they were. */
+.catalog-marker--compact {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.catalog-marker--compact .catalog-marker__dot {
+  inset: 0;
+}
+
+.catalog-marker--period-4.catalog-marker--compact {
+  --p4-hit: 1.5rem;
+}
+
+.catalog-marker--compact .catalog-marker__label {
+  left: 2.225rem;
+}
+
+.catalog-marker--compact.catalog-marker--left-facing .catalog-marker__label {
+  right: 2.225rem;
+  left: auto;
+}
+
+/* The policy hides a label that would cover another label or marker; hover, focus and selection show it. */
+.catalog-marker--label-hidden:not(:hover, :focus-visible, .catalog-marker--selected)
+  .catalog-marker__label {
+  display: none;
+}
+
 .side-panel {
   display: grid;
   gap: 1rem;
 }
 
 .inspector,
-.legend {
+.legend,
+.catalog-panel {
   padding: 1rem;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -833,6 +941,224 @@ button:disabled {
   color: var(--ink-muted);
 }
 
+.inspector__annotation {
+  margin: 0.35rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.inspector__references,
+.glossary__references {
+  margin: 0.35rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
+.reference-link {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.reference-link:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.catalog-panel__hint {
+  margin: 0.35rem 0 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+
+.catalog-find {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.catalog-find__label {
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.catalog-find__input {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.6rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.catalog-find__hint,
+.catalog-find__count {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+}
+
+.catalog-find__count:empty {
+  display: none;
+}
+
+.catalog-find__results {
+  max-height: 20rem;
+  margin: 0 0 0.5rem;
+  padding: 0.3rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* Shown after a list activation only where the canvas sits above the panel (68rem and narrower). */
+.catalog-panel__confirmation {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.6rem;
+  color: var(--ink);
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+}
+
+.catalog-panel__show-view {
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem;
+  color: var(--accent-strong);
+  background: transparent;
+  border: 1px solid currentcolor;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.catalog-panel__status {
+  margin: 0 0 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+}
+
+.catalog-group + .catalog-group {
+  border-top: 1px solid var(--line);
+}
+
+.catalog-group__summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.catalog-group__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A drawn chevron replaces the disclosure triangle that display: flex removes. */
+.catalog-group__summary::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: none;
+  content: '';
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(-45deg);
+}
+
+.catalog-group[open] > .catalog-group__summary::before {
+  transform: rotate(45deg);
+}
+
+.catalog-group__count {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+/* A long group (the period ≤12 core) scrolls inside the panel; the padding keeps focus rings unclipped.
+   Positioned, so that an entry's offsetTop is measured from the list when the panel reveals it. */
+.catalog-group__list {
+  position: relative;
+  max-height: 20rem;
+  margin: 0 0 0.5rem;
+  padding: 0.3rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.catalog-entry {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.6rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.catalog-entry:hover {
+  background: var(--surface-muted);
+}
+
+/* The selected entry: a thick leading edge and bold text, cues that survive forced colours. */
+.catalog-entry[aria-current='true'] {
+  border-color: var(--accent);
+  border-left-width: 0.3rem;
+  font-weight: 700;
+}
+
+.catalog-glossary {
+  margin-top: 0.75rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.76rem;
+}
+
+/* Stays display: list-item so the native disclosure triangle remains; padding centres the text in the 44 px target. */
+.catalog-glossary summary {
+  min-height: 2.75rem;
+  padding-block: 0.7rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.catalog-glossary dl {
+  margin: 0.75rem 0 0;
+}
+
+.catalog-glossary dt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.catalog-glossary dd {
+  margin: 0.1rem 0 0.65rem;
+  color: var(--ink-muted);
+}
+
 .legend__list {
   margin: 0.9rem 0 0;
   padding: 0;
@@ -855,48 +1181,151 @@ button:disabled {
   gap: 0.65rem;
 }
 
+.legend__item--scale {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+}
+
+.legend__note {
+  grid-template-columns: minmax(0, 1fr);
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+}
+
+/* Swatch and bar colors are set inline from the colorizer palette (legend-model.ts). */
 .legend__swatch {
   width: 1.15rem;
   height: 1.15rem;
-  background-color: #aaa;
   border: 1px solid rgb(255 255 255 / 35%);
   border-radius: 0.2rem;
+  forced-color-adjust: none;
 }
 
-.legend__swatch--strong {
-  background: #ececec;
-}
-
-.legend__swatch--weak {
-  background: #4d4d4d;
-}
-
-.legend__swatch--angle {
-  background:
-    repeating-linear-gradient(115deg, rgb(0 0 0 / 28%) 0 2px, transparent 2px 6px),
-    linear-gradient(135deg, #d95555, #d6c84e, #47a7a0, #665fc1);
-}
-
-.legend__swatch--period-1 {
-  background: hsl(138deg 72% 54%);
-}
-
-.legend__swatch--period-2 {
-  background: hsl(275deg 72% 54%);
-}
-
-.legend__swatch--period-3 {
-  background: hsl(53deg 72% 54%);
-}
-
-.legend__swatch--outside {
-  background: #19324b;
+.legend__swatch--dashed {
   border-style: dashed;
 }
 
-.legend__swatch--unknown {
-  background: repeating-linear-gradient(45deg, #585b5e 0 3px, #85898d 3px 6px);
+.legend__swatch--dotted {
   border-style: dotted;
+}
+
+.legend__scale {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.legend__bar {
+  display: block;
+  height: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 0.2rem;
+  forced-color-adjust: none;
+}
+
+.legend__stripes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.legend__stripe {
+  display: grid;
+  flex: 1 1 0;
+  gap: 0.1rem;
+  color: var(--ink-muted);
+  font-size: 0.66rem;
+  text-align: center;
+}
+
+.legend__stripe-chip {
+  display: block;
+  height: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 0.2rem;
+  forced-color-adjust: none;
+}
+
+.legend__ticks {
+  position: relative;
+  display: block;
+  height: 1rem;
+  color: var(--ink-muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1rem;
+}
+
+.legend__tick {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.legend__tick--start {
+  transform: none;
+}
+
+.legend__tick--end {
+  transform: translateX(-100%);
+}
+
+/* Emphasized periods are toggle buttons that isolate the period (MI-UX-018). */
+.legend__item--control {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.legend__entry {
+  display: grid;
+  grid-template-columns: 1.15rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 1.75rem;
+  margin: 0;
+  padding: 0.2rem 0.35rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.legend__entry:hover {
+  background: var(--surface-muted);
+}
+
+.legend__entry[aria-pressed='true'] {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.legend__state {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.legend__entry[aria-pressed='false'] .legend__state {
+  display: none;
+}
+
+.legend__dropped {
+  margin: 0.4rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.69rem;
+}
+
+.legend__dropped:empty {
+  margin: 0;
+}
+
+.legend__hint {
+  margin: 0.65rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.69rem;
 }
 
 .legend__copy {
@@ -1003,6 +1432,10 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
+  .catalog-panel__confirmation:not([hidden]) {
+    display: flex;
+  }
+
   .side-panel {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -1045,6 +1478,12 @@ button:disabled {
     width: min(calc(100% - 1rem), var(--content-width));
     margin-bottom: 1.5rem;
     gap: 0.75rem;
+  }
+
+  .link-notice {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .controls {
@@ -1146,7 +1585,8 @@ button:disabled {
   }
 
   .inspector,
-  .legend {
+  .legend,
+  .catalog-panel {
     padding: 0.875rem;
   }
 
@@ -1207,12 +1647,22 @@ button:disabled {
     background: CanvasText;
   }
 
-  .legend__swatch {
+  .legend__swatch,
+  .legend__stripe-chip,
+  .legend__bar {
     border-width: 2px;
+  }
+
+  .legend__entry[aria-pressed='true'] {
+    outline: 2px solid Highlight;
   }
 
   .zoom-selection {
     border: 2px dashed CanvasText;
+  }
+
+  .link-notice {
+    border-color: CanvasText;
   }
 
   button:focus-visible,
@@ -1222,10 +1672,19 @@ button:disabled {
     outline-offset: 2px;
   }
 
+  .catalog-marker--period-4:focus-visible {
+    outline-offset: max(2px, calc(1.1rem - var(--p4-hit) / 2));
+  }
+
   .selected-point-marker {
     border-color: CanvasText;
     outline: 2px solid Highlight;
     outline-offset: 1px;
     box-shadow: none;
   }
+}
+
+.angled-address sub {
+  font-size: 0.75em;
+  line-height: 0;
 }

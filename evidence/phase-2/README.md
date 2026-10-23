@@ -100,6 +100,58 @@ Generators should write to a temporary file, validate record counts/schema,
 atomically publish the final payload, then emit `artifact-index.json`, summary,
 and `manifest.sha256` last.
 
+## Memory high-water (`MI-PERF-006`)
+
+`tools/benchmark/run-release.ts` records one memory figure set per engine, in
+`summary.md` (section `<engine> — memory (MI-PERF-006)`), in
+`environment.json` and in `raw-observations.json` (key `memory`). The figures
+are informational: they are not gates. Each is the maximum over one fresh page
+per corpus case, and each carries the label of what it measures. A figure is
+reported only when every case run produced a valid reading; if any case threw,
+timed out, returned an error or read NaN, the figure is "not measured" (a
+maximum over only some cases would pass for a complete one). The summary's
+`Cases` column counts the cases that contributed, not polls.
+
+| Engine   | Figure     | What it is                                                                                                                                                                                                                                       |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chromium | `jsHeap`   | Main-thread V8 JS heap used (CDP `Performance.getMetrics`, `JSHeapUsedSize`), polled every 50 ms from navigation to the stable frame. Excludes worker heaps and ArrayBuffer backing stores. A lower bound on the true peak.                      |
+| Chromium | `retained` | `performance.measureUserAgentSpecificMemory()` after the stable frame, on a cross-origin-isolated copy of the same build served only for this pass (the timing passes are never isolated). Includes workers and buffers. A snapshot, not a peak. |
+| Firefox  | both       | **Not measured.** Under Playwright (WebDriver BiDi) Firefox has no CDP, no `performance.memory` and no `measureUserAgentSpecificMemory`, and `about:memory` is unreachable. No proxy (such as process RSS) is substituted.                       |
+
+The headless smoke run (`npm run evidence:smoke`) observed
+`measureUserAgentSpecificMemory` unavailable in the headless bundled Chromium
+even on a cross-origin-isolated page, so `retained` read "not measured" there.
+Whether branded headed Chrome supports it is unverified until the next release
+session. A failure while measuring (a navigation timeout, say) also degrades
+that figure to "not measured" with the error, and does not discard the engine
+run. Each `retained` call is bounded at 30 s (Chrome may defer the result to
+a garbage collection it forces after about 20 s); past that the figure reads
+"not measured (timed out)".
+
+The pass opens two fresh pages per case (32 for the full corpus). Expected
+added duration: roughly a minute or two headless, from page loads and the
+~50 ms polling. In branded Chrome, if `measureUserAgentSpecificMemory`
+works, each `retained` call may wait for a garbage collection, up to the 30 s
+bound, which is up to about 16 minutes more per session across 32 cases
+(unverified; time one pass before the confirming session). `--skip-memory`
+omits the pass for directional runs; the summary lists `memory` under skipped
+passes and the section reads "Skipped (--skip-memory)". `--release` allows it
+but a session that skips memory records no figure.
+
+When Chromium's `retained` figure is "not measured", the reason is recorded
+(for example, the page was not cross-origin isolated). A resumed engine's
+evidence is kept as written; an engine recorded before this pass existed has
+no memory section. A real peak across workers needs per-worker heap sampling
+or an engine-level memory report; neither is available in both engines.
+
+**What recording these figures does not establish.** The `jsHeap` figure
+alone does not evidence `MI-PERF-006`: it is main thread only and excludes the
+worker heaps and ArrayBuffer backing stores where the semantic frames live.
+`MI-PERF-006` stays Partial until (b) a measured `retained` figure is recorded
+from branded Chrome, and (c) the owner accepts the permanent Firefox gap
+("not measured") as a documented limitation. A release session that records
+only `jsHeap` does not change its status.
+
 ## Release sessions (`tools/benchmark/run-release.ts`)
 
 Every browser evidence run since 2026-10-16 is one release session, started
@@ -116,7 +168,7 @@ Usage:
 ```
 node tools/benchmark/run-release.ts [--engines chromium,firefox] [--release]
   [--reps N] [--cases id,...] [--compare name=<query>|name=dist:<dir>]...
-  [--skip-interactions] [--resume] [--out-dir DIR] [--interactions N]
+  [--skip-interactions] [--skip-memory] [--resume] [--out-dir DIR] [--interactions N]
 ```
 
 `npm run evidence:release` is `--release`; `npm run evidence:smoke` is a
@@ -236,3 +288,26 @@ Proof-of-concept results (the `poc/performance/` harness) land in
 repetition counts, and are explicitly labeled **directional**: Node/V8
 approximates but does not replace controlled browser evidence, and PoC results
 feed corpus and gate choices rather than close requirements.
+
+## Palette acceptance (`MI-UX-021`)
+
+Palette evidence is computed, not measured in a browser.
+`npm run evidence:palette -- <directory>` (`tools/palette_metrics.ts`) writes:
+
+- `palette-metrics.json`: the method (CIEDE2000; Machado, Oliveira and
+  Fernandes 2009 simulation at severity 1.0; the sampling grid), the floors
+  (`tests/unit/palette/palette-floors.ts`), and for each palette every
+  metric's value under normal, protan, deutan and tritan vision with its
+  minimum and pass flag; once the palette ships, also the worst contrast of
+  each text overlay over the raster and of an isolated period against the
+  dimmed field around it.
+- `summary.md`: the same as tables.
+
+Directories are named `<date>-<commit>-palette-selection` (the candidate
+comparison that chose the period palette) and `<date>-<commit>-palette` (the
+shipped palette, with a browser record of the axe and end-to-end run). Format
+both files with `npx prettier --write <directory>`, then emit
+`manifest.sha256` with `node tools/benchmark/manifest.mjs <directory>`. No
+screenshots are committed: the numeric matrix replaces the Phase 1 screenshot
+matrix (tier 1 above), and browser screenshots are advisory (owner decision
+Q6).

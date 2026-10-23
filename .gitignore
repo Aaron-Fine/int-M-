@@ -4,8 +4,10 @@ node_modules/
 # Build and test output
 dist/
 dist-e2e/
+dist-visual/
 coverage/
 playwright-report/
+playwright-report-visual/
 test-results/
 
 # Isolated worktrees and agent scratch

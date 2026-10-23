@@ -8,6 +8,7 @@ import {
   type SemanticFrame,
 } from '../render';
 import type { SemanticView } from '../domain';
+import { validIsolatedPeriod } from '../render/colorize';
 import type {
   FrameProvenance,
   MainToWorkerMessage,
@@ -31,6 +32,8 @@ interface ActiveRender {
   readonly startedAt: number;
   requestId: RequestId;
   semanticView: SemanticView;
+  /** Period isolation of this computation's deliveries (a palette input). */
+  isolatedPeriod: number | undefined;
   lastFrame?: SemanticFrame;
 }
 
@@ -40,6 +43,8 @@ interface CachedOrigin {
   readonly computeId: number;
   /** The semantic view the cached frame was most recently delivered in. */
   view: SemanticView;
+  /** The period isolation it was most recently delivered with. */
+  isolatedPeriod: number | undefined;
 }
 
 const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage => ({
@@ -71,6 +76,14 @@ const frameTiming = (
     ...(timing?.mergeCpuMs === undefined ? {} : { mergeCpuMs: timing.mergeCpuMs }),
   };
 };
+
+/**
+ * The isolation that can change the raster: only the period view isolates, and
+ * only a valid period. Anything else draws the same pixels, so it must not
+ * change a frame's provenance.
+ */
+const effectiveIsolation = (message: RenderMessage): number | undefined =>
+  message.semanticView === 'period' ? validIsolatedPeriod(message.isolatedPeriod) : undefined;
 
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;
@@ -122,6 +135,7 @@ export class RenderWorkerRuntime {
     requestId: RequestId,
     frame: SemanticFrame,
     view: SemanticView,
+    isolatedPeriod: number | undefined,
     origin: {
       readonly source: FrameProvenance['source'];
       readonly active?: ActiveRender;
@@ -129,7 +143,7 @@ export class RenderWorkerRuntime {
     },
   ): void {
     const colorizeStarted = performance.now();
-    const raster = this.#renderer.colorize(frame, view);
+    const raster = this.#renderer.colorize(frame, view, isolatedPeriod);
     const colorizeMs = performance.now() - colorizeStarted;
     const computed = origin.source === 'computed';
     const workerTiming = frameTiming(frame, colorizeMs, computed);
@@ -151,6 +165,8 @@ export class RenderWorkerRuntime {
       rgba: raster.rgba,
       progress: raster.progress,
       workerTiming,
+      ...(raster.periodKey === undefined ? {} : { periodKey: raster.periodKey }),
+      ...(raster.isolatedPeriod === undefined ? {} : { isolatedPeriod: raster.isolatedPeriod }),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }
@@ -158,15 +174,21 @@ export class RenderWorkerRuntime {
   async #render(message: RenderMessage): Promise<void> {
     const request = dynamicsRequest(message);
     const key = semanticRequestKey(request);
+    const isolated = effectiveIsolation(message);
     const cached = this.#semanticStore.get(request);
     const cachedOrigin = this.#cachedOrigin;
     if (cached !== undefined && cachedOrigin?.key === key) {
       if (this.#activeRender !== undefined && this.#activeRender.key !== key) {
         this.#activeRender.controller.abort();
       }
-      const source = cachedOrigin.view === message.semanticView ? 'semantic-cache' : 'recolor';
+      // Isolation is a palette input like the view: changing it recolors.
+      const source =
+        cachedOrigin.view === message.semanticView && cachedOrigin.isolatedPeriod === isolated
+          ? 'semantic-cache'
+          : 'recolor';
       cachedOrigin.view = message.semanticView;
-      this.#postFrame(message.requestId, cached, message.semanticView, {
+      cachedOrigin.isolatedPeriod = isolated;
+      this.#postFrame(message.requestId, cached, message.semanticView, isolated, {
         source,
         computeId: cachedOrigin.computeId,
       });
@@ -180,11 +202,18 @@ export class RenderWorkerRuntime {
     ) {
       this.#activeRender.requestId = message.requestId;
       this.#activeRender.semanticView = message.semanticView;
+      this.#activeRender.isolatedPeriod = isolated;
       if (this.#activeRender.lastFrame !== undefined) {
-        this.#postFrame(message.requestId, this.#activeRender.lastFrame, message.semanticView, {
-          source: 'inflight-replay',
-          computeId: this.#activeRender.computeId,
-        });
+        this.#postFrame(
+          message.requestId,
+          this.#activeRender.lastFrame,
+          message.semanticView,
+          isolated,
+          {
+            source: 'inflight-replay',
+            computeId: this.#activeRender.computeId,
+          },
+        );
       }
       return;
     }
@@ -198,6 +227,7 @@ export class RenderWorkerRuntime {
       startedAt: performance.now(),
       requestId: message.requestId,
       semanticView: message.semanticView,
+      isolatedPeriod: isolated,
     };
     this.#activeRender = active;
 
@@ -213,9 +243,10 @@ export class RenderWorkerRuntime {
             key: active.key,
             computeId: active.computeId,
             view: active.semanticView,
+            isolatedPeriod: active.isolatedPeriod,
           };
         }
-        this.#postFrame(active.requestId, frame, active.semanticView, {
+        this.#postFrame(active.requestId, frame, active.semanticView, active.isolatedPeriod, {
           source: 'computed',
           active,
           computeId: active.computeId,

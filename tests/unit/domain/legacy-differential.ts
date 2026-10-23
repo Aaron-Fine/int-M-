@@ -282,7 +282,7 @@ export const hardAnchorPoints = (): { readonly re: number; readonly im: number }
   return points;
 };
 
-// Rabbit and co-rabbit neighborhoods (period 3).
+// Rabbit and corabbit neighborhoods (period 3).
 export const rabbitPoints = (): { readonly re: number; readonly im: number }[] =>
   (
     [

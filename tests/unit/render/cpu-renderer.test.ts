@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_VIEWPORT, type RenderQuality } from '../../../src/domain';
+import { buildPeriodKey, DEFAULT_VIEWPORT, type RenderQuality } from '../../../src/domain';
 import {
   CpuRenderer,
   RenderCancelledError,
@@ -8,7 +8,8 @@ import {
   type SemanticFrame,
 } from '../../../src/render';
 import type { TilePool } from '../../../src/render';
-import { packStatusPeriod } from '../../../src/render/packed-semantic';
+import { periodHistogram } from '../../../src/render/colorize';
+import { packStatusPeriod, unpackPeriod, unpackStatus } from '../../../src/render/packed-semantic';
 
 const STABLE_QUALITY: RenderQuality = { maxIterations: 512, maxPeriod: 32, coarseStride: 8 };
 
@@ -32,6 +33,44 @@ const emptyStableFrame = (request: DynamicsRenderRequest): SemanticFrame => {
 };
 
 describe('CpuRenderer', () => {
+  it('ranks the coarse and the stable frame each from its own pixels', async () => {
+    const renderer = new CpuRenderer();
+    const frames: SemanticFrame[] = [];
+    await renderer.render(
+      // Near the Feigenbaum point the coarse budget finds no cycle while the
+      // stable pass finds period 32.
+      {
+        viewport: { center: { re: -1.401155189092, im: 0 }, spanY: 0.001 },
+        size: { width: 64, height: 40 },
+        quality: STABLE_QUALITY,
+      },
+      new AbortController().signal,
+      (frame) => {
+        frames.push(frame);
+      },
+    );
+
+    expect(frames.map((frame) => frame.stage)).toEqual(['coarse', 'stable']);
+    const rasters = frames.map((frame) => renderer.colorize(frame, 'period'));
+    rasters.forEach((raster, index) => {
+      const frame = frames[index]!;
+      expect(raster.periodKey).toEqual(buildPeriodKey(periodHistogram(frame)));
+      // Every emphasized colour is drawn on a pixel of its own period.
+      const band = frame.bands[0]!;
+      for (const entry of raster.periodKey?.emphasized ?? []) {
+        const pixel = band.packedStatusPeriod.findIndex(
+          (word) => unpackStatus(word) === 2 && unpackPeriod(word) === entry.period,
+        );
+        expect([...raster.rgba.slice(pixel * 4, pixel * 4 + 4)]).toEqual(entry.color);
+      }
+    });
+    // The two frames rank differently; each raster still matches its own key.
+    const [coarseKey, stableKey] = rasters.map((raster) => raster.periodKey);
+    expect(coarseKey?.emphasized.map((entry) => entry.period)).not.toEqual(
+      stableKey?.emphasized.map((entry) => entry.period),
+    );
+  });
+
   it('emits complete coarse and stable semantic frames that can be recolored', async () => {
     const renderer = new CpuRenderer();
     const frames: SemanticFrame[] = [];

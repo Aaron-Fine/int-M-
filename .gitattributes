@@ -6,3 +6,5 @@
 /poc/performance/results/raw.*.json -diff linguist-generated=true
 /poc/performance/results/summary.json -diff linguist-generated=true
 /poc/performance/browser/results/*.json -diff linguist-generated=true
+# The period <=12 catalog core (ADR 0014): generated binary data; its manifest is text.
+/catalog/core.v1.bin binary linguist-generated=true

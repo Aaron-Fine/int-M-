@@ -20,14 +20,14 @@ awaiting approval.
 
 ## Exit criteria (plan §12, final Phase 2 exit criteria)
 
-| Criterion                                                                                                                               | State                                                                           | Evidence and disposition                                                                                                                                                                                                                                                                                                                                      |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Required workstreams meet their gates in both stable browsers; every conditional experiment has a recorded accept/reject disposition    | **Partial**                                                                     | A, C, D pass in both browsers. **B is not met in Firefox** and is superseded for users by C (owner decision 2026-10-16; see B). Dispositions are decided below. [Required workstreams](#required-workstreams); [conditional dispositions](#conditional-workstream-dispositions).                                                                              |
-| The required path achieves ≥2× on declared worst hard cases and the frozen absolute latency budgets                                     | **Pass** (budgets approved 2026-10-16; Easy on the mirror-free build projected) | Hard-known cases 4.02×–11.05× (Chrome) and 10.97×–23.55× (Firefox) faster than the previous default, every BCa lower bound above 3.7×. Proposed budgets below are met in both browsers.                                                                                                                                                                       |
-| Categorical results satisfy the high-precision oracle/holdout contract; reviewed conservative changes from legacy output are documented | **Pass**                                                                        | The default kernel is bit-identical to the reference lag scan on every frozen-corpus pixel at the shipping raster, so no stratum's holdout disagreement can change; all 572 release stable-canvas hash pairs match. Conservative changes from pre-Phase-2 output are the PR 3 verifier reductions, oracle-adjudicated in `orbit-oracle-adjudication.test.ts`. |
-| If F ships, the dynamic catalog UI passes accessibility validation; otherwise the curated layer's Phase 1 validation stands             | **Pass**                                                                        | F did not ship; the curated layer's Phase 1 accessibility evidence stands, and the browser accessibility scenarios pass on this branch.                                                                                                                                                                                                                       |
-| Mathematics, requirements, ADRs, implementation, generator, evidence, and SysML views agree                                             | **Pass**                                                                        | [Document agreement](#document-agreement).                                                                                                                                                                                                                                                                                                                    |
-| Every experiment that did not ship is recorded with its measurements and kill rationale                                                 | **Met**                                                                         | [Conditional dispositions](#conditional-workstream-dispositions) with the evidence in [WORKSTREAM-DISPOSITIONS.md](WORKSTREAM-DISPOSITIONS.md) and [STAGE-A-GATE-ANALYSIS.md](STAGE-A-GATE-ANALYSIS.md).                                                                                                                                                      |
+| Criterion                                                                                                                               | State                                                                                                    | Evidence and disposition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Required workstreams meet their gates in both stable browsers; every conditional experiment has a recorded accept/reject disposition    | **Partial**                                                                                              | A, C, D pass in both browsers. **B is not met in Firefox** and is superseded for users by C (owner decision 2026-10-16; see B). Dispositions are decided below. [Required workstreams](#required-workstreams); [conditional dispositions](#conditional-workstream-dispositions).                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| The required path achieves ≥2× on declared worst hard cases and the frozen absolute latency budgets                                     | **Partial** (budgets approved 2026-10-16; the 2026-10-20 release session misses the Chrome default view) | Hard-known cases 4.02×–11.05× (Chrome) and 10.97×–23.55× (Firefox) faster than the previous default, every BCa lower bound above 3.7×. The approved budgets are met in both browsers except the Easy stable budget on `mi-easy-default-full` in Chrome (292.6 ms against 250 ms, 2026-10-20; [latency budgets](#latency-budgets-approved-2026-10-16)).                                                                                                                                                                                                                                                                                                                                                                             |
+| Categorical results satisfy the high-precision oracle/holdout contract; reviewed conservative changes from legacy output are documented | **Pass**                                                                                                 | As of 2026-10-15 the default kernel was bit-identical to the reference lag scan on every frozen-corpus pixel at the shipping raster. Since 2026-10-17 that holds except the analytic period-3 and period-4 classes (ADR 0010, ADR 0013), whose every changed pixel is dd-adjudicated ([period 3](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md), [period 4](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md)); outside them no stratum's holdout disagreement can change; all 572 release stable-canvas hash pairs match. Conservative changes from pre-Phase-2 output are the PR 3 verifier reductions, oracle-adjudicated in `orbit-oracle-adjudication.test.ts`. |
+| If F ships, the dynamic catalog UI passes accessibility validation; otherwise the curated layer's Phase 1 validation stands             | **Pass**                                                                                                 | F shipped (ADR 0014). The `Catalog panel (MI-UX-020)` and `Catalog core (ADR 0014)` axe scenarios and `MI-PERF-008` pass in Firefox and Chromium; the full-size screen-reader check is still open (PHASE1-HOME-TEST, Accessibility step 3).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Mathematics, requirements, ADRs, implementation, generator, evidence, and SysML views agree                                             | **Pass**                                                                                                 | [Document agreement](#document-agreement); see also [Post-assessment notes (2026-10-17)](#post-assessment-notes-2026-10-17).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Every experiment that did not ship is recorded with its measurements and kill rationale                                                 | **Met**                                                                                                  | [Conditional dispositions](#conditional-workstream-dispositions) with the evidence in [WORKSTREAM-DISPOSITIONS.md](WORKSTREAM-DISPOSITIONS.md) and [STAGE-A-GATE-ANALYSIS.md](STAGE-A-GATE-ANALYSIS.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## Required workstreams
 
@@ -137,7 +137,9 @@ mirroring off):
   ([evidence](../../evidence/phase-2/2026-10-16-5bbc3da-lag-comparisons/summary.md)).
 - **Kill condition: clean.** The kernel is bit-identical to the reference
   scan on the frozen corpus (status, period, multiplier), so it adds no false
-  attracting result, no wrong period, and no unresolved pixel.
+  attracting result, no wrong period, and no unresolved pixel. (Measured 2026-10-15;
+  since 2026-10-17 the analytic period-3 and period-4 classes differ by
+  design, ADR 0010 and ADR 0013, every changed pixel dd-adjudicated.)
 
 ### D — period policy and product language
 
@@ -164,11 +166,69 @@ browser:
 | Stable frame, Hard known (user-facing hard-view budget, Detailed where declared) | ≤ 600 ms   | 470 ms (rabbit boundary, Chrome)    |
 | Stable frame, Fallback and Scale                                                 | ≤ 1,500 ms | 1,010 ms (weak attraction, Firefox) |
 
+These figures are from the 2026-10-16 session. The 2026-10-20 session on the
+shipping build misses the Easy budget in Chrome (292.6 ms on the default view;
+see [Confirming release session (2026-10-20)](#confirming-release-session-2026-10-20)).
+
 The budgets were measured with conjugate mirroring on. On the mirror-free
-build, the paired run's mirror-off arm puts the default view at 238.4 ms
-(Chrome) and 173 ms (Firefox) against 250 ms. The owner has deferred the
-confirming headed release session, so the Easy budget on the shipping build is
-projected, not yet measured.
+build, the paired run's mirror-off arm projected the default view at 238.4 ms
+(Chrome) and 173 ms (Firefox) against 250 ms.
+
+### Confirming release session (2026-10-20)
+
+The release session on `d3d0490` (branded Chrome 155.0.8059.84 and Firefox
+158.0, headed, 24 warm pairs per case, AC power, balanced profile;
+[evidence](../../evidence/phase-2/2026-10-20-d3d0490-release/summary.md))
+measured the budgets on the shipping build. **Every budget passes in both
+browsers except one: Chrome `mi-easy-default-full`, stable 292.6 ms against
+250 ms (Not met).** Firefox measures 198 ms on the same view. The other Chrome
+Easy views are 124.3, 188.2 and 164.4 ms; the worst Hard-known median is
+499.0 ms (rabbit boundary, against 600 ms) and the worst Fallback and Scale
+median is 764.5 ms (budget exhaustion, against 1,500 ms) in Chrome; Firefox's
+worst Hard-known is 327.0 ms and its worst Fallback is 938.5 ms (budget
+exhaustion). Every coarse median is at most 79.8 ms against 100 ms.
+
+Diagnosis (directional paired runs on 2026-10-20 in the bundled browsers; not
+committed evidence):
+
+- The mirror-free build `47f07b5` already runs the default view at about 275 ms
+  in Chrome today. The 238 ms projection of 2026-10-16 did not hold; the
+  Chrome and kernel versions changed since.
+- The analytic period-3 work adds 6-9% to that view in Chrome, and the
+  period-3 plus period-4 work about 27% in Firefox.
+- In Firefox the period-3 gates also cost about 10% on `mi-easy-exterior-heavy`,
+  above the 5% limit of ADR 0010, which was measured in Node only.
+
+**Owner decision (2026-10-20): optimize the analytic paths' cost on the views
+they mostly refuse, adopt 8 bands per worker, re-measure, then decide the
+budget.** The "Phase 2 performance closed" approval below stays blank until
+then. The open work is PHASE2-TODO item 0, "Easy default view in Chrome".
+
+2026-10-20 (later): the analytic-path optimization landed (commits `fe68c59`,
+`ab73117`, `af4522b`; [evidence](../../evidence/phase-2/2026-10-20-ab73117-analytic-cost/summary.md));
+the headed release re-measure is pending, and the approval below stays blank.
+
+2026-10-21: owner decision, ADR 0010's 5% limit is measured in the browsers
+(cold tile workers, both engines) and Node is a diagnostic. First run on
+`f97dd6a`: pass, default view +1.3% (Firefox) and −2.4% (Chromium) against the
+same build without the analytic call
+([evidence](../../evidence/phase-2/2026-10-21-f97dd6a-browser-overhead-gate/summary.md)).
+
+Other results of the session:
+
+- **Bands per worker:** 8 adopted (commit `b642fd6`): paired wins of 6-8% on
+  three Chrome views and one Firefox view, no significant loss, zero
+  parity mismatches. 16 rejected: losses on `mi-easy-exterior-heavy` in both
+  engines and on two Chrome views.
+- **Hook overhead:** within 5% in both browsers; pooled plain/hook 1.002
+  [0.986, 1.011] in Chrome and 0.993 [0.970, 1.014] in Firefox (312 pairs
+  each). Parity: 0 hash mismatches in either browser. Three Firefox stalls
+  recovered on retry. Ring retention 9,246 bytes (Chrome) and 9,465 bytes
+  (Firefox) after 32 recolors, against the 65,536-byte limit.
+- **Memory (`MI-PERF-006`):** see "What this record does not establish".
+- **Period 3 and 4 in the browsers:** the session ran on the build with both
+  analytic classes and showed 0 hash mismatches between the hook and plain
+  arms.
 
 Single samples exceed the medians (weak attraction peaks at 1.63 s in
 Firefox); the budgets are on medians, as the plan's paired evidence is.
@@ -180,13 +240,15 @@ exit criteria require. "Not adopted in Phase 2" is a reject for this phase
 with a stated reopening condition; the evidence and gate quotes are in
 [WORKSTREAM-DISPOSITIONS.md](WORKSTREAM-DISPOSITIONS.md) and
 [STAGE-A-GATE-ANALYSIS.md](STAGE-A-GATE-ANALYSIS.md). The frozen budgets above
-are met without any of them, which removes the shortfall that several were
-waiting for.
+are met without any of them, except the Chrome default view recorded in the
+[2026-10-20 session](#confirming-release-session-2026-10-20); that shortfall
+is being closed by optimizing the analytic paths (owner decision 2026-10-20),
+not by any of these workstreams.
 
 | WS                                  | Proposed disposition                                                               | Rationale and reopening condition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ----------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | E — dynamic microbands              | **Not adopted in Phase 2**                                                         | Never attempted. The skew gate fires, but N comes first and is killed below; hard views now finish in 0.2–1.0 s, so a ≥10% band-balance gain is tens of milliseconds. Reopen if a declared view misses its frozen budget and its band imbalance explains the miss.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| F — period-12 core and shards       | **Not adopted as performance work; product feature candidate** (owner, 2026-10-16) | The reopening gate did not fire: matched-budget detection showed no checkpoint-only or legacy-only detection on any stratum, and the measured seeding gains came from adjacent-pixel and session seeds (G), not a generated catalog. Belongs to a product (atlas) phase. The owner considers the generated catalog worth building as a product feature if its interior components are displayed the way the existing catalog markers are (labelled, selectable centres with period and address); that is product scope, not a Phase 2 performance gate.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| F — period-12 core and shards       | **Not adopted as performance work; product feature candidate** (owner, 2026-10-16) | The reopening gate did not fire: matched-budget detection showed no checkpoint-only or legacy-only detection on any stratum, and the measured seeding gains came from adjacent-pixel and session seeds (G), not a generated catalog. Belongs to a product (atlas) phase. The owner considers the generated catalog worth building as a product feature if its interior components are displayed the way the existing catalog markers are (labelled, selectable centres with period and address); that is product scope, not a Phase 2 performance gate. Shipped with PHASE2-TODO item 7 (ADR 0014).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | G — catalog/session/adjacent Newton | **Not adopted in Phase 2**                                                         | Strong directional PoC evidence, but its start condition was a hard-view budget shortfall, which no longer exists. Reopen on a budget miss the current kernel cannot close.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | H — p3/p4 algebraic                 | **Adopted as Phase 2 work** (owner, 2026-10-16; not a performance-closeout gate)   | Exploratory spike (Node, scalar classifier, 256×160, directional): the period-3 multiplier has a closed form, λ = 4(c+2) ± 4i·c·√(4c+7), and the period-4 multipliers solve a cubic. A gated prototype agreed with production on every p3/p4 pixel of the corpus (0 contradictions over 532,480 pixels), was 5–37× cheaper per hit pixel, and ran the four hard views 1.4–2.0× faster. It turned 24,839 production-unresolved pixels into confirmed period-3/4 interior (half of the 6,000,000× basilica-rim view). Caveats: the p4 cusp error bound is heuristic, fallback overhead on the far exterior was 3–8% against a 5% limit, and two corpus rationales are wrong. Owner decision 2026-10-16: adopt period 3 now and period 4 after a rigorous bound, as Phase 2 work ([spike record](WORKSTREAM-H-SPIKE-2026-10-16.md), [PHASE2-TODO](PHASE2-TODO.md)).                                                                                                                                                                                                                                                              |
 | I — Wasm SIMD                       | **Not adopted in Phase 2** (ADR 0005 conditions stand)                             | The stable algorithm is now fixed (ADR 0006), which satisfies ADR 0005's ordering, but no budget shortfall motivates it. Reopen with a scalar-Wasm capability measurement against a budget miss.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -199,15 +261,28 @@ waiting for.
 
 ## Document agreement
 
-| View           | Where it now agrees                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Mathematics    | [PERFORMANCE-MATHEMATICS.md](../PERFORMANCE-MATHEMATICS.md) and [ADR 0006](../decisions/0006-watched-lag-default-classifier.md) describe the default kernel's acceptance argument (same-or-later acceptance than the reference scan, one verifier).                                                                                                                                                                            |
-| Requirements   | [REQUIREMENTS.md](REQUIREMENTS.md) Phase 2 matrix carries the closeout states below.                                                                                                                                                                                                                                                                                                                                           |
-| ADRs           | ADR 0006 accepted (2026-10-15); ADR 0004 (catalog) and ADR 0005 (Wasm SIMD) conditions unchanged and cited by the dispositions.                                                                                                                                                                                                                                                                                                |
-| Implementation | [PERFORMANCE-PLAN.md](../PERFORMANCE-PLAN.md) status table and Stage A section; [UNIFIED-KERNEL-2026-10-11.md](UNIFIED-KERNEL-2026-10-11.md).                                                                                                                                                                                                                                                                                  |
-| Generator      | No generator change: workstream F did not ship; the curated catalog and fixture generators are unchanged and `npm run check` regenerates and verifies them.                                                                                                                                                                                                                                                                    |
-| Evidence       | Every run cited here has `environment.json`, raw observations, a summary, and a verified `manifest.sha256` under `evidence/phase-2/`.                                                                                                                                                                                                                                                                                          |
-| SysML          | [MandelbrotInteriority.sysml](../../model/MandelbrotInteriority.sysml) now carries `MI-PERF-001`…`008`, their satisfaction allocations (trace recorder, cycle verifier, tile pool, evidence harness), and `MI-VER-PERF-001`…`005`; the UI–worker port carries the acknowledgment and quiescence items. No SysML v2 parser is pinned in this repository, so parser conformance is not claimed (model README validation step 4). |
+| View           | Where it now agrees                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mathematics    | [PERFORMANCE-MATHEMATICS.md](../PERFORMANCE-MATHEMATICS.md) and [ADR 0006](../decisions/0006-watched-lag-default-classifier.md) describe the default kernel's acceptance argument (same-or-later acceptance than the reference scan, one verifier).                                                                                                                                                                                                                                                         |
+| Requirements   | [REQUIREMENTS.md](REQUIREMENTS.md) Phase 2 matrix carries the closeout states below.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ADRs           | ADR 0006 accepted (2026-10-15); ADR 0005 (Wasm SIMD) conditions unchanged and cited by the dispositions. ADR 0004 (catalog) carries amendments for ADR 0011 and ADR 0014, which ship workstream F as a product feature ([ADR 0011](../decisions/0011-catalog-schema-v2-and-stable-ids.md), [ADR 0014](../decisions/0014-generated-catalog-core.md)). See [Post-assessment notes (2026-10-17)](#post-assessment-notes-2026-10-17).                                                                           |
+| Implementation | [PERFORMANCE-PLAN.md](../PERFORMANCE-PLAN.md) status table and Stage A section; [UNIFIED-KERNEL-2026-10-11.md](UNIFIED-KERNEL-2026-10-11.md).                                                                                                                                                                                                                                                                                                                                                               |
+| Generator      | The catalog generators changed after this assessment: `tools/generate_catalog.py` was rewritten for schema v2 ([ADR 0011](../decisions/0011-catalog-schema-v2-and-stable-ids.md)) and workstream F shipped as the generated period ≤12 core ([ADR 0014](../decisions/0014-generated-catalog-core.md)); `npm run check` verifies the curated catalog and fixtures, and `npm run catalog:core:verify` regenerates and cross-checks the core (see [Post-assessment notes](#post-assessment-notes-2026-10-17)). |
+| Evidence       | Every run cited here has `environment.json`, raw observations, a summary, and a verified `manifest.sha256` under `evidence/phase-2/`.                                                                                                                                                                                                                                                                                                                                                                       |
+| SysML          | [MandelbrotInteriority.sysml](../../model/MandelbrotInteriority.sysml) now carries `MI-PERF-001`…`008`, their satisfaction allocations (trace recorder, cycle verifier, tile pool, evidence harness), and `MI-VER-PERF-001`…`005`; the UI–worker port carries the acknowledgment and quiescence items. No SysML v2 parser is pinned in this repository, so parser conformance is not claimed (model README validation step 4).                                                                              |
+
+## Post-assessment notes (2026-10-17)
+
+**2026-10-17 (catalog schema v2, ADR 0011).** The curated catalog moved to schema v2 (`catalog/components.v2.json`): the same eleven components, labels and focus order; centres moved ≤ 2.1·10⁻¹⁵ to the correctly rounded refined values; ids became ray-derived (`mi-p<p>-<a>-<b>`) and every v1 id is a permanent alias, so v1 share links resolve unchanged.
+`tools/generate_catalog.py` was rewritten (residuals, method, provenance, Lavaurs pairing) and `tools/generate_colorized_golden.ts` added; `npm run check` regenerates and verifies both.
+ADR 0004 carries an amendment (scope unchanged).
+The `MI-PERF-003` state is unchanged (**Pass (proposed)**); its evidence cell now cites ADR 0011 and `tests/unit/catalog/`.
+This note does not change any assessed state.
+
+**2026-10-17 (generated catalog core, ADR 0014; PHASE2-TODO item 7).**
+Workstream F shipped as a product feature, as the 2026-10-16 disposition allowed: a 4,016-entry catalog of exact period 1 to 12 (`catalog/core.v1.bin`, 136,560 bytes), regenerated byte for byte, independently cross-checked, and loaded in a worker without blocking rendering.
+The `MI-PERF-003` and `MI-PERF-008` requirement text was rewritten to describe what shipped (owner decision 2026-10-18), and their states are unchanged (**Pass (proposed)**); the evidence cells cite ADR 0012 and ADR 0014.
+F is still not a performance gate: this note changes no latency budget or performance state.
 
 ## Findings from the release runs
 
@@ -227,13 +302,17 @@ waiting for.
   with the order alternated the builds are indistinguishable (0.98×–1.10×,
   no flags; [evidence](../../evidence/phase-2/2026-10-16-9e70551-build-check-alternating/summary.md)).
   The biased record is kept and marked superseded.
-- **Deep-view first frame (product follow-up).** On deep views near parabolic
-  points (for example the 6,000,000× basilica rim) the coarse frame's reduced
-  budget (≤256 iterations) leaves much of the image unresolved, so the screen
-  shows mostly the unresolved texture until the stable frame. With the
-  production kernel that lasts about 0.3–0.6 s; under the legacy reference
-  mode it lasted the whole multi-second pass. Progressive stable bands or a
-  depth-aware coarse budget would address it; neither is in Phase 2 scope.
+- **Deep-view first frame (product follow-up, re-diagnosed 2026-10-16).** On
+  the 6,000,000× basilica rim much of the screen shows the unresolved texture.
+  The first reading blamed the coarse frame's ≤256-iteration budget. The
+  [coarse-budget study](COARSE-BUDGET-STUDY-2026-10-16.md) shows otherwise:
+  the coarse pass already resolves every sampled pixel there that the stable
+  pass resolves, and the unresolved left half is period-4 interior with |λ| within
+  5e-6 of 1 that the stable pass also leaves unresolved
+  ([H spike, side finding 1](WORKSTREAM-H-SPIKE-2026-10-16.md#side-findings)).
+  The fix is H's analytic period-4 path, not a deeper coarse budget. A real
+  coarse-budget gap exists at the 2,500× Feigenbaum view (20.2% of resolvable
+  pixels unresolved at 256, 4.8% at 512); it is recorded in PHASE2-TODO.
 
 - **Release session harness.** One command, `npm run evidence:release`,
   now produces the release evidence: budgets, hook overhead, hook/plain
@@ -261,24 +340,38 @@ waiting for.
 
 ## What this record does not establish
 
-- Memory high-water (MI-PERF-006) is bounded by design (a single-entry
-  semantic store and per-band buffers sized by the raster) but was not
-  measured in the release browsers.
+- Memory high-water (`MI-PERF-006`) is bounded by design (a single-entry
+  semantic store and per-band buffers sized by the raster). It was measured
+  in the 2026-10-20 release session only in Chrome: 24.3 MiB retained after
+  the stable frame (`mi-easy-default-full`), 2.6 MiB main-thread JS heap
+  (a lower bound). Firefox over WebDriver BiDi exposes no memory API, so it is
+  unmeasured; per the owner decision of 2026-10-18 the requirement passes on
+  the Chrome figure and a manual `about:memory` reading is the reopen path.
+  The retained figure is a post-render snapshot, not the peak during
+  computation.
 - The plan's 2% always-on budget needs an instrumented build against a
   recorder-free build; both overhead arms here contain the always-on ring.
   The ring's direct cost is measured instead (recorder microbenchmark and
   retention), as the overhead summaries record.
 - Equality of the default kernel with the reference scan was established on
   the frozen corpus and in targeted adversarial runs, not proved (ADR 0006).
-  The reference scan was removed 2026-10-16 (ADR 0007); bit-level equality is
-  now guarded by the golden kernel fixture (`fixtures/kernel-golden.v1.json`),
-  generated while the reference still existed.
+  The reference scan was removed 2026-10-16 (ADR 0007); bit-level equality was
+  guarded by the golden kernel fixture (`fixtures/kernel-golden.v1.json`),
+  generated while the reference still existed. Since 9c1471e the fixture was
+  regenerated for the analytic period-3 pixels (ADR 0010, 2026-10-17; 19,216
+  golden-raster pixels, 1,074 status changes, each dd-adjudicated in the
+  [adjudication evidence](../../evidence/phase-2/2026-10-17-9c1471e-period-three-adjudication/summary.md)),
+  and since cf414cc for the analytic period-4 pixels (ADR 0013, 2026-10-17;
+  12,435 golden-raster pixels, 8,614 status changes, each dd-adjudicated in
+  the [period-4 adjudication evidence](../../evidence/phase-2/2026-10-17-cf414cc-period-four-adjudication/summary.md)),
+  so it now guards the post-ADR-0013 kernel, and equality with the reference
+  scan holds only outside the analytic period-3 and period-4 pixels.
 
 ## Approval
 
 | Decision                                                                | Owner response                                                                                                                                                                                  |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Latency budgets as proposed                                             | Approved 2026-10-16 ("Latency is met with the changes that have been made")                                                                                                                     |
+| Latency budgets as proposed                                             | Approved 2026-10-16 ("Latency is met with the changes that have been made"); 2026-10-20: the Chrome Easy default view is not met on the shipping build (see the session note)                   |
 | Conditional dispositions as proposed (M decided separately)             | Approved 2026-10-16 for E, G, I, J, K, L, N, O ("approve the other eight dispositions"); F recast as a product feature candidate; H adopted after its spike (p3 now, p4 after a rigorous bound) |
 | Workstream M: conjugate mirroring                                       | Decided 2026-10-16: remove ("Considering its limited scope of applicability I do not think that the added complexity is worth it"); ADR 0008                                                    |
 | Opt-in diagnostics: counters mode moved out of the ≤5% budget (A above) | Approved 2026-10-16: counters offline only, implemented                                                                                                                                         |

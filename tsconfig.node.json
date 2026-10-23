@@ -26,12 +26,22 @@
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",
+    "playwright.visual.config.ts",
     "tests/unit/**/*.ts",
     "tools/measure_cpu.ts",
     "tools/benchmark/conjugate-mirror.ts",
     "tools/benchmark/recorder-cost.ts",
     "tools/benchmark/harness/**/*.ts",
     "tools/benchmark/run-release.ts",
-    "tools/generate_kernel_golden.ts"
+    "tools/generate_kernel_golden.ts",
+    "tools/generate_colorized_golden.ts",
+    "tools/kernel_pixel_dump.ts",
+    "tools/adjudicate_period_three.ts",
+    "tools/adjudicate_period_four.ts",
+    "tools/adjudication.ts",
+    "tools/golden-raster.ts",
+    "tools/benchmark/fallback-overhead.ts",
+    "tools/benchmark/cold-workers.ts",
+    "tools/palette_metrics.ts"
   ]
 }

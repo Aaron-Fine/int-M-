@@ -151,8 +151,7 @@ package MandelbrotInteriority {
         part def CycleVerifier {
             doc /*
              * The single declared acceptance procedure: every candidate
-             * source (lag scan, watched lag, checkpoint, analytic paths)
-             * proposes, and only this verifier may accept an attracting
+             * source (watched lag, analytic paths) proposes, and only this verifier may accept an attracting
              * cycle and its primitive period.
              */
         }
@@ -218,7 +217,15 @@ package MandelbrotInteriority {
 
         part def HighPrecisionFixtureGenerator;
 
-        part def CatalogGenerator;
+        part def CatalogGenerator {
+            doc /*
+             * Generates the curated catalog and the period <=12 core from
+             * first principles: Lavaurs ray pairs, Newton refinement in
+             * 80-digit decimals and Krawczyk certification of every centre,
+             * with an independent cross-check in exact arithmetic that also
+             * proves that, for c at each centre, its ray pair lands together (ADR 0014).
+             */
+        }
 
         part def EvidenceHarness {
             doc /*
@@ -390,6 +397,72 @@ package MandelbrotInteriority {
              * rejected.
              */
         }
+
+        requirement <'MI-UX-019'> ShareableState {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The viewport (exact decimal centre and span), semantic view,
+             * quality profile, and selection shall be encoded in a versioned
+             * URL and restored on load. Malformed or out-of-range values
+             * shall fall back to defaults with a notice, and an older version
+             * shall never be reinterpreted silently.
+             */
+        }
+
+        requirement <'MI-UX-020'> CatalogNavigation {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Every catalog entry shall be reachable and selectable by
+             * keyboard and by a list grouped by period. Activating an entry
+             * shall zoom to it, never past the zoom ceiling, and select it.
+             * Curated entries may carry annotation text, and a glossary shall
+             * explain periods, parameter ray pairs and internal and angled
+             * internal addresses. At most 40 catalog markers shall be
+             * interactive at once, lowest periods first; the selected entry
+             * shall be shown whenever it is in view; the marker focus order
+             * shall not depend on the view; a marker shall be left off only
+             * when at least 40 in-view entries have its period or a lower
+             * one, or its dot would cover another marker's, and a colliding
+             * label shall be hidden while its marker stays.
+             */
+        }
+
+        requirement <'MI-UX-018'> PeriodViewEmphasis {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * The period view shall emphasize at most five periods per view,
+             * chosen by area in the frame shown, and draw every other period
+             * in one neutral color. The legend shall list exactly the
+             * emphasized periods in ascending order, with their exact period
+             * numbers, their shares of the attracting-cycle area and the
+             * colors the raster uses, plus the neutral class. Each emphasized
+             * period shall be identifiable without relying on hue through
+             * that legend and by isolation: (mouse) hovering, focusing or
+             * activating its legend entry shall dim every pixel not of that period, with
+             * at least 3:1 contrast between the period and the dimmed field,
+             * until the entry is released or activated again, Escape is
+             * pressed, a stable frame no longer emphasizes the period, or
+             * the interior view changes.
+             */
+        }
+
+        requirement <'MI-UX-021'> PaletteAcceptance {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Each semantic view's palette shall meet the declared minimum
+             * CIEDE2000 differences, set from the simulated minima of the Phase 1
+             * palette, which passed the Phase 1 colour-vision sign-off (the
+             * period-color floor raised to 11 for the accepted palette),
+             * between the escaped and unresolved classes and among and
+             * against the period-view classes under normal and simulated
+             * protan, deutan and tritan vision; where interior colors overlap
+             * those classes by design, the unresolved texture and the
+             * multiplier stripes shall meet their own floors. The stability
+             * ramp shall be monotonic in luminance, text drawn over the
+             * raster shall keep at least 4.5:1 contrast, and every legend
+             * color shall derive from the colorizer's palette.
+             */
+        }
     }
 
 
@@ -417,10 +490,11 @@ package MandelbrotInteriority {
         requirement <'MI-PERF-003'> CuratedCatalogIntegrity {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * The curated identity layer shall remain intact. If workstream F
-             * ships, the generated period-12 core shall be deterministically
-             * reproducible and versioned extension shards shall load without
-             * blocking rendering or weakening the curated catalog.
+             * The curated identity layer shall remain intact. One generated
+             * catalog core of every exact period up to 12 shall be
+             * reproducible and independently cross-checked, and shall load
+             * off the main thread without blocking rendering or weakening the
+             * curated layer; there are no extension shards (ADR 0004 amendments, ADR 0014).
              */
         }
 
@@ -429,8 +503,12 @@ package MandelbrotInteriority {
             doc /*
              * No checkpoint, catalog, algebraic, Newton, SIMD, or subdivision
              * path shall emit attracting-cycle status without the common
-             * declared acceptance procedure; exhausted or ambiguous work
-             * shall remain unresolved.
+             * declared acceptance procedure (closed-form analytic paths
+             * accept by the verifier's attraction margin with a declared
+             * binary64 allowance, ADR 0010; the period-4 cubic solve
+             * accepts the same way through a certified root enclosure,
+             * ADR 0013); exhausted or ambiguous work shall remain
+             * unresolved.
              */
         }
 
@@ -465,10 +543,11 @@ package MandelbrotInteriority {
         requirement <'MI-PERF-008'> AccessibleCatalogPresentation {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Catalog presentation, the curated centers and, if F ships,
-             * dynamic marker loading and clustering, shall remain
-             * keyboard-operable, screen-reader understandable, focus-stable,
-             * and bounded in simultaneous interactive markers.
+             * Catalog presentation, the curated centers and the generated
+             * core, shall remain keyboard-operable, screen-reader
+             * understandable, focus-stable, and bounded in simultaneous
+             * interactive markers, through bounded markers plus the list and
+             * find field and no clustering (ADR 0012).
              */
         }
     }
@@ -510,6 +589,16 @@ package MandelbrotInteriority {
                 by app.uiShell;
             satisfy UserExperienceRequirements::RendererRecoveryAndFallback
                 by app.uiShell.rendererLifecycle;
+            satisfy UserExperienceRequirements::PeriodViewEmphasis
+                by app.renderingWorker.paletteMapper;
+            satisfy UserExperienceRequirements::PeriodViewEmphasis
+                by app.uiShell.legend;
+            satisfy UserExperienceRequirements::PaletteAcceptance
+                by app.renderingWorker.paletteMapper;
+            satisfy UserExperienceRequirements::ShareableState
+                by app.uiShell;
+            satisfy UserExperienceRequirements::CatalogNavigation
+                by app.uiShell;
         }
 
         part perfSatisfactionContext {
@@ -522,6 +611,8 @@ package MandelbrotInteriority {
                 by app.renderingWorker.orbitEngine;
             satisfy PerformanceRequirements::CuratedCatalogIntegrity
                 by app.catalogData;
+            satisfy PerformanceRequirements::CuratedCatalogIntegrity
+                by toolchain.catalogGenerator;
             satisfy PerformanceRequirements::CommonAcceptance
                 by app.renderingWorker.cycleVerifier;
             satisfy PerformanceRequirements::GuardedAcceleratedKernel
@@ -557,13 +648,16 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * Exercise pointer and keyboard navigation, point and
-             * area-selection zoom, cancellation, reset, and both boundaries
-             * of the permitted zoom range.
+             * area-selection zoom, cancellation, reset, both boundaries of
+             * the permitted zoom range, and shareable links: round trip,
+             * copy, malformed fields, and unknown or missing versions.
              */
             objective navigationInteraction {
                 verify UserExperienceRequirements::ResponsiveNavigation;
                 verify UserExperienceRequirements::RestoreDefaultView;
                 verify UserExperienceRequirements::ZoomBoundFeedback;
+                verify UserExperienceRequirements::ShareableState;
+                verify UserExperienceRequirements::CatalogNavigation;
             }
         }
 
@@ -580,6 +674,8 @@ package MandelbrotInteriority {
                 verify UserExperienceRequirements::SemanticLegend;
                 verify UserExperienceRequirements::NonColorStateDistinction;
                 verify UserExperienceRequirements::EvidenceBoundedInspector;
+                verify UserExperienceRequirements::PeriodViewEmphasis;
+                verify UserExperienceRequirements::PaletteAcceptance;
             }
         }
 
@@ -607,6 +703,26 @@ package MandelbrotInteriority {
             objective accessibility {
                 verify UserExperienceRequirements::KeyboardOperation;
                 verify UserExperienceRequirements::AccessibleInterface;
+                verify UserExperienceRequirements::CatalogNavigation;
+            }
+        }
+
+        verification def <'MI-VER-UX-006'> ImageRegressionTest {
+            subject app : Architecture::MandelbrotInteriorityApplication;
+            doc /*
+             * Each semantic view shall have committed goldens for the
+             * default view and two zoomed views, with a documented tolerance
+             * and update procedure. Unit tests hash the colorized frame bytes
+             * of every semantic view (zero tolerance, the gate); browser
+             * screenshots in the pinned Playwright container are advisory.
+             * These goldens and screenshots guard against regressions of the
+             * colour requirements that MI-VER-UX-003 verifies; they are not
+             * themselves evidence of correctness.
+             */
+            objective imageRegression {
+                verify UserExperienceRequirements::NonColorStateDistinction;
+                verify UserExperienceRequirements::PeriodViewEmphasis;
+                verify UserExperienceRequirements::PaletteAcceptance;
             }
         }
 
@@ -629,7 +745,7 @@ package MandelbrotInteriority {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
              * Adjudicate classifier results against the high-precision oracle
-             * and the reference lag scan, including candidate rejection and
+             * and the kernel golden fixture, including candidate rejection and
              * unresolved-rate checks.
              */
             objective classifierAgreement {
@@ -641,9 +757,15 @@ package MandelbrotInteriority {
         verification def <'MI-VER-PERF-003'> CatalogDeterminismTest {
             subject app : Architecture::MandelbrotInteriorityApplication;
             doc /*
-             * Check catalog completeness, deterministic generation when a
-             * generated layer ships, and keyboard, focus, and marker-cap
-             * accessibility of catalog presentation.
+             * Check catalog completeness, deterministic generation, and
+             * keyboard, focus, and marker-cap accessibility of catalog
+             * presentation. Schema v2 entries carry residuals, method and
+             * provenance; ids derive from the parameter ray pair and v1 ids
+             * remain aliases (ADR 0011). The period <=12 core regenerates
+             * byte for byte, an independent cross-check proves every centre
+             * again and that, for c at each centre, its ray pair lands
+             * together, and the loader rejects a damaged or unreachable core
+             * while the curated layer stays (ADR 0014).
              */
             objective catalogDeterminism {
                 verify PerformanceRequirements::CuratedCatalogIntegrity;

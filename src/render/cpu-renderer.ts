@@ -1,4 +1,5 @@
 import {
+  buildPeriodKey,
   classifyOrbit,
   validateRasterSize,
   type Complex,
@@ -7,7 +8,8 @@ import {
   type SemanticView,
 } from '../domain';
 import { classifyRows } from './classify-rows';
-import { colorizeFrame } from './colorize';
+import { COARSE_BASE_ITERATIONS } from './coarse-budget';
+import { colorizeFrame, periodHistogram, validIsolatedPeriod } from './colorize';
 import { RenderCancelledError } from './render-cancelled-error';
 import {
   resolveRenderQuality,
@@ -56,6 +58,16 @@ const classifyFull = async (
   };
 };
 
+/**
+ * The quality the coarse pass runs at: the stride floored at 2, the iteration
+ * budget capped at COARSE_BASE_ITERATIONS and the period cap at 16.
+ */
+export const coarseRenderQuality = (quality: RenderQuality): RenderQuality => ({
+  maxIterations: Math.min(quality.maxIterations, COARSE_BASE_ITERATIONS),
+  maxPeriod: Math.min(quality.maxPeriod, 16),
+  coarseStride: Math.max(2, quality.coarseStride),
+});
+
 export class CpuRenderer implements Renderer {
   public constructor(private readonly tilePool?: TilePool) {}
 
@@ -66,12 +78,8 @@ export class CpuRenderer implements Renderer {
   ): Promise<void> {
     validateRasterSize(request.size);
     const quality = resolveRenderQuality(request.quality);
-    const coarseStride = Math.max(2, quality.coarseStride);
-    const coarseQuality: RenderQuality = {
-      maxIterations: Math.min(quality.maxIterations, 256),
-      maxPeriod: Math.min(quality.maxPeriod, 16),
-      coarseStride,
-    };
+    const coarseQuality = coarseRenderQuality(quality);
+    const coarseStride = coarseQuality.coarseStride;
 
     const coarse = await classifyFull(request, coarseQuality, coarseStride, 'coarse', signal);
     throwIfAborted(signal);
@@ -99,13 +107,19 @@ export class CpuRenderer implements Renderer {
     });
   }
 
-  public colorize(frame: SemanticFrame, view: SemanticView): RasterFrame {
-    const rgba = colorizeFrame(frame, view);
+  public colorize(frame: SemanticFrame, view: SemanticView, isolatedPeriod?: number): RasterFrame {
+    // The period view ranks this frame's own histogram (PLAN §8, Q1), so a
+    // recolor of a cached frame reproduces the key without reclassifying.
+    const periodKey = view === 'period' ? buildPeriodKey(periodHistogram(frame)) : undefined;
+    const isolated = periodKey === undefined ? undefined : validIsolatedPeriod(isolatedPeriod);
+    const rgba = colorizeFrame(frame, view, periodKey, isolated);
     return {
       stage: frame.stage,
       size: frame.size,
       rgba,
       progress: frame.progress,
+      ...(periodKey === undefined ? {} : { periodKey }),
+      ...(isolated === undefined ? {} : { isolatedPeriod: isolated }),
     };
   }
 }

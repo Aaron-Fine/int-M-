@@ -5,9 +5,11 @@
  * for each engine, writes the evidence bundle, and exits non-zero on any
  * failed gate.
  *
+ * Also records a per-engine memory high-water figure (MI-PERF-006): harness/memory.ts.
+ *
  *   node tools/benchmark/run-release.ts [--engines chromium,firefox] [--release]
  *     [--reps N] [--cases id,...] [--compare name=<query>|name=dist:<dir>]...
- *     [--skip-interactions] [--resume] [--out-dir DIR] [--interactions N]
+ *     [--skip-interactions] [--skip-memory] [--resume] [--out-dir DIR] [--interactions N]
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync } from 'node:fs';
@@ -16,8 +18,22 @@ import process from 'node:process';
 import { parseArgs } from 'node:util';
 import type { Page } from '@playwright/test';
 import { BUDGETS } from './harness/budgets.ts';
-import { parseCompare, type Compare, type CompareDist } from './harness/compare.ts';
+import {
+  assertCompareDistLimit,
+  parseCompare,
+  type Compare,
+  type CompareDist,
+} from './harness/compare.ts';
 import { writeEvidence } from './harness/evidence.ts';
+import {
+  MEMORY_TABLE_HEADERS,
+  isMemorySkipped,
+  memoryRows,
+  notRecordedMemory,
+  skippedMemory,
+  type EngineMemory,
+} from './harness/memory.ts';
+import { runMemoryPass } from './harness/passes/memory.ts';
 import { releaseDefaultReps, releaseRepsProblem } from './harness/schedule.ts';
 import {
   DIRECTIONAL_LABEL,
@@ -72,6 +88,7 @@ interface RunContext {
   reps: number;
   interactions: number;
   skipInteractions: boolean;
+  skipMemory: boolean;
   selected: CorpusCase[];
   hardCase: CorpusCase;
   arms: ArmSpec[];
@@ -85,6 +102,7 @@ interface EngineRun {
   incomplete: IncompleteCase[];
   interactionResults: InteractionResults | undefined;
   ringBytes: number;
+  memory: EngineMemory;
   viewport: Session['viewport'];
   powerMode: Session['powerMode'];
   lockedHint: Session['lockedHint'];
@@ -191,11 +209,15 @@ const runEngine = async (engine: Engine, ctx: RunContext): Promise<EngineRun> =>
       ? undefined
       : await runInteractionPass(session, ctx.interactions);
     const ringBytes = await ringBytesAfterRecolors(session, ctx.hardCase);
+    const memory = ctx.skipMemory
+      ? skippedMemory()
+      : await runMemoryPass(session, engine, ctx.selected);
     return {
       samples,
       incomplete,
       interactionResults,
       ringBytes,
+      memory,
       viewport: session.viewport,
       powerMode: session.powerMode,
       lockedHint: session.lockedHint,
@@ -316,6 +338,11 @@ const interactionSection = (engine: Engine, run: EngineRun): string =>
     ? `## ${engine} — interactions\n\nSkipped (--skip-interactions).`
     : `## ${engine} — interactions\n\n${interactionTable(summarizeInteractions(run.interactionResults))}\n\nHonesty notes: cancel and inflight-replay rows count only samples that won their race; raced samples are reported, not dropped. Violations count every provenance check that failed.`;
 
+const memorySection = (engine: Engine, run: EngineRun): string =>
+  isMemorySkipped(run.memory)
+    ? `## ${engine} — memory (MI-PERF-006)\n\nSkipped (--skip-memory).`
+    : `## ${engine} — memory (MI-PERF-006)\n\n${table(MEMORY_TABLE_HEADERS, memoryRows(run.memory))}\n\nHonesty note: informational, not a gate. A figure is the maximum over one fresh page per case; "not measured" means no honest figure was obtained, and the reason column says why (unsupported engine, unavailable API, or a failed measurement). No proxy is substituted. Definitions: evidence/phase-2/README.md, "Memory high-water".`;
+
 const compareSection = (engine: Engine, compare: Compare, summaries: CaseSummary[]): string =>
   `## ${engine} — compare ${compare.arm.name}\n\n${table(
     [
@@ -389,6 +416,7 @@ const writeEngineEvidence = (
       browserVersion: run.browserVersion,
       userAgent: run.userAgent,
       launchedBy: run.launchedBy,
+      memory: run.memory,
       release: ctx.release,
       reps: ctx.reps,
       interactions: ctx.skipInteractions ? null : ctx.interactions,
@@ -406,6 +434,7 @@ const writeEngineEvidence = (
       incomplete: run.incomplete,
       interactions: run.interactionResults ?? null,
       ringBytes: run.ringBytes,
+      memory: run.memory,
     },
     summaryHeader: summaryHeader(ctx),
     summarySections: [
@@ -413,6 +442,7 @@ const writeEngineEvidence = (
       overheadSection(engine, run, summaries, ctx.release),
       paritySection(engine, summaries),
       interactionSection(engine, run),
+      memorySection(engine, run),
       ...ctx.compares.map((compare) => compareSection(engine, compare, summaries)),
     ],
   });
@@ -439,6 +469,7 @@ const finishedEngine = (ctx: RunContext, engine: Engine): EngineRun | undefined 
     JSON.stringify(entry['caseIds']) === JSON.stringify(ctx.selected.map((c) => c.id)) &&
     JSON.stringify(entry['arms']) === JSON.stringify(ctx.arms.map((a) => a.name)) &&
     (entry['interactions'] === null) === ctx.skipInteractions &&
+    isMemorySkipped(entry['memory'] as EngineMemory | undefined) === ctx.skipMemory &&
     Array.isArray(entry['incomplete']) &&
     entry['incomplete'].length === 0;
   if (!same) return undefined;
@@ -447,6 +478,7 @@ const finishedEngine = (ctx: RunContext, engine: Engine): EngineRun | undefined 
     incomplete: [],
     interactionResults: (entry['interactions'] ?? undefined) as InteractionResults | undefined,
     ringBytes: entry['ringBytes'] as number,
+    memory: (entry['memory'] as EngineMemory | undefined) ?? notRecordedMemory(),
     viewport: entry['viewport'] as Session['viewport'],
     powerMode: entry['powerMode'] as Session['powerMode'],
     lockedHint: entry['lockedHint'] as Session['lockedHint'],
@@ -465,6 +497,7 @@ const parseCli = () =>
       cases: { type: 'string' },
       compare: { type: 'string', multiple: true, default: [] },
       'skip-interactions': { type: 'boolean', default: false },
+      'skip-memory': { type: 'boolean', default: false },
       resume: { type: 'boolean', default: false },
       'out-dir': { type: 'string' },
       interactions: { type: 'string' },
@@ -507,6 +540,7 @@ const buildContext = (values: Cli, engines: Engine[]): RunContext => {
   const hardCase = allCases.find((caseInfo) => caseInfo.id === 'mi-hard-supplied-126x');
   if (hardCase === undefined) die('corpus is missing mi-hard-supplied-126x');
   const compares = values.compare.map((spec) => parseCompare(spec, process.cwd()));
+  assertCompareDistLimit(compares);
   const arms: ArmSpec[] = [
     { name: 'hook', hook: true },
     { name: 'plain', hook: false },
@@ -520,6 +554,7 @@ const buildContext = (values: Cli, engines: Engine[]): RunContext => {
     ? path.resolve(process.cwd(), values['out-dir'])
     : path.join(repoRoot, `evidence/phase-2/${today()}-${commit}-${labelOf(release)}`);
   const skipInteractions = values['skip-interactions'];
+  const skipMemory = values['skip-memory'];
   return {
     release,
     resume: values.resume,
@@ -529,11 +564,15 @@ const buildContext = (values: Cli, engines: Engine[]): RunContext => {
       allCases: values.cases === undefined,
       reps,
       arms: arms.map((arm) => arm.name),
-      skippedPasses: skipInteractions ? ['interactions'] : [],
+      skippedPasses: [
+        ...(skipInteractions ? ['interactions'] : []),
+        ...(skipMemory ? ['memory'] : []),
+      ],
     },
     reps,
     interactions,
     skipInteractions,
+    skipMemory,
     selected,
     hardCase,
     arms,

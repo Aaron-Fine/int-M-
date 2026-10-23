@@ -1,0 +1,181 @@
+/**
+ * Palette metric record (owner decision Q5, MI-UX-021): CIEDE2000 minima under
+ * normal and simulated protan, deutan and tritan vision for the Phase 1
+ * palette, each period-palette candidate and the shipped palette. Writes palette-metrics.json and summary.md into the directory
+ * given; format both with Prettier and emit manifest.sha256 afterwards.
+ * Usage: npm run evidence:palette -- <output directory>
+ */
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import { VISIONS, type Rgb } from '../tests/unit/palette/color-science';
+import {
+  candidateClasses,
+  PERIOD_PALETTE_CANDIDATES,
+  SELECTED_PERIOD_PALETTE_ID,
+} from '../tests/unit/palette/palette-candidates';
+import { TEXT_OVERLAYS, worstOverlayContrast } from '../tests/unit/palette/overlay-contrast';
+import { ISOLATION_DIM_FACTOR } from '../src/domain';
+import {
+  ISOLATION_CONTRAST_FLOOR,
+  LABEL_CONTRAST_FLOOR,
+  PALETTE_FLOORS,
+  PHASE1_FLOORS,
+} from '../tests/unit/palette/palette-floors';
+import {
+  ESCAPE_BAND_SAMPLES,
+  measurePalette,
+  METRIC_NAMES,
+  MULTIPLIER_ANGLE_STEPS,
+  MULTIPLIER_MAGNITUDE_STEPS,
+  phase1PaletteSpec,
+  shippedPaletteSpec,
+  worstIsolationContrast,
+  type PaletteSpec,
+} from '../tests/unit/palette/palette-metrics';
+
+interface PaletteEntry {
+  readonly id: string;
+  readonly description: string;
+  readonly spec: PaletteSpec;
+}
+
+const hex = (rgb: Rgb): string =>
+  `#${rgb.map((channel) => Math.round(channel).toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+
+const palettes = (): readonly PaletteEntry[] => [
+  {
+    id: 'phase-1',
+    description: 'Phase 1 palette (4fd4fdd); period classes are the golden-angle hues of p1–p5',
+    spec: phase1PaletteSpec(),
+  },
+  ...PERIOD_PALETTE_CANDIDATES.map((candidate) => ({
+    id: `candidate/${candidate.id}`,
+    description: `${candidate.source}; other periods ${candidate.other}${
+      candidate.id === SELECTED_PERIOD_PALETTE_ID ? ' (selected)' : ''
+    }`,
+    spec: phase1PaletteSpec(candidateClasses(candidate)),
+  })),
+  {
+    id: 'shipped',
+    description: 'colorize.ts output: period classes are the five emphasized colours, then other',
+    spec: shippedPaletteSpec(),
+  },
+];
+
+const record = (commit: string) => ({
+  schemaVersion: 1,
+  method: {
+    difference: 'CIEDE2000 (Sharma, Wu and Dalal 2005), kL = kC = kH = 1, sRGB D65',
+    simulation:
+      'Machado, Oliveira and Fernandes (2009), severity 1.0, applied to linear sRGB and clamped',
+    visions: VISIONS,
+    sampling: {
+      escapeBands: ESCAPE_BAND_SAMPLES,
+      multiplierAngles: MULTIPLIER_ANGLE_STEPS,
+      multiplierMagnitudes: MULTIPLIER_MAGNITUDE_STEPS + 1,
+    },
+    helper: 'tests/unit/palette/color-science.ts',
+  },
+  environment: { node: process.version, commit },
+  phase1Floors: PHASE1_FLOORS,
+  floors: PALETTE_FLOORS,
+  textOverRaster: TEXT_OVERLAYS.map((selector) => {
+    const worst = worstOverlayContrast(selector);
+    return {
+      selector,
+      worstContrast: Number(worst.toFixed(2)),
+      floor: LABEL_CONTRAST_FLOOR,
+      pass: worst >= LABEL_CONTRAST_FLOOR,
+    };
+  }),
+  isolation: {
+    dimFactor: ISOLATION_DIM_FACTOR,
+    worstContrast: Number(worstIsolationContrast(ISOLATION_DIM_FACTOR).toFixed(2)),
+    floor: ISOLATION_CONTRAST_FLOOR,
+    pass: worstIsolationContrast(ISOLATION_DIM_FACTOR) >= ISOLATION_CONTRAST_FLOOR,
+  },
+  palettes: palettes().map((palette) => ({
+    id: palette.id,
+    description: palette.description,
+    periodClasses: palette.spec.periodClasses.map(hex),
+    metrics: measurePalette(palette.spec).map((result) => ({
+      name: result.name,
+      byVision: Object.fromEntries(
+        VISIONS.map((vision) => [vision, Number(result.byVision[vision].toFixed(2))]),
+      ),
+      min: Number(result.min.toFixed(2)),
+      floor: PALETTE_FLOORS[result.name],
+      pass: result.min >= PALETTE_FLOORS[result.name],
+    })),
+  })),
+});
+
+type PaletteRecord = ReturnType<typeof record>;
+
+const summary = (data: PaletteRecord): string => {
+  const header = `| Metric | Phase 1 floor | Floor | ${data.palettes.map((palette) => `\`${palette.id}\``).join(' | ')} |`;
+  const rule = `| --- | --- | --- | ${data.palettes.map(() => '---').join(' | ')} |`;
+  const rows = METRIC_NAMES.map((name) => {
+    const cells = data.palettes.map((palette) => {
+      const metric = palette.metrics.find((entry) => entry.name === name);
+      return metric === undefined ? '—' : `${metric.min.toFixed(2)}${metric.pass ? '' : ' ✗'}`;
+    });
+    return `| \`${name}\` | ${PHASE1_FLOORS[name]} | ${PALETTE_FLOORS[name]} | ${cells.join(' | ')} |`;
+  });
+  const classes = data.palettes.map(
+    (palette) =>
+      `- \`${palette.id}\`: ${palette.description}. Classes ${palette.periodClasses.join(', ')}.`,
+  );
+  return [
+    `# Palette metrics — \`${data.environment.commit}\``,
+    '',
+    `Generated by \`npm run evidence:palette\` (Node ${data.environment.node}).`,
+    `Colour difference: ${data.method.difference}. Simulation: ${data.method.simulation}.`,
+    'Each cell is the minimum over normal, protan, deutan and tritan vision;',
+    '✗ marks a value below its floor. Per-vision values are in `palette-metrics.json`.',
+    '',
+    header,
+    rule,
+    ...rows,
+    '',
+    'Only the period-class metrics changed from Phase 1; every other floor is a regression ratchet (the floor is the Phase 1 minimum rounded down, and the shipped value is unchanged).',
+    '',
+    '## Palettes',
+    '',
+    ...classes,
+    '',
+    '## Text over the raster',
+    '',
+    `Worst WCAG contrast of each overlay over every shipped raster colour and white (floor ${LABEL_CONTRAST_FLOOR}:1):`,
+    '',
+    ...data.textOverRaster.map(
+      (overlay) =>
+        `- \`${overlay.selector}\`: ${overlay.worstContrast.toFixed(2)}:1${overlay.pass ? '' : ' ✗'}`,
+    ),
+    '',
+    '## Period isolation',
+    '',
+    `Legend isolation dims every other pixel to ${data.isolation.dimFactor} of its value. Worst contrast of an isolated emphasized colour against any dimmed colour, over the four visions: ${data.isolation.worstContrast.toFixed(2)}:1 (floor ${data.isolation.floor}:1)${data.isolation.pass ? '' : ' ✗'}.`,
+    '',
+  ].join('\n');
+};
+
+const main = (): void => {
+  const outputArg = process.argv[2];
+  if (outputArg === undefined) {
+    process.stderr.write('usage: npm run evidence:palette -- <output directory>\n');
+    process.exit(2);
+  }
+  // Resolved from the repo root (npm runs scripts there).
+  const directory = path.resolve(process.cwd(), outputArg);
+  const commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim();
+  const data = record(commit);
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(path.join(directory, 'palette-metrics.json'), `${JSON.stringify(data, null, 2)}\n`);
+  writeFileSync(path.join(directory, 'summary.md'), summary(data));
+  process.stdout.write(`${summary(data)}\nwrote ${directory}\n`);
+};
+
+main();

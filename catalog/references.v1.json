@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "license": "CC0-1.0",
+  "description": "Literature references for catalog terms and components (ADR 0012): links to Wikipedia or arXiv only, kept out of annotation text. Keys are cited by the references arrays in curation.v2.json and by the glossary.",
+  "references": {
+    "main-cardioid-and-bulbs": {
+      "title": "Main cardioid and period bulbs",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Mandelbrot_set#Main_cardioid_and_period_bulbs"
+    },
+    "hyperbolic-components": {
+      "title": "Hyperbolic components",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Mandelbrot_set#Hyperbolic_components"
+    },
+    "small-copies": {
+      "title": "Small copies of the Mandelbrot set",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Mandelbrot_set#Self-similarity"
+    },
+    "multiplier": {
+      "title": "Multiplier of a periodic point",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Periodic_points_of_complex_quadratic_mappings"
+    },
+    "alpha-fixed-point": {
+      "title": "α fixed point",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Periodic_points_of_complex_quadratic_mappings"
+    },
+    "parameter-rays": {
+      "title": "Parameter rays",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/External_ray"
+    },
+    "julia-set": {
+      "title": "Julia set",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Julia_set"
+    },
+    "fatou-components": {
+      "title": "Fatou components",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Classification_of_Fatou_components"
+    },
+    "douady-rabbit": {
+      "title": "Douady rabbit",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Douady_rabbit"
+    },
+    "corabbit": {
+      "title": "Corabbit",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Douady_rabbit#Variants"
+    },
+    "logistic-map": {
+      "title": "Logistic map",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Logistic_map"
+    },
+    "adrien-douady": {
+      "title": "Adrien Douady",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Adrien_Douady"
+    },
+    "pierre-fatou": {
+      "title": "Pierre Fatou",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Pierre_Fatou"
+    },
+    "gaston-julia": {
+      "title": "Gaston Julia",
+      "source": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Gaston_Julia"
+    },
+    "rabbit-corabbit-airplane": {
+      "title": "The rabbit, the corabbit and the airplane (Bartholdi and Nekrashevych)",
+      "source": "arXiv",
+      "url": "https://arxiv.org/abs/math/0510082"
+    },
+    "orbit-portraits": {
+      "title": "Periodic orbits, external rays and the Mandelbrot set (Milnor)",
+      "source": "arXiv",
+      "url": "https://arxiv.org/abs/math/9905169"
+    },
+    "internal-addresses": {
+      "title": "Internal addresses in the Mandelbrot set (Lau and Schleicher)",
+      "source": "arXiv",
+      "url": "https://arxiv.org/abs/math/9411238"
+    }
+  }
+}

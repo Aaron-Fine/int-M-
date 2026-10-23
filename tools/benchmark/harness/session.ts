@@ -31,6 +31,7 @@ export const playwrightVersion = (require('@playwright/test/package.json') as { 
 const repoRoot = path.resolve(import.meta.dirname, '../../..');
 const CDP_PORT = 9335;
 const PREVIEW_PORT = 4185;
+const ISOLATED_PREVIEW_PORT = 4205;
 const TARGET_RASTER = { width: 1024, height: 640 };
 const STEP_TIMEOUT_MS = 2 * 60_000;
 
@@ -41,7 +42,7 @@ export const DIRECTIONAL_LABEL =
 
 export interface Session {
   readonly browser: Browser;
-  /** `current` is the build under test; each compare dist is keyed by its name. */
+  /** `current` is the build under test; each compare dist is keyed by its name; `isolated` (Chromium only) is the current build served cross-origin-isolated. */
   readonly baseUrls: Record<string, string>;
   readonly viewport: { readonly width: number; readonly height: number };
   readonly launchedBy: string | undefined;
@@ -259,14 +260,19 @@ export const startSession = async (options: {
   let launch: LaunchedBrowser | undefined;
   try {
     const baseUrls: Record<string, string> = {};
-    const serve = async (root: string, port: number, target?: CompareDist): Promise<string> => {
+    const serve = async (
+      root: string,
+      port: number,
+      target?: CompareDist,
+      headers?: Record<string, string>,
+    ): Promise<string> => {
       // A compare dist is served from its own directory: without the explicit
       // outDir, preview would serve the parent config's `dist`, the current build.
       const server = await preview({
         root,
         configFile: path.join(root, 'vite.config.ts'),
         ...(target === undefined ? {} : { build: { outDir: target.dir } }),
-        preview: { host: '127.0.0.1', port, strictPort: true },
+        preview: { host: '127.0.0.1', port, strictPort: true, ...(headers ? { headers } : {}) },
       });
       servers.push(server);
       if (target !== undefined) assertServes(target.name, server.config, target.dir);
@@ -280,6 +286,26 @@ export const startSession = async (options: {
         PREVIEW_PORT + 1 + index,
         compare,
       );
+    }
+    // The memory pass needs a cross-origin-isolated page for
+    // performance.measureUserAgentSpecificMemory(). The headers are applied
+    // to a separate copy of the same build so the timing passes are never
+    // served isolated.
+    // A start failure (a busy port, say) leaves `isolated` unset, which the
+    // memory pass records as "not measured"; it must not abort the session.
+    if (options.engine === 'chromium') {
+      try {
+        baseUrls['isolated'] = await serve(repoRoot, ISOLATED_PREVIEW_PORT, undefined, {
+          'Cross-Origin-Opener-Policy': 'same-origin',
+          'Cross-Origin-Embedder-Policy': 'require-corp',
+        });
+      } catch (error) {
+        process.stderr.write(
+          `[session] isolated preview server failed to start (${
+            error instanceof Error ? error.message : String(error)
+          }); the retained-memory figure will be not measured\n`,
+        );
+      }
     }
 
     const launched = await launchEvidenceBrowser(

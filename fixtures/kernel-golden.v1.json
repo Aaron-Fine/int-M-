@@ -4,21 +4,21 @@
     "width": 160,
     "height": 100
   },
-  "kernel": "watched-lag triggered scan (ADR 0006)",
-  "generatedFrom": "8b12ecd",
+  "kernel": "watched-lag triggered scan (ADR 0006) with the analytic period-3 (ADR 0010) and period-4 (ADR 0013) paths",
+  "generatedFrom": "30af42c",
   "cases": {
-    "mi-easy-default-full": "7295839917547b7fa70a503dc8c7bac2b7ed9a1f60add51e598d30597378e445",
+    "mi-easy-default-full": "b2c71fe71a93839f7d5ccea242f99eb1ef7f5be959360884b170235948ac4215",
     "mi-easy-exterior-heavy": "3f8596a646e7d4887c25c76234ccc9944dcc9844c9935ef8cd92d81fcaceb7d0",
     "mi-easy-main-cardioid": "342668b663fde4a6e930af066d2f8c3e64822d78798552b258ca0ef139ecd5a7",
     "mi-easy-period2-bulb": "ca312108a5a59a2e14bc8cae71afa53f89654cc0807a7cfc2a9a6194bf416ec9",
-    "mi-hard-rabbit-boundary": "4e0b5f2f2583d0b849ef8f2db43866576bef4b9349f58ac77da423c3e15254f1",
-    "mi-hard-supplied-126x": "5a75864029cc7e269e78973757664be204da5671b1d7855fa776ba6479d8bf65",
-    "mi-hard-supplied-609x": "7967eee4c4accb12df85f38b25425109314091a9df21c143091706c9b1afc570",
-    "mi-hard-supplied-13x": "6684daeff67fd034151ed69c58b254f96794b7f2c015e0411317ec3523a3fe72",
+    "mi-hard-rabbit-boundary": "100815b8269e92e193503fe27ac66517d55c6a939f9ff61ad33d26a8e1d198a3",
+    "mi-hard-supplied-126x": "9cac48322be880e6ce47a6ec9ce6f24c87359fe650813612fcea316949955e96",
+    "mi-hard-supplied-609x": "c5f0b7e2560ac76d36659779d3b4d9afcd9d5d407f9397328bfc4f3df0b70ead",
+    "mi-hard-supplied-13x": "e326e7100ac74fed98b15e9520d16b524f7688eeec3ffdb8667458ed014d5c99",
     "mi-fallback-unknown-high-period": "96950886f392452275fae4a57f63a72d764b5d9c0604e0308eb9163a30452768",
-    "mi-fallback-weak-attraction": "ee57b030988900fdb4e52a0a4306d35fd560cf6aef18e975a8eb4d7a2edfa353",
+    "mi-fallback-weak-attraction": "25246db865fa218504aa600d75f410b3c30eedf61e7a4c4dfa829131dc41cc2d",
     "mi-fallback-ambiguous-boundary": "fadd77794202b309ff634c25c7702069a6522c6d54fd3e46131c919214199e5a",
     "mi-fallback-budget-exhaustion": "4cb8cb865fad961e346e63d96d5dec40e695716b29e1221275fc402f55cb72d9",
-    "mi-scale-6mx-basilica-rim": "db3d8cce5e832f0f74c2b65b192cca966711c92f65817b970ce01f9522cc6513"
+    "mi-scale-6mx-basilica-rim": "80e288e38eca05ce98e928429fc153edd1d5250eae5e59605842cb47d49802c8"
   }
 }

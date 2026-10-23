@@ -144,6 +144,8 @@ describe('evidence source vocabulary (plan section 4)', () => {
   it('maps evidence flags to sources per the documented mapping', () => {
     expect(evidenceSourceForFlag('analytic-main-cardioid')).toBe('analytic');
     expect(evidenceSourceForFlag('analytic-period-2-bulb')).toBe('analytic');
+    expect(evidenceSourceForFlag('analytic-period-3-component')).toBe('analytic');
+    expect(evidenceSourceForFlag('analytic-period-4-component')).toBe('analytic');
     expect(evidenceSourceForFlag('converged-cycle')).toBe('fallback');
   });
 
@@ -154,6 +156,24 @@ describe('evidence source vocabulary (plan section 4)', () => {
     analytic.period = 1;
     const analyticResult = materializeOrbitResult(analytic);
     expect(analyticResult).toMatchObject({ evidenceSource: 'analytic' });
+
+    const periodThree = createOrbitSample();
+    periodThree.status = 2;
+    periodThree.evidence = ORBIT_EVIDENCE_CODE.analyticPeriod3Component;
+    periodThree.period = 3;
+    expect(materializeOrbitResult(periodThree)).toMatchObject({
+      evidence: ['analytic-period-3-component'],
+      evidenceSource: 'analytic',
+    });
+
+    const periodFour = createOrbitSample();
+    periodFour.status = 2;
+    periodFour.evidence = ORBIT_EVIDENCE_CODE.analyticPeriod4Component;
+    periodFour.period = 4;
+    expect(materializeOrbitResult(periodFour)).toMatchObject({
+      evidence: ['analytic-period-4-component'],
+      evidenceSource: 'analytic',
+    });
 
     const scan = createOrbitSample();
     scan.status = 2;
@@ -176,6 +196,8 @@ describe('evidence source vocabulary (plan section 4)', () => {
     for (const flag of [
       'analytic-main-cardioid',
       'analytic-period-2-bulb',
+      'analytic-period-3-component',
+      'analytic-period-4-component',
       'converged-cycle',
       'escape-radius',
       'iteration-limit',

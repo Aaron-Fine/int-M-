@@ -20,6 +20,8 @@ interface OrbitFixture {
   };
   readonly classificationBudget: OrbitOptions;
   readonly expected: ExpectedFixture;
+  /** Pins which acceptance path answers (analytic or the orbit scan). */
+  readonly expectedEvidence?: readonly string[];
 }
 
 interface FixtureDocument {
@@ -43,6 +45,9 @@ describe('independent high-precision orbit fixtures', () => {
       );
 
       expect(result.status).toBe(fixture.expected.status);
+      if (fixture.expectedEvidence !== undefined) {
+        expect(result.evidence).toEqual(fixture.expectedEvidence);
+      }
       if (result.status === 'escaped') {
         expect(result.escapeIteration).toBe(fixture.expected.escapeIteration);
       }

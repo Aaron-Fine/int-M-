@@ -69,7 +69,10 @@ unobserved check into a pass.
    page scrolling.
 3. With Orca, NVDA, or another available screen reader, confirm the canvas
    name/instructions, render status, viewport, selected point, outcome, and
-   evidence are understandable.
+   evidence are understandable. Then use the catalog panel at full size: type
+   in its find field (the match count is announced once typing pauses), open
+   the period-12 group, and activate an entry. The panel's description is read
+   once, not on every entry, and "Zoomed to" is announced once.
 4. Enable native high contrast when available; otherwise record use of browser
    `forced-colors: active` emulation. Confirm focus, selected point, catalog
    shapes, classifications, and retry remain visible.

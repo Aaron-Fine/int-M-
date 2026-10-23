@@ -79,6 +79,7 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 3,
         "maxIterations": 2048,
+        "expectedEvidence": ["analytic-period-3-component"],
     },
     {
         "id": "period-four-off-center",
@@ -86,6 +87,71 @@ CASES: tuple[dict[str, Any], ...] = (
         "expectedStatus": "attracting-cycle",
         "knownPeriod": 4,
         "maxIterations": 2048,
+        "expectedEvidence": ["analytic-period-4-component"],
+    },
+    {
+        "id": "period-four-basilica-rim",
+        "parameter": {"re": "-1.250625", "im": "0"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 4,
+        "maxIterations": 65536,
+        "expectedEvidence": ["analytic-period-4-component"],
+    },
+    {
+        "id": "period-four-real-primitive-near-cusp",
+        "parameter": {"re": "-1.9405508139761496", "im": "0"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 4,
+        "maxIterations": 65536,
+        "expectedEvidence": ["analytic-period-4-component"],
+    },
+    {
+        "id": "period-four-cardioid-satellite-rim",
+        "parameter": {"re": "0.32045830055798563", "im": "0.5123032453806926"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 4,
+        "maxIterations": 65536,
+        "expectedEvidence": ["analytic-period-4-component"],
+    },
+    {
+        "id": "period-eight-cardioid-satellite-satellite",
+        "parameter": {"re": "0.32484", "im": "0.56386"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 8,
+        "maxIterations": 16384,
+        "expectedEvidence": ["converged-cycle"],
+    },
+    {
+        "id": "period-three-weak-attraction-centre",
+        "parameter": {"re": "-0.1205", "im": "0.8268"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 3,
+        "maxIterations": 4096,
+        "expectedEvidence": ["analytic-period-3-component"],
+    },
+    {
+        "id": "period-three-airplane-near-cusp",
+        "parameter": {"re": "-1.750001", "im": "0"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 3,
+        "maxIterations": 32768,
+        "expectedEvidence": ["analytic-period-3-component"],
+    },
+    {
+        "id": "period-three-rabbit-rim",
+        "parameter": {"re": "-0.046545032326946937", "im": "0.69276818807760281"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 3,
+        "maxIterations": 65536,
+        "expectedEvidence": ["analytic-period-3-component"],
+    },
+    {
+        "id": "period-six-rabbit-satellite",
+        "parameter": {"re": "-0.1155037469844854", "im": "0.8402560718860035"},
+        "expectedStatus": "attracting-cycle",
+        "knownPeriod": 6,
+        "maxIterations": 16384,
+        "expectedEvidence": ["converged-cycle"],
     },
     {
         "id": "parabolic-boundary-minus-three-quarters",
@@ -209,6 +275,11 @@ def generate(precision: int) -> dict[str, Any]:
                         "cycleWarmup": 24,
                     },
                     "expected": expected,
+                    **(
+                        {"expectedEvidence": case["expectedEvidence"]}
+                        if "expectedEvidence" in case
+                        else {}
+                    ),
                 }
             )
 

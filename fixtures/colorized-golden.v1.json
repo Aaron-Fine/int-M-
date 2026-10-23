@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "raster": {
+    "width": 160,
+    "height": 100
+  },
+  "colorizer": "colorizeFrame (src/render/colorize.ts): stability and multiplier palettes, five-period Okabe-Ito key with isolation dimming (MI-UX-018, MI-UX-021)",
+  "generatedFrom": "30af42c",
+  "cases": {
+    "mi-easy-default-full/stability": {
+      "sha256": "bd30ad7f640692877e6a1f83319eca4ca3dc8f7fbdfcd522a41cbbf3a2af8d15"
+    },
+    "mi-easy-default-full/multiplier": {
+      "sha256": "3877c7143f92c1cc6af28e1b3e37bf199d38895892e6122520b99d04bb834bdd"
+    },
+    "mi-easy-default-full/period": {
+      "sha256": "ba2a52c71e734cd2f2f658e87b5bd77538cb6a593cf8faa7b7d520ddfe460258",
+      "emphasizedPeriods": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "mi-hard-supplied-126x/stability": {
+      "sha256": "751b2f15597f7edbcb6e6595331554d2e818b1b77ab7b446accf81a80836b203"
+    },
+    "mi-hard-supplied-126x/multiplier": {
+      "sha256": "3e650c1eb88c9dfb82ae7d227c5df033392d8f36ebe01ad916fe2c779f3c9a98"
+    },
+    "mi-hard-supplied-126x/period": {
+      "sha256": "f7c4049acd383b428c923fde08da7ac687f4fa6035ab637a63e98ad60ac1aed3",
+      "emphasizedPeriods": [
+        4,
+        8,
+        12,
+        16,
+        20
+      ]
+    },
+    "mi-fallback-budget-exhaustion/stability": {
+      "sha256": "04e55beccfa552ff0bda92e7172dae006e554805dfd8830c13c80eea7f6a31e5"
+    },
+    "mi-fallback-budget-exhaustion/multiplier": {
+      "sha256": "bc3d4f7f899c53f3398228f7f59954cce01ce380ce528a8a84d32ed017f895c0"
+    },
+    "mi-fallback-budget-exhaustion/period": {
+      "sha256": "0b5026d7c33f71f0b63266f4bb68611184573ca92c3044990e0157c5f5999bc7",
+      "emphasizedPeriods": [
+        32
+      ]
+    },
+    "mi-easy-default-full/period/isolate-2": {
+      "sha256": "fa242cedfb98b02286c0675f27e48c05549b1b27d24e493aa31c7444650fb92c",
+      "emphasizedPeriods": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  }
+}

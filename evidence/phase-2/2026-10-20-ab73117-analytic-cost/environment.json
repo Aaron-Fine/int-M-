@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-21T05:06:21.137Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465453056,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.11-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "ab73117d80a5c0947b43aa96083b25980eccf289",
+    "algorithm": "ab73117d80a5c0947b43aa96083b25980eccf289",
+    "catalog": "0cc770bf9bfc15e51abdfc7c29416b47b034dbd53c3316261f726c3b680b8762",
+    "verifier": "231fe67f1fe80efbbeea53c75d3c31171b5ea530c279ae98284d2c09c21401aa"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/tools/benchmark/capture-environment.mjs --out /home/aaron/int-M-/evidence/phase-2/2026-10-20-ab73117-analytic-cost/environment.json --note Analytic-cost investigation (ADR 0010 amendment 2026-10-20): Node fallback-overhead (taskset -c 5), cold-worker benchmark and run-release (directional, bundled headless Chromium 156 and Firefox 157); build ab73117 against b642fd6.",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "Analytic-cost investigation (ADR 0010 amendment 2026-10-20): Node fallback-overhead (taskset -c 5), cold-worker benchmark and run-release (directional, bundled headless Chromium 156 and Firefox 157); build ab73117 against b642fd6."
+  ]
+}

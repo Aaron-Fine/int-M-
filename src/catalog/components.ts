@@ -1,40 +1,38 @@
-import catalogData from "../../catalog/components.v1.json";
-import type { Complex } from "../domain/types";
+import catalogData from '../../catalog/components.v2.json';
+import { catalogNames, parseCatalog, type CatalogComponent } from './schema';
 
-export interface RationalAngle {
-  readonly numerator: number;
-  readonly denominator: number;
-}
-
-export interface AngledAddressStep {
-  readonly fromPeriod: number;
-  readonly toPeriod: number;
-  readonly rotation: RationalAngle;
-}
-
-export interface CatalogComponent {
-  readonly id: string;
-  readonly label: string;
-  readonly center: Complex;
-  readonly centerPrecisionDigits: number;
-  readonly period: number;
-  readonly internalAddress?: readonly number[];
-  readonly angledInternalAddress?: readonly AngledAddressStep[];
-  /** Exactly two angles when present; validated with the catalog fixture. */
-  readonly characteristicRays?: readonly RationalAngle[];
-}
-
-export const CATALOG_SCHEMA_VERSION = catalogData.schemaVersion;
-export const CATALOG_LICENSE = catalogData.license;
+export {
+  ANNOTATION_MAX_LENGTH,
+  catalogIdFor,
+  catalogNames,
+  CatalogSchemaError,
+  MAX_CATALOG_PERIOD,
+  parseCatalog,
+  parseReferenceTable,
+  rayModulus,
+  REFERENCE_TABLE,
+  type AngledAddressStep,
+  type Catalog,
+  type CatalogComponent,
+  type CatalogProvenance,
+  type CatalogReference,
+  type CatalogResidual,
+  type RationalAngle,
+} from './schema';
 
 /**
- * Independently generated centers for every hyperbolic component of exact
- * period at most four. Combinatorial fields are present only where the current
- * catalog can defend them; absent values are not inferred from screen position.
+ * Independently generated centres of every hyperbolic component of exact
+ * period at most four (catalog/components.v2.json, ADR 0011), validated on
+ * load. Ids derive from the characteristic rays, so they survive
+ * regeneration; v1 ids remain aliases.
  */
-export const COMPONENT_CATALOG: readonly CatalogComponent[] =
-  catalogData.components;
+export const CATALOG = parseCatalog(catalogData);
 
-export function findCatalogComponent(id: string): CatalogComponent | undefined {
-  return COMPONENT_CATALOG.find((component) => component.id === id);
+export const COMPONENT_CATALOG: readonly CatalogComponent[] = CATALOG.components;
+
+const BY_NAME = catalogNames(COMPONENT_CATALOG);
+
+/** The component with this canonical id or alias (a v1 id), if any. */
+export function findCatalogComponent(idOrAlias: string): CatalogComponent | undefined {
+  return BY_NAME.get(idOrAlias);
 }

@@ -89,6 +89,8 @@ describe('control kernel parity with OrbitClassifier', () => {
     it(`agrees on status, iterations, and evidence, and on period except documented non-primitive legacy multiples (${profile.label})`, () => {
       const classifier = new OrbitClassifier(profile.options);
       let reduced = 0;
+      let analyticPeriodThree = 0;
+      let analyticPeriodFour = 0;
 
       for (const point of samplePoints()) {
         const production = classifier.classify({ re: point.cRe, im: point.cIm });
@@ -111,6 +113,38 @@ describe('control kernel parity with OrbitClassifier', () => {
         // fields legitimately differ; everywhere else parity is exact.
         // Every divergence is adjudicated against the dd oracle in
         // tests/unit/domain/orbit-oracle-adjudication.test.ts.
+        // ADR 0010 and ADR 0013: the analytic period-3 and period-4 paths
+        // answer instead of the lag scan (analytic multiplier, iterations 0).
+        // The legacy control found the same primitive period, possibly as a
+        // multiple, or ran out of budget; every such pixel is checked against
+        // the dd period-3 or period-4 cycle in
+        // tests/unit/domain/orbit-oracle-adjudication.test.ts.
+        if (
+          production.status === 'attracting-cycle' &&
+          production.evidence[0] === 'analytic-period-3-component'
+        ) {
+          expect(production.period).toBe(3);
+          if (control.status === 'attracting') {
+            expect(control.period % 3).toBe(0);
+          } else {
+            expect(control.status).toBe('unresolved');
+          }
+          analyticPeriodThree += 1;
+          continue;
+        }
+        if (
+          production.status === 'attracting-cycle' &&
+          production.evidence[0] === 'analytic-period-4-component'
+        ) {
+          expect(production.period).toBe(4);
+          if (control.status === 'attracting') {
+            expect(control.period % 4).toBe(0);
+          } else {
+            expect(control.status).toBe('unresolved');
+          }
+          analyticPeriodFour += 1;
+          continue;
+        }
         const productionFields = comparableFields(production);
         const controlFields = comparableFields(control);
         expect(controlFields['status']).toBe(productionFields['status']);
@@ -133,10 +167,16 @@ describe('control kernel parity with OrbitClassifier', () => {
           expect(controlFields).toEqual(productionFields);
         }
       }
-      // The stratified corpus sample contains period-4 structure the legacy
-      // scan reports as 8/12: the documented reduction class must be present
-      // and is exactly what the oracle adjudication covers.
-      expect(reduced).toBeGreaterThan(0);
+      // The stratified corpus sample's period-4 structure, which the legacy
+      // scan reports as 8/12, takes the certified period-4 path since ADR 0013,
+      // so no reduction remains in this sample; the reduction class stays
+      // covered by tests/unit/domain/orbit-oracle-adjudication.test.ts
+      // (period-5 reductions under the detailed profile).
+      expect(reduced).toBe(0);
+      // The sample's three rabbit-stratum points take the analytic path.
+      expect(analyticPeriodThree).toBe(3);
+      // Its three period-4 points take the certified period-4 path.
+      expect(analyticPeriodFour).toBe(3);
     });
   }
 

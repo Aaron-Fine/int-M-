@@ -68,6 +68,37 @@ const stripResultMetadata = (
  * except the primitive-period reduction of non-primitive legacy multiples.
  */
 const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void => {
+  if (
+    production.status === 'attracting-cycle' &&
+    (production.evidence[0] === 'analytic-period-3-component' ||
+      production.evidence[0] === 'analytic-period-4-component')
+  ) {
+    // Documented divergence (ADR 0010, ADR 0013; every one adjudicated
+    // against the dd period-3 or period-4 cycle in
+    // orbit-oracle-adjudication.test.ts): the period-3 closed form or the
+    // certified period-4 cubic solve answers instead of the lag scan. Legacy
+    // either found the same primitive period (possibly as a multiple, with an
+    // orbit-product multiplier) or ran out of budget; it never escaped or
+    // found another period.
+    const period = production.evidence[0] === 'analytic-period-3-component' ? 3 : 4;
+    expect(production.period).toBe(period);
+    expect(production.iterations).toBe(0);
+    if (legacy.status === 'attracting-cycle') {
+      expect(legacy.period % period).toBe(0);
+      if (legacy.period === period) {
+        expect(
+          Math.abs(production.multiplierMagnitude - legacy.multiplierMagnitude),
+        ).toBeLessThanOrEqual(
+          period === 3
+            ? LEGACY_PERIOD_THREE_MAGNITUDE_TOLERANCE
+            : LEGACY_PERIOD_FOUR_MAGNITUDE_TOLERANCE,
+        );
+      }
+    } else {
+      expect(legacy.status).toBe('unresolved');
+    }
+    return;
+  }
   if (production.status === 'attracting-cycle' && legacy.status === 'attracting-cycle') {
     if (production.period === legacy.period) {
       expect(stripResultMetadata(production)).toEqual(legacy);
@@ -81,6 +112,17 @@ const expectLegacyParity = (production: OrbitResult, legacy: OrbitResult): void 
   }
   expect(stripResultMetadata(production)).toEqual(legacy);
 };
+
+/**
+ * Largest |lambda| difference allowed between the analytic period-3 or
+ * period-4 multiplier and the legacy orbit product. The orbit product is the
+ * inaccurate side (up to 1.02e-8 for period 3 and 3.2e-6 for period 4 on the
+ * golden raster, 2.2e-6 in the H spike, 3.0e-5 at the near-cusp period-4
+ * fixture); the dd adjudication pins the analytic multipliers to 1e-12
+ * (period 3) and to the certificate's allowance (period 4).
+ */
+const LEGACY_PERIOD_THREE_MAGNITUDE_TOLERANCE = 1e-5;
+const LEGACY_PERIOD_FOUR_MAGNITUDE_TOLERANCE = 1e-4;
 
 const PROFILES: readonly { readonly label: string; readonly options: Partial<OrbitOptions> }[] = [
   { label: 'quick', options: { maxIterations: 256, maxPeriod: 16 } },
@@ -208,6 +250,8 @@ describe('scalar core parity with the legacy classifier', () => {
       [ORBIT_EVIDENCE_CODE.escapeRadius, ['escape-radius']],
       [ORBIT_EVIDENCE_CODE.analyticMainCardioid, ['analytic-main-cardioid']],
       [ORBIT_EVIDENCE_CODE.analyticPeriod2Bulb, ['analytic-period-2-bulb']],
+      [ORBIT_EVIDENCE_CODE.analyticPeriod3Component, ['analytic-period-3-component']],
+      [ORBIT_EVIDENCE_CODE.analyticPeriod4Component, ['analytic-period-4-component']],
       [ORBIT_EVIDENCE_CODE.convergedCycle, ['converged-cycle']],
       [ORBIT_EVIDENCE_CODE.iterationLimit, ['iteration-limit']],
     ];

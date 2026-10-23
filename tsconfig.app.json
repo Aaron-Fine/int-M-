@@ -29,6 +29,12 @@
     "tests/unit/worker/**/*.ts",
     "tests/unit/build/**/*.ts",
     "tests/unit/benchmark/harness-*.ts",
-    "tests/unit/render/kernel-golden.test.ts"
+    "tests/unit/render/kernel-golden.test.ts",
+    "tests/unit/render/colorized-golden.test.ts",
+    "tests/unit/render/period-three-golden-oracle.test.ts",
+    "tests/unit/render/period-four-golden-oracle.test.ts",
+    "tests/unit/palette/label-contrast.test.ts",
+    "tests/unit/palette/overlay-contrast.ts",
+    "tests/unit/catalog/core/**/*.ts"
   ]
 }

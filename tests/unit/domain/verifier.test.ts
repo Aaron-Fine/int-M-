@@ -19,9 +19,10 @@ import type { VerifierVerdict } from '../../../src/domain';
 /**
  * Unit tests for the common numerical verifier (plan section 3, PR 3):
  * three-way proper-divisor reduction, closure ambiguity, attraction margin,
- * superattracting identity, and non-finite refusal. The differential that
- * pins the classifyInto lag-scan inline mirror to this canonical body lives
- * in orbit-scalar-parity.test.ts.
+ * superattracting identity, and non-finite refusal. The production kernels
+ * call verifyCycleInto directly (no inline copy); the last test replays
+ * classifyInto's lag-scan acceptances through it, and verifier-prefix.test.ts
+ * pins it to a frozen separate-walk reference.
  */
 
 /** Plain binary64 orbit walk used only to place test cycle starts. */
@@ -288,57 +289,85 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
     expect(Object.isFrozen(VERIFIER_THRESHOLDS)).toBe(true);
   });
 
-  it('agrees bit for bit with the inline lag-scan policy body in classifyInto', () => {
-    // The lag scan mirrors verifyCycleInto verbatim (V8 constraint, see
-    // orbit.ts). For every accepting classification the canonical function
-    // must reproduce the accepted record exactly when handed the same cycle
-    // start: replay the orbit to the detection iteration, then verify the
-    // reported (primitive) period from that state. The multiplier walk in
-    // the inline divisor reduction and the canonical one must produce
-    // identical bits or this test fails.
+  it('reproduces every lag-scan acceptance of classifyInto bit for bit, divisor reductions included', () => {
+    // The lag scan hands each proposal to verifyCycleInto. For every point
+    // below, replay the orbit to the detection iteration, find the lag the
+    // scan proposed there (the first lag inside the proposal gate whose
+    // verification accepts), and verify that lag again: the canonical call
+    // must reproduce the accepted record exactly. `lag` pins which points
+    // exercise the divisor reduction (lag a proper multiple of `period`), so
+    // the walk is covered and a drift in the scan or the walk fails loudly.
+    // All points accept on the lag scan with period >= 5, away from the
+    // analytic period-3 and period-4 paths (ADR 0010, ADR 0013), which have
+    // no cycle start to replay.
     const options = resolveOrbitOptions({ maxIterations: 512, maxPeriod: 32 });
     const scratch = new OrbitScratch(options.maxPeriod);
     const sample = createOrbitSample();
-    const acceptedPoints: { readonly re: number; readonly im: number }[] = [
-      { re: -0.1205, im: 0.7438 },
-      { re: -0.1546875000000001, im: -0.815625 },
-      { re: -0.10781250000000009, im: -0.815625 },
-      { re: -0.2015625000000001, im: -0.759375 },
-      { re: 0.3140624999999999, im: -0.534375 },
-      { re: -0.158902249, im: -1.0290676825396825 },
-      { re: -1.94130973, im: -0.0000974722949 },
-      { re: 0.305376533, im: 0.552677981 },
-      { re: -0.4828125000000001, im: -0.5906250000000001 },
-      { re: -0.2015625000000001, im: -0.7031250000000001 },
+    const toleranceSquared = options.cycleTolerance * options.cycleTolerance;
+    const acceptedPoints: readonly {
+      readonly re: number;
+      readonly im: number;
+      readonly period: number;
+      readonly lag: number;
+    }[] = [
+      // Period 5 near its center: an acceptance at iteration 24.
+      { re: -0.5043, im: 0.5628, period: 5, lag: 5 },
+      { re: -1.6291666666666667, im: 0, period: 10, lag: 10 },
+      { re: -0.7, im: 0.28, period: 11, lag: 11 },
+      { re: -1.3458333333333332, im: 0.056, period: 12, lag: 12 },
+      // Divisor reductions: the scan proposes a multiple of the period. Near the
+      // 1/2 or 1/3 satellite of the period-p component (multiplier argument about
+      // ±1/2 or ±1/3 turn), z_n − z_{n−p} stays large while z_n − z_{n−kp} closes.
+      { re: -0.5291666666666666, im: 0.572, period: 5, lag: 10 },
+      { re: -0.5333333333333334, im: 0.5559999999999999, period: 5, lag: 15 },
+      { re: -1.1416666666666666, im: 0.256, period: 6, lag: 12 },
+      { re: -1.1583333333333332, im: 0.24, period: 6, lag: 18 },
+      { re: -0.6333333333333333, im: 0.432, period: 7, lag: 14 },
+      { re: -1, im: 0.27599999999999997, period: 8, lag: 16 },
+      { re: -0.6791666666666667, im: 0.34400000000000003, period: 9, lag: 18 },
+      { re: -1.2166666666666668, im: 0.156, period: 10, lag: 20 },
     ];
-    let accepted = 0;
+    const historyRe = new Float64Array(options.maxIterations + 1);
+    const historyIm = new Float64Array(options.maxIterations + 1);
     for (const point of acceptedPoints) {
       classifyInto(point.re, point.im, options, scratch, sample);
-      if (sample.status !== 2) {
-        continue;
-      }
-      accepted += 1;
-      // Replay the orbit to the detection iteration to recover the exact
-      // cycle start the inline body verified.
+      expect(sample.status).toBe(2);
+      expect(sample.evidence).toBe(ORBIT_EVIDENCE_CODE.convergedCycle);
+      expect(sample.period).toBe(point.period);
+      // Replay the orbit to the detection iteration, keeping its history.
       let zRe = 0;
       let zIm = 0;
       for (let iteration = 1; iteration <= sample.iterations; iteration += 1) {
         const nextRe = zRe * zRe - zIm * zIm + point.re;
         zIm = 2 * zRe * zIm + point.im;
         zRe = nextRe;
+        historyRe[iteration] = zRe;
+        historyIm[iteration] = zIm;
       }
       const canonical: OrbitSample = createOrbitSample();
-      const code = verifyCycleInto(
-        point.re,
-        point.im,
-        zRe,
-        zIm,
-        sample.period,
-        sample.iterations,
-        ORBIT_EVIDENCE_CODE.convergedCycle,
-        canonical,
-      );
-      expect(code).toBe(VERIFIER_VERDICT.accepted);
+      let lag = 0;
+      const largestLag = Math.min(options.maxPeriod, sample.iterations - 1);
+      for (let candidate = 1; candidate <= largestLag && lag === 0; candidate += 1) {
+        const distanceRe = zRe - (historyRe[sample.iterations - candidate] ?? Number.NaN);
+        const distanceIm = zIm - (historyIm[sample.iterations - candidate] ?? Number.NaN);
+        if (distanceRe * distanceRe + distanceIm * distanceIm > toleranceSquared) {
+          continue;
+        }
+        const code = verifyCycleInto(
+          point.re,
+          point.im,
+          zRe,
+          zIm,
+          candidate,
+          sample.iterations,
+          ORBIT_EVIDENCE_CODE.convergedCycle,
+          canonical,
+        );
+        if (code === VERIFIER_VERDICT.accepted) {
+          lag = candidate;
+        }
+      }
+      expect(lag).toBe(point.lag);
       expect(canonical.status).toBe(sample.status);
       expect(canonical.period).toBe(sample.period);
       expect(canonical.iterations).toBe(sample.iterations);
@@ -348,6 +377,5 @@ describe('common verifier (src policy src-verifier-1.0.0)', () => {
       expect(canonical.multiplierMagnitude).toBe(sample.multiplierMagnitude);
       expect(canonical.multiplierAngle).toBe(sample.multiplierAngle);
     }
-    expect(accepted).toBeGreaterThan(0);
   });
 });
