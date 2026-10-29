@@ -161,12 +161,13 @@ It found 5 shifted escape iterations among 1,024 pixels on the p61 tile.
 frames; it does not certify that an attracting cycle exists. V0 is a tolerance
 policy whose `1e-8` closure bound is absolute, not relative to the zoom. A
 deeper zoom therefore needs a semantic change before any bound increase, not
-only perturbation arithmetic. That means either a depth-aware closure
-tolerance or certified acceptance through the trap theorems (`CA` in the
-[DAG](LEAN-PROOF-DAG.md)). The pilot avoids early starts by using the last
-window `m = N − maxPeriod` of a pixel certified bounded through `N`, but that
-is a mitigation, not a proof. The owner decision is recorded in
-[ADR 0015](../decisions/0015-verifier-closure-tolerance-and-zoom-bound.md).
+only perturbation arithmetic. That means certified acceptance through the
+trap theorems (`CA` in the [DAG](LEAN-PROOF-DAG.md)). The pilot avoids early
+starts by using the last window `m = N − maxPeriod` of a pixel certified
+bounded through `N`, but that is a mitigation, not a proof. The owner
+decision is recorded in
+[ADR 0015](../decisions/0015-verifier-closure-tolerance-and-zoom-bound.md),
+which considered and rejected a depth-scaled tolerance.
 
 ## What this does not establish
 

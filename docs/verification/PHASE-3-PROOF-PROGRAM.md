@@ -116,19 +116,19 @@ The [verifier pilot](PERTURBATION-VERIFIER-PILOT.md) evaluates V0's ordered
 closure, proper-divisor and multiplier decision on the exact frames of the
 true target orbit, using packet 1's disks. Every reached comparison must be
 certified, or the pilot refuses. An independent interval oracle agrees on
-every proposed period of every bounded pixel on three minibrot tiles (periods
+every proposed period of every bounded pixel on four minibrot tiles (periods
 25, 34, 61 and 349). The period-349 tile is below binary64 parameter
 resolution and needs an exact 128-bit reference. Divisor reduction, ambiguity
 and not-attracting branches are all exercised. Inside the zoom bound, the
 production classifier agrees on every certified pixel. Beyond it, binary64
 production shifts escape iterations, and V0's absolute `1e-8` closure policy
 accepts some escaping parameters from early cycle starts. **Deeper zoom
-therefore needs a semantic change (a depth-aware tolerance or certified trap
-acceptance), not only arithmetic.** [ADR 0015](../decisions/0015-verifier-closure-tolerance-and-zoom-bound.md)
-keeps the ceiling and the production policy unchanged, and requires a depth-
-and precision-scaled tolerance (or certified acceptance) before any deeper
-zoom. Only the multiplier comparison is
-certified, not its reported value.
+therefore needs a semantic change (certified trap acceptance), not only
+arithmetic.** [ADR 0015](../decisions/0015-verifier-closure-tolerance-and-zoom-bound.md)
+keeps the ceiling and the production policy unchanged. It requires a
+precision floor for any new backend and certified acceptance before any
+deeper zoom; a depth-scaled tolerance was considered and rejected. Only the
+multiplier comparison is certified, not its reported value.
 
 ## Optional performance math packets
 

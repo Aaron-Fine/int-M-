@@ -43,30 +43,19 @@ semantics.
 1. **The zoom ceiling stays at `6,000,000×`.** The production verifier policy,
    `VERIFIER_REVISION`, the kernels and every golden fixture are unchanged by
    this ADR. Inside the bound, the evidence above shows no false interior.
-2. **Short-term rule for any change that goes deeper or changes the
-   classifier's arithmetic precision:** the closure tolerance must scale with
-   the view's depth and with the precision of the arithmetic in use. Such a
-   change must state, and test, all of:
-   - an **upper limit tied to depth**: the acceptance bound stays below a fixed
-     fraction of the pixel spacing of the view being rendered, so a nearby
-     exterior orbit's close pass cannot satisfy it;
-   - a **lower limit tied to precision**: the acceptance bound stays above a
-     stated multiple of the closure frame's arithmetic error at the chosen
-     precision (binary64 today; the audited perturbation budgets of packets 1
-     and 3 when they apply), so true cycles can still be accepted;
-   - **refusal** when the precision limit exceeds the depth limit: the pixel
-     is unresolved, never accepted;
-   - the **exclusion bound** scaled with the acceptance bound, keeping today's
-     `10^4` ratio of squares unless the change argues otherwise.
-
-   The constants are set in the change that applies the rule, from measured
-   evidence against an independent oracle. That change also bumps
-   `VERIFIER_REVISION` and updates the goldens with oracle evidence, as the
-   [fixture policy](../../fixtures/README.md) requires.
-
-3. **Long-term target: certified acceptance.** Before the zoom ceiling is
-   raised, interior classification should move toward acceptance through
-   `existsUnique_primitive_critical_of_center_window`
+2. **No interim heuristic.** The closure tolerance is not made to depend on
+   the view (see the rejected alternative below). The classification of a
+   pixel stays a function of its parameter `c` (and the quality profile), as
+   ADRs 0010 and 0013 already require.
+3. **Precision floor for any new arithmetic backend.** A backend with
+   different precision, such as perturbation, must show that the arithmetic
+   error of its closure and divisor frames stays safely below the acceptance
+   and exclusion bounds. Where that margin cannot be shown, the pixel is
+   unresolved, never accepted. This depends on the backend, not the view.
+   Packet 1 and 3's audited budgets are the model for it.
+4. **Deeper zoom requires certified acceptance.** Before the zoom ceiling is
+   raised, interior classification beyond today's bound moves to acceptance
+   through `existsUnique_primitive_critical_of_center_window`
    (`proof/IntMProof/CertifiedAcceptance.lean`). That means a disk around the
    cycle start with:
    - a uniform return-multiplier bound `q < 1`;
@@ -81,20 +70,44 @@ semantics.
    hypotheses; and a binary64 ball-arithmetic production path measured against
    ADR 0010's overhead gate.
 
-4. Raising the zoom ceiling still requires the Phase 3 product-need gate and
+5. Raising the zoom ceiling still requires the Phase 3 product-need gate and
    release evidence ([proof program](../verification/PHASE-3-PROOF-PROGRAM.md)).
-   This ADR adds the requirement that the closure semantics are addressed by
-   Decision 2 or Decision 3 first.
+   This ADR adds Decisions 3 and 4 to those requirements.
+
+## Rejected alternative: a depth-scaled tolerance
+
+An earlier draft of this ADR (2026-10-29, same day) required any deeper or
+differently precise classifier to cap the acceptance bound at a fixed fraction
+of the view's pixel spacing. The owner withdrew it after reviewing its impacts:
+
+- **The answer would depend on the view.** The same `c` could be attracting
+  at one zoom or window size and unresolved at another. Zooming in could flip
+  a pixel. The inspector, the semantic cache and shared URLs would all have to
+  carry the view's pixel spacing to stay consistent.
+- **It does not remove the cause.** The false interiors come from transients:
+  orbits pass close to a cycle and later leave. They can come arbitrarily
+  close, so any tolerance can be fooled. A tighter one only makes it rarer,
+  and no theorem relates a fraction of a pixel to correctness.
+- **It costs where nothing is broken.** Inside the bound no false interior
+  was observed. A tighter bound there would turn slow-converging boundary
+  pixels unresolved or cost iterations, and change the goldens.
+- **It would be replaced.** Its only use is deeper zoom, which already needs
+  Phase 3, where Decision 4 is the target.
+
+If an interim is ever needed, it should depend on `c` alone. One example:
+require the closure residual to contract by about `|λ|` over one more period
+before accepting. That is the uncertified form of the `r(1 − q)` closure
+margin above, and it is recorded here as an option, not a requirement.
 
 ## Consequences
 
 - No user-visible or fixture change now.
 - Phase 3 packet 4 (glitch repair and rebasing) and any perturbation renderer
-  must carry a depth- and precision-aware acceptance rule (Decision 2) or
-  certified acceptance (Decision 3). The packet 3 pilot's mitigation of
+  must meet the precision floor (Decision 3). Any deeper zoom must use
+  certified acceptance (Decision 4). The packet 3 pilot's mitigation of
   checking only the last window of a certified-bounded prefix is not a
   substitute for either.
-- The inside-the-bound result is a directional scratch probe. A committed
-  evidence run, with an independent oracle across the frozen corpus's deepest
-  views, is a useful follow-up. It would turn "no false interior observed"
-  into recorded evidence.
+- **Follow-up (evidence for Decision 1):** the inside-the-bound result is a
+  directional scratch probe. A committed evidence run, with an independent
+  oracle across the frozen corpus's deepest views, should turn "no false
+  interior observed" into recorded evidence.
