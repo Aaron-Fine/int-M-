@@ -11,14 +11,14 @@ independent research extensions, not launch requirements.
 
 ## Decision record before implementation
 
-| Gate                    | Required record                                                                                                                                            | Current state                                                                                  |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Product need            | A reproducible user task that fails within the `6,000,000×` CPU bound, target view and hardware, and value of deeper navigation                            | Open; Phase 0 ceiling remains in force                                                         |
-| Release baseline        | Stable branded Chrome and Firefox on target hardware, frozen corpus, at least 21 paired repetitions and BCa intervals, including cache/replay/cancel paths | Open; the committed nine-pair screening run is directional ([Stage A](../PERFORMANCE-PLAN.md)) |
-| Semantic specification  | Candidate period, primitive-period reduction, multiplier, escape, nonfinite and unresolved behavior, with a single acceptance authority                    | V0/V1 exact-rational model checked; TypeScript refinement open                                 |
-| Numerical specification | Operation order and outward error bounds for reference orbit, delta orbit, offset, rebase, derivative, and verifier comparisons                            | P3 propagation checked conditional on local bounds; backend bounds open                        |
-| Resource contract       | Tile subdivision, glitch repair, bounded memory, cancellation/quiescence, and CPU fallback                                                                 | Design and measurement open                                                                    |
-| Release decision        | Oracle/differential agreement and paired latency/accuracy results against the CPU baseline, followed by reviewed zoom-bound change                         | Open                                                                                           |
+| Gate                    | Required record                                                                                                                                            | Current state                                                                                                                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product need            | A reproducible user task that fails within the `6,000,000×` CPU bound, target view and hardware, and value of deeper navigation                            | Open; Phase 0 ceiling remains in force                                                                                                                                                                                                 |
+| Release baseline        | Stable branded Chrome and Firefox on target hardware, frozen corpus, at least 21 paired repetitions and BCa intervals, including cache/replay/cancel paths | Open; the committed nine-pair screening run is directional ([Stage A](../PERFORMANCE-PLAN.md))                                                                                                                                         |
+| Semantic specification  | Candidate period, primitive-period reduction, multiplier, escape, nonfinite and unresolved behavior, with a single acceptance authority                    | V0/V1 exact-rational model checked; TypeScript refinement open                                                                                                                                                                         |
+| Numerical specification | Operation order and outward error bounds for reference orbit, delta orbit, offset, rebase, derivative, and verifier comparisons                            | P3 propagation checked conditional on local bounds; one binary64 delta backend specified and audited per call on three oracle tiles, escape only ([pilot](PERTURBATION-BACKEND-PILOT.md)); rebase, derivative and verifier bounds open |
+| Resource contract       | Tile subdivision, glitch repair, bounded memory, cancellation/quiescence, and CPU fallback                                                                 | Design and measurement open                                                                                                                                                                                                            |
+| Release decision        | Oracle/differential agreement and paired latency/accuracy results against the CPU baseline, followed by reviewed zoom-bound change                         | Open                                                                                                                                                                                                                                   |
 
 ## Work packets and exit criteria
 
@@ -95,6 +95,20 @@ existing independent trap certificate supplies that cycle claim. No renderer
 integration, tile fill, performance claim, product gate, or zoom change follows.
 General finite-prefix correspondence, arbitrary candidates and periods,
 nonzero multiplier/`hypot` bounds, and output accuracy remain open.
+
+### Binary64 perturbation backend pilot (packet 1)
+
+The [backend pilot](PERTURBATION-BACKEND-PILOT.md) chooses a binary64 delta
+orbit against a binary64-stored reference, records its operation order and
+finite domain, and audits every step exactly, instantiating
+`reconstruction_error_le_budget` per call with the exact reference orbit, an
+exact offset and outward budgets. An independent interval oracle
+([`tools/perturbation_oracle.py`](../../tools/perturbation_oracle.py)) agrees
+on every certified pixel of three tiles, two of them below binary64 parameter
+resolution (`2^-60` and `2^-200` steps). The pilot covers escape only; it
+does not open the product-need gate, change a renderer path or the zoom
+bound, or make a performance claim. Packets 3 and 4 build on its per-pixel
+delta budgets.
 
 ## Optional performance math packets
 
