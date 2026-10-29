@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import {
+  approximateReference,
   auditPerturbationTile,
   boundAdd,
   boundMultiply,
@@ -147,12 +148,13 @@ describe('binary64 perturbation backend pilot (Phase 3 packet 1)', () => {
     const oracle = tile('misiurewicz-i-step-2^-60');
     const spec = specOf(oracle);
     const x = oracle.width / 2;
+    const reference = approximateReference(spec.reference);
     const rows = Array.from({ length: oracle.height }, (_, y) => y);
     // c = i (1 + k 2^-60): every parameter in this column rounds to i itself.
     const direct = new Set(
       rows.map(
         (y) =>
-          `${spec.reference.re + pixelOffset(spec, x, y).re},${spec.reference.im + pixelOffset(spec, x, y).im}`,
+          `${reference.re + pixelOffset(spec, x, y).re},${reference.im + pixelOffset(spec, x, y).im}`,
       ),
     );
     expect(direct).toEqual(new Set(['0,1']));
@@ -191,6 +193,9 @@ describe('binary64 perturbation backend pilot (Phase 3 packet 1)', () => {
       { ...base, maxIterations: 4097 },
       { ...base, reference: { re: Number.NaN, im: 0 } },
       { ...base, reference: { re: 2, im: 0.5 } },
+      { ...base, reference: { re: 1n, im: 0n, exponent: -2000 } },
+      { ...base, reference: { re: 1n, im: 0n, exponent: 0.5 } },
+      { ...base, reference: { re: 3n, im: 0n, exponent: 0 } },
     ];
     for (const spec of refused) {
       expect(auditPerturbationTile(spec)).toEqual({

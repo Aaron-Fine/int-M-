@@ -113,23 +113,66 @@ function toBinary64(units: bigint, gridBits: number): number {
 }
 
 /**
+ * An exact dyadic reference parameter (re + i im) * 2^exponent. Below binary64
+ * resolution the reference needs more bits than a double; the pixel offsets
+ * and the delta kernel stay binary64.
+ */
+export interface ExactPoint {
+  readonly re: bigint;
+  readonly im: bigint;
+  readonly exponent: number;
+}
+
+export type ReferenceParameter = Complex | ExactPoint;
+
+const isExact = (reference: ReferenceParameter): reference is ExactPoint => 'exponent' in reference;
+
+/** Exact reference coordinates on the 2^-gridBits grid, or null. */
+function referenceOnGrid(
+  reference: ReferenceParameter,
+  gridBits: number,
+): { re: bigint; im: bigint } | null {
+  if (isExact(reference)) {
+    const shift = gridBits + reference.exponent;
+    if (!Number.isInteger(reference.exponent) || shift < 0) return null;
+    return { re: reference.re << BigInt(shift), im: reference.im << BigInt(shift) };
+  }
+  const re = binary64Units(reference.re);
+  const im = binary64Units(reference.im);
+  if (re === null || im === null || gridBits < UNIT_BITS) return null;
+  const toGrid = BigInt(gridBits - UNIT_BITS);
+  return { re: re << toGrid, im: im << toGrid };
+}
+
+/** Nearby binary64 value of a reference parameter (domain checks only). */
+export function approximateReference(reference: ReferenceParameter): Complex {
+  if (!isExact(reference)) return reference;
+  const scale = (value: bigint): number => {
+    const magnitude = value < 0n ? -value : value;
+    const shift = Math.max(0, bitLength(magnitude) - 60);
+    const result = Number(magnitude >> BigInt(shift)) * 2 ** (reference.exponent + shift);
+    return value < 0n ? -result : result;
+  };
+  return { re: scale(reference.re), im: scale(reference.im) };
+}
+
+/**
  * Exact critical orbit of `reference` enclosed in balls on a 2^-gridBits grid.
  * Stops after `iterations` steps, once the enclosure leaves |z| <= 4, or once
  * the ball radius exceeds 2^-64 (grid precision exhausted, e.g. on a repelling
  * cycle). Later pixel steps then report `reference-exhausted`.
  */
 export function generateReferenceOrbit(
-  reference: Complex,
+  reference: ReferenceParameter,
   iterations: number,
   gridBits = REFERENCE_GRID_BITS,
 ): ReferenceOrbit | null {
-  const cReUnits = binary64Units(reference.re);
-  const cImUnits = binary64Units(reference.im);
-  if (cReUnits === null || cImUnits === null || gridBits < UNIT_BITS) return null;
+  const c = referenceOnGrid(reference, gridBits);
+  if (c === null || gridBits < UNIT_BITS) return null;
   const toGrid = BigInt(gridBits - UNIT_BITS);
   const grid = BigInt(gridBits);
-  const cRe = cReUnits << toGrid;
-  const cIm = cImUnits << toGrid;
+  const cRe = c.re;
+  const cIm = c.im;
   const four = 4n << grid;
   const radiusLimit = 1n << BigInt(gridBits - 64);
 
@@ -199,7 +242,7 @@ export type DeltaStep = typeof deltaStep;
 // Per-pixel audit.
 
 export interface TileSpec {
-  readonly reference: Complex;
+  readonly reference: ReferenceParameter;
   /** Pixel spacing 2^-stepExponent. */
   readonly stepExponent: number;
   readonly width: number;
@@ -244,7 +287,19 @@ export function pixelOffset(spec: TileSpec, x: number, y: number): Complex {
   return { re: (x - spec.width / 2) * step, im: (spec.height / 2 - y) * step };
 }
 
-function supported(spec: TileSpec): boolean {
+function referenceSupported(reference: ReferenceParameter): boolean {
+  if (
+    isExact(reference) &&
+    (!Number.isInteger(reference.exponent) || reference.exponent < -REFERENCE_GRID_BITS)
+  ) {
+    return false;
+  }
+  const { re, im } = approximateReference(reference);
+  return Number.isFinite(re) && Number.isFinite(im) && re * re + im * im <= 4;
+}
+
+/** The packet 1 domain: anything else is refused. */
+export function isSupportedTile(spec: TileSpec): boolean {
   const { stepExponent, width, height, maxIterations } = spec;
   return (
     Number.isInteger(stepExponent) &&
@@ -256,9 +311,7 @@ function supported(spec: TileSpec): boolean {
     Number.isInteger(maxIterations) &&
     maxIterations >= 1 &&
     maxIterations <= MAX_ITERATIONS &&
-    Number.isFinite(spec.reference.re) &&
-    Number.isFinite(spec.reference.im) &&
-    spec.reference.re * spec.reference.re + spec.reference.im * spec.reference.im <= 4
+    referenceSupported(spec.reference)
   );
 }
 
@@ -343,15 +396,23 @@ function nextBudget(
   );
 }
 
+/** Collects the audited state of every iteration k >= from. */
+export interface PixelTrace {
+  readonly from: number;
+  readonly states: PixelState[];
+}
+
 /**
  * Run the kernel for one pixel and audit every step. `step` defaults to
- * `deltaStep`; tests substitute corrupted kernels.
+ * `deltaStep`; tests substitute corrupted kernels. `trace` records states
+ * for the packet 3 verifier.
  */
 export function auditPixel(
   reference: ReferenceOrbit,
   offset: Complex,
   maxIterations: number,
   step: DeltaStep = deltaStep,
+  trace: PixelTrace = { from: Number.POSITIVE_INFINITY, states: [] },
 ): PixelAudit {
   const offsetUnits = decodePair(offset.re, offset.im);
   if (offsetUnits === null) {
@@ -371,13 +432,14 @@ export function auditPixel(
     }
     const r = referenceAt(reference, k);
     const rNext = referenceAt(reference, iteration);
-    step(r?.re ?? Number.NaN, r?.im ?? Number.NaN, dRe, dIm, offset.re, offset.im, scratch);
+    if (r === null || rNext === null) {
+      return { status: 'unresolved', iteration, reason: 'nonfinite', state };
+    }
+    step(r.re, r.im, dRe, dIm, offset.re, offset.im, scratch);
     dRe = scratch[0] ?? Number.NaN;
     dIm = scratch[1] ?? Number.NaN;
     const next = decodePair(dRe, dIm);
-    if (r === null || rNext === null || next === null) {
-      return { status: 'unresolved', iteration, reason: 'nonfinite', state };
-    }
+    if (next === null) return { status: 'unresolved', iteration, reason: 'nonfinite', state };
     budget = nextBudget(r, d, next, offsetUnits, budget);
     d = next;
     state = {
@@ -388,6 +450,7 @@ export function auditPixel(
       deltaIm: d.im,
       deltaBudget: budget,
     };
+    if (iteration >= trace.from) trace.states.push(state);
     const verdict = classify(state.centerRe, state.centerIm, state.radius);
     if (verdict === 'escaped') return { status: 'escaped', iteration, state };
     if (verdict === 'ambiguous') {
@@ -400,9 +463,9 @@ export function auditPixel(
 
 /** Audit every pixel of one tile, row-major from the top-left. */
 export function auditPerturbationTile(spec: TileSpec, step: DeltaStep = deltaStep): TileAudit {
-  if (!supported(spec)) return { status: 'refused', reason: 'unsupported-tile' };
+  if (!isSupportedTile(spec)) return { status: 'refused', reason: 'unsupported-tile' };
   const reference = generateReferenceOrbit(
-    { re: spec.reference.re, im: spec.reference.im },
+    isExact(spec.reference) ? spec.reference : { re: spec.reference.re, im: spec.reference.im },
     spec.maxIterations,
   );
   if (reference === null) return { status: 'refused', reason: 'reference-failed' };
