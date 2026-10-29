@@ -7,10 +7,12 @@ recorded separately in [PHASE-2-CLOSEOUT.md](PHASE-2-CLOSEOUT.md). The other
 Phase 2 items had no closeout. The audit behind this list (2026-10-16) found
 each one partial or not started.
 
-**Status (2026-10-20):** items 1 to 8 are done. Open: the Chrome default-view
-budget ("Easy default view in Chrome", item 0), the pre-release overhead rerun
-and the flake watch (item 0), and the owner's approval of "Phase 2 performance
-closed" ([closeout](PHASE-2-CLOSEOUT.md#approval)).
+**Status (2026-10-21):** items 1 to 8 are done, and the flake watch closed as
+load noise. Open: the headed Chrome re-measure of the default view ("Easy
+default view in Chrome", item 0), the pre-release overhead rerun (item 0, due
+only after a kernel change or a browser engine upgrade; last pass on `f97dd6a`),
+and the owner's approval of "Phase 2 performance closed"
+([closeout](PHASE-2-CLOSEOUT.md#approval)).
 
 The owner's direction (2026-10-16): the Phase 1 performance regression is
 resolved; the remaining Phase 2 work is done with subagents. Items with
