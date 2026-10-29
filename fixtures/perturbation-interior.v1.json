@@ -1,0 +1,3516 @@
+{
+ "schema": "int-m.perturbation-interior.v1",
+ "generator": "tools/perturbation_oracle.py",
+ "method": "Direct interval iteration as in perturbation-tiles.v1.json; for pixels bounded through maxIterations, the V0 verifier decision (VerifierModel.lean `reference`) for every proposed period 1..maxPeriod at cycle start z_m, m = maxIterations - maxPeriod, with every reached comparison certified on interval frames.",
+ "codes": "A<p> accepted with period p; N no closure; C closure ambiguous; D divisor ambiguous; X not attracting; U a reached comparison is not certified",
+ "thresholds": "exact products of the binary64 constants TAU_CLOSURE_SCALED, tauExclude and (1 - attractMargin) from src/domain/verifier.ts with s = max(1, |Re z_m|, |Im z_m|)",
+ "tiles": [
+  {
+   "id": "minibrot-p25-step-2^-24",
+   "reference": {
+    "re": "-0.10133043579283234",
+    "im": "0.9564326741946593"
+   },
+   "stepExponent": 24,
+   "width": 16,
+   "height": 16,
+   "maxIterations": 1024,
+   "maxPeriod": 64,
+   "pixels": [
+    {
+     "status": "escaped",
+     "iteration": 80
+    },
+    {
+     "status": "escaped",
+     "iteration": 81
+    },
+    {
+     "status": "escaped",
+     "iteration": 109
+    },
+    {
+     "status": "escaped",
+     "iteration": 85
+    },
+    {
+     "status": "escaped",
+     "iteration": 86
+    },
+    {
+     "status": "escaped",
+     "iteration": 123
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 92
+    },
+    {
+     "status": "escaped",
+     "iteration": 86
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 87
+    },
+    {
+     "status": "escaped",
+     "iteration": 82
+    },
+    {
+     "status": "escaped",
+     "iteration": 80
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 84
+    },
+    {
+     "status": "escaped",
+     "iteration": 85
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 89
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 103
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 90
+    },
+    {
+     "status": "escaped",
+     "iteration": 90
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 85
+    },
+    {
+     "status": "escaped",
+     "iteration": 84
+    },
+    {
+     "status": "escaped",
+     "iteration": 83
+    },
+    {
+     "status": "escaped",
+     "iteration": 84
+    },
+    {
+     "status": "escaped",
+     "iteration": 115
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 92
+    },
+    {
+     "status": "escaped",
+     "iteration": 97
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 112
+    },
+    {
+     "status": "escaped",
+     "iteration": 89
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 102
+    },
+    {
+     "status": "escaped",
+     "iteration": 84
+    },
+    {
+     "status": "escaped",
+     "iteration": 86
+    },
+    {
+     "status": "escaped",
+     "iteration": 90
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 103
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 96
+    },
+    {
+     "status": "escaped",
+     "iteration": 87
+    },
+    {
+     "status": "escaped",
+     "iteration": 84
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 107
+    },
+    {
+     "status": "escaped",
+     "iteration": 105
+    },
+    {
+     "status": "escaped",
+     "iteration": 108
+    },
+    {
+     "status": "escaped",
+     "iteration": 108
+    },
+    {
+     "status": "escaped",
+     "iteration": 112
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 92
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 116
+    },
+    {
+     "status": "escaped",
+     "iteration": 90
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 96
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 108
+    },
+    {
+     "status": "escaped",
+     "iteration": 109
+    },
+    {
+     "status": "escaped",
+     "iteration": 118
+    },
+    {
+     "status": "escaped",
+     "iteration": 121
+    },
+    {
+     "status": "escaped",
+     "iteration": 120
+    },
+    {
+     "status": "escaped",
+     "iteration": 115
+    },
+    {
+     "status": "escaped",
+     "iteration": 107
+    },
+    {
+     "status": "escaped",
+     "iteration": 110
+    },
+    {
+     "status": "escaped",
+     "iteration": 98
+    },
+    {
+     "status": "escaped",
+     "iteration": 119
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 115
+    },
+    {
+     "status": "escaped",
+     "iteration": 102
+    },
+    {
+     "status": "escaped",
+     "iteration": 114
+    },
+    {
+     "status": "escaped",
+     "iteration": 120
+    },
+    {
+     "status": "escaped",
+     "iteration": 148
+    },
+    {
+     "status": "escaped",
+     "iteration": 158
+    },
+    {
+     "status": "escaped",
+     "iteration": 151
+    },
+    {
+     "status": "escaped",
+     "iteration": 127
+    },
+    {
+     "status": "escaped",
+     "iteration": 117
+    },
+    {
+     "status": "escaped",
+     "iteration": 105
+    },
+    {
+     "status": "escaped",
+     "iteration": 113
+    },
+    {
+     "status": "escaped",
+     "iteration": 97
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 117
+    },
+    {
+     "status": "escaped",
+     "iteration": 119
+    },
+    {
+     "status": "escaped",
+     "iteration": 117
+    },
+    {
+     "status": "escaped",
+     "iteration": 128
+    },
+    {
+     "status": "escaped",
+     "iteration": 160
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 154
+    },
+    {
+     "status": "escaped",
+     "iteration": 130
+    },
+    {
+     "status": "escaped",
+     "iteration": 115
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 102
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 96
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 112
+    },
+    {
+     "status": "escaped",
+     "iteration": 122
+    },
+    {
+     "status": "escaped",
+     "iteration": 145
+    },
+    {
+     "status": "escaped",
+     "iteration": 200
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A25,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A25,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A25,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A25,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 244
+    },
+    {
+     "status": "escaped",
+     "iteration": 134
+    },
+    {
+     "status": "escaped",
+     "iteration": 121
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 96
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 98
+    },
+    {
+     "status": "escaped",
+     "iteration": 113
+    },
+    {
+     "status": "escaped",
+     "iteration": 110
+    },
+    {
+     "status": "escaped",
+     "iteration": 129
+    },
+    {
+     "status": "escaped",
+     "iteration": 167
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A25,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A25,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 228
+    },
+    {
+     "status": "escaped",
+     "iteration": 149
+    },
+    {
+     "status": "escaped",
+     "iteration": 124
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 98
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 102
+    },
+    {
+     "status": "escaped",
+     "iteration": 108
+    },
+    {
+     "status": "escaped",
+     "iteration": 134
+    },
+    {
+     "status": "escaped",
+     "iteration": 175
+    },
+    {
+     "status": "escaped",
+     "iteration": 179
+    },
+    {
+     "status": "escaped",
+     "iteration": 181
+    },
+    {
+     "status": "escaped",
+     "iteration": 187
+    },
+    {
+     "status": "escaped",
+     "iteration": 172
+    },
+    {
+     "status": "escaped",
+     "iteration": 136
+    },
+    {
+     "status": "escaped",
+     "iteration": 130
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 107
+    },
+    {
+     "status": "escaped",
+     "iteration": 96
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 92
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 103
+    },
+    {
+     "status": "escaped",
+     "iteration": 103
+    },
+    {
+     "status": "escaped",
+     "iteration": 115
+    },
+    {
+     "status": "escaped",
+     "iteration": 125
+    },
+    {
+     "status": "escaped",
+     "iteration": 139
+    },
+    {
+     "status": "escaped",
+     "iteration": 132
+    },
+    {
+     "status": "escaped",
+     "iteration": 139
+    },
+    {
+     "status": "escaped",
+     "iteration": 125
+    },
+    {
+     "status": "escaped",
+     "iteration": 121
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 118
+    },
+    {
+     "status": "escaped",
+     "iteration": 97
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 92
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 111
+    },
+    {
+     "status": "escaped",
+     "iteration": 97
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 105
+    },
+    {
+     "status": "escaped",
+     "iteration": 116
+    },
+    {
+     "status": "escaped",
+     "iteration": 119
+    },
+    {
+     "status": "escaped",
+     "iteration": 117
+    },
+    {
+     "status": "escaped",
+     "iteration": 115
+    },
+    {
+     "status": "escaped",
+     "iteration": 111
+    },
+    {
+     "status": "escaped",
+     "iteration": 106
+    },
+    {
+     "status": "escaped",
+     "iteration": 130
+    },
+    {
+     "status": "escaped",
+     "iteration": 97
+    },
+    {
+     "status": "escaped",
+     "iteration": 98
+    },
+    {
+     "status": "escaped",
+     "iteration": 95
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 90
+    },
+    {
+     "status": "escaped",
+     "iteration": 91
+    },
+    {
+     "status": "escaped",
+     "iteration": 96
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 100
+    },
+    {
+     "status": "escaped",
+     "iteration": 111
+    },
+    {
+     "status": "escaped",
+     "iteration": 103
+    },
+    {
+     "status": "escaped",
+     "iteration": 114
+    },
+    {
+     "status": "escaped",
+     "iteration": 103
+    },
+    {
+     "status": "escaped",
+     "iteration": 112
+    },
+    {
+     "status": "escaped",
+     "iteration": 101
+    },
+    {
+     "status": "escaped",
+     "iteration": 98
+    },
+    {
+     "status": "escaped",
+     "iteration": 105
+    },
+    {
+     "status": "escaped",
+     "iteration": 92
+    },
+    {
+     "status": "escaped",
+     "iteration": 90
+    },
+    {
+     "status": "escaped",
+     "iteration": 108
+    },
+    {
+     "status": "escaped",
+     "iteration": 86
+    },
+    {
+     "status": "escaped",
+     "iteration": 116
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 116
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 107
+    },
+    {
+     "status": "escaped",
+     "iteration": 98
+    },
+    {
+     "status": "escaped",
+     "iteration": 108
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 87
+    },
+    {
+     "status": "escaped",
+     "iteration": 85
+    },
+    {
+     "status": "escaped",
+     "iteration": 89
+    },
+    {
+     "status": "escaped",
+     "iteration": 89
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 102
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 97
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 104
+    },
+    {
+     "status": "escaped",
+     "iteration": 94
+    },
+    {
+     "status": "escaped",
+     "iteration": 107
+    },
+    {
+     "status": "escaped",
+     "iteration": 93
+    },
+    {
+     "status": "escaped",
+     "iteration": 99
+    },
+    {
+     "status": "escaped",
+     "iteration": 89
+    },
+    {
+     "status": "escaped",
+     "iteration": 89
+    },
+    {
+     "status": "escaped",
+     "iteration": 88
+    },
+    {
+     "status": "escaped",
+     "iteration": 83
+    }
+   ]
+  },
+  {
+   "id": "minibrot-p34-step-2^-33",
+   "reference": {
+    "re": "-0.10111537313879465",
+    "im": "0.9562964985177921"
+   },
+   "stepExponent": 33,
+   "width": 16,
+   "height": 16,
+   "maxIterations": 1024,
+   "maxPeriod": 72,
+   "pixels": [
+    {
+     "status": "escaped",
+     "iteration": 184
+    },
+    {
+     "status": "escaped",
+     "iteration": 172
+    },
+    {
+     "status": "escaped",
+     "iteration": 180
+    },
+    {
+     "status": "escaped",
+     "iteration": 180
+    },
+    {
+     "status": "escaped",
+     "iteration": 185
+    },
+    {
+     "status": "escaped",
+     "iteration": 189
+    },
+    {
+     "status": "escaped",
+     "iteration": 186
+    },
+    {
+     "status": "escaped",
+     "iteration": 188
+    },
+    {
+     "status": "escaped",
+     "iteration": 184
+    },
+    {
+     "status": "escaped",
+     "iteration": 180
+    },
+    {
+     "status": "escaped",
+     "iteration": 176
+    },
+    {
+     "status": "escaped",
+     "iteration": 172
+    },
+    {
+     "status": "escaped",
+     "iteration": 173
+    },
+    {
+     "status": "escaped",
+     "iteration": 172
+    },
+    {
+     "status": "escaped",
+     "iteration": 165
+    },
+    {
+     "status": "escaped",
+     "iteration": 168
+    },
+    {
+     "status": "escaped",
+     "iteration": 186
+    },
+    {
+     "status": "escaped",
+     "iteration": 193
+    },
+    {
+     "status": "escaped",
+     "iteration": 187
+    },
+    {
+     "status": "escaped",
+     "iteration": 212
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 199
+    },
+    {
+     "status": "escaped",
+     "iteration": 199
+    },
+    {
+     "status": "escaped",
+     "iteration": 198
+    },
+    {
+     "status": "escaped",
+     "iteration": 199
+    },
+    {
+     "status": "escaped",
+     "iteration": 194
+    },
+    {
+     "status": "escaped",
+     "iteration": 186
+    },
+    {
+     "status": "escaped",
+     "iteration": 181
+    },
+    {
+     "status": "escaped",
+     "iteration": 175
+    },
+    {
+     "status": "escaped",
+     "iteration": 171
+    },
+    {
+     "status": "escaped",
+     "iteration": 176
+    },
+    {
+     "status": "escaped",
+     "iteration": 165
+    },
+    {
+     "status": "escaped",
+     "iteration": 190
+    },
+    {
+     "status": "escaped",
+     "iteration": 195
+    },
+    {
+     "status": "escaped",
+     "iteration": 198
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 222
+    },
+    {
+     "status": "escaped",
+     "iteration": 216
+    },
+    {
+     "status": "escaped",
+     "iteration": 216
+    },
+    {
+     "status": "escaped",
+     "iteration": 214
+    },
+    {
+     "status": "escaped",
+     "iteration": 207
+    },
+    {
+     "status": "escaped",
+     "iteration": 203
+    },
+    {
+     "status": "escaped",
+     "iteration": 209
+    },
+    {
+     "status": "escaped",
+     "iteration": 189
+    },
+    {
+     "status": "escaped",
+     "iteration": 183
+    },
+    {
+     "status": "escaped",
+     "iteration": 187
+    },
+    {
+     "status": "escaped",
+     "iteration": 172
+    },
+    {
+     "status": "escaped",
+     "iteration": 169
+    },
+    {
+     "status": "escaped",
+     "iteration": 192
+    },
+    {
+     "status": "escaped",
+     "iteration": 209
+    },
+    {
+     "status": "escaped",
+     "iteration": 211
+    },
+    {
+     "status": "escaped",
+     "iteration": 246
+    },
+    {
+     "status": "escaped",
+     "iteration": 255
+    },
+    {
+     "status": "escaped",
+     "iteration": 260
+    },
+    {
+     "status": "escaped",
+     "iteration": 261
+    },
+    {
+     "status": "escaped",
+     "iteration": 256
+    },
+    {
+     "status": "escaped",
+     "iteration": 238
+    },
+    {
+     "status": "escaped",
+     "iteration": 228
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 199
+    },
+    {
+     "status": "escaped",
+     "iteration": 194
+    },
+    {
+     "status": "escaped",
+     "iteration": 186
+    },
+    {
+     "status": "escaped",
+     "iteration": 174
+    },
+    {
+     "status": "escaped",
+     "iteration": 182
+    },
+    {
+     "status": "escaped",
+     "iteration": 196
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 231
+    },
+    {
+     "status": "escaped",
+     "iteration": 332
+    },
+    {
+     "status": "escaped",
+     "iteration": 536
+    },
+    {
+     "status": "escaped",
+     "iteration": 381
+    },
+    {
+     "status": "escaped",
+     "iteration": 314
+    },
+    {
+     "status": "escaped",
+     "iteration": 408
+    },
+    {
+     "status": "escaped",
+     "iteration": 310
+    },
+    {
+     "status": "escaped",
+     "iteration": 254
+    },
+    {
+     "status": "escaped",
+     "iteration": 239
+    },
+    {
+     "status": "escaped",
+     "iteration": 209
+    },
+    {
+     "status": "escaped",
+     "iteration": 221
+    },
+    {
+     "status": "escaped",
+     "iteration": 210
+    },
+    {
+     "status": "escaped",
+     "iteration": 190
+    },
+    {
+     "status": "escaped",
+     "iteration": 174
+    },
+    {
+     "status": "escaped",
+     "iteration": 234
+    },
+    {
+     "status": "escaped",
+     "iteration": 216
+    },
+    {
+     "status": "escaped",
+     "iteration": 243
+    },
+    {
+     "status": "escaped",
+     "iteration": 291
+    },
+    {
+     "status": "escaped",
+     "iteration": 649
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 342
+    },
+    {
+     "status": "escaped",
+     "iteration": 259
+    },
+    {
+     "status": "escaped",
+     "iteration": 226
+    },
+    {
+     "status": "escaped",
+     "iteration": 211
+    },
+    {
+     "status": "escaped",
+     "iteration": 197
+    },
+    {
+     "status": "escaped",
+     "iteration": 189
+    },
+    {
+     "status": "escaped",
+     "iteration": 189
+    },
+    {
+     "status": "escaped",
+     "iteration": 210
+    },
+    {
+     "status": "escaped",
+     "iteration": 225
+    },
+    {
+     "status": "escaped",
+     "iteration": 250
+    },
+    {
+     "status": "escaped",
+     "iteration": 305
+    },
+    {
+     "status": "escaped",
+     "iteration": 439
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 287
+    },
+    {
+     "status": "escaped",
+     "iteration": 242
+    },
+    {
+     "status": "escaped",
+     "iteration": 222
+    },
+    {
+     "status": "escaped",
+     "iteration": 204
+    },
+    {
+     "status": "escaped",
+     "iteration": 193
+    },
+    {
+     "status": "escaped",
+     "iteration": 184
+    },
+    {
+     "status": "escaped",
+     "iteration": 213
+    },
+    {
+     "status": "escaped",
+     "iteration": 234
+    },
+    {
+     "status": "escaped",
+     "iteration": 265
+    },
+    {
+     "status": "escaped",
+     "iteration": 450
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 288
+    },
+    {
+     "status": "escaped",
+     "iteration": 247
+    },
+    {
+     "status": "escaped",
+     "iteration": 224
+    },
+    {
+     "status": "escaped",
+     "iteration": 215
+    },
+    {
+     "status": "escaped",
+     "iteration": 195
+    },
+    {
+     "status": "escaped",
+     "iteration": 228
+    },
+    {
+     "status": "escaped",
+     "iteration": 241
+    },
+    {
+     "status": "escaped",
+     "iteration": 280
+    },
+    {
+     "status": "escaped",
+     "iteration": 368
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 273
+    },
+    {
+     "status": "escaped",
+     "iteration": 226
+    },
+    {
+     "status": "escaped",
+     "iteration": 209
+    },
+    {
+     "status": "escaped",
+     "iteration": 190
+    },
+    {
+     "status": "escaped",
+     "iteration": 234
+    },
+    {
+     "status": "escaped",
+     "iteration": 259
+    },
+    {
+     "status": "escaped",
+     "iteration": 297
+    },
+    {
+     "status": "escaped",
+     "iteration": 367
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,D,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 344
+    },
+    {
+     "status": "escaped",
+     "iteration": 246
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 225
+    },
+    {
+     "status": "escaped",
+     "iteration": 243
+    },
+    {
+     "status": "escaped",
+     "iteration": 287
+    },
+    {
+     "status": "escaped",
+     "iteration": 427
+    },
+    {
+     "status": "escaped",
+     "iteration": 534
+    },
+    {
+     "status": "escaped",
+     "iteration": 722
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 950
+    },
+    {
+     "status": "escaped",
+     "iteration": 329
+    },
+    {
+     "status": "escaped",
+     "iteration": 242
+    },
+    {
+     "status": "escaped",
+     "iteration": 212
+    },
+    {
+     "status": "escaped",
+     "iteration": 195
+    },
+    {
+     "status": "escaped",
+     "iteration": 265
+    },
+    {
+     "status": "escaped",
+     "iteration": 513
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A68,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A68,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,D,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A34,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 388
+    },
+    {
+     "status": "escaped",
+     "iteration": 280
+    },
+    {
+     "status": "escaped",
+     "iteration": 232
+    },
+    {
+     "status": "escaped",
+     "iteration": 209
+    },
+    {
+     "status": "escaped",
+     "iteration": 192
+    },
+    {
+     "status": "escaped",
+     "iteration": 273
+    },
+    {
+     "status": "escaped",
+     "iteration": 334
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A68,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A68,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 712
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 527
+    },
+    {
+     "status": "escaped",
+     "iteration": 271
+    },
+    {
+     "status": "escaped",
+     "iteration": 226
+    },
+    {
+     "status": "escaped",
+     "iteration": 203
+    },
+    {
+     "status": "escaped",
+     "iteration": 192
+    },
+    {
+     "status": "escaped",
+     "iteration": 288
+    },
+    {
+     "status": "escaped",
+     "iteration": 354
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1024,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 423
+    },
+    {
+     "status": "escaped",
+     "iteration": 337
+    },
+    {
+     "status": "escaped",
+     "iteration": 353
+    },
+    {
+     "status": "escaped",
+     "iteration": 587
+    },
+    {
+     "status": "escaped",
+     "iteration": 326
+    },
+    {
+     "status": "escaped",
+     "iteration": 386
+    },
+    {
+     "status": "escaped",
+     "iteration": 505
+    },
+    {
+     "status": "escaped",
+     "iteration": 270
+    },
+    {
+     "status": "escaped",
+     "iteration": 217
+    },
+    {
+     "status": "escaped",
+     "iteration": 199
+    },
+    {
+     "status": "escaped",
+     "iteration": 189
+    },
+    {
+     "status": "escaped",
+     "iteration": 319
+    },
+    {
+     "status": "escaped",
+     "iteration": 409
+    },
+    {
+     "status": "escaped",
+     "iteration": 346
+    },
+    {
+     "status": "escaped",
+     "iteration": 346
+    },
+    {
+     "status": "escaped",
+     "iteration": 402
+    },
+    {
+     "status": "escaped",
+     "iteration": 306
+    },
+    {
+     "status": "escaped",
+     "iteration": 287
+    },
+    {
+     "status": "escaped",
+     "iteration": 272
+    },
+    {
+     "status": "escaped",
+     "iteration": 274
+    },
+    {
+     "status": "escaped",
+     "iteration": 297
+    },
+    {
+     "status": "escaped",
+     "iteration": 260
+    },
+    {
+     "status": "escaped",
+     "iteration": 271
+    },
+    {
+     "status": "escaped",
+     "iteration": 231
+    },
+    {
+     "status": "escaped",
+     "iteration": 205
+    },
+    {
+     "status": "escaped",
+     "iteration": 202
+    },
+    {
+     "status": "escaped",
+     "iteration": 182
+    },
+    {
+     "status": "escaped",
+     "iteration": 308
+    },
+    {
+     "status": "escaped",
+     "iteration": 271
+    },
+    {
+     "status": "escaped",
+     "iteration": 264
+    },
+    {
+     "status": "escaped",
+     "iteration": 271
+    },
+    {
+     "status": "escaped",
+     "iteration": 271
+    },
+    {
+     "status": "escaped",
+     "iteration": 270
+    },
+    {
+     "status": "escaped",
+     "iteration": 246
+    },
+    {
+     "status": "escaped",
+     "iteration": 243
+    },
+    {
+     "status": "escaped",
+     "iteration": 244
+    },
+    {
+     "status": "escaped",
+     "iteration": 265
+    },
+    {
+     "status": "escaped",
+     "iteration": 225
+    },
+    {
+     "status": "escaped",
+     "iteration": 218
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 206
+    },
+    {
+     "status": "escaped",
+     "iteration": 186
+    },
+    {
+     "status": "escaped",
+     "iteration": 179
+    }
+   ]
+  },
+  {
+   "id": "minibrot-p61-step-2^-40",
+   "reference": {
+    "re": "0.0016437219710060931",
+    "im": "0.8224676332982375"
+   },
+   "stepExponent": 40,
+   "width": 16,
+   "height": 16,
+   "maxIterations": 1536,
+   "maxPeriod": 64,
+   "pixels": [
+    {
+     "status": "escaped",
+     "iteration": 281
+    },
+    {
+     "status": "escaped",
+     "iteration": 320
+    },
+    {
+     "status": "escaped",
+     "iteration": 294
+    },
+    {
+     "status": "escaped",
+     "iteration": 297
+    },
+    {
+     "status": "escaped",
+     "iteration": 303
+    },
+    {
+     "status": "escaped",
+     "iteration": 317
+    },
+    {
+     "status": "escaped",
+     "iteration": 309
+    },
+    {
+     "status": "escaped",
+     "iteration": 320
+    },
+    {
+     "status": "escaped",
+     "iteration": 328
+    },
+    {
+     "status": "escaped",
+     "iteration": 351
+    },
+    {
+     "status": "escaped",
+     "iteration": 350
+    },
+    {
+     "status": "escaped",
+     "iteration": 333
+    },
+    {
+     "status": "escaped",
+     "iteration": 320
+    },
+    {
+     "status": "escaped",
+     "iteration": 316
+    },
+    {
+     "status": "escaped",
+     "iteration": 311
+    },
+    {
+     "status": "escaped",
+     "iteration": 329
+    },
+    {
+     "status": "escaped",
+     "iteration": 305
+    },
+    {
+     "status": "escaped",
+     "iteration": 292
+    },
+    {
+     "status": "escaped",
+     "iteration": 297
+    },
+    {
+     "status": "escaped",
+     "iteration": 303
+    },
+    {
+     "status": "escaped",
+     "iteration": 324
+    },
+    {
+     "status": "escaped",
+     "iteration": 348
+    },
+    {
+     "status": "escaped",
+     "iteration": 335
+    },
+    {
+     "status": "escaped",
+     "iteration": 337
+    },
+    {
+     "status": "escaped",
+     "iteration": 348
+    },
+    {
+     "status": "escaped",
+     "iteration": 356
+    },
+    {
+     "status": "escaped",
+     "iteration": 351
+    },
+    {
+     "status": "escaped",
+     "iteration": 350
+    },
+    {
+     "status": "escaped",
+     "iteration": 350
+    },
+    {
+     "status": "escaped",
+     "iteration": 362
+    },
+    {
+     "status": "escaped",
+     "iteration": 328
+    },
+    {
+     "status": "escaped",
+     "iteration": 316
+    },
+    {
+     "status": "escaped",
+     "iteration": 288
+    },
+    {
+     "status": "escaped",
+     "iteration": 297
+    },
+    {
+     "status": "escaped",
+     "iteration": 308
+    },
+    {
+     "status": "escaped",
+     "iteration": 311
+    },
+    {
+     "status": "escaped",
+     "iteration": 324
+    },
+    {
+     "status": "escaped",
+     "iteration": 339
+    },
+    {
+     "status": "escaped",
+     "iteration": 352
+    },
+    {
+     "status": "escaped",
+     "iteration": 372
+    },
+    {
+     "status": "escaped",
+     "iteration": 370
+    },
+    {
+     "status": "escaped",
+     "iteration": 368
+    },
+    {
+     "status": "escaped",
+     "iteration": 387
+    },
+    {
+     "status": "escaped",
+     "iteration": 378
+    },
+    {
+     "status": "escaped",
+     "iteration": 366
+    },
+    {
+     "status": "escaped",
+     "iteration": 378
+    },
+    {
+     "status": "escaped",
+     "iteration": 351
+    },
+    {
+     "status": "escaped",
+     "iteration": 354
+    },
+    {
+     "status": "escaped",
+     "iteration": 301
+    },
+    {
+     "status": "escaped",
+     "iteration": 300
+    },
+    {
+     "status": "escaped",
+     "iteration": 308
+    },
+    {
+     "status": "escaped",
+     "iteration": 327
+    },
+    {
+     "status": "escaped",
+     "iteration": 338
+    },
+    {
+     "status": "escaped",
+     "iteration": 370
+    },
+    {
+     "status": "escaped",
+     "iteration": 395
+    },
+    {
+     "status": "escaped",
+     "iteration": 413
+    },
+    {
+     "status": "escaped",
+     "iteration": 407
+    },
+    {
+     "status": "escaped",
+     "iteration": 411
+    },
+    {
+     "status": "escaped",
+     "iteration": 421
+    },
+    {
+     "status": "escaped",
+     "iteration": 417
+    },
+    {
+     "status": "escaped",
+     "iteration": 414
+    },
+    {
+     "status": "escaped",
+     "iteration": 401
+    },
+    {
+     "status": "escaped",
+     "iteration": 383
+    },
+    {
+     "status": "escaped",
+     "iteration": 370
+    },
+    {
+     "status": "escaped",
+     "iteration": 294
+    },
+    {
+     "status": "escaped",
+     "iteration": 303
+    },
+    {
+     "status": "escaped",
+     "iteration": 318
+    },
+    {
+     "status": "escaped",
+     "iteration": 334
+    },
+    {
+     "status": "escaped",
+     "iteration": 360
+    },
+    {
+     "status": "escaped",
+     "iteration": 385
+    },
+    {
+     "status": "escaped",
+     "iteration": 465
+    },
+    {
+     "status": "escaped",
+     "iteration": 504
+    },
+    {
+     "status": "escaped",
+     "iteration": 492
+    },
+    {
+     "status": "escaped",
+     "iteration": 481
+    },
+    {
+     "status": "escaped",
+     "iteration": 498
+    },
+    {
+     "status": "escaped",
+     "iteration": 527
+    },
+    {
+     "status": "escaped",
+     "iteration": 494
+    },
+    {
+     "status": "escaped",
+     "iteration": 525
+    },
+    {
+     "status": "escaped",
+     "iteration": 500
+    },
+    {
+     "status": "escaped",
+     "iteration": 405
+    },
+    {
+     "status": "escaped",
+     "iteration": 310
+    },
+    {
+     "status": "escaped",
+     "iteration": 324
+    },
+    {
+     "status": "escaped",
+     "iteration": 319
+    },
+    {
+     "status": "escaped",
+     "iteration": 351
+    },
+    {
+     "status": "escaped",
+     "iteration": 384
+    },
+    {
+     "status": "escaped",
+     "iteration": 415
+    },
+    {
+     "status": "escaped",
+     "iteration": 571
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 814
+    },
+    {
+     "status": "escaped",
+     "iteration": 751
+    },
+    {
+     "status": "escaped",
+     "iteration": 658
+    },
+    {
+     "status": "escaped",
+     "iteration": 1279
+    },
+    {
+     "status": "escaped",
+     "iteration": 894
+    },
+    {
+     "status": "escaped",
+     "iteration": 937
+    },
+    {
+     "status": "escaped",
+     "iteration": 503
+    },
+    {
+     "status": "escaped",
+     "iteration": 401
+    },
+    {
+     "status": "escaped",
+     "iteration": 305
+    },
+    {
+     "status": "escaped",
+     "iteration": 307
+    },
+    {
+     "status": "escaped",
+     "iteration": 321
+    },
+    {
+     "status": "escaped",
+     "iteration": 352
+    },
+    {
+     "status": "escaped",
+     "iteration": 371
+    },
+    {
+     "status": "escaped",
+     "iteration": 438
+    },
+    {
+     "status": "escaped",
+     "iteration": 612
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 591
+    },
+    {
+     "status": "escaped",
+     "iteration": 443
+    },
+    {
+     "status": "escaped",
+     "iteration": 386
+    },
+    {
+     "status": "escaped",
+     "iteration": 299
+    },
+    {
+     "status": "escaped",
+     "iteration": 306
+    },
+    {
+     "status": "escaped",
+     "iteration": 326
+    },
+    {
+     "status": "escaped",
+     "iteration": 357
+    },
+    {
+     "status": "escaped",
+     "iteration": 374
+    },
+    {
+     "status": "escaped",
+     "iteration": 509
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 1216
+    },
+    {
+     "status": "escaped",
+     "iteration": 578
+    },
+    {
+     "status": "escaped",
+     "iteration": 421
+    },
+    {
+     "status": "escaped",
+     "iteration": 376
+    },
+    {
+     "status": "escaped",
+     "iteration": 299
+    },
+    {
+     "status": "escaped",
+     "iteration": 308
+    },
+    {
+     "status": "escaped",
+     "iteration": 321
+    },
+    {
+     "status": "escaped",
+     "iteration": 344
+    },
+    {
+     "status": "escaped",
+     "iteration": 372
+    },
+    {
+     "status": "escaped",
+     "iteration": 432
+    },
+    {
+     "status": "escaped",
+     "iteration": 669
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 1044
+    },
+    {
+     "status": "escaped",
+     "iteration": 534
+    },
+    {
+     "status": "escaped",
+     "iteration": 449
+    },
+    {
+     "status": "escaped",
+     "iteration": 402
+    },
+    {
+     "status": "escaped",
+     "iteration": 382
+    },
+    {
+     "status": "escaped",
+     "iteration": 300
+    },
+    {
+     "status": "escaped",
+     "iteration": 316
+    },
+    {
+     "status": "escaped",
+     "iteration": 316
+    },
+    {
+     "status": "escaped",
+     "iteration": 355
+    },
+    {
+     "status": "escaped",
+     "iteration": 363
+    },
+    {
+     "status": "escaped",
+     "iteration": 412
+    },
+    {
+     "status": "escaped",
+     "iteration": 472
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 1440
+    },
+    {
+     "status": "escaped",
+     "iteration": 494
+    },
+    {
+     "status": "escaped",
+     "iteration": 416
+    },
+    {
+     "status": "escaped",
+     "iteration": 372
+    },
+    {
+     "status": "escaped",
+     "iteration": 354
+    },
+    {
+     "status": "escaped",
+     "iteration": 305
+    },
+    {
+     "status": "escaped",
+     "iteration": 311
+    },
+    {
+     "status": "escaped",
+     "iteration": 323
+    },
+    {
+     "status": "escaped",
+     "iteration": 329
+    },
+    {
+     "status": "escaped",
+     "iteration": 351
+    },
+    {
+     "status": "escaped",
+     "iteration": 374
+    },
+    {
+     "status": "escaped",
+     "iteration": 423
+    },
+    {
+     "status": "escaped",
+     "iteration": 590
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A61,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 1536,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 561
+    },
+    {
+     "status": "escaped",
+     "iteration": 432
+    },
+    {
+     "status": "escaped",
+     "iteration": 407
+    },
+    {
+     "status": "escaped",
+     "iteration": 366
+    },
+    {
+     "status": "escaped",
+     "iteration": 345
+    },
+    {
+     "status": "escaped",
+     "iteration": 307
+    },
+    {
+     "status": "escaped",
+     "iteration": 307
+    },
+    {
+     "status": "escaped",
+     "iteration": 307
+    },
+    {
+     "status": "escaped",
+     "iteration": 325
+    },
+    {
+     "status": "escaped",
+     "iteration": 361
+    },
+    {
+     "status": "escaped",
+     "iteration": 359
+    },
+    {
+     "status": "escaped",
+     "iteration": 392
+    },
+    {
+     "status": "escaped",
+     "iteration": 430
+    },
+    {
+     "status": "escaped",
+     "iteration": 567
+    },
+    {
+     "status": "escaped",
+     "iteration": 535
+    },
+    {
+     "status": "escaped",
+     "iteration": 781
+    },
+    {
+     "status": "escaped",
+     "iteration": 551
+    },
+    {
+     "status": "escaped",
+     "iteration": 428
+    },
+    {
+     "status": "escaped",
+     "iteration": 393
+    },
+    {
+     "status": "escaped",
+     "iteration": 370
+    },
+    {
+     "status": "escaped",
+     "iteration": 338
+    },
+    {
+     "status": "escaped",
+     "iteration": 292
+    },
+    {
+     "status": "escaped",
+     "iteration": 298
+    },
+    {
+     "status": "escaped",
+     "iteration": 308
+    },
+    {
+     "status": "escaped",
+     "iteration": 310
+    },
+    {
+     "status": "escaped",
+     "iteration": 324
+    },
+    {
+     "status": "escaped",
+     "iteration": 360
+    },
+    {
+     "status": "escaped",
+     "iteration": 362
+    },
+    {
+     "status": "escaped",
+     "iteration": 372
+    },
+    {
+     "status": "escaped",
+     "iteration": 403
+    },
+    {
+     "status": "escaped",
+     "iteration": 423
+    },
+    {
+     "status": "escaped",
+     "iteration": 423
+    },
+    {
+     "status": "escaped",
+     "iteration": 405
+    },
+    {
+     "status": "escaped",
+     "iteration": 371
+    },
+    {
+     "status": "escaped",
+     "iteration": 357
+    },
+    {
+     "status": "escaped",
+     "iteration": 353
+    },
+    {
+     "status": "escaped",
+     "iteration": 315
+    },
+    {
+     "status": "escaped",
+     "iteration": 285
+    },
+    {
+     "status": "escaped",
+     "iteration": 292
+    },
+    {
+     "status": "escaped",
+     "iteration": 322
+    },
+    {
+     "status": "escaped",
+     "iteration": 309
+    },
+    {
+     "status": "escaped",
+     "iteration": 312
+    },
+    {
+     "status": "escaped",
+     "iteration": 323
+    },
+    {
+     "status": "escaped",
+     "iteration": 337
+    },
+    {
+     "status": "escaped",
+     "iteration": 351
+    },
+    {
+     "status": "escaped",
+     "iteration": 359
+    },
+    {
+     "status": "escaped",
+     "iteration": 369
+    },
+    {
+     "status": "escaped",
+     "iteration": 364
+    },
+    {
+     "status": "escaped",
+     "iteration": 360
+    },
+    {
+     "status": "escaped",
+     "iteration": 348
+    },
+    {
+     "status": "escaped",
+     "iteration": 333
+    },
+    {
+     "status": "escaped",
+     "iteration": 320
+    },
+    {
+     "status": "escaped",
+     "iteration": 324
+    },
+    {
+     "status": "escaped",
+     "iteration": 280
+    },
+    {
+     "status": "escaped",
+     "iteration": 286
+    },
+    {
+     "status": "escaped",
+     "iteration": 293
+    },
+    {
+     "status": "escaped",
+     "iteration": 303
+    },
+    {
+     "status": "escaped",
+     "iteration": 327
+    },
+    {
+     "status": "escaped",
+     "iteration": 313
+    },
+    {
+     "status": "escaped",
+     "iteration": 318
+    },
+    {
+     "status": "escaped",
+     "iteration": 330
+    },
+    {
+     "status": "escaped",
+     "iteration": 333
+    },
+    {
+     "status": "escaped",
+     "iteration": 337
+    },
+    {
+     "status": "escaped",
+     "iteration": 346
+    },
+    {
+     "status": "escaped",
+     "iteration": 332
+    },
+    {
+     "status": "escaped",
+     "iteration": 327
+    },
+    {
+     "status": "escaped",
+     "iteration": 313
+    },
+    {
+     "status": "escaped",
+     "iteration": 340
+    },
+    {
+     "status": "escaped",
+     "iteration": 304
+    },
+    {
+     "status": "escaped",
+     "iteration": 285
+    },
+    {
+     "status": "escaped",
+     "iteration": 288
+    },
+    {
+     "status": "escaped",
+     "iteration": 287
+    },
+    {
+     "status": "escaped",
+     "iteration": 293
+    },
+    {
+     "status": "escaped",
+     "iteration": 324
+    },
+    {
+     "status": "escaped",
+     "iteration": 303
+    },
+    {
+     "status": "escaped",
+     "iteration": 309
+    },
+    {
+     "status": "escaped",
+     "iteration": 308
+    },
+    {
+     "status": "escaped",
+     "iteration": 313
+    },
+    {
+     "status": "escaped",
+     "iteration": 329
+    },
+    {
+     "status": "escaped",
+     "iteration": 311
+    },
+    {
+     "status": "escaped",
+     "iteration": 313
+    },
+    {
+     "status": "escaped",
+     "iteration": 340
+    },
+    {
+     "status": "escaped",
+     "iteration": 304
+    },
+    {
+     "status": "escaped",
+     "iteration": 304
+    },
+    {
+     "status": "escaped",
+     "iteration": 297
+    }
+   ]
+  },
+  {
+   "id": "minibrot-p349-step-2^-58",
+   "reference": {
+    "re": "-263951509265533703610639990652156275451",
+    "im": "46437439613826002646581579954957011344",
+    "exponent": -128
+   },
+   "stepExponent": 58,
+   "width": 8,
+   "height": 8,
+   "maxIterations": 4096,
+   "maxPeriod": 360,
+   "pixels": [
+    {
+     "status": "escaped",
+     "iteration": 3173
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 3205
+    },
+    {
+     "status": "escaped",
+     "iteration": 2925
+    },
+    {
+     "status": "escaped",
+     "iteration": 2731
+    },
+    {
+     "status": "escaped",
+     "iteration": 2468
+    },
+    {
+     "status": "escaped",
+     "iteration": 3384
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 3419
+    },
+    {
+     "status": "escaped",
+     "iteration": 3470
+    },
+    {
+     "status": "escaped",
+     "iteration": 2966
+    },
+    {
+     "status": "escaped",
+     "iteration": 3965
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 2950
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,C,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 3177
+    },
+    {
+     "status": "escaped",
+     "iteration": 2951
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 3492
+    },
+    {
+     "status": "escaped",
+     "iteration": 3087
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,A349,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 3391
+    },
+    {
+     "status": "escaped",
+     "iteration": 2628
+    },
+    {
+     "status": "escaped",
+     "iteration": 2914
+    },
+    {
+     "status": "escaped",
+     "iteration": 3722
+    },
+    {
+     "status": "escaped",
+     "iteration": 3829
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,X,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "bounded",
+     "iteration": 4096,
+     "codes": "N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    },
+    {
+     "status": "escaped",
+     "iteration": 2843
+    },
+    {
+     "status": "escaped",
+     "iteration": 2560
+    },
+    {
+     "status": "escaped",
+     "iteration": 2397
+    },
+    {
+     "status": "escaped",
+     "iteration": 2443
+    },
+    {
+     "status": "escaped",
+     "iteration": 2563
+    },
+    {
+     "status": "escaped",
+     "iteration": 2737
+    },
+    {
+     "status": "escaped",
+     "iteration": 2813
+    },
+    {
+     "status": "escaped",
+     "iteration": 2646
+    },
+    {
+     "status": "escaped",
+     "iteration": 2445
+    },
+    {
+     "status": "escaped",
+     "iteration": 2393
+    },
+    {
+     "status": "escaped",
+     "iteration": 2172
+    }
+   ]
+  }
+ ]
+}

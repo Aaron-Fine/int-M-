@@ -8,10 +8,15 @@ import unittest
 from perturbation_oracle import (
     FIXTURE,
     GRID_BITS,
+    INTERIOR_FIXTURE,
     build,
+    build_interior,
+    certified_below,
+    decide,
     encode,
     export_box,
     iterate_pixel,
+    multiplier_prefixes,
     product_interval,
     square_interval,
 )
@@ -52,9 +57,45 @@ class IntervalTest(unittest.TestCase):
         self.assertGreaterEqual(hi, scaled)
 
 
+class VerifierDecisionTest(unittest.TestCase):
+    @staticmethod
+    def point(re: Fraction, im: Fraction = Fraction(0)) -> tuple[int, int, int, int]:
+        scale = 1 << GRID_BITS
+        return (int(re * scale), int(re * scale), int(im * scale), int(im * scale))
+
+    def window(self, points: list[Fraction]) -> list[tuple[int, int, int, int]]:
+        return [self.point(value) for value in points]
+
+    def test_certified_below_refuses_straddling_intervals(self) -> None:
+        self.assertTrue(certified_below((Fraction(1), Fraction(2)), (Fraction(2), Fraction(3)), strict=False))
+        self.assertIsNone(certified_below((Fraction(1), Fraction(2)), (Fraction(2), Fraction(3)), strict=True))
+        self.assertFalse(certified_below((Fraction(3), Fraction(4)), (Fraction(2), Fraction(3)), strict=True))
+        self.assertIsNone(certified_below((Fraction(1), Fraction(4)), (Fraction(2), Fraction(3)), strict=False))
+
+    def test_superattracting_two_cycle_reduces_multiples(self) -> None:
+        boxes = self.window([Fraction(0) if k % 2 == 0 else Fraction(-1) for k in range(9)])
+        multipliers = multiplier_prefixes(boxes, 8)
+        self.assertEqual(decide(boxes, 1, multipliers), "N")
+        self.assertEqual(decide(boxes, 2, multipliers), "A2")
+        self.assertEqual(decide(boxes, 4, multipliers), "A2")
+        self.assertEqual(decide(boxes, 8, multipliers), "A2")
+
+    def test_ambiguity_and_repelling_codes(self) -> None:
+        gap = Fraction(1, 10**7)
+        closure = self.window([Fraction(0), gap])
+        self.assertEqual(decide(closure, 1, multiplier_prefixes(closure, 1)), "C")
+        divisor = self.window([Fraction(0), gap, Fraction(0)])
+        self.assertEqual(decide(divisor, 2, multiplier_prefixes(divisor, 2)), "D")
+        repelling = self.window([Fraction(2), Fraction(2)])
+        self.assertEqual(decide(repelling, 1, multiplier_prefixes(repelling, 1)), "X")
+
+
 class FixtureTest(unittest.TestCase):
     def test_committed_fixture_matches_the_oracle(self) -> None:
         self.assertEqual(FIXTURE.read_text(encoding="utf-8"), encode(build()))
+
+    def test_committed_interior_fixture_matches_the_oracle(self) -> None:
+        self.assertEqual(INTERIOR_FIXTURE.read_text(encoding="utf-8"), encode(build_interior()))
 
 
 if __name__ == "__main__":
