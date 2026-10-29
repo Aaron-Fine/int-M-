@@ -124,7 +124,10 @@ production classifier agrees on every certified pixel. Beyond it, binary64
 production shifts escape iterations, and V0's absolute `1e-8` closure policy
 accepts some escaping parameters from early cycle starts. **Deeper zoom
 therefore needs a semantic change (a depth-aware tolerance or certified trap
-acceptance), not only arithmetic.** Only the multiplier comparison is
+acceptance), not only arithmetic.** [ADR 0015](../decisions/0015-verifier-closure-tolerance-and-zoom-bound.md)
+keeps the ceiling and the production policy unchanged, and requires a depth-
+and precision-scaled tolerance (or certified acceptance) before any deeper
+zoom. Only the multiplier comparison is
 certified, not its reported value.
 
 ## Optional performance math packets

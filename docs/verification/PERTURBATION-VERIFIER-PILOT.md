@@ -165,7 +165,8 @@ only perturbation arithmetic. That means either a depth-aware closure
 tolerance or certified acceptance through the trap theorems (`CA` in the
 [DAG](LEAN-PROOF-DAG.md)). The pilot avoids early starts by using the last
 window `m = N − maxPeriod` of a pixel certified bounded through `N`, but that
-is a mitigation, not a proof.
+is a mitigation, not a proof. The owner decision is recorded in
+[ADR 0015](../decisions/0015-verifier-closure-tolerance-and-zoom-bound.md).
 
 ## What this does not establish
 
