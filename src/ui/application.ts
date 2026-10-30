@@ -446,10 +446,17 @@ export function mountApplication(host: HTMLElement): () => void {
     text: 'Drag to pan · Shift-drag to zoom area · click to inspect',
     attributes: { id: 'explorer-interaction-hint' },
   });
+  // Never shown: it carries the marker label's font and padding for measuring (labelWidthPx).
+  const labelProbe = element('span', {
+    className: 'catalog-marker__label',
+    attributes: { 'aria-hidden': 'true' },
+  });
+  labelProbe.style.display = 'none';
   canvasStack.append(
     presentationCanvas,
     renderCanvas,
     catalogOverlay,
+    labelProbe,
     selectedPointMarker,
     zoomSelection,
     interactionHint,
@@ -1115,6 +1122,36 @@ export function mountApplication(host: HTMLElement): () => void {
     return Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
   }
 
+  const labelContext = document.createElement('canvas').getContext('2d');
+  const labelWidths = new Map<string, number>();
+  let labelFont = '';
+
+  /**
+   * The rendered width of a marker label in CSS pixels, padding included,
+   * measured in the font the label actually gets (styles.css), so the density
+   * policy's label boxes hold whatever face the host substitutes for system-ui.
+   * Undefined when there is no 2D context; the policy then estimates.
+   */
+  function labelMeasurer(): ((label: string) => number) | undefined {
+    if (labelContext === null) return undefined;
+    const style = getComputedStyle(labelProbe);
+    const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    if (font !== labelFont) {
+      labelFont = font;
+      labelWidths.clear();
+    }
+    const padding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
+    return (label) => {
+      let width = labelWidths.get(label);
+      if (width === undefined) {
+        labelContext.font = labelFont;
+        width = Math.ceil(labelContext.measureText(label).width + padding);
+        labelWidths.set(label, width);
+      }
+      return width;
+    };
+  }
+
   /**
    * Shows the markers the density policy chooses (src/ui/marker-density.ts):
    * at most 40, lowest periods first, in catalog order. Moves the existing
@@ -1141,6 +1178,7 @@ export function mountApplication(host: HTMLElement): () => void {
       height: Math.max(1, Math.round(rect.height)),
       remPx: remPx(),
       selectedId: state.selectedCatalogId,
+      labelWidthPx: labelMeasurer(),
     });
     const visible: HTMLButtonElement[] = [];
     for (const planned of plan.markers) {
