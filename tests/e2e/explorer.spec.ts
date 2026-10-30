@@ -1309,6 +1309,34 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
+  test('shows the dynamical plane of an inspected point beside its evidence', async ({ page }) => {
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=stability&q=balanced&sel=-0.1225,0.7449');
+    const figure = page.locator('.inspector .portrait');
+    await expect(figure).toHaveAttribute('data-cycle-points', '3');
+    await expect(figure.getByRole('img')).toHaveAttribute(
+      'aria-label',
+      /settles onto an attracting cycle of period 3/,
+    );
+    // The canvas holds a drawn picture, not a blank frame.
+    const distinctColors = await figure.locator('canvas').evaluate((canvas) => {
+      const context = (canvas as HTMLCanvasElement).getContext('2d');
+      const data = context?.getImageData(0, 0, 64, 64).data ?? new Uint8ClampedArray();
+      const colors = new Set<number>();
+      for (let index = 0; index < data.length; index += 4) {
+        colors.add(
+          ((data[index] ?? 0) << 16) | ((data[index + 1] ?? 0) << 8) | (data[index + 2] ?? 0),
+        );
+      }
+      return colors.size;
+    });
+    expect(distinctColors).toBeGreaterThan(4);
+
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=stability&q=balanced&sel=0.5,0.5');
+    await expect(figure).toHaveAttribute('data-cycle-points', '0');
+    await expect(figure.getByRole('img')).toHaveAttribute('aria-label', /orbit of 0 escapes/);
+    await expectNoAccessibilityViolations(page);
+  });
+
   test('keeps controls-bar controls from overlapping at desktop and phone widths', async ({
     page,
   }) => {

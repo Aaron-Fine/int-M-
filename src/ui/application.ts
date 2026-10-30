@@ -1,4 +1,5 @@
-import type { Complex, EvidenceFlag, EvidenceSource } from '../domain';
+import type { Complex, EvidenceFlag, EvidenceSource, OrbitResult } from '../domain';
+import { DYNAMICS_PORTRAIT_SIZE, type DynamicsPortrait } from '../domain/dynamics-portrait';
 import type {
   FrameMessage,
   InspectionResult,
@@ -941,6 +942,7 @@ export function mountApplication(host: HTMLElement): () => void {
       requestId: state.activeInspectionRequestId,
       point: complexPoint,
       quality: currentQualityProfile().quality,
+      portrait: true,
     } satisfies MainToWorkerMessage);
     updateCatalogOverlay();
     updateSelectedPointMarker();
@@ -1383,6 +1385,10 @@ export function mountApplication(host: HTMLElement): () => void {
           message.result.point,
         )}. Outcome: ${message.result.orbit.status.replace('-', ' ')}.`;
         break;
+      case 'portrait':
+        if (message.requestId !== state.activeInspectionRequestId) break;
+        inspector.showPortrait(message.portrait);
+        break;
       case 'cancel-ack':
         performance.mark('mi:cancellation-acknowledged', {
           detail: { requestId: message.requestId },
@@ -1539,6 +1545,7 @@ function createInspector(): {
     quality: QualityProfile,
     coordinate: string,
   ) => void;
+  readonly showPortrait: (portrait: DynamicsPortrait) => void;
   readonly clear: () => void;
 } {
   const root = element('section', {
@@ -1681,11 +1688,105 @@ function createInspector(): {
         : 'No conclusive evidence at current quality',
       'inspector__evidence',
     );
-    replaceChildren(body, [...head(coordinate, component), badge, facts]);
+    portrait = createPortraitFigure(orbit, coordinate);
+    replaceChildren(body, [...head(coordinate, component), badge, facts, portrait.element]);
+  };
+
+  let portrait: PortraitFigure | undefined;
+  const showPortrait = (value: DynamicsPortrait): void => {
+    portrait?.draw(value);
   };
 
   clear();
-  return { element: root, loading, show, clear };
+  return { element: root, loading, show, showPortrait, clear };
+}
+
+interface PortraitFigure {
+  readonly element: HTMLElement;
+  readonly draw: (portrait: DynamicsPortrait) => void;
+}
+
+/**
+ * The inspector's dynamical-plane companion: the filled Julia set of the
+ * inspected c with its critical orbit and attracting cycle (computed in the
+ * render worker, src/domain/dynamics-portrait.ts). Display only.
+ */
+function createPortraitFigure(orbit: OrbitResult, coordinate: string): PortraitFigure {
+  const figure = element('figure', { className: 'portrait' });
+  const canvas = element('canvas', {
+    className: 'portrait__canvas',
+    attributes: { role: 'img', 'aria-label': `Dynamical plane for c = ${coordinate}: computing` },
+  });
+  canvas.width = 2 * DYNAMICS_PORTRAIT_SIZE;
+  canvas.height = 2 * DYNAMICS_PORTRAIT_SIZE;
+  const caption = element('figcaption', {
+    className: 'portrait__caption',
+    text:
+      orbit.status === 'attracting-cycle'
+        ? 'Dynamical plane: the filled Julia set of z² + c, lighter where points settle onto the cycle faster. The line is the orbit of 0; numbered dots are the attracting cycle.'
+        : 'Dynamical plane: the filled Julia set of z² + c. The line is the orbit of 0.',
+  });
+  figure.append(element('h3', { className: 'eyebrow', text: 'Dynamical plane' }), canvas, caption);
+
+  const draw = (portrait: DynamicsPortrait): void => {
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const raster = new OffscreenCanvas(portrait.size, portrait.size);
+    raster.getContext('2d')?.putImageData(new ImageData(portrait.rgba, portrait.size), 0, 0);
+    context.imageSmoothingEnabled = true;
+    context.drawImage(raster, 0, 0, canvas.width, canvas.height);
+
+    const toX = (re: number): number => ((re + portrait.span / 2) / portrait.span) * canvas.width;
+    const toY = (im: number): number => ((portrait.span / 2 - im) / portrait.span) * canvas.height;
+    const points = portrait.orbit;
+    context.lineWidth = 2;
+    context.strokeStyle = 'rgb(255 255 255 / 72%)';
+    context.beginPath();
+    for (let index = 0; index + 1 < points.length; index += 2) {
+      const x = toX(points[index] ?? 0);
+      const y = toY(points[index + 1] ?? 0);
+      if (index === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
+    }
+    context.stroke();
+    context.fillStyle = 'white';
+    context.beginPath();
+    context.arc(toX(0), toY(0), 4, 0, 2 * Math.PI);
+    context.fill();
+
+    const cycle = portrait.cycle;
+    const period = cycle.length / 2;
+    const numbered = period <= 12;
+    context.font = 'bold 15px ui-monospace, monospace';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    for (let k = 0; k < period; k += 1) {
+      const x = toX(cycle[2 * k] ?? 0);
+      const y = toY(cycle[2 * k + 1] ?? 0);
+      context.fillStyle = '#111518';
+      context.strokeStyle = 'white';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.arc(x, y, numbered ? 11 : 4, 0, 2 * Math.PI);
+      context.fill();
+      context.stroke();
+      if (numbered) {
+        context.fillStyle = 'white';
+        context.fillText(String(k + 1), x, y + 1);
+      }
+    }
+    canvas.setAttribute(
+      'aria-label',
+      period > 0
+        ? `Dynamical plane for c = ${coordinate}: the orbit of 0 settles onto an attracting cycle of period ${period}.`
+        : orbit.status === 'escaped'
+          ? `Dynamical plane for c = ${coordinate}: the orbit of 0 escapes; the Julia set is disconnected.`
+          : `Dynamical plane for c = ${coordinate}: no attracting cycle is drawn.`,
+    );
+    figure.dataset['cyclePoints'] = String(period);
+  };
+
+  return { element: figure, draw };
 }
 
 function semanticViewDescription(view: SemanticView): string {
