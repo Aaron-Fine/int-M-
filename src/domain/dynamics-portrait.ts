@@ -9,8 +9,8 @@ import type { Complex, OrbitResult } from './types';
  *
  * Display only. Classification stays with the verifier: the cycle drawn here
  * is located only when the inspection already reported an attracting cycle,
- * using that reported period, and is omitted when the critical orbit has not
- * visibly converged to it. Runs in the render worker (plan §5.2).
+ * using that reported period, and is omitted when no attracting cycle of that
+ * exact period is found near the critical orbit's limit. Runs in the render worker (plan §5.2).
  */
 export interface DynamicsPortrait {
   /** Side of the square raster in pixels. */
@@ -29,12 +29,35 @@ export const DYNAMICS_PORTRAIT_SPAN = 3.6;
 const RASTER_ITERATIONS = 256;
 const ORBIT_POINTS = 64;
 const CYCLE_SEARCH_ITERATIONS = 20_000;
+/** Newton steps that refine the cycle; quadratic convergence needs a handful. */
+const NEWTON_STEPS = 32;
 /** Raster points within this distance of the first cycle point count as settled. */
 const SETTLE_RADIUS = 1e-3;
 
+/** f_c^n(z) and its derivative (f_c^n)'(z) = Π 2 z_k. */
+const iterateWithDerivative = (c: Complex, n: number, re: number, im: number) => {
+  let zRe = re;
+  let zIm = im;
+  let dRe = 1;
+  let dIm = 0;
+  for (let step = 0; step < n; step += 1) {
+    const nextDRe = 2 * (zRe * dRe - zIm * dIm);
+    dIm = 2 * (zRe * dIm + zIm * dRe);
+    dRe = nextDRe;
+    const next = zRe * zRe - zIm * zIm + c.re;
+    zIm = 2 * zRe * zIm + c.im;
+    zRe = next;
+  }
+  return { re: zRe, im: zIm, dRe, dIm };
+};
+
 /**
- * The attracting cycle reached from the critical point, iterated past the
- * transient; empty when it has not closed to 1e-9 (relative) within budget.
+ * The attracting cycle reached from the critical point. The orbit is iterated
+ * past the transient, then Newton on f^p(z) = z refines its last point: that
+ * polishes a cycle the orbit has reached and finds one it approaches too
+ * slowly to close, as next to a parabolic root, where |λ| is near 1. Empty
+ * unless the result closes to 1e-9 (relative), is attracting (|λ| < 1, so it
+ * is the one attracting cycle of z^2 + c) and has exact period `period`.
  */
 export function locateCycle(c: Complex, period: number): Float64Array<ArrayBuffer> {
   if (!Number.isInteger(period) || period < 1) return new Float64Array(0);
@@ -46,18 +69,41 @@ export function locateCycle(c: Complex, period: number): Float64Array<ArrayBuffe
     re = next;
     if (!Number.isFinite(re) || re * re + im * im > 16) return new Float64Array(0);
   }
-  const cycle = new Float64Array(2 * period);
-  let zRe = re;
-  let zIm = im;
-  for (let k = 0; k < period; k += 1) {
-    cycle[2 * k] = zRe;
-    cycle[2 * k + 1] = zIm;
-    const next = zRe * zRe - zIm * zIm + c.re;
-    zIm = 2 * zRe * zIm + c.im;
-    zRe = next;
+  for (let step = 0; step < NEWTON_STEPS; step += 1) {
+    const image = iterateWithDerivative(c, period, re, im);
+    // z ← z − (f^p(z) − z) / ((f^p)'(z) − 1)
+    const gRe = image.re - re;
+    const gIm = image.im - im;
+    const hRe = image.dRe - 1;
+    const hIm = image.dIm;
+    const norm = hRe * hRe + hIm * hIm;
+    if (!(norm > 0)) break;
+    const deltaRe = (gRe * hRe + gIm * hIm) / norm;
+    const deltaIm = (gIm * hRe - gRe * hIm) / norm;
+    re -= deltaRe;
+    im -= deltaIm;
+    if (!Number.isFinite(re) || !Number.isFinite(im)) return new Float64Array(0);
+    if (Math.hypot(deltaRe, deltaIm) <= 1e-15 * Math.max(1, Math.hypot(re, im))) break;
   }
   const scale = Math.max(1, Math.hypot(re, im));
-  return Math.hypot(zRe - re, zIm - im) <= 1e-9 * scale ? cycle : new Float64Array(0);
+  const closes = (n: number): boolean => {
+    const image = iterateWithDerivative(c, n, re, im);
+    return Math.hypot(image.re - re, image.im - im) <= 1e-9 * scale;
+  };
+  const image = iterateWithDerivative(c, period, re, im);
+  if (!closes(period) || !(Math.hypot(image.dRe, image.dIm) < 1)) return new Float64Array(0);
+  for (let divisor = 1; divisor < period; divisor += 1) {
+    if (period % divisor === 0 && closes(divisor)) return new Float64Array(0);
+  }
+  const cycle = new Float64Array(2 * period);
+  for (let k = 0; k < period; k += 1) {
+    cycle[2 * k] = re;
+    cycle[2 * k + 1] = im;
+    const next = re * re - im * im + c.re;
+    im = 2 * re * im + c.im;
+    re = next;
+  }
+  return cycle;
 }
 
 /** The critical orbit while it stays within twice the raster's half-span. */

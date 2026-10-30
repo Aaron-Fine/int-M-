@@ -66,9 +66,17 @@ ambiguity band is where a production glitch detector and repair would go
 (packet 4).
 
 The `M_k` premise refers to `b_k`, which depends only on `M_j` for `j < k`,
-so it holds by induction on the prefix, applying the theorem at each shorter
-prefix. That induction is currently argued in this document and the code
-comments. A short Lean lemma stating it is the first Lean follow-up.
+so it holds by induction on the prefix. Lean checks that induction:
+`reconstruction_error_le_of_stored_radius`
+([ErrorBudget.lean](../../proof/IntMProof/ErrorBudget.lean)) takes the stored
+reference `R_k` with `|Z_k − R_k| ≤ s_k`, any upward-rounded `b` with
+`b_{k+1} ≥ 2 M_k b_k + b_k² + ρ_D(k)`, and any `M_k ≥ |R_k + d_k| + s_k + b_k`.
+It concludes both the radius premise `|z_k| ≤ M_k` on the whole prefix and
+`|Z_n + d_n − z_n| ≤ b_n`, so the audit needs no separate radius assumption.
+The general forms are `inexactOrbit_error_le_of_self_radius` (any upward
+bound) and `inexactOrbit_error_le_selfRadiusBudget` (exact recurrence with
+`M_k = size_k + b_k`, written as `selfRadiusBudget`). The correspondence
+between these premises and the BigInt checker remains trusted, as below.
 
 **Trust boundary.** As in the earlier pilots, the `DataView` decoder
 (`binary64Units`), the BigInt checker and their JavaScript execution are
@@ -142,9 +150,9 @@ checker, not of the kernel. **No performance claim is made.**
 
 ## Next steps
 
-1. Lean: state the inductive radius lemma above, and optionally a
-   concrete-tile wrapper of `reconstruction_error_le_budget` with
-   `ρ_R = ρ_C = 0`.
+1. Lean: the inductive radius lemma is done
+   (`reconstruction_error_le_of_stored_radius`, above). A concrete-tile
+   wrapper with `ρ_R = ρ_C = 0` remains optional.
 2. Run the same tiles in Chromium and Firefox through Vite, as the
    period-two pilot does.
 3. Packet 3: done in the [verifier pilot](PERTURBATION-VERIFIER-PILOT.md).

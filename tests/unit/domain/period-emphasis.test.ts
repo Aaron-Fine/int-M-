@@ -31,6 +31,10 @@ describe('period emphasis key', () => {
     expect(key.emphasized.map((entry) => entry.period)).toEqual([1, 2, 4, 8, 16]);
     expect(key.emphasized.map((entry) => entry.color)).toEqual(PERIOD_EMPHASIS_PALETTE);
     expect(key.emphasized.map((entry) => entry.pixelCount)).toEqual([9000, 300, 4000, 120, 60]);
+    expect(key.others).toEqual([
+      { period: 3, pixelCount: 50 },
+      { period: 5, pixelCount: 7 },
+    ]);
     expect(key.otherPeriodCount).toBe(2);
     expect(key.otherPixelCount).toBe(57);
     expect(key.attractingPixelCount).toBe(13537);
@@ -85,6 +89,7 @@ describe('period emphasis key', () => {
 
     expect(key).toEqual({
       emphasized: [{ period: 3, color: PERIOD_EMPHASIS_PALETTE[0], pixelCount: 42 }],
+      others: [],
       otherPeriodCount: 0,
       otherPixelCount: 0,
       attractingPixelCount: 42,

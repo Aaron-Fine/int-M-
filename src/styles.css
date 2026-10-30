@@ -869,17 +869,15 @@ button.nesting-trail__node:hover {
   top: 50%;
   left: 2.85rem;
   display: none;
+  /* No maximum: labels are short catalog strings, and the density policy
+     (marker-density.ts) measures each in this font, whatever face the host substitutes. */
   width: max-content;
-  /* The longest generated label, "Period 12, rays 2047/4095 and 2048/4095", is 13.7rem (ADR 0014). */
-  max-width: 14rem;
   padding: 0.18rem 0.35rem;
-  overflow: hidden;
   color: white;
   background: rgb(6 9 10 / 78%);
   border-radius: 0.25rem;
   font-size: 0.67rem;
   line-height: 1.25;
-  text-overflow: ellipsis;
   white-space: nowrap;
   transform: translateY(-50%);
 }
@@ -1060,11 +1058,35 @@ button.nesting-trail__node:hover {
   border-radius: var(--radius-md);
 }
 
-.lens__disk {
+/* The disk and the buttons on its p/q ticks share one square box. */
+.lens__plane {
+  position: relative;
   width: 100%;
   max-width: 14rem;
   justify-self: center;
+}
+
+.lens__disk {
+  display: block;
+  width: 100%;
   overflow: visible;
+}
+
+.lens__child {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.875rem 0 0 -0.875rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.lens__child:hover {
+  background: rgb(215 91 54 / 16%);
+  border-color: var(--accent);
 }
 
 .lens__fill {
@@ -1482,6 +1504,57 @@ button.nesting-trail__node:hover {
 /* Emphasized periods are toggle buttons that isolate the period (MI-UX-018). */
 .legend__item--control {
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* The period spectrum (UI review proposal C): each period's share of
+   attracting-cycle pixels as a bar on a log scale (legend-model.ts). */
+.legend__share {
+  display: block;
+  height: 0.4rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border-radius: 0.2rem;
+}
+
+.legend__share-bar {
+  display: block;
+  height: 100%;
+  border-radius: 0.2rem;
+}
+
+.legend__other {
+  grid-template-columns: 1.15rem minmax(0, 1fr) auto;
+  padding-inline: 0.35rem;
+}
+
+.legend__tail-toggle {
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  color: var(--accent-strong);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.legend__tail-toggle:hover {
+  background: var(--surface-muted);
+}
+
+.legend__tail {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0;
+  padding: 0 0 0 0.85rem;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+
+.legend__tail[hidden] {
+  display: none;
 }
 
 .legend__entry {

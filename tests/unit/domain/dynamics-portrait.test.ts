@@ -31,6 +31,52 @@ describe('dynamics portrait (inspector companion)', () => {
     ).toBeGreaterThan(0.1);
   });
 
+  /** |f^p(z0) − z0| and the cycle multiplier (f^p)'(z0) for a located cycle. */
+  const closure = (c: { re: number; im: number }, cycle: Float64Array, period: number) => {
+    let re = cycle[0] ?? Number.NaN;
+    let im = cycle[1] ?? Number.NaN;
+    let dRe = 1;
+    let dIm = 0;
+    for (let step = 0; step < period; step += 1) {
+      const nextDRe = 2 * (re * dRe - im * dIm);
+      dIm = 2 * (re * dIm + im * dRe);
+      dRe = nextDRe;
+      const next = re * re - im * im + c.re;
+      im = 2 * re * im + c.im;
+      re = next;
+    }
+    return {
+      gap: Math.hypot(re - (cycle[0] ?? 0), im - (cycle[1] ?? 0)),
+      multiplier: Math.hypot(dRe, dIm),
+    };
+  };
+
+  it.each([
+    // |λ| = 0.9996: the critical orbit is still about 2% off the cycle after 20,000 steps.
+    ['period 2 next to its root with the main cardioid', { re: -0.7501, im: 0 }, 2],
+    // λ = 1 − 2·10⁻⁴: next to the main cardioid's cusp.
+    ['period 1 next to the cusp', { re: 0.24999999, im: 0 }, 1],
+    // Inside the 1/3-bulb, 10⁻⁴ from its root e^{2πi/3}/2 − e^{4πi/3}/4.
+    ['period 3 next to the 1/3 root', { re: -0.125 + 1e-4, im: 0.649519052838329 + 1e-4 }, 3],
+  ] as const)('refines a slowly attracting cycle by Newton: %s', (_, c, period) => {
+    expect(classifyOrbit(c)).toMatchObject({ status: 'attracting-cycle', period });
+    const cycle = locateCycle(c, period);
+    expect(cycle).toHaveLength(2 * period);
+    const { gap, multiplier } = closure(c, cycle, period);
+    expect(gap).toBeLessThan(1e-12);
+    expect(multiplier).toBeLessThan(1);
+    expect(multiplier).toBeGreaterThan(0.99);
+  });
+
+  it('draws no repelling cycle and no cycle of a smaller period', () => {
+    // The rabbit's period-2 cycle is repelling and its fixed points have period 1.
+    expect(locateCycle(RABBIT, 2)).toHaveLength(0);
+    expect(locateCycle(RABBIT, 6)).toHaveLength(0);
+    // At the basilica, Newton for period 1 lands on the repelling fixed point (1 − √5)/2.
+    expect(locateCycle({ re: -1, im: 0 }, 1)).toHaveLength(0);
+    expect(locateCycle({ re: -1, im: 0 }, 2)).toHaveLength(4);
+  });
+
   it('draws no cycle for an escaping parameter or an unusable period', () => {
     expect(locateCycle({ re: 0.5, im: 0.5 }, 1)).toHaveLength(0);
     expect(locateCycle(RABBIT, 0)).toHaveLength(0);

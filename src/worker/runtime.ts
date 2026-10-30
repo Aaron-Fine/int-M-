@@ -1,3 +1,4 @@
+import { locateChildComponent } from '../domain/child-component';
 import {
   CpuRenderer,
   RenderCancelledError,
@@ -144,6 +145,19 @@ export class RenderWorkerRuntime {
               [portrait.rgba.buffer, portrait.orbit.buffer, portrait.cycle.buffer],
             );
           }
+        } catch (error: unknown) {
+          this.#port.postMessage(errorMessage(message.requestId, error));
+        }
+        return;
+
+      case 'locate-child':
+        try {
+          this.#port.postMessage({
+            type: 'child-component',
+            requestId: message.requestId,
+            rotation: message.rotation,
+            location: locateChildComponent(message.point, message.period, message.rotation),
+          });
         } catch (error: unknown) {
           this.#port.postMessage(errorMessage(message.requestId, error));
         }

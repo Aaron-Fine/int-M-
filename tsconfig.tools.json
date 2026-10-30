@@ -30,6 +30,7 @@
     "tools/benchmark/coarse-budget-study.ts",
     "tools/phase0-browser-benchmark.ts",
     "tools/emit_tile_certificate.ts",
+    "tools/closure_tolerance_production.ts",
     "tools/measure_early_accept.ts",
     "tools/benchmark/tournament.ts",
     "tools/benchmark/candidates/**/*.ts",
