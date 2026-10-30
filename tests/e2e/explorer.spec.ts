@@ -1291,6 +1291,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
       if (canvasBox) {
         expect(canvasBox.width / canvasBox.height).toBeGreaterThan(1.3);
         expect(canvasBox.width / canvasBox.height).toBeLessThan(1.37);
+        // The image starts on the first screen: no blank control gaps above it.
+        expect(canvasBox.y).toBeLessThan(viewport.height);
       }
 
       const targets = await page
