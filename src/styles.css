@@ -441,6 +441,96 @@ button:disabled {
   box-shadow: var(--shadow);
 }
 
+/* The image's top-left corner: the nesting trail, then the isolation chip. */
+.explorer__corner {
+  position: absolute;
+  z-index: 5;
+  top: 0.7rem;
+  left: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+  max-width: calc(100% - 1.4rem);
+  pointer-events: none;
+}
+
+.explorer__corner > * {
+  max-width: 100%;
+  pointer-events: auto;
+}
+
+/* The nesting trail (UI review Proposal C): an angled internal address on the image. */
+.nesting-trail {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.2rem 0.3rem 0.2rem 0.75rem;
+  overflow-x: auto;
+  color: white;
+  background: rgb(6 9 10 / 82%);
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.nesting-trail__lead {
+  color: rgb(255 255 255 / 70%);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nesting-trail__steps {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nesting-trail__step {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.nesting-trail__edge {
+  color: rgb(255 255 255 / 70%);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.nesting-trail__node {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0 0.45rem;
+  color: white;
+  background: rgb(255 255 255 / 14%);
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 999px;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+button.nesting-trail__node {
+  cursor: pointer;
+}
+
+button.nesting-trail__node:hover {
+  background: rgb(255 255 255 / 26%);
+}
+
+.nesting-trail__node[aria-current='location'] {
+  color: var(--canvas);
+  background: white;
+  font-weight: 700;
+}
+
 .explorer__stack {
   position: relative;
   min-height: 24rem;
@@ -485,10 +575,6 @@ button:disabled {
 
 /* While a legend isolation dims the image: what it shows, and the way back. */
 .isolation-chip {
-  position: absolute;
-  z-index: 5;
-  top: 0.7rem;
-  left: 0.7rem;
   display: flex;
   gap: 0.5rem;
   align-items: center;
@@ -1898,6 +1984,14 @@ button:disabled {
   }
 
   .legend__entry[aria-pressed='true'] {
+    outline: 2px solid Highlight;
+  }
+
+  .nesting-trail__node {
+    border-color: CanvasText;
+  }
+
+  .nesting-trail__node[aria-current='location'] {
     outline: 2px solid Highlight;
   }
 
