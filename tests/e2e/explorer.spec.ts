@@ -2782,6 +2782,61 @@ test.describe('Catalog core (ADR 0014)', () => {
     );
   });
 
+  test('sizes marker glyphs to their components and rings a bulb that outgrows its glyph', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    const canvasHeight = (await page.locator('.explorer__stack').boundingBox())?.height ?? 0;
+    const glyphWidth = (id: string) =>
+      page
+        .locator(`.catalog-marker[data-catalog-id="${id}"] .catalog-marker__dot`)
+        .evaluate((dot) => dot.getBoundingClientRect().width);
+
+    // The 1/2-bulb (size estimate 0.5) spans 0.5/2.5 of the view height: a ring of that diameter.
+    const ring = page.locator('.catalog-marker[data-catalog-id="mi-p2-1-2"] .catalog-marker__ring');
+    await expect(ring).toHaveCount(1);
+    const ringWidth = await ring.evaluate((element) => element.getBoundingClientRect().width);
+    expect(Math.abs(ringWidth - (0.5 * canvasHeight) / 2.5)).toBeLessThan(2);
+    // The main cardioid is not a disk: a small glyph, no ring.
+    await expect(
+      page.locator('.catalog-marker[data-catalog-id="mi-p1-0-1"] .catalog-marker__ring'),
+    ).toHaveCount(0);
+
+    // The 1/4-bulb is under 40 px here; closer, its glyph grows, then a ring replaces it.
+    const quarter = 'mi-p4-1-2';
+    const stable = () =>
+      expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+        timeout: 20_000,
+      });
+    const before = await glyphWidth(quarter);
+    expect(before).toBeGreaterThanOrEqual(10);
+    expect(before).toBeLessThan(40);
+    await page.goto('/?v=1&c=0.2822713907669139,0.5300606175785253&s=1.6');
+    await stable();
+    const closer = await glyphWidth(quarter);
+    expect(closer).toBeGreaterThan(before);
+    expect(closer).toBeLessThanOrEqual(40);
+    await expect(
+      page.locator(`.catalog-marker[data-catalog-id="${quarter}"] .catalog-marker__ring`),
+    ).toHaveCount(0);
+    await page.goto('/?v=1&c=0.2822713907669139,0.5300606175785253&s=0.5');
+    await stable();
+    expect(await glyphWidth(quarter)).toBeLessThan(closer);
+    const quarterRing = await page
+      .locator(`.catalog-marker[data-catalog-id="${quarter}"] .catalog-marker__ring`)
+      .evaluate((element) => element.getBoundingClientRect().width);
+    expect(quarterRing).toBeGreaterThan(40);
+    // The hit box stays the 44 px target (or the 24 px compact one) whatever the glyph.
+    const hit = await page
+      .locator(`.catalog-marker[data-catalog-id="${quarter}"]`)
+      .evaluate((marker) => marker.getBoundingClientRect().width);
+    expect([24, 44]).toContain(Math.round(hit));
+  });
+
   test('keeps labels whole and apart when the host substitutes a wider face', async ({ page }) => {
     // Monospace is wider than the sans faces hosts substitute for system-ui: the longest
     // generated label is about 16rem in it, past the fixed 14rem maximum labels once had.

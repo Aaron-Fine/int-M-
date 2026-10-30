@@ -1093,6 +1093,23 @@ export function mountApplication(host: HTMLElement): () => void {
     return circle;
   }
 
+  /** A thin ring of the component's estimated diameter, once it outgrows its glyph. */
+  function setMarkerRing(marker: HTMLButtonElement, ringPx: number | undefined): void {
+    let ring = marker.querySelector<HTMLElement>('.catalog-marker__ring');
+    if (ringPx === undefined) {
+      ring?.remove();
+      return;
+    }
+    if (ring === null) {
+      ring = element('span', {
+        className: 'catalog-marker__ring',
+        attributes: { 'aria-hidden': 'true' },
+      });
+      marker.prepend(ring);
+    }
+    ring.style.setProperty('--ring', `${ringPx.toFixed(1)}px`);
+  }
+
   function createCatalogMarker(component: CatalogComponent): HTMLButtonElement {
     const marker = button('', {
       className: `catalog-marker catalog-marker--period-${component.period}`,
@@ -1193,6 +1210,8 @@ export function mountApplication(host: HTMLElement): () => void {
       marker.classList.toggle('catalog-marker--label-hidden', !planned.labelVisible);
       marker.style.left = `${planned.x * 100}%`;
       marker.style.top = `${planned.y * 100}%`;
+      marker.style.setProperty('--glyph', `${planned.scale.glyphPx.toFixed(1)}px`);
+      setMarkerRing(marker, planned.scale.ringPx);
       visible.push(marker);
     }
     for (const [id, marker] of catalogMarkers) {
