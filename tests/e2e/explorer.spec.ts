@@ -1489,6 +1489,61 @@ test.describe('Mandelbrot Interiority explorer', () => {
     if (stack) expect(stack.width / stack.height).toBeCloseTo(1.6, 2);
   });
 
+  test('keeps the point evidence inside its card and in view when a new point is inspected', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const rabbit = page.getByRole('button', { name: 'Inspect 1/3-bulb (Douady rabbit), period 3' });
+    await expect(rabbit).toBeVisible({ timeout: 20_000 });
+    await rabbit.focus();
+    await rabbit.press('Enter');
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
+      'Attracting cycle',
+      { timeout: 10_000 },
+    );
+
+    // The framed side panel scrolls; the inspector grows with its evidence instead of
+    // spilling it over the legend below.
+    const layout = () =>
+      page.evaluate(() => {
+        const side = document.querySelector('.side-panel');
+        const inspector = document.querySelector('.inspector');
+        const legend = document.querySelector('.legend');
+        return {
+          scrollTop: side?.scrollTop ?? -1,
+          overflow: inspector ? inspector.scrollHeight - inspector.clientHeight : 1,
+          gap:
+            inspector && legend
+              ? legend.getBoundingClientRect().top - inspector.getBoundingClientRect().bottom
+              : -1,
+        };
+      });
+    const inspected = await layout();
+    expect(inspected.overflow).toBeLessThanOrEqual(1);
+    expect(inspected.gap).toBeGreaterThan(0);
+
+    // Reading the evidence partway down, a new inspection keeps the panel where it was.
+    await page.locator('.side-panel').evaluate((side) => {
+      side.scrollTop = 600;
+    });
+    const stack = await page.locator('.explorer__stack').boundingBox();
+    expect(stack).not.toBeNull();
+    if (stack) await page.mouse.click(stack.x + stack.width / 2, stack.y + stack.height / 2);
+    await expect(
+      pointEvidence.getByRole('heading', { name: '1/3-bulb (Douady rabbit)' }),
+    ).toBeHidden();
+    await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
+      'Attracting cycle',
+      { timeout: 10_000 },
+    );
+    const reinspected = await layout();
+    expect(reinspected.scrollTop).toBe(600);
+    expect(reinspected.overflow).toBeLessThanOrEqual(1);
+  });
+
   test('draws catalog markers as outlines that leave the component visible', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.catalog-marker').first()).toBeVisible();
