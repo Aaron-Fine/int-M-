@@ -103,6 +103,12 @@ const RENDER_DELAY_MS = 65;
 const URL_WRITE_DELAY_MS = 500;
 const LABEL_MAGNIFICATION_THRESHOLD = 2;
 const MIN_REGION_SIZE_PX = 12;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+/** Marker outlines in a 24-unit box: a triangle for period 3, a diamond for period 4. */
+const MARKER_POLYGONS: Readonly<Record<number, string>> = Object.freeze({
+  3: '12,4 20.5,19 3.5,19',
+  4: '12,2.5 21.5,12 12,21.5 2.5,12',
+});
 const ZOOM_LIMIT_MESSAGE =
   'Reached the current reliable zoom limit for this renderer and numerical budget.';
 
@@ -1041,6 +1047,45 @@ export function mountApplication(host: HTMLElement): () => void {
       : `${component.label}, period ${component.period}`;
   }
 
+  /**
+   * Outline glyph for a marker, one shape per low period (circle, square, triangle, diamond;
+   * circles beyond period 4), drawn twice: a dark halo under a white outline (styles.css).
+   */
+  function markerGlyph(period: number): SVGSVGElement {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'catalog-marker__dot');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    for (const role of ['halo', 'shape'] as const) {
+      const shape = markerShape(period);
+      shape.setAttribute('class', `catalog-marker__${role}`);
+      svg.append(shape);
+    }
+    return svg;
+  }
+
+  function setSvgAttributes(target: SVGElement, attributes: Record<string, string>): void {
+    for (const [name, value] of Object.entries(attributes)) target.setAttribute(name, value);
+  }
+
+  function markerShape(period: number): SVGElement {
+    if (period === 2) {
+      const square = document.createElementNS(SVG_NS, 'rect');
+      setSvgAttributes(square, { x: '5', y: '5', width: '14', height: '14', rx: '2' });
+      return square;
+    }
+    const polygon = MARKER_POLYGONS[period];
+    if (polygon !== undefined) {
+      const shape = document.createElementNS(SVG_NS, 'polygon');
+      shape.setAttribute('points', polygon);
+      return shape;
+    }
+    const circle = document.createElementNS(SVG_NS, 'circle');
+    setSvgAttributes(circle, { cx: '12', cy: '12', r: '7.5' });
+    return circle;
+  }
+
   function createCatalogMarker(component: CatalogComponent): HTMLButtonElement {
     const marker = button('', {
       className: `catalog-marker catalog-marker--period-${component.period}`,
@@ -1049,10 +1094,7 @@ export function mountApplication(host: HTMLElement): () => void {
     marker.dataset['catalogId'] = component.id;
     marker.setAttribute('aria-label', `Inspect ${markerName(component)}`);
     marker.append(
-      element('span', {
-        className: 'catalog-marker__dot',
-        attributes: { 'aria-hidden': 'true' },
-      }),
+      markerGlyph(component.period),
       element('span', {
         className: 'catalog-marker__label',
         text: component.label,

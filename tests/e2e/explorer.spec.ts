@@ -1291,6 +1291,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
       if (canvasBox) {
         expect(canvasBox.width / canvasBox.height).toBeGreaterThan(1.3);
         expect(canvasBox.width / canvasBox.height).toBeLessThan(1.37);
+        // The image starts on the first screen: no blank control gaps above it.
+        expect(canvasBox.y).toBeLessThan(viewport.height);
       }
 
       const targets = await page
@@ -1335,6 +1337,54 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expect(figure).toHaveAttribute('data-cycle-points', '0');
     await expect(figure.getByRole('img')).toHaveAttribute('aria-label', /orbit of 0 escapes/);
     await expectNoAccessibilityViolations(page);
+  });
+
+  test('frames the explorer to a tall desktop window and keeps 16:10 on a short one', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable');
+
+    const framed = await page.evaluate(() => {
+      const stack = document.querySelector('.explorer__stack')?.getBoundingClientRect();
+      const side = document.querySelector('.side-panel');
+      return {
+        stackBottom: stack ? stack.bottom : Number.POSITIVE_INFINITY,
+        stackHeight: stack ? stack.height : 0,
+        page: document.documentElement.scrollHeight,
+        sideScrolls: side ? side.scrollHeight > side.clientHeight : false,
+      };
+    });
+    // The whole image is on screen, the page does not scroll, and the side panel scrolls alone.
+    expect(framed.stackBottom).toBeLessThanOrEqual(900);
+    expect(framed.stackHeight).toBeGreaterThan(400);
+    expect(framed.page).toBeLessThanOrEqual(900);
+    expect(framed.sideScrolls).toBe(true);
+
+    // A 1280x720 laptop keeps the 16:10 canvas and page scrolling instead of a flattened frame.
+    await page.setViewportSize({ width: 1280, height: 720 });
+    const stack = await page.locator('.explorer__stack').boundingBox();
+    expect(stack).not.toBeNull();
+    if (stack) expect(stack.width / stack.height).toBeCloseTo(1.6, 2);
+  });
+
+  test('draws catalog markers as outlines that leave the component visible', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.catalog-marker').first()).toBeVisible();
+    const glyphs = await page.locator('.catalog-overlay').evaluate((overlay) => {
+      const shapeOf = (period: number): string | null =>
+        overlay
+          .querySelector(`.catalog-marker--period-${period} .catalog-marker__shape`)
+          ?.tagName.toLowerCase() ?? null;
+      const shape = overlay.querySelector('.catalog-marker__shape');
+      const fill = shape ? getComputedStyle(shape).fill : '';
+      return { shapes: [1, 2, 3, 4].map(shapeOf), fill };
+    });
+    expect(glyphs.shapes).toEqual(['circle', 'rect', 'polygon', 'polygon']);
+    // A faint translucent fill, never an opaque disc over the component.
+    expect(glyphs.fill).toMatch(/rgba\(255, 255, 255, 0\.\d+\)/);
   });
 
   test('keeps controls-bar controls from overlapping at desktop and phone widths', async ({
