@@ -1494,6 +1494,8 @@ button:disabled {
   }
 
   .controls__fields {
+    /* The column layout turns the wider-width 34rem flex basis into a height. */
+    flex: none;
     width: 100%;
     display: grid;
     gap: 0.75rem;
