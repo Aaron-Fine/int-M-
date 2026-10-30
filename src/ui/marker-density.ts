@@ -26,6 +26,8 @@ import { complexToPixel } from '../domain/viewport';
  *    label. A collision hides a label, never its marker.
  * 5. The markers come back in catalog order, the DOM and keyboard focus
  *    order, which does not depend on the view.
+ * 6. Each glyph is drawn at its component's size on screen (markerScale);
+ *    the hit boxes and steps 2 to 4 do not depend on it.
  *
  * Precondition: the canvas size is in whole CSS pixels. The caller rounds it;
  * a size that is not a positive integer yields no markers.
@@ -49,6 +51,40 @@ const LABEL_CHARACTER_REM = 0.42;
 const LABEL_PADDING_REM = 0.7;
 /** Markers right of this fraction of the width put their label on their left. */
 const LEFT_FACING_FROM = 0.76;
+
+/** Glyph diameter bounds in CSS px: between them the glyph is the component's size on screen. */
+export const GLYPH_MIN_PX = 10;
+export const GLYPH_MAX_PX = 40;
+/** A component larger than GLYPH_MAX_PX on screen keeps a glyph this small at its centre. */
+export const GLYPH_CENTRE_PX = 14;
+
+export interface MarkerScale {
+  /** Diameter of the drawn glyph in CSS px. */
+  readonly glyphPx: number;
+  /** A satellite larger than GLYPH_MAX_PX on screen: a ring of its estimated diameter. */
+  readonly ringPx?: number;
+}
+
+/**
+ * The glyph for a component whose size estimate (about its diameter,
+ * componentSizeEstimate) spans `sizePx` CSS px: that size, clamped to
+ * GLYPH_MIN_PX..GLYPH_MAX_PX; past the maximum a small glyph at the centre,
+ * and for a satellite a ring of the estimated diameter. Satellites are near
+ * disks about their centre; a cardioid is not, so it gets no ring.
+ */
+export const markerScale = (sizePx: number, satellite: boolean): MarkerScale => {
+  if (!(sizePx > GLYPH_MAX_PX)) {
+    return { glyphPx: Math.max(GLYPH_MIN_PX, Number.isFinite(sizePx) ? sizePx : 0) };
+  }
+  return satellite ? { glyphPx: GLYPH_CENTRE_PX, ringPx: sizePx } : { glyphPx: GLYPH_CENTRE_PX };
+};
+
+/** A satellite's last address step goes from period n to qn through angle p/q. */
+const isSatellite = (component: CatalogComponent): boolean => {
+  const last = component.angledInternalAddress?.at(-1);
+  if (last === undefined) return false;
+  return last.toPeriod === last.rotation.denominator * last.fromPeriod;
+};
 
 export interface MarkerPlanInput {
   readonly index: CatalogIndex;
@@ -79,6 +115,7 @@ export interface PlannedMarker {
   readonly labelVisible: boolean;
   /** The label sits left of the marker (near the right edge). */
   readonly leftFacing: boolean;
+  readonly scale: MarkerScale;
 }
 
 export interface MarkerPlan {
@@ -200,6 +237,10 @@ export const planMarkers = (input: MarkerPlanInput): MarkerPlan => {
       compact: compact[index] === true,
       labelVisible,
       leftFacing,
+      scale: markerScale(
+        (placement.entry.size * input.height) / input.viewport.spanY,
+        isSatellite(placement.entry.component),
+      ),
     };
     return { rank: placement.entry.rank, marker };
   });

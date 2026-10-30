@@ -680,12 +680,17 @@ button:disabled {
 }
 
 /* The glyph is an outline in white over a dark halo, with a faint fill, so the component it names
-   stays visible underneath and the marker never reads as a period colour. */
+   stays visible underneath and the marker never reads as a period colour. Its diameter, --glyph, is
+   the component's size on screen within 10 to 40px (markerScale); the hit box does not change. */
 .catalog-marker__dot {
   position: absolute;
-  inset: 0.625rem;
+  top: 50%;
+  left: 50%;
   display: block;
+  width: var(--glyph, 1.5rem);
+  height: var(--glyph, 1.5rem);
   overflow: visible;
+  transform: translate(-50%, -50%);
 }
 
 .catalog-marker__halo {
@@ -693,6 +698,7 @@ button:disabled {
   stroke: rgb(6 9 10 / 62%);
   stroke-width: 4;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .catalog-marker__shape {
@@ -700,6 +706,27 @@ button:disabled {
   stroke: white;
   stroke-width: 1.75;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A satellite larger than its glyph on screen: a thin ring of its estimated diameter. */
+.catalog-marker__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--ring);
+  height: var(--ring);
+  pointer-events: none;
+  border: 1.5px solid rgb(255 255 255 / 72%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgb(6 9 10 / 45%),
+    inset 0 0 0 1px rgb(6 9 10 / 45%);
+  transform: translate(-50%, -50%);
+}
+
+.catalog-marker--selected .catalog-marker__ring {
+  border-color: var(--accent);
 }
 
 .catalog-marker:hover .catalog-marker__shape,
@@ -753,10 +780,6 @@ button:disabled {
 
   width: var(--p4-hit);
   height: var(--p4-hit);
-}
-
-.catalog-marker--period-4 .catalog-marker__dot {
-  inset: calc((var(--p4-hit) - 1.5rem) / 2);
 }
 
 .catalog-marker--period-4:focus-visible {
@@ -833,10 +856,6 @@ button:disabled {
 .catalog-marker--compact {
   width: 1.5rem;
   height: 1.5rem;
-}
-
-.catalog-marker--compact .catalog-marker__dot {
-  inset: 0;
 }
 
 .catalog-marker--period-4.catalog-marker--compact {
