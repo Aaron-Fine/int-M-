@@ -6,6 +6,7 @@ import {
   colorForEscaped,
   EMPTY_PERIOD_KEY,
   modulateForMultiplierDirection,
+  shadeForMultiplierContour,
   MULTIPLIER_STRIPE_AMPLITUDE,
   MULTIPLIER_STRIPE_FREQUENCY,
   OTHER_PERIODS_COLOR,
@@ -64,6 +65,7 @@ describe('legend model', () => {
     expect(labels(model.items)).toEqual([
       'Attraction |λ|',
       'Multiplier angle',
+      'Internal coordinates',
       'Escaped',
       'Unresolved',
     ]);
@@ -158,6 +160,15 @@ describe('legend model', () => {
       'Escaped',
       'Unresolved',
     ]);
+  });
+
+  it('draws the multiplier contour swatch from the colorizer contour shade', () => {
+    const contour = swatches(legendModel('multiplier').items).find(
+      (swatch) => swatch.label === 'Internal coordinates',
+    );
+    const base = colorForAttracting(1, 0.5, 0, 'multiplier');
+    expect(contour?.background).toContain(cssColor(base));
+    expect(contour?.background).toContain(cssColor(shadeForMultiplierContour(base)));
   });
 
   it('shows a pending note until the period frame arrives', () => {

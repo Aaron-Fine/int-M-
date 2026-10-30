@@ -102,6 +102,7 @@ const RENDER_DELAY_MS = 65;
 const URL_WRITE_DELAY_MS = 500;
 const LABEL_MAGNIFICATION_THRESHOLD = 2;
 const MIN_REGION_SIZE_PX = 12;
+const SVG_NS = 'http://www.w3.org/2000/svg';
 const ZOOM_LIMIT_MESSAGE =
   'Reached the current reliable zoom limit for this renderer and numerical budget.';
 
@@ -1681,11 +1682,116 @@ function createInspector(): {
         : 'No conclusive evidence at current quality',
       'inspector__evidence',
     );
-    replaceChildren(body, [...head(coordinate, component), badge, facts]);
+    replaceChildren(body, [
+      ...head(coordinate, component),
+      badge,
+      facts,
+      orbit.status === 'attracting-cycle'
+        ? componentLens(orbit.period, orbit.multiplierMagnitude, orbit.multiplierAngle)
+        : undefined,
+    ]);
   };
 
   clear();
   return { element: root, loading, show, clear };
+}
+
+const LENS_TICKS: readonly (readonly [number, number])[] = [
+  [1, 2],
+  [1, 3],
+  [2, 3],
+  [1, 4],
+  [3, 4],
+  [1, 5],
+  [2, 5],
+  [3, 5],
+  [4, 5],
+];
+
+/**
+ * The component lens (UI review, Proposal B): every hyperbolic component is
+ * a copy of the unit disk through its multiplier λ. Draws that disk with the
+ * |λ| rings and internal rays of the multiplier view's contours, the p/q
+ * points where child components attach, and the inspected point's λ. Built
+ * from the inspection's |λ| and arg λ only; no orbit work on this thread.
+ */
+function componentLens(period: number, magnitude: number, angle: number): HTMLElement {
+  const svgElement = (name: string, attributes: Record<string, string>): SVGElement => {
+    const node = document.createElementNS(SVG_NS, name);
+    for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+    return node;
+  };
+  const radius = 64;
+  const svg = svgElement('svg', {
+    class: 'lens__disk',
+    viewBox: '-100 -100 200 200',
+    role: 'img',
+    'aria-label': `Multiplier disk of this period-${period} component: λ at |λ| ${magnitude.toFixed(3)}, ${((angle * 180) / Math.PI).toFixed(1)}°`,
+  });
+  svg.append(svgElement('circle', { class: 'lens__fill', r: String(radius) }));
+  for (const ring of [0.25, 0.5, 0.75]) {
+    svg.append(svgElement('circle', { class: 'lens__ring', r: String(radius * ring) }));
+  }
+  svg.append(svgElement('circle', { class: 'lens__edge', r: String(radius) }));
+  const point = (r: number, theta: number): [number, number] => [
+    r * Math.cos(theta),
+    -r * Math.sin(theta),
+  ];
+  for (const [p, q] of LENS_TICKS) {
+    const theta = (2 * Math.PI * p) / q;
+    const [x, y] = point(radius, theta);
+    svg.append(
+      svgElement('circle', { class: 'lens__tick', cx: x.toFixed(2), cy: y.toFixed(2), r: '2.5' }),
+    );
+    if (q <= 4) {
+      const [lx, ly] = point(radius + 16, theta);
+      const label = svgElement('text', {
+        class: 'lens__label',
+        x: lx.toFixed(2),
+        y: ly.toFixed(2),
+      });
+      label.textContent = `${p}/${q}`;
+      svg.append(label);
+    }
+  }
+  const [rootX, rootY] = point(radius + 18, 0);
+  const root = svgElement('text', {
+    class: 'lens__label',
+    x: rootX.toFixed(2),
+    y: rootY.toFixed(2),
+  });
+  root.textContent = 'root';
+  svg.append(root);
+  const [edgeX, edgeY] = point(radius, angle);
+  svg.append(
+    svgElement('line', {
+      class: 'lens__ray',
+      x1: '0',
+      y1: '0',
+      x2: edgeX.toFixed(2),
+      y2: edgeY.toFixed(2),
+    }),
+  );
+  const [lambdaX, lambdaY] = point(radius * Math.min(1, magnitude), angle);
+  svg.append(
+    svgElement('circle', {
+      class: 'lens__lambda',
+      cx: lambdaX.toFixed(2),
+      cy: lambdaY.toFixed(2),
+      r: '5',
+    }),
+  );
+
+  const figure = element('figure', { className: 'lens' });
+  figure.append(
+    element('h3', { className: 'eyebrow', text: 'Component lens' }),
+    svg,
+    element('figcaption', {
+      className: 'lens__caption',
+      text: 'This component as the disk of its multiplier λ: the dot is this point; rings are |λ| = ¼, ½, ¾; p/q marks where child components attach. The multiplier view draws the same rings and rays.',
+    }),
+  );
+  return figure;
 }
 
 function semanticViewDescription(view: SemanticView): string {
