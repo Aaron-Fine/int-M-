@@ -1,0 +1,581 @@
+{
+  "schemaVersion": 1,
+  "method": {
+    "difference": "CIEDE2000 (Sharma, Wu and Dalal 2005), kL = kC = kH = 1, sRGB D65",
+    "simulation": "Machado, Oliveira and Fernandes (2009), severity 1.0, applied to linear sRGB and clamped",
+    "visions": ["normal", "protan", "deutan", "tritan"],
+    "sampling": {
+      "escapeBands": 64,
+      "multiplierAngles": 72,
+      "multiplierMagnitudes": 21
+    },
+    "helper": "tests/unit/palette/color-science.ts"
+  },
+  "environment": {
+    "node": "v22.22.0",
+    "commit": "06567a2"
+  },
+  "phase1Floors": {
+    "escaped-vs-unresolved/stability": 8,
+    "escaped-vs-unresolved/multiplier": 18,
+    "escaped-vs-unresolved/period": 18,
+    "unresolved-checker": 8,
+    "multiplier-stripes": 9,
+    "period-classes-pairwise": 5,
+    "period-classes-vs-unresolved": 11,
+    "period-classes-vs-escaped": 18
+  },
+  "floors": {
+    "escaped-vs-unresolved/stability": 8,
+    "escaped-vs-unresolved/multiplier": 18,
+    "escaped-vs-unresolved/period": 18,
+    "unresolved-checker": 8,
+    "multiplier-stripes": 9,
+    "period-classes-pairwise": 11,
+    "period-classes-vs-unresolved": 11,
+    "period-classes-vs-escaped": 18
+  },
+  "textOverRaster": [
+    {
+      "selector": ".catalog-marker__label",
+      "worstContrast": 10.58,
+      "floor": 4.5,
+      "pass": true
+    },
+    {
+      "selector": ".explorer__hint",
+      "worstContrast": 5.15,
+      "floor": 4.5,
+      "pass": true
+    },
+    {
+      "selector": ".feedback",
+      "worstContrast": 13.21,
+      "floor": 4.5,
+      "pass": true
+    }
+  ],
+  "isolation": {
+    "dimFactor": 0.12,
+    "worstContrast": 3.09,
+    "floor": 3,
+    "pass": true
+  },
+  "palettes": [
+    {
+      "id": "phase-1",
+      "description": "Phase 1 palette (4fd4fdd); period classes are the golden-angle hues of p1–p5",
+      "periodClasses": ["#35DE67", "#9835DE", "#DEC935", "#35C2DE", "#DE3591"],
+      "metrics": [
+        {
+          "name": "escaped-vs-unresolved/stability",
+          "byVision": {
+            "normal": 8.43,
+            "protan": 8.43,
+            "deutan": 8.43,
+            "tritan": 8.43
+          },
+          "min": 8.43,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/multiplier",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/period",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "unresolved-checker",
+          "byVision": {
+            "normal": 8.8,
+            "protan": 8.8,
+            "deutan": 8.8,
+            "tritan": 8.8
+          },
+          "min": 8.8,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "multiplier-stripes",
+          "byVision": {
+            "normal": 9.74,
+            "protan": 9.66,
+            "deutan": 9.67,
+            "tritan": 9.11
+          },
+          "min": 9.11,
+          "floor": 9,
+          "pass": true
+        },
+        {
+          "name": "period-classes-pairwise",
+          "byVision": {
+            "normal": 21.14,
+            "protan": 5.56,
+            "deutan": 8.72,
+            "tritan": 6.99
+          },
+          "min": 5.56,
+          "floor": 11,
+          "pass": false
+        },
+        {
+          "name": "period-classes-vs-unresolved",
+          "byVision": {
+            "normal": 28.3,
+            "protan": 16.71,
+            "deutan": 11.16,
+            "tritan": 20.61
+          },
+          "min": 11.16,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-escaped",
+          "byVision": {
+            "normal": 24.32,
+            "protan": 18.91,
+            "deutan": 24.13,
+            "tritan": 36.16
+          },
+          "min": 18.91,
+          "floor": 18,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "candidate/okabe-ito",
+      "description": "Okabe and Ito (2008): yellow, sky blue, reddish purple, vermillion, blue; other periods #BBBBBB (selected)",
+      "periodClasses": ["#F0E442", "#56B4E9", "#CC79A7", "#D55E00", "#0072B2", "#BBBBBB"],
+      "metrics": [
+        {
+          "name": "escaped-vs-unresolved/stability",
+          "byVision": {
+            "normal": 8.43,
+            "protan": 8.43,
+            "deutan": 8.43,
+            "tritan": 8.43
+          },
+          "min": 8.43,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/multiplier",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/period",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "unresolved-checker",
+          "byVision": {
+            "normal": 8.8,
+            "protan": 8.8,
+            "deutan": 8.8,
+            "tritan": 8.8
+          },
+          "min": 8.8,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "multiplier-stripes",
+          "byVision": {
+            "normal": 9.74,
+            "protan": 9.66,
+            "deutan": 9.67,
+            "tritan": 9.11
+          },
+          "min": 9.11,
+          "floor": 9,
+          "pass": true
+        },
+        {
+          "name": "period-classes-pairwise",
+          "byVision": {
+            "normal": 21.07,
+            "protan": 12.26,
+            "deutan": 11.98,
+            "tritan": 14.01
+          },
+          "min": 11.98,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-unresolved",
+          "byVision": {
+            "normal": 21.47,
+            "protan": 17.57,
+            "deutan": 17.75,
+            "tritan": 21.38
+          },
+          "min": 17.57,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-escaped",
+          "byVision": {
+            "normal": 28.63,
+            "protan": 23.55,
+            "deutan": 20.72,
+            "tritan": 26.73
+          },
+          "min": 20.72,
+          "floor": 18,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "candidate/tol-muted",
+      "description": "Paul Tol muted: cyan, teal, green, olive, sand; other periods #DDDDDD",
+      "periodClasses": ["#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#DDDDDD"],
+      "metrics": [
+        {
+          "name": "escaped-vs-unresolved/stability",
+          "byVision": {
+            "normal": 8.43,
+            "protan": 8.43,
+            "deutan": 8.43,
+            "tritan": 8.43
+          },
+          "min": 8.43,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/multiplier",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/period",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "unresolved-checker",
+          "byVision": {
+            "normal": 8.8,
+            "protan": 8.8,
+            "deutan": 8.8,
+            "tritan": 8.8
+          },
+          "min": 8.8,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "multiplier-stripes",
+          "byVision": {
+            "normal": 9.74,
+            "protan": 9.66,
+            "deutan": 9.67,
+            "tritan": 9.11
+          },
+          "min": 9.11,
+          "floor": 9,
+          "pass": true
+        },
+        {
+          "name": "period-classes-pairwise",
+          "byVision": {
+            "normal": 16.13,
+            "protan": 14.88,
+            "deutan": 15.73,
+            "tritan": 12.29
+          },
+          "min": 12.29,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-unresolved",
+          "byVision": {
+            "normal": 24.96,
+            "protan": 19.73,
+            "deutan": 15.82,
+            "tritan": 17.83
+          },
+          "min": 15.82,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-escaped",
+          "byVision": {
+            "normal": 41.12,
+            "protan": 40.44,
+            "deutan": 37.98,
+            "tritan": 24.58
+          },
+          "min": 24.58,
+          "floor": 18,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "candidate/tol-bright",
+      "description": "Paul Tol bright: blue, cyan, green, yellow, red; other periods #BBBBBB",
+      "periodClasses": ["#4477AA", "#66CCEE", "#228833", "#CCBB44", "#EE6677", "#BBBBBB"],
+      "metrics": [
+        {
+          "name": "escaped-vs-unresolved/stability",
+          "byVision": {
+            "normal": 8.43,
+            "protan": 8.43,
+            "deutan": 8.43,
+            "tritan": 8.43
+          },
+          "min": 8.43,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/multiplier",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/period",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "unresolved-checker",
+          "byVision": {
+            "normal": 8.8,
+            "protan": 8.8,
+            "deutan": 8.8,
+            "tritan": 8.8
+          },
+          "min": 8.8,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "multiplier-stripes",
+          "byVision": {
+            "normal": 9.74,
+            "protan": 9.66,
+            "deutan": 9.67,
+            "tritan": 9.11
+          },
+          "min": 9.11,
+          "floor": 9,
+          "pass": true
+        },
+        {
+          "name": "period-classes-pairwise",
+          "byVision": {
+            "normal": 20.54,
+            "protan": 15.09,
+            "deutan": 15.47,
+            "tritan": 8.66
+          },
+          "min": 8.66,
+          "floor": 11,
+          "pass": false
+        },
+        {
+          "name": "period-classes-vs-unresolved",
+          "byVision": {
+            "normal": 18.98,
+            "protan": 9.84,
+            "deutan": 19.17,
+            "tritan": 21.56
+          },
+          "min": 9.84,
+          "floor": 11,
+          "pass": false
+        },
+        {
+          "name": "period-classes-vs-escaped",
+          "byVision": {
+            "normal": 28.89,
+            "protan": 25.02,
+            "deutan": 23.13,
+            "tritan": 27.16
+          },
+          "min": 23.13,
+          "floor": 18,
+          "pass": true
+        }
+      ]
+    },
+    {
+      "id": "shipped",
+      "description": "colorize.ts output: period classes are the five emphasized colours, then other",
+      "periodClasses": ["#F0E442", "#56B4E9", "#CC79A7", "#D55E00", "#0072B2", "#BBBBBB"],
+      "metrics": [
+        {
+          "name": "escaped-vs-unresolved/stability",
+          "byVision": {
+            "normal": 8.43,
+            "protan": 8.43,
+            "deutan": 8.43,
+            "tritan": 8.43
+          },
+          "min": 8.43,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/multiplier",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "escaped-vs-unresolved/period",
+          "byVision": {
+            "normal": 20.28,
+            "protan": 19.42,
+            "deutan": 21.14,
+            "tritan": 18.34
+          },
+          "min": 18.34,
+          "floor": 18,
+          "pass": true
+        },
+        {
+          "name": "unresolved-checker",
+          "byVision": {
+            "normal": 8.8,
+            "protan": 8.8,
+            "deutan": 8.8,
+            "tritan": 8.8
+          },
+          "min": 8.8,
+          "floor": 8,
+          "pass": true
+        },
+        {
+          "name": "multiplier-stripes",
+          "byVision": {
+            "normal": 9.74,
+            "protan": 9.66,
+            "deutan": 9.67,
+            "tritan": 9.11
+          },
+          "min": 9.11,
+          "floor": 9,
+          "pass": true
+        },
+        {
+          "name": "period-classes-pairwise",
+          "byVision": {
+            "normal": 21.07,
+            "protan": 12.26,
+            "deutan": 11.98,
+            "tritan": 14.01
+          },
+          "min": 11.98,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-unresolved",
+          "byVision": {
+            "normal": 21.47,
+            "protan": 17.57,
+            "deutan": 17.75,
+            "tritan": 21.38
+          },
+          "min": 17.57,
+          "floor": 11,
+          "pass": true
+        },
+        {
+          "name": "period-classes-vs-escaped",
+          "byVision": {
+            "normal": 28.63,
+            "protan": 23.55,
+            "deutan": 20.72,
+            "tritan": 26.73
+          },
+          "min": 20.72,
+          "floor": 18,
+          "pass": true
+        }
+      ]
+    }
+  ]
+}
