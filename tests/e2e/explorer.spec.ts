@@ -2979,3 +2979,61 @@ test.describe('Catalog core (ADR 0014)', () => {
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
   });
 });
+
+test.describe('Nesting trail (UI review Proposal C)', () => {
+  const waitForStable = async (page: Page): Promise<void> => {
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 30_000,
+    });
+  };
+  const searchParam = (page: Page, key: string): string | null =>
+    new URL(page.url()).searchParams.get(key);
+  const trailOf = (page: Page) =>
+    page.getByRole('navigation', { name: 'Angled internal address of the view' });
+
+  test('shows only the main cardioid at the default view', async ({ page }) => {
+    await page.goto('/');
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1']);
+    await expect(
+      trail.getByRole('button', { name: 'Zoom to Main cardioid, period 1' }),
+    ).toHaveAttribute('aria-current', 'location');
+  });
+
+  test('spells the address of a deep view and zooms back out step by step', async ({ page }) => {
+    // The period-12 child at the 1/2 point of the rabbit's 1/2 child, framed as the catalog would.
+    await page.goto('/?v=1&c=-0.11026826739331091,0.887461814882336&s=0.025');
+    await waitForCatalogCore(page);
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1', '3', '6', '12']);
+    await expect(trail.locator('.nesting-trail__edge')).toHaveText(['→1/3', '→1/2', '→1/2']);
+    await expect(trail.locator('[aria-current="location"]')).toHaveText('12');
+    await expect(trail).toContainText('at angle 1/3,');
+    await expectNoAccessibilityViolations(page);
+
+    // A step zooms to that ancestor and selects it; the trail ends there, focus stays on it.
+    const rabbit = trail.getByRole('button', {
+      name: 'Zoom to 1/3-bulb (Douady rabbit), period 3',
+    });
+    await rabbit.click();
+    // The trail changes only when the new view's frame is on screen.
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1', '3']);
+    await expect(rabbit).toHaveAttribute('aria-current', 'location');
+    await expect(rabbit).toBeFocused();
+    await expect(
+      page
+        .getByRole('region', { name: 'Point evidence' })
+        .getByRole('heading', { name: '1/3-bulb (Douady rabbit)' }),
+    ).toBeVisible();
+    await expect.poll(() => searchParam(page, 'sel'), { timeout: 10_000 }).toBe('mi-p3-1-2');
+
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Enter');
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1']);
+    await expect(
+      trail.getByRole('button', { name: 'Zoom to Main cardioid, period 1' }),
+    ).toBeFocused();
+  });
+});
