@@ -81,6 +81,80 @@ const failRenderer = async (page: Page, count = 1): Promise<void> => {
   }, count);
 };
 
+/** The render request on screen (`data-render-request-id`), or 0 before the first. */
+const renderRequestIdOf = async (page: Page): Promise<number> =>
+  Number((await page.locator('#explorer').getAttribute('data-render-request-id')) ?? 0);
+
+/**
+ * Waits for a presentation mark (`mi:coarse-presented` or `mi:stable-presented`) of a render
+ * request later than `after` and returns the latest such request and stage. The marks persist,
+ * unlike `data-render-stage`, whose coarse value can come and go between two locator polls.
+ */
+const presentedAfter = async (
+  page: Page,
+  after: number,
+  stages: readonly ('coarse' | 'stable')[] = ['coarse', 'stable'],
+): Promise<{ requestId: number; stage: 'coarse' | 'stable' }> => {
+  const handle = await page.waitForFunction(
+    ([previous, wanted]) => {
+      let latest: { requestId: number; stage: 'coarse' | 'stable' } | undefined;
+      for (const stage of wanted) {
+        for (const entry of performance.getEntriesByName(`mi:${stage}-presented`)) {
+          const detail = (entry as PerformanceMark).detail as { requestId?: unknown } | null;
+          const requestId = detail?.requestId;
+          if (typeof requestId !== 'number' || requestId <= previous) continue;
+          if (
+            latest === undefined ||
+            requestId > latest.requestId ||
+            (requestId === latest.requestId && stage === 'stable')
+          ) {
+            latest = { requestId, stage };
+          }
+        }
+      }
+      return latest ?? false;
+    },
+    [after, stages] as const,
+    { timeout: 20_000 },
+  );
+  return (await handle.jsonValue()) as { requestId: number; stage: 'coarse' | 'stable' };
+};
+
+interface RenderGate {
+  /** From now on the worker holds every render after its coarse frame. */
+  readonly hold: () => Promise<void>;
+  /** Lets held renders go on to their stable frames; later renders are not held. */
+  readonly release: () => Promise<void>;
+}
+
+type RenderWorkerGlobal = typeof globalThis & { __miRenderWorker?: Worker };
+
+/**
+ * Drives the render worker's coarse gate (src/worker/coarse-gate.ts, dev and e2e builds only),
+ * so a test acts while a computation is in flight on events, not by racing its stable frame.
+ * Call before the page loads: it records the render worker as the page creates it.
+ */
+const gateRenders = async (page: Page): Promise<RenderGate> => {
+  await page.addInitScript(() => {
+    const PageWorker = Worker;
+    globalThis.Worker = class extends PageWorker {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        if (options?.name === 'mandelbrot-renderer') {
+          (globalThis as RenderWorkerGlobal).__miRenderWorker = this;
+        }
+      }
+    };
+  });
+  const post = (hold: boolean): Promise<void> =>
+    page.evaluate((holding) => {
+      const worker = (globalThis as RenderWorkerGlobal).__miRenderWorker;
+      if (worker === undefined) throw new Error('the render worker has not started');
+      worker.postMessage({ type: 'e2e-coarse-gate', hold: holding });
+    }, hold);
+  return { hold: () => post(true), release: () => post(false) };
+};
+
 const expectNoHorizontalOverflow = async (page: Page, context: string): Promise<void> => {
   const pageWidth = await page.evaluate(() => ({
     client: document.documentElement.clientWidth,
@@ -207,9 +281,6 @@ const renderTraces = (page: Page): Promise<TraceView[]> =>
     }));
   });
 
-const tracesWith = async (page: Page, outcome: string): Promise<TraceView | undefined> =>
-  (await renderTraces(page)).find((trace) => trace.outcome === outcome);
-
 /**
  * Waits until nothing is in flight: the newest closed trace is the request on
  * screen, it completed, and its last frame is stable. Returns that trace's
@@ -271,27 +342,27 @@ const expectRecolorOf = async (page: Page, originComputeId: number | undefined):
 /**
  * In-flight replay: change the interior view while a coarse frame is the active
  * computation. The worker replays the retained coarse frame and the same
- * computation delivers the stable frame. The stable frame can win the race, so
- * retry (bounded) until a trace opens with an inflight-replay frame. Each attempt
- * picks a view that differs from the previous one.
+ * computation delivers the stable frame. The gate holds the computation after
+ * its coarse frame, so the view change always finds it in flight.
  */
-const findInflightReplayTrace = async (page: Page): Promise<TraceView | undefined> => {
-  const replayViews = ['period', 'stability'] as const;
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    await page.getByLabel('Interactive Mandelbrot set').press(attempt % 2 === 0 ? '+' : '-');
-    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'coarse', {
-      timeout: 10_000,
-    });
-    await page.getByLabel('Interior view').selectOption(replayViews[attempt % 2] ?? 'period');
-    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
-      timeout: 10_000,
-    });
-    const replayTrace = (await renderTraces(page)).find(
-      (trace) => trace.frames[0]?.source === 'inflight-replay',
-    );
-    if (replayTrace !== undefined) return replayTrace;
-  }
-  return undefined;
+const findInflightReplayTrace = async (
+  page: Page,
+  gate: RenderGate,
+  view: 'period' | 'stability',
+): Promise<TraceView | undefined> => {
+  await gate.hold();
+  const before = await renderRequestIdOf(page);
+  await page.getByLabel('Interactive Mandelbrot set').press('+');
+  const held = await presentedAfter(page, before, ['coarse']);
+  await page.getByLabel('Interior view').selectOption(view);
+  const replay = await presentedAfter(page, held.requestId, ['coarse']);
+  await gate.release();
+  await presentedAfter(page, replay.requestId - 1, ['stable']);
+  await expect(page.locator('#explorer')).toHaveAttribute(
+    'data-render-request-id',
+    String(replay.requestId),
+  );
+  return (await renderTraces(page)).find((trace) => trace.frames[0]?.source === 'inflight-replay');
 };
 
 /** The replay trace is one completed request: a coarse replay of the active computation, then its stable frame. */
@@ -1091,30 +1162,15 @@ test.describe('Mandelbrot Interiority explorer', () => {
 
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     const explorer = page.locator('#explorer');
+    const startup = await renderRequestIdOf(page);
     await canvas.focus();
     await canvas.press('+');
-    await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', {
-      timeout: 20_000,
-    });
-    const coarseRequestId = await explorer.getAttribute('data-render-request-id');
-    expect(coarseRequestId).not.toBeNull();
-    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', {
-      timeout: 20_000,
-    });
-    await expect(explorer).toHaveAttribute('data-render-request-id', coarseRequestId ?? '');
-
-    // The stable mark is written a frame after the dataset changes; wait for this request's.
-    await page.waitForFunction(
-      (id) =>
-        performance
-          .getEntriesByName('mi:stable-presented')
-          .some(
-            (entry) =>
-              ((entry as PerformanceMark).detail as { requestId?: number } | null)?.requestId ===
-              id,
-          ),
-      Number(coarseRequestId),
-    );
+    // Wait for the request's stable mark rather than catching data-render-stage=coarse, which
+    // can be shorter than a locator poll; the marks below show its coarse frame came first.
+    const stable = await presentedAfter(page, startup, ['stable']);
+    const coarseRequestId = String(stable.requestId);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    await expect(explorer).toHaveAttribute('data-render-request-id', coarseRequestId);
 
     const marks = await page.evaluate(() =>
       performance
@@ -1165,6 +1221,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('render traces carry delivery provenance and two-event cancellation timing', async ({
     page,
   }) => {
+    const gate = await gateRenders(page);
     await page.goto(
       '/?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed',
     );
@@ -1173,17 +1230,22 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     await canvas.focus();
 
-    // Cancel: press during a coarse frame; the stable frame can win the race,
-    // so retry until a trace closes as cancelled.
-    let cancelledTrace: TraceView | undefined;
-    for (let attempt = 0; attempt < 5 && cancelledTrace === undefined; attempt += 1) {
-      await canvas.press(attempt % 2 === 0 ? '+' : '-');
-      await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', { timeout: 10_000 });
-      await canvas.press(attempt % 2 === 0 ? '-' : '+');
-      await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 10_000 });
-      cancelledTrace = await tracesWith(page, 'cancelled');
-    }
-    expect(cancelledTrace).toBeDefined();
+    // Cancel: the gate holds the zoom's computation after its coarse frame, so zooming back
+    // always cancels a computation in flight.
+    await gate.hold();
+    const before = await renderRequestIdOf(page);
+    await canvas.press('+');
+    const held = await presentedAfter(page, before, ['coarse']);
+    await canvas.press('-');
+    const heldTrace = async (): Promise<TraceView | undefined> =>
+      (await renderTraces(page)).find((trace) => trace.requestId === held.requestId);
+    await expect
+      .poll(async () => (await heldTrace())?.outcome, { timeout: 20_000 })
+      .toBe('cancelled');
+    await gate.release();
+    await presentedAfter(page, held.requestId, ['stable']);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    const cancelledTrace = await heldTrace();
     expect(cancelledTrace?.childQuiescenceMs).toBeGreaterThanOrEqual(
       cancelledTrace?.cancelAckMs ?? Number.POSITIVE_INFINITY,
     );
@@ -1202,7 +1264,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByLabel('Interior view').selectOption('multiplier');
     await expectRecolorOf(page, settledOrigin);
 
-    const replayTrace = await findInflightReplayTrace(page);
+    const replayTrace = await findInflightReplayTrace(page, gate, 'period');
     expectInflightReplay(replayTrace, await renderTraces(page));
   });
   test('preserves focus and non-color state cues in forced colors', async ({ page }) => {
@@ -1835,6 +1897,12 @@ test.describe('Mandelbrot Interiority explorer', () => {
       { timeout: 20_000 },
     );
 
+    // Termination is asynchronous: the failed renderer's nested tile workers can still be listed
+    // after the new renderer's stable frame. Wait for the count to settle; a leaked worker never
+    // leaves, so a leak still fails here.
+    await expect
+      .poll(async () => (await countFromCdpTargets(page)).total, { timeout: 10_000 })
+      .toBe(before.total);
     const after = await countFromCdpTargets(page);
     expect(after.render, `after recovery: ${JSON.stringify({ before, after })}`).toBe(1);
     expect(after.tile, `after recovery: ${JSON.stringify({ before, after })}`).toBe(before.tile);
