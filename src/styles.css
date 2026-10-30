@@ -922,6 +922,67 @@ button:disabled {
   font-variant-numeric: tabular-nums;
 }
 
+.lens {
+  margin: 1rem 0 0;
+  padding-top: 0.9rem;
+  display: grid;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.lens__disk {
+  width: 100%;
+  max-width: 14rem;
+  justify-self: center;
+  overflow: visible;
+}
+
+.lens__fill {
+  fill: var(--accent-soft);
+}
+
+.lens__ring {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 0.75;
+}
+
+.lens__edge {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.25;
+}
+
+.lens__tick {
+  fill: var(--ink);
+}
+
+.lens__label {
+  fill: var(--ink-muted);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 10px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.lens__ray {
+  stroke: var(--ink-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.lens__lambda {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.lens__caption {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
 .measurement-help {
   margin-top: 1rem;
   padding-top: 0.8rem;

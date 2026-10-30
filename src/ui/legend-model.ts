@@ -5,6 +5,7 @@ import {
   modulateForMultiplierDirection,
   MULTIPLIER_STRIPE_AMPLITUDE,
   MULTIPLIER_STRIPE_FREQUENCY,
+  shadeForMultiplierContour,
   OTHER_PERIODS_COLOR,
   unresolvedTextureColors,
   type PeriodKey,
@@ -196,6 +197,20 @@ const angleScale = (): LegendScale => ({
   stripes: STRIPE_SAMPLE_ANGLES.map(({ label, argLambda }) => stripeSample(label, argLambda)),
 });
 
+/** The internal-coordinate contours: the colorizer's contour shade across a base colour. */
+const contourSwatch = (): LegendSwatch => {
+  const base = cssColor(colorForAttracting(1, 0.5, 0, 'multiplier'));
+  const line = cssColor(shadeForMultiplierContour(colorForAttracting(1, 0.5, 0, 'multiplier')));
+  return {
+    kind: 'swatch',
+    label: 'Internal coordinates',
+    detail:
+      'Dark lines mark |λ| = 0.25, 0.5 and 0.75 and the internal angles 0, 1/4, 1/3, 1/2, 2/3 and 3/4 of a turn, where child components attach. Stripes fade where they would be too fine to draw.',
+    background: `linear-gradient(90deg, ${base} 0 40%, ${line} 40% 60%, ${base} 60% 100%)`,
+    border: 'solid',
+  };
+};
+
 /** A share of attracting-cycle pixels, never rounded to 0% or 100% when it is neither. */
 export const formatShare = (part: number, whole: number): string => {
   if (whole <= 0 || part <= 0) return '0%';
@@ -262,7 +277,7 @@ const viewItems = (view: SemanticView, key: PeriodKey | undefined): readonly Leg
     case 'stability':
       return [stabilityScale()];
     case 'multiplier':
-      return [magnitudeScale(), angleScale()];
+      return [magnitudeScale(), angleScale(), contourSwatch()];
     case 'period':
       return periodItems(key);
   }

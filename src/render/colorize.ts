@@ -1,10 +1,13 @@
 import {
   buildPeriodKey,
+  crossesMultiplierContour,
   dimChannel,
   EMPTY_PERIOD_KEY,
   ESCAPE_BAND_RATE,
+  MULTIPLIER_CONTOUR_SHADE,
   MULTIPLIER_STRIPE_AMPLITUDE,
   MULTIPLIER_STRIPE_FREQUENCY,
+  multiplierStripeWeight,
   OTHER_PERIODS_COLOR,
   unresolvedTextureColors,
   type PeriodKey,
@@ -154,6 +157,7 @@ const writeAttracting = (
   y: number,
   view: SemanticView,
   periodColors: ReadonlyMap<number, number>,
+  stripeWeight = 1,
 ): void => {
   if (view === 'period') {
     const packed = periodColors.get(period) ?? OTHER_PERIODS_PACKED;
@@ -178,10 +182,9 @@ const writeAttracting = (
   );
   // Oriented lightness stripes (modulateForMultiplierAngle).
   const projection = x * Math.cos(multiplierAngle) + y * Math.sin(multiplierAngle);
-  const stripe =
-    Math.sin(projection * MULTIPLIER_STRIPE_FREQUENCY) >= 0
-      ? MULTIPLIER_STRIPE_AMPLITUDE
-      : -MULTIPLIER_STRIPE_AMPLITUDE;
+  const amplitude =
+    stripeWeight === 1 ? MULTIPLIER_STRIPE_AMPLITUDE : MULTIPLIER_STRIPE_AMPLITUDE * stripeWeight;
+  const stripe = Math.sin(projection * MULTIPLIER_STRIPE_FREQUENCY) >= 0 ? amplitude : -amplitude;
   rgba[offset] = clampByte((rgba[offset] ?? 0) + stripe);
   rgba[offset + 1] = clampByte((rgba[offset + 1] ?? 0) + stripe);
   rgba[offset + 2] = clampByte((rgba[offset + 2] ?? 0) + stripe);
@@ -218,6 +221,94 @@ const dimPixel = (rgba: Uint8ClampedArray, offset: number): void => {
 };
 
 /**
+ * Neighbourhood pass of the multiplier view: the stripe fade and the contours
+ * compare each attracting pixel with its left neighbour and the one above,
+ * when they belong to the same component (same packed status and period).
+ */
+class MultiplierNeighbours {
+  readonly #word: Int32Array;
+  readonly #phase: Float64Array;
+  readonly #magnitude: Float64Array;
+  readonly #angle: Float64Array;
+  #leftWord = -1;
+  #leftPhase = 0;
+  #leftMagnitude = 0;
+  #leftAngle = 0;
+
+  public constructor(width: number) {
+    this.#word = new Int32Array(width).fill(-1);
+    this.#phase = new Float64Array(width);
+    this.#magnitude = new Float64Array(width);
+    this.#angle = new Float64Array(width);
+  }
+
+  /** Writes one attracting multiplier pixel and remembers it for its neighbours. */
+  public write(
+    rgba: Uint8ClampedArray,
+    offset: number,
+    word: number,
+    magnitude: number,
+    angle: number,
+    x: number,
+    y: number,
+  ): void {
+    const phase = (x * Math.cos(angle) + y * Math.sin(angle)) * MULTIPLIER_STRIPE_FREQUENCY;
+    const hasLeft = x > 0 && this.#leftWord === word;
+    const hasAbove = y > 0 && this.#word[x] === word;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- x < width
+    const abovePhase = this.#phase[x]!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- x < width
+    const aboveMagnitude = this.#magnitude[x]!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- x < width
+    const aboveAngle = this.#angle[x]!;
+    const step = Math.max(
+      hasLeft ? Math.abs(phase - this.#leftPhase) : 0,
+      hasAbove ? Math.abs(phase - abovePhase) : 0,
+    );
+    writeAttracting(
+      rgba,
+      offset,
+      unpackPeriod(word),
+      magnitude,
+      angle,
+      x,
+      y,
+      'multiplier',
+      EMPTY_COLORS,
+      multiplierStripeWeight(step),
+    );
+    if (
+      (hasLeft &&
+        crossesMultiplierContour(magnitude, angle, this.#leftMagnitude, this.#leftAngle)) ||
+      (hasAbove && crossesMultiplierContour(magnitude, angle, aboveMagnitude, aboveAngle))
+    ) {
+      shadeContour(rgba, offset);
+    }
+    this.#leftPhase = phase;
+    this.#leftMagnitude = magnitude;
+    this.#leftAngle = angle;
+    this.#phase[x] = phase;
+    this.#magnitude[x] = magnitude;
+    this.#angle[x] = angle;
+  }
+
+  /** Records every pixel's word, so other statuses never count as neighbours. */
+  public record(x: number, word: number): void {
+    this.#word[x] = word;
+    this.#leftWord = word;
+  }
+}
+
+const EMPTY_COLORS: ReadonlyMap<number, number> = new Map();
+
+/** shadeForMultiplierContour of semantic.ts, in place. */
+const shadeContour = (rgba: Uint8ClampedArray, offset: number): void => {
+  rgba[offset] = clampByte((rgba[offset] ?? 0) * MULTIPLIER_CONTOUR_SHADE);
+  rgba[offset + 1] = clampByte((rgba[offset + 1] ?? 0) * MULTIPLIER_CONTOUR_SHADE);
+  rgba[offset + 2] = clampByte((rgba[offset + 2] ?? 0) * MULTIPLIER_CONTOUR_SHADE);
+};
+
+/**
  * Colorizes `frame` in `view`. The period view draws with `periodKey`, which
  * defaults to the frame's own ranking; pass the key you report so the legend
  * and the raster cannot disagree. With `isolatedPeriod` (period view only)
@@ -241,6 +332,7 @@ export const colorizeFrame = (
     view === 'period' && validIsolated !== undefined
       ? (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | validIsolated
       : -1;
+  const neighbours = view === 'multiplier' ? new MultiplierNeighbours(width) : undefined;
   // Bands partition the raster rows exactly, so iterating bands in order
   // covers every pixel once.
   for (const band of frame.bands) {
@@ -256,6 +348,18 @@ export const colorizeFrame = (
       if (status === 1) {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- same length as the band
         writeEscaped(rgba, offset, smoothIterationOrMultiplierMagnitude[index]!, view);
+      } else if (status === 2 && neighbours !== undefined) {
+        neighbours.write(
+          rgba,
+          offset,
+          word,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- same length as the band
+          smoothIterationOrMultiplierMagnitude[index]!,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- same length as the band
+          multiplierAngle[index]!,
+          x,
+          y,
+        );
       } else if (status === 2) {
         writeAttracting(
           rgba,
@@ -274,6 +378,7 @@ export const colorizeFrame = (
         writeUnresolved(rgba, offset, x, y, stride);
       }
       if (isolatedWord !== -1 && word !== isolatedWord) dimPixel(rgba, offset);
+      neighbours?.record(x, word);
       x += 1;
       if (x === width) {
         x = 0;

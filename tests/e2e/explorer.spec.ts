@@ -1311,6 +1311,23 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
+  test('shows the component lens and explains the multiplier contours', async ({ page }) => {
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=multiplier&q=balanced&sel=-0.4,0.3');
+    const lens = page.locator('.inspector .lens');
+    await expect(lens).toBeVisible();
+    await expect(lens.getByRole('img')).toHaveAttribute(
+      'aria-label',
+      /period-1 component: λ at \|λ\| 0\.747, 150\.9°/,
+    );
+    await expect(page.getByText('Internal coordinates', { exact: true })).toBeVisible();
+
+    // Escaped points have no multiplier, so no lens.
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=multiplier&q=balanced&sel=0.5,0.5');
+    await expect(page.locator('.inspector .classification--escaped')).toBeVisible();
+    await expect(page.locator('.inspector .lens')).toHaveCount(0);
+    await expectNoAccessibilityViolations(page);
+  });
+
   test('frames the explorer to a tall desktop window and keeps 16:10 on a short one', async ({
     page,
   }) => {
