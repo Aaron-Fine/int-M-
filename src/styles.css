@@ -860,6 +860,10 @@ button:disabled {
 
 .side-panel {
   display: grid;
+  /* Each card is as tall as its content. With auto rows, a framed side panel whose cards overflow
+     it keeps every row at its minimum, so the inspector would stay at its 13rem min-height and its
+     evidence would spill over the legend. */
+  grid-auto-rows: max-content;
   gap: 1rem;
 }
 
@@ -1665,6 +1669,9 @@ button:disabled {
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
+    /* A new inspection replaces the inspector's content; scroll anchoring then picked a node
+       further down and Firefox jumped to the legend. The panel keeps its offset instead. */
+    overflow-anchor: none;
   }
 }
 
