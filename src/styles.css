@@ -644,14 +644,32 @@ button:disabled {
   transform: translate(-50%, -50%);
 }
 
+/* The glyph is an outline in white over a dark halo, with a faint fill, so the component it names
+   stays visible underneath and the marker never reads as a period colour. */
 .catalog-marker__dot {
   position: absolute;
   inset: 0.625rem;
   display: block;
-  background: var(--accent);
-  border: 2px solid white;
-  border-radius: 50%;
-  box-shadow: 0 0.1rem 0.35rem rgb(0 0 0 / 65%);
+  overflow: visible;
+}
+
+.catalog-marker__halo {
+  fill: none;
+  stroke: rgb(6 9 10 / 62%);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.catalog-marker__shape {
+  fill: rgb(255 255 255 / 14%);
+  stroke: white;
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+
+.catalog-marker:hover .catalog-marker__shape,
+.catalog-marker:focus-visible .catalog-marker__shape {
+  fill: rgb(255 255 255 / 32%);
 }
 
 .selected-point-marker {
@@ -690,15 +708,6 @@ button:disabled {
   height: 2.05rem;
 }
 
-.catalog-marker--period-2 .catalog-marker__dot {
-  border-radius: 15%;
-}
-
-.catalog-marker--period-3 .catalog-marker__dot {
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  border-radius: 0;
-}
-
 /* Period-4 markers sit closest together. Up to about 447px wide their 44px box covers a
    neighbour (axe target-size, WCAG 2.5.8), so below 28rem the box shrinks to the 24px dot
    (34px still fails at 320px). The drawn diamond and its label stay where they were. */
@@ -713,8 +722,6 @@ button:disabled {
 
 .catalog-marker--period-4 .catalog-marker__dot {
   inset: calc((var(--p4-hit) - 1.5rem) / 2);
-  border-radius: 0;
-  transform: rotate(45deg);
 }
 
 .catalog-marker--period-4:focus-visible {
@@ -767,9 +774,10 @@ button:disabled {
   display: block;
 }
 
-.catalog-marker--selected .catalog-marker__dot {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+.catalog-marker--selected .catalog-marker__shape {
+  stroke: var(--accent);
+  stroke-width: 2.25;
+  fill: rgb(255 255 255 / 32%);
 }
 
 .catalog-marker--left-facing .catalog-marker__label {
@@ -1424,6 +1432,48 @@ button:disabled {
 
   70% {
     transform: translateX(0.2rem);
+  }
+}
+
+/* App frame: on a wide window at least 50rem tall the explorer fills the height under the header
+   and the side panel scrolls on its own, so the image is never cut off at the fold. Shorter
+   windows (a 1280x720 laptop) keep the 16:10 canvas and page scrolling: framing them would flatten
+   the canvas to about 340px. The renderer follows the stack's size (ResizeObserver). */
+@media (min-width: 68.0625rem) and (min-height: 50rem) {
+  .workspace {
+    height: calc(100dvh - 6.25rem - 1.25rem);
+    margin-bottom: 1.25rem;
+    align-items: stretch;
+  }
+
+  .primary {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .explorer {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .explorer__stack {
+    flex: 1 1 auto;
+    min-height: 20rem;
+    aspect-ratio: auto;
+  }
+
+  .side-panel {
+    /* Contains absolutely positioned visually-hidden text, which would otherwise escape the
+       scroll box and lengthen the page. */
+    position: relative;
+    min-height: 0;
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
 }
 
