@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isolatedPeriodOf,
   NO_ISOLATION,
+  outlinedPeriodOf,
   nextDroppedPeriod,
   nextIsolation,
   type IsolationEvent,
@@ -13,14 +14,22 @@ const run = (...events: readonly IsolationEvent[]): IsolationState =>
   events.reduce(nextIsolation, NO_ISOLATION);
 
 describe('legend period isolation', () => {
-  it('isolates while an entry is hovered or focused, and restores after', () => {
-    expect(isolatedPeriodOf(run({ type: 'hover', period: 2 }))).toBe(2);
+  it('outlines, never isolates, while an entry is hovered or focused', () => {
+    expect(outlinedPeriodOf(run({ type: 'hover', period: 2 }))).toBe(2);
+    expect(isolatedPeriodOf(run({ type: 'hover', period: 2 }))).toBeUndefined();
     expect(
-      isolatedPeriodOf(run({ type: 'hover', period: 2 }, { type: 'unhover', period: 2 })),
+      outlinedPeriodOf(run({ type: 'hover', period: 2 }, { type: 'unhover', period: 2 })),
     ).toBe(undefined);
-    expect(isolatedPeriodOf(run({ type: 'focus', period: 4 }))).toBe(4);
-    expect(isolatedPeriodOf(run({ type: 'focus', period: 4 }, { type: 'blur', period: 4 }))).toBe(
+    expect(outlinedPeriodOf(run({ type: 'focus', period: 4 }))).toBe(4);
+    expect(isolatedPeriodOf(run({ type: 'focus', period: 4 }))).toBeUndefined();
+    expect(outlinedPeriodOf(run({ type: 'focus', period: 4 }, { type: 'blur', period: 4 }))).toBe(
       undefined,
+    );
+  });
+
+  it('prefers the hovered entry over the focused one for the outline', () => {
+    expect(outlinedPeriodOf(run({ type: 'focus', period: 1 }, { type: 'hover', period: 3 }))).toBe(
+      3,
     );
   });
 
@@ -66,18 +75,28 @@ describe('legend period isolation', () => {
     expect(isolatedPeriodOf(nextIsolation(state, { type: 'activate', period: 2 }))).toBe(2);
   });
 
-  it('previews another period over the pressed one, then returns to it', () => {
+  it('outlines another period over the pressed one, which stays isolated', () => {
     const pressed = run({ type: 'activate', period: 1 });
     const previewing = nextIsolation(pressed, { type: 'hover', period: 5 });
 
-    expect(isolatedPeriodOf(previewing)).toBe(5);
-    expect(isolatedPeriodOf(nextIsolation(previewing, { type: 'unhover', period: 5 }))).toBe(1);
+    expect(isolatedPeriodOf(previewing)).toBe(1);
+    expect(outlinedPeriodOf(previewing)).toBe(5);
+    expect(outlinedPeriodOf(nextIsolation(previewing, { type: 'unhover', period: 5 }))).toBe(
+      undefined,
+    );
+  });
+
+  it('does not outline the isolated period itself', () => {
+    const state = run({ type: 'hover', period: 2 }, { type: 'activate', period: 2 });
+
+    expect(isolatedPeriodOf(state)).toBe(2);
+    expect(outlinedPeriodOf(state)).toBeUndefined();
   });
 
   it('ignores a stale leave event for another entry', () => {
     const state = run({ type: 'hover', period: 2 }, { type: 'unhover', period: 3 });
 
-    expect(isolatedPeriodOf(state)).toBe(2);
+    expect(outlinedPeriodOf(state)).toBe(2);
   });
 
   it('resets on a view change and drops periods a stable key no longer lists', () => {
@@ -135,15 +154,15 @@ describe('dropped-isolation note', () => {
     expect(note(...pressed, drop)).toBe(2);
   });
 
-  it('survives unrelated stable frames and pointer leaving', () => {
+  it('survives unrelated stable frames, previews and pointer leaving', () => {
     expect(note(...pressed, drop, { type: 'available', periods: [1], final: true })).toBe(2);
     expect(note(...pressed, drop, { type: 'unhover', period: 1 })).toBe(2);
+    expect(note(...pressed, drop, { type: 'hover', period: 1 })).toBe(2);
+    expect(note(...pressed, drop, { type: 'focus', period: 1 })).toBe(2);
   });
 
   it('clears on the next isolation of any period, Escape or an interior-view change', () => {
     for (const event of [
-      { type: 'hover', period: 1 },
-      { type: 'focus', period: 1 },
       { type: 'activate', period: 1 },
       { type: 'escape' },
       { type: 'reset' },

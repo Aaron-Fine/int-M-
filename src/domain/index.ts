@@ -77,10 +77,13 @@ export {
   EMPTY_PERIOD_KEY,
   ISOLATION_DIM_FACTOR,
   OTHER_PERIODS_COLOR,
+  OUTLINE_HALO_COLOR,
+  OUTLINE_RING_COLOR,
+  OUTLINE_RING_WIDTH,
   PERIOD_EMPHASIS_LIMIT,
   PERIOD_EMPHASIS_PALETTE,
 } from './period-emphasis';
-export type { PeriodKey, PeriodKeyEntry } from './period-emphasis';
+export type { PeriodKey, PeriodKeyEntry, PeriodShare } from './period-emphasis';
 export {
   colorForAttracting,
   colorForEscaped,

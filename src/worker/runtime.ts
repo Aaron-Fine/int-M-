@@ -33,8 +33,8 @@ interface ActiveRender {
   readonly startedAt: number;
   requestId: RequestId;
   semanticView: SemanticView;
-  /** Period isolation of this computation's deliveries (a palette input). */
-  isolatedPeriod: number | undefined;
+  /** Period emphasis of this computation's deliveries (a palette input). */
+  emphasis: PeriodEmphasis;
   lastFrame?: SemanticFrame;
 }
 
@@ -44,8 +44,8 @@ interface CachedOrigin {
   readonly computeId: number;
   /** The semantic view the cached frame was most recently delivered in. */
   view: SemanticView;
-  /** The period isolation it was most recently delivered with. */
-  isolatedPeriod: number | undefined;
+  /** The period emphasis it was most recently delivered with. */
+  emphasis: PeriodEmphasis;
 }
 
 const errorMessage = (requestId: RequestId, error: unknown): WorkerErrorMessage => ({
@@ -78,13 +78,27 @@ const frameTiming = (
   };
 };
 
+/** The legend's palette inputs in the period view: an isolated and an outlined period. */
+interface PeriodEmphasis {
+  readonly isolated: number | undefined;
+  readonly outlined: number | undefined;
+}
+
 /**
- * The isolation that can change the raster: only the period view isolates, and
- * only a valid period. Anything else draws the same pixels, so it must not
- * change a frame's provenance.
+ * The emphasis that can change the raster: only the period view isolates or
+ * outlines, and only a valid period. Anything else draws the same pixels, so
+ * it must not change a frame's provenance.
  */
-const effectiveIsolation = (message: RenderMessage): number | undefined =>
-  message.semanticView === 'period' ? validIsolatedPeriod(message.isolatedPeriod) : undefined;
+const effectiveEmphasis = (message: RenderMessage): PeriodEmphasis =>
+  message.semanticView === 'period'
+    ? {
+        isolated: validIsolatedPeriod(message.isolatedPeriod),
+        outlined: validIsolatedPeriod(message.outlinedPeriod),
+      }
+    : { isolated: undefined, outlined: undefined };
+
+const sameEmphasis = (left: PeriodEmphasis, right: PeriodEmphasis): boolean =>
+  left.isolated === right.isolated && left.outlined === right.outlined;
 
 export class RenderWorkerRuntime {
   readonly #renderer: Renderer;
@@ -144,7 +158,7 @@ export class RenderWorkerRuntime {
     requestId: RequestId,
     frame: SemanticFrame,
     view: SemanticView,
-    isolatedPeriod: number | undefined,
+    emphasis: PeriodEmphasis,
     origin: {
       readonly source: FrameProvenance['source'];
       readonly active?: ActiveRender;
@@ -152,7 +166,7 @@ export class RenderWorkerRuntime {
     },
   ): void {
     const colorizeStarted = performance.now();
-    const raster = this.#renderer.colorize(frame, view, isolatedPeriod);
+    const raster = this.#renderer.colorize(frame, view, emphasis.isolated, emphasis.outlined);
     const colorizeMs = performance.now() - colorizeStarted;
     const computed = origin.source === 'computed';
     const workerTiming = frameTiming(frame, colorizeMs, computed);
@@ -176,6 +190,7 @@ export class RenderWorkerRuntime {
       workerTiming,
       ...(raster.periodKey === undefined ? {} : { periodKey: raster.periodKey }),
       ...(raster.isolatedPeriod === undefined ? {} : { isolatedPeriod: raster.isolatedPeriod }),
+      ...(raster.outlinedPeriod === undefined ? {} : { outlinedPeriod: raster.outlinedPeriod }),
     };
     this.#port.postMessage(response, [raster.rgba.buffer]);
   }
@@ -183,21 +198,21 @@ export class RenderWorkerRuntime {
   async #render(message: RenderMessage): Promise<void> {
     const request = dynamicsRequest(message);
     const key = semanticRequestKey(request);
-    const isolated = effectiveIsolation(message);
+    const emphasis = effectiveEmphasis(message);
     const cached = this.#semanticStore.get(request);
     const cachedOrigin = this.#cachedOrigin;
     if (cached !== undefined && cachedOrigin?.key === key) {
       if (this.#activeRender !== undefined && this.#activeRender.key !== key) {
         this.#activeRender.controller.abort();
       }
-      // Isolation is a palette input like the view: changing it recolors.
+      // Emphasis is a palette input like the view: changing it recolors.
       const source =
-        cachedOrigin.view === message.semanticView && cachedOrigin.isolatedPeriod === isolated
+        cachedOrigin.view === message.semanticView && sameEmphasis(cachedOrigin.emphasis, emphasis)
           ? 'semantic-cache'
           : 'recolor';
       cachedOrigin.view = message.semanticView;
-      cachedOrigin.isolatedPeriod = isolated;
-      this.#postFrame(message.requestId, cached, message.semanticView, isolated, {
+      cachedOrigin.emphasis = emphasis;
+      this.#postFrame(message.requestId, cached, message.semanticView, emphasis, {
         source,
         computeId: cachedOrigin.computeId,
       });
@@ -211,13 +226,13 @@ export class RenderWorkerRuntime {
     ) {
       this.#activeRender.requestId = message.requestId;
       this.#activeRender.semanticView = message.semanticView;
-      this.#activeRender.isolatedPeriod = isolated;
+      this.#activeRender.emphasis = emphasis;
       if (this.#activeRender.lastFrame !== undefined) {
         this.#postFrame(
           message.requestId,
           this.#activeRender.lastFrame,
           message.semanticView,
-          isolated,
+          emphasis,
           {
             source: 'inflight-replay',
             computeId: this.#activeRender.computeId,
@@ -236,7 +251,7 @@ export class RenderWorkerRuntime {
       startedAt: performance.now(),
       requestId: message.requestId,
       semanticView: message.semanticView,
-      isolatedPeriod: isolated,
+      emphasis,
     };
     this.#activeRender = active;
 
@@ -252,10 +267,10 @@ export class RenderWorkerRuntime {
             key: active.key,
             computeId: active.computeId,
             view: active.semanticView,
-            isolatedPeriod: active.isolatedPeriod,
+            emphasis: active.emphasis,
           };
         }
-        this.#postFrame(active.requestId, frame, active.semanticView, active.isolatedPeriod, {
+        this.#postFrame(active.requestId, frame, active.semanticView, active.emphasis, {
           source: 'computed',
           active,
           computeId: active.computeId,

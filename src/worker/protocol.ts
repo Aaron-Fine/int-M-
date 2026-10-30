@@ -24,6 +24,8 @@ export interface RenderMessage {
    * MI-UX-018). A palette input: never part of the semantic cache key.
    */
   readonly isolatedPeriod?: number;
+  /** Period view only: outline this period's regions (legend preview). A palette input. */
+  readonly outlinedPeriod?: number;
 }
 
 export interface InspectMessage {
@@ -69,9 +71,9 @@ export interface WorkerFrameTiming {
  * - `inflight-replay`: the retained last frame of an active matching
  *   computation, re-delivered to a new request.
  * - `semantic-cache`: a completed cached frame in the semantic view and
- *   period isolation it was last delivered in.
+ *   period emphasis (isolation and outline) it was last delivered in.
  * - `recolor`: a completed cached frame delivered in a different semantic
- *   view or period isolation (the palette-only recolor path).
+ *   view or period emphasis (the palette-only recolor path).
  */
 export type FrameSource = 'computed' | 'semantic-cache' | 'inflight-replay' | 'recolor';
 
@@ -106,6 +108,8 @@ export interface FrameMessage {
   readonly periodKey?: PeriodKey;
   /** Period view only: the period the raster leaves undimmed. */
   readonly isolatedPeriod?: number;
+  /** Period view only: the period whose regions the raster outlines. */
+  readonly outlinedPeriod?: number;
 }
 
 export interface InspectionResult {

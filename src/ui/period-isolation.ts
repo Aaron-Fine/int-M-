@@ -1,13 +1,16 @@
 /**
- * Legend isolation (MI-UX-018, owner decision 2026-10-17): hovering,
- * focusing or activating an emphasized period's legend entry dims every
- * pixel not of that period. Pure state so the rules are unit-tested; the
- * legend feeds it DOM events and the renderer recolors with the result.
+ * Legend isolation (MI-UX-018; owner decision 2026-10-17, revised by UI
+ * review finding 5 on 2026-10-29): activating an emphasized period's legend
+ * entry dims every pixel not of that period, and hovering or focusing one
+ * only outlines it. Pure state so the rules are unit-tested; the legend feeds
+ * it DOM events and the renderer recolors with the result.
  *
- * - Hover (mouse only) and keyboard focus isolate while they last.
+ * - Hover (mouse only) and keyboard focus preview a period while they last:
+ *   its regions are outlined and nothing is dimmed, so a pointer that merely
+ *   passes over the legend never changes what the image shows.
  * - Activation (click, Enter, Space, or a tap) toggles a persistent
  *   isolation; activating the pressed entry again, or Escape, restores the
- *   full view, including any hover or focus isolation in effect.
+ *   full view.
  * - A view change resets everything. Each new frame drops hover and focus
  *   on periods its key no longer lists (their buttons are gone). A pressed
  *   period is dropped only by a stable frame that does not list it: a coarse
@@ -16,7 +19,7 @@
  */
 
 export interface IsolationState {
-  /** The persistent isolation, shown as `aria-pressed="true"`. */
+  /** The isolation, shown as `aria-pressed="true"`. */
   readonly pressed: number | undefined;
   readonly hovered: number | undefined;
   readonly focused: number | undefined;
@@ -71,15 +74,23 @@ export const nextIsolation = (state: IsolationState, event: IsolationEvent): Iso
   }
 };
 
-/** The period the raster isolates: a hover or focus preview, else the pressed entry. */
-export const isolatedPeriodOf = (state: IsolationState): number | undefined =>
-  state.hovered ?? state.focused ?? state.pressed;
+/** The period the raster isolates: the pressed entry only. */
+export const isolatedPeriodOf = (state: IsolationState): number | undefined => state.pressed;
+
+/**
+ * The period the raster outlines: a hover, else a focus preview. None when it
+ * is the isolated period, which already stands out.
+ */
+export const outlinedPeriodOf = (state: IsolationState): number | undefined => {
+  const preview = state.hovered ?? state.focused;
+  return preview === state.pressed ? undefined : preview;
+};
 
 /**
  * The period named by the "no longer among the five largest" note, after
- * `event`. A stable frame that drops a pressed period sets it; any new
+ * `event`. A stable frame that drops a pressed period sets it; a new
  * isolation, Escape, a view change, or a stable frame listing the period
- * again clears it.
+ * again clears it. Previews (hover, focus) leave it.
  */
 export const nextDroppedPeriod = (
   dropped: number | undefined,
@@ -92,12 +103,12 @@ export const nextDroppedPeriod = (
       if (!event.final) return dropped;
       if (before.pressed !== undefined && after.pressed === undefined) return before.pressed;
       return dropped !== undefined && event.periods.includes(dropped) ? undefined : dropped;
-    case 'hover':
-    case 'focus':
     case 'activate':
     case 'escape':
     case 'reset':
       return undefined;
+    case 'hover':
+    case 'focus':
     case 'unhover':
     case 'blur':
       return dropped;

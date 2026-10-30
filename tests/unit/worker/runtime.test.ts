@@ -1045,6 +1045,56 @@ describe('RenderWorkerRuntime period isolation', () => {
     expect(frames[3]?.rgba).toEqual(frames[0]?.rgba);
   });
 
+  it('recolors the cached frame for an outline change, and keeps it apart from isolation', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const render = vi.fn(
+      async (
+        _request: DynamicsRenderRequest,
+        _signal: AbortSignal,
+        onFrame: SemanticFrameConsumer,
+      ) => {
+        await onFrame(twoPeriodFrame());
+      },
+    );
+    const runtime = new RenderWorkerRuntime(
+      { postMessage: (m) => messages.push(m) },
+      {
+        inspect: () => ({ status: 'unresolved', iterations: 1, evidence: ['iteration-limit'] }),
+        render,
+        colorize: (frame, view, isolated, outlined) =>
+          cpu.colorize(frame, view, isolated, outlined),
+      },
+    );
+
+    await runtime.handle({ ...period(), requestId: 1 });
+    await runtime.handle({ ...period(), outlinedPeriod: 3, requestId: 2 });
+    await runtime.handle({ ...period(), outlinedPeriod: 3, requestId: 3 });
+    await runtime.handle({ ...period(3), requestId: 4 });
+    await runtime.handle({
+      ...period(),
+      outlinedPeriod: 3,
+      semanticView: 'stability',
+      requestId: 5,
+    });
+
+    expect(render).toHaveBeenCalledOnce();
+    const frames = framesOf(messages);
+    expect(frames.map((frame) => frame.provenance.source)).toEqual([
+      'computed',
+      'recolor',
+      'semantic-cache',
+      'recolor',
+      'recolor',
+    ]);
+    expect(frames.map((frame) => [frame.isolatedPeriod, frame.outlinedPeriod])).toEqual([
+      [undefined, undefined],
+      [undefined, 3],
+      [undefined, 3],
+      [3, undefined],
+      [undefined, undefined],
+    ]);
+  });
+
   it('keeps the semantic-cache provenance for an isolation that cannot change the raster', async () => {
     const messages: WorkerToMainMessage[] = [];
     const colorize = vi.fn((frame: SemanticFrame, view: SemanticView, isolated?: number) =>

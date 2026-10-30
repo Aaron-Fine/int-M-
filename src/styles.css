@@ -483,6 +483,41 @@ button:disabled {
   box-shadow: inset 0 0 0 0.22rem var(--focus);
 }
 
+/* While a legend isolation dims the image: what it shows, and the way back. */
+.isolation-chip {
+  position: absolute;
+  z-index: 5;
+  top: 0.7rem;
+  left: 0.7rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+  padding: 0.25rem 0.3rem 0.25rem 0.8rem;
+  color: white;
+  background: rgb(6 9 10 / 82%);
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.isolation-chip[hidden] {
+  display: none;
+}
+
+.isolation-chip__action {
+  min-height: 1.75rem;
+  padding: 0 0.75rem;
+  background: rgb(255 255 255 / 14%);
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.isolation-chip__action:hover {
+  background: rgb(255 255 255 / 26%);
+}
+
 .explorer__hint {
   position: absolute;
   z-index: 4;
@@ -1247,8 +1282,17 @@ button:disabled {
 .legend__definition {
   margin: 0.4rem 0 0;
   color: var(--ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* A formula on its own line, in the data face, below the prose that explains it. */
+.legend__formula {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink);
   font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
 }
 
 .legend__item {
@@ -1352,6 +1396,57 @@ button:disabled {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* The period spectrum (UI review proposal C): each period's share of
+   attracting-cycle pixels as a bar on a log scale (legend-model.ts). */
+.legend__share {
+  display: block;
+  height: 0.4rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border-radius: 0.2rem;
+}
+
+.legend__share-bar {
+  display: block;
+  height: 100%;
+  border-radius: 0.2rem;
+}
+
+.legend__other {
+  grid-template-columns: 1.15rem minmax(0, 1fr) auto;
+  padding-inline: 0.35rem;
+}
+
+.legend__tail-toggle {
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  color: var(--accent-strong);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.legend__tail-toggle:hover {
+  background: var(--surface-muted);
+}
+
+.legend__tail {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0;
+  padding: 0 0 0 0.85rem;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+
+.legend__tail[hidden] {
+  display: none;
+}
+
 .legend__entry {
   display: grid;
   grid-template-columns: 1.15rem minmax(0, 1fr) auto;
@@ -1402,7 +1497,7 @@ button:disabled {
 .legend__hint {
   margin: 0.65rem 0 0;
   color: var(--ink-muted);
-  font-size: 0.69rem;
+  font-size: 0.74rem;
 }
 
 .legend__copy {
@@ -1416,14 +1511,17 @@ button:disabled {
 
 .legend__copy small {
   color: var(--ink-muted);
-  font-size: 0.69rem;
+  font-size: 0.74rem;
+  line-height: 1.35;
 }
 
+/* Under the Guide button that opens it: clear of the image and of the side
+   panel's legend, so closing it never leaves the pointer on a legend entry. */
 .guidance {
   position: fixed;
   z-index: 20;
+  top: 4.75rem;
   right: 1.25rem;
-  bottom: 1.25rem;
   width: min(23rem, calc(100% - 2rem));
   padding: 1.15rem;
   visibility: hidden;
@@ -1712,6 +1810,7 @@ button:disabled {
   }
 
   .guidance {
+    top: auto;
     right: 0.5rem;
     bottom: 0.5rem;
     width: calc(100% - 1rem);

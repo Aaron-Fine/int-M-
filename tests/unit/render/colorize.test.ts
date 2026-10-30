@@ -12,6 +12,8 @@ import {
   multiplierStripePhase,
   multiplierStripeWeight,
   OTHER_PERIODS_COLOR,
+  OUTLINE_HALO_COLOR,
+  OUTLINE_RING_COLOR,
   PERIOD_EMPHASIS_PALETTE,
   shadeForMultiplierContour,
   type PeriodKey,
@@ -338,6 +340,74 @@ describe('period view emphasis', () => {
       { period: PACK_PERIOD_MAX, color: PERIOD_EMPHASIS_PALETTE[0], pixelCount: 2 },
     ]);
     expect(pixelAt(raster.rgba, 1)).toEqual(PERIOD_EMPHASIS_PALETTE[0]);
+  });
+});
+
+describe('period outline (legend preview)', () => {
+  /** A 7 × 7 period-1 field with period 3 at the given pixels. */
+  const outlineFrame = (...threes: readonly number[]): SemanticFrame =>
+    syntheticFrame(
+      7,
+      Array.from({ length: 49 }, (_, index) => [2, threes.includes(index) ? 3 : 1] as const),
+    );
+  const at = (x: number, y: number): number => y * 7 + x;
+
+  it('rings the region two pixels wide, haloes the ring, and keeps the region', () => {
+    const frame = outlineFrame(at(3, 3));
+    const raster = new CpuRenderer().colorize(frame, 'period', undefined, 3);
+    const plain = new CpuRenderer().colorize(frame, 'period').rgba;
+
+    expect(raster.outlinedPeriod).toBe(3);
+    expect(raster).not.toHaveProperty('isolatedPeriod');
+    expect(pixelAt(raster.rgba, at(3, 3))).toEqual(pixelAt(plain, at(3, 3)));
+    // One and two steps out: the ring.
+    for (const ring of [at(2, 3), at(4, 3), at(3, 2), at(3, 4), at(1, 3), at(3, 5), at(2, 2)]) {
+      expect(pixelAt(raster.rgba, ring)).toEqual(OUTLINE_RING_COLOR);
+    }
+    // Three steps out: the halo.
+    for (const halo of [at(0, 3), at(6, 3), at(3, 0), at(3, 6), at(1, 2), at(5, 4)]) {
+      expect(pixelAt(raster.rgba, halo)).toEqual(OUTLINE_HALO_COLOR);
+    }
+    // Four steps out and beyond: untouched.
+    for (const far of [at(0, 0), at(1, 1), at(6, 6), at(5, 5)]) {
+      expect(pixelAt(raster.rgba, far)).toEqual(pixelAt(plain, far));
+    }
+  });
+
+  it('does not wrap the ring across a row edge', () => {
+    const frame = outlineFrame(at(0, 3));
+    const raster = new CpuRenderer().colorize(frame, 'period', undefined, 3);
+    const plain = new CpuRenderer().colorize(frame, 'period').rgba;
+
+    expect(pixelAt(raster.rgba, at(1, 3))).toEqual(OUTLINE_RING_COLOR);
+    // The pixel before it in memory is the last of the row above, not a neighbour.
+    expect(pixelAt(raster.rgba, at(6, 2))).toEqual(pixelAt(plain, at(6, 2)));
+  });
+
+  it('outlines over an isolation of another period', () => {
+    const frame = outlineFrame(at(3, 3));
+    const raster = new CpuRenderer().colorize(frame, 'period', 1, 3);
+
+    expect(raster.isolatedPeriod).toBe(1);
+    expect(raster.outlinedPeriod).toBe(3);
+    expect(pixelAt(raster.rgba, at(2, 3))).toEqual(OUTLINE_RING_COLOR);
+    // The outlined period is not the isolated one, so its own pixels dim.
+    const plain = new CpuRenderer().colorize(frame, 'period').rgba;
+    expect(pixelAt(raster.rgba, at(3, 3))).toEqual(dimColor(pixelAt(plain, at(3, 3)) as Rgba));
+  });
+
+  it('ignores an outline outside the period view or out of range', () => {
+    const renderer = new CpuRenderer();
+    const frame = outlineFrame(at(3, 3));
+    for (const view of ['stability', 'multiplier'] as const) {
+      expect(renderer.colorize(frame, view, undefined, 3)).not.toHaveProperty('outlinedPeriod');
+      expect(renderer.colorize(frame, view, undefined, 3).rgba).toEqual(
+        renderer.colorize(frame, view).rgba,
+      );
+    }
+    expect(renderer.colorize(frame, 'period', undefined, 0).rgba).toEqual(
+      renderer.colorize(frame, 'period').rgba,
+    );
   });
 });
 
