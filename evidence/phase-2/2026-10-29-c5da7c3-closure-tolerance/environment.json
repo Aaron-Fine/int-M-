@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-10-30T04:41:50.267Z",
+  "browser": {
+    "build": null,
+    "engine": null,
+    "headed": null,
+    "powerMode": null,
+    "devicePixelRatio": null,
+    "viewport": null
+  },
+  "cpu": {
+    "model": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "cores": 8
+  },
+  "memoryTotalBytes": 16465453056,
+  "os": {
+    "platform": "Linux linux",
+    "kernel": "7.2.13-200.fc44.x86_64"
+  },
+  "revisions": {
+    "build": "c5da7c35a31ac7f01824a73ba3cb8e95e460a0da",
+    "algorithm": "c5da7c35a31ac7f01824a73ba3cb8e95e460a0da",
+    "catalog": "0cc770bf9bfc15e51abdfc7c29416b47b034dbd53c3316261f726c3b680b8762",
+    "verifier": "231fe67f1fe80efbbeea53c75d3c31171b5ea530c279ae98284d2c09c21401aa"
+  },
+  "render": {
+    "workerCount": null,
+    "backend": null
+  },
+  "harness": {
+    "command": "node /home/aaron/int-M-/.claude/worktrees/agent-a3735432cc16c29dc/tools/benchmark/capture-environment.mjs --out evidence/phase-2/2026-10-29-c5da7c3-closure-tolerance/environment.json --note ADR 0015 closure-tolerance evidence; Node tools/closure_tolerance_production.ts then python3 tools/closure_tolerance_compare.py",
+    "version": "0.1.0",
+    "node": "v24.19.0"
+  },
+  "notes": [
+    "Captured in Node; browser.* and render.* fields are placeholders to fill during browser runs.",
+    "ADR 0015 closure-tolerance evidence; Node tools/closure_tolerance_production.ts then python3 tools/closure_tolerance_compare.py"
+  ]
+}

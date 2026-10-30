@@ -107,7 +107,15 @@ margin above, and it is recorded here as an option, not a requirement.
   certified acceptance (Decision 4). The packet 3 pilot's mitigation of
   checking only the last window of a certified-bounded prefix is not a
   substitute for either.
-- **Follow-up (evidence for Decision 1):** the inside-the-bound result is a
-  directional scratch probe. A committed evidence run, with an independent
-  oracle across the frozen corpus's deepest views, should turn "no false
-  interior observed" into recorded evidence.
+- **Evidence for Decision 1:** a committed run
+  ([2026-10-29-c5da7c3-closure-tolerance](../../evidence/phase-2/2026-10-29-c5da7c3-closure-tolerance/summary.md))
+  compared production `classifyOrbit` with the independent interval oracle on
+  a 1/256 subsample of the five deepest frozen-corpus views (including the
+  6,000,000× case) at the shipping raster, and on four minibrot tiles at the
+  bound's pixel pitch. Of 5,389 attracting verdicts, **0 are false interiors**
+  (none escapes within four times the iteration budget). 9 escape iterations
+  of 15,573 shifted (-40 to +4 steps), and 1 production escape was not
+  confirmed by the oracle within its budget; none changes a status. Controls
+  beyond the bound (`2^-33`, `2^-40`) reproduce 9 false interiors, so the
+  comparison can detect them. It is a subsample and certifies escape only:
+  evidence, not proof, and no period comparison.
