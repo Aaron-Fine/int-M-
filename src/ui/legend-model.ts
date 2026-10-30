@@ -63,6 +63,13 @@ export interface LegendSwatch {
   readonly border: 'solid' | 'dashed' | 'dotted';
   /** Set on period-key entries: the exact period, or 'other' for the neutral class. */
   readonly period?: number | 'other';
+  /**
+   * Period-key entries only: the share of attracting-cycle pixels as a bar
+   * width from 0 to 1 on the spectrum's log scale (spectrumWidth).
+   */
+  readonly share?: number;
+  /** The 'other' entry only: each period it lumps together, most pixels first. */
+  readonly tail?: readonly LegendSwatch[];
 }
 
 export interface LegendNote {
@@ -84,7 +91,7 @@ export const DEFINITIONS: Readonly<Record<SemanticView, string>> = {
   multiplier:
     'Hue and oriented stripes show rotation (arg λ); lightness shows attraction strength through |λ|.',
   period:
-    'Up to five periods covering the most area in this view get a color, in ascending period order; all other periods share one gray. Colors can change when the view changes or refines, so this key always shows the current mapping.',
+    'Up to five periods covering the most area in this view get a color, in ascending period order; all other periods share one gray. Colors can change when the view changes or refines, so this key always shows the current mapping. Bars rank the periods by their share of attracting-cycle pixels, on a log scale from 0.01% to 100%.',
 };
 
 /** Formulas the definitions introduce, set on their own line. */
@@ -227,16 +234,33 @@ export const formatShare = (part: number, whole: number): string => {
   return `${Math.round(percent)}%`;
 };
 
+/** Decades the spectrum's log scale spans: 0.01% of attracting-cycle pixels to 100%. */
+export const SPECTRUM_DECADES = 4;
+/** The shortest bar, so that a share below the scale still shows. */
+const SPECTRUM_MIN_WIDTH = 0.02;
+
+/** A spectrum bar's width from 0 to 1: log10 of the share, over SPECTRUM_DECADES. */
+export const spectrumWidth = (part: number, whole: number): number => {
+  if (whole <= 0 || part <= 0) return 0;
+  const width = 1 + Math.log10(part / whole) / SPECTRUM_DECADES;
+  return Math.min(1, Math.max(SPECTRUM_MIN_WIDTH, width));
+};
+
 const periodItems = (key: PeriodKey | undefined): readonly LegendItem[] => {
   if (key === undefined) return [{ kind: 'note', text: 'Ranking the periods in this view…' }];
-  const emphasized = key.emphasized.map((entry): LegendSwatch => ({
+  const periodSwatch = (period: number, pixelCount: number, color: Rgba): LegendSwatch => ({
     kind: 'swatch',
-    label: `Period ${entry.period}`,
-    detail: `${formatShare(entry.pixelCount, key.attractingPixelCount)} of attracting-cycle pixels`,
-    background: cssColor(entry.color),
+    label: `Period ${period}`,
+    detail: `${formatShare(pixelCount, key.attractingPixelCount)} of attracting-cycle pixels`,
+    background: cssColor(color),
     border: 'solid',
-    period: entry.period,
-  }));
+    period,
+    share: spectrumWidth(pixelCount, key.attractingPixelCount),
+  });
+  // Ranked: most pixels first, as buildPeriodKey chose them.
+  const emphasized = [...key.emphasized]
+    .sort((a, b) => b.pixelCount - a.pixelCount || a.period - b.period)
+    .map((entry) => periodSwatch(entry.period, entry.pixelCount, entry.color));
   const count = key.otherPeriodCount;
   const other: LegendSwatch = {
     kind: 'swatch',
@@ -251,6 +275,10 @@ const periodItems = (key: PeriodKey | undefined): readonly LegendItem[] => {
     background: cssColor(OTHER_PERIODS_COLOR),
     border: 'solid',
     period: 'other',
+    share: spectrumWidth(key.otherPixelCount, key.attractingPixelCount),
+    tail: key.others.map((entry) =>
+      periodSwatch(entry.period, entry.pixelCount, OTHER_PERIODS_COLOR),
+    ),
   };
   const none: readonly LegendItem[] =
     key.attractingPixelCount === 0

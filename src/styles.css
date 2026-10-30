@@ -1398,6 +1398,57 @@ button:disabled {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* The period spectrum (UI review proposal C): each period's share of
+   attracting-cycle pixels as a bar on a log scale (legend-model.ts). */
+.legend__share {
+  display: block;
+  height: 0.4rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  background: var(--surface-muted);
+  border-radius: 0.2rem;
+}
+
+.legend__share-bar {
+  display: block;
+  height: 100%;
+  border-radius: 0.2rem;
+}
+
+.legend__other {
+  grid-template-columns: 1.15rem minmax(0, 1fr) auto;
+  padding-inline: 0.35rem;
+}
+
+.legend__tail-toggle {
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  color: var(--accent-strong);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.legend__tail-toggle:hover {
+  background: var(--surface-muted);
+}
+
+.legend__tail {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.2rem 0 0;
+  padding: 0 0 0 0.85rem;
+  list-style: none;
+  border-left: 2px solid var(--line);
+}
+
+.legend__tail[hidden] {
+  display: none;
+}
+
 .legend__entry {
   display: grid;
   grid-template-columns: 1.15rem minmax(0, 1fr) auto;

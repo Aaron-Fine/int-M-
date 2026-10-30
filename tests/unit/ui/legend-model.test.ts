@@ -18,6 +18,7 @@ import {
   DEFINITIONS,
   formatShare,
   legendModel,
+  spectrumWidth,
   stabilityPosition,
   type LegendItem,
   type LegendScale,
@@ -143,6 +144,60 @@ describe('legend model', () => {
       detail: '2 more periods · 0.4% of attracting-cycle pixels',
       period: 'other',
     });
+  });
+
+  it('ranks the spectrum by area, keeps each period its palette colour, and lists the tail', () => {
+    const key = buildPeriodKey(
+      new Map([
+        [1, 100],
+        [2, 4000],
+        [3, 9000],
+        [4, 20],
+        [5, 300],
+        [6, 7],
+        [7, 3],
+      ]),
+    );
+    const items = swatches(legendModel('period', key).items);
+
+    // Most pixels first; colours still follow ascending period (the raster's key).
+    expect(items.slice(0, 5).map((item) => item.label)).toEqual([
+      'Period 3',
+      'Period 2',
+      'Period 5',
+      'Period 1',
+      'Period 4',
+    ]);
+    expect(items.slice(0, 5).map((item) => item.background)).toEqual(
+      [2, 1, 4, 0, 3].map((index) => cssColor(PERIOD_EMPHASIS_PALETTE[index] ?? [0, 0, 0, 0])),
+    );
+    const other = items[5];
+    expect(other?.period).toBe('other');
+    expect(other?.tail?.map((entry) => [entry.label, entry.period, entry.background])).toEqual([
+      ['Period 6', 6, cssColor(OTHER_PERIODS_COLOR)],
+      ['Period 7', 7, cssColor(OTHER_PERIODS_COLOR)],
+    ]);
+    expect(other?.tail?.[0]?.detail).toBe('<0.1% of attracting-cycle pixels');
+  });
+
+  it('draws spectrum bars on a four-decade log scale', () => {
+    expect(spectrumWidth(1, 1)).toBe(1);
+    expect(spectrumWidth(1, 10)).toBeCloseTo(0.75, 12);
+    expect(spectrumWidth(1, 100)).toBeCloseTo(0.5, 12);
+    expect(spectrumWidth(1, 10_000)).toBeCloseTo(0.02, 12);
+    // Below the scale the bar keeps its minimum width; no pixels, no bar.
+    expect(spectrumWidth(1, 1e9)).toBe(0.02);
+    expect(spectrumWidth(0, 10)).toBe(0);
+    expect(spectrumWidth(3, 0)).toBe(0);
+    const key = buildPeriodKey(
+      new Map([
+        [1, 90],
+        [2, 10],
+      ]),
+    );
+    const [first, second] = swatches(legendModel('period', key).items);
+    expect(first?.share).toBeCloseTo(1 + Math.log10(0.9) / 4, 12);
+    expect(second?.share).toBeCloseTo(0.75, 12);
   });
 
   it('shows one period and no other periods for a single-period frame', () => {

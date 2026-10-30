@@ -28,17 +28,22 @@ export const PERIOD_EMPHASIS_PALETTE: readonly Rgba[] = Object.freeze([
 /** The single neutral for every period that is not emphasized (Paul Tol's grey). */
 export const OTHER_PERIODS_COLOR: Rgba = [187, 187, 187, 255];
 
-export interface PeriodKeyEntry {
+/** A period and its attracting-cycle pixels in the frame. */
+export interface PeriodShare {
   readonly period: number;
-  readonly color: Rgba;
-  /** Attracting-cycle pixels of this period in the frame. */
   readonly pixelCount: number;
+}
+
+export interface PeriodKeyEntry extends PeriodShare {
+  readonly color: Rgba;
 }
 
 /** The period-to-colour mapping a period-view raster was drawn with. */
 export interface PeriodKey {
   /** Emphasized periods in ascending order, each with its palette colour. */
   readonly emphasized: readonly PeriodKeyEntry[];
+  /** The periods drawn in OTHER_PERIODS_COLOR, most pixels first (the spectrum's tail). */
+  readonly others: readonly PeriodShare[];
   /** Distinct periods drawn in OTHER_PERIODS_COLOR. */
   readonly otherPeriodCount: number;
   /** Pixels drawn in OTHER_PERIODS_COLOR. */
@@ -49,6 +54,7 @@ export interface PeriodKey {
 
 export const EMPTY_PERIOD_KEY: PeriodKey = Object.freeze({
   emphasized: Object.freeze([]),
+  others: Object.freeze([]),
   otherPeriodCount: 0,
   otherPixelCount: 0,
   attractingPixelCount: 0,
@@ -85,6 +91,7 @@ export const buildPeriodKey = (histogram: ReadonlyMap<number, number>): PeriodKe
   }));
   return {
     emphasized,
+    others: rest.map(([period, pixelCount]) => ({ period, pixelCount })),
     otherPeriodCount: rest.length,
     otherPixelCount: sumPixels(rest),
     attractingPixelCount: sumPixels(ranked),
