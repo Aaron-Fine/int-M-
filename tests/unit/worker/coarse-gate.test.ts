@@ -41,6 +41,29 @@ const start = (renderer: Renderer, signal = new AbortController().signal) => {
 const settle = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 describe('coarse gate (e2e test seam)', () => {
+  it('passes every colorize and inspect argument to the renderer', () => {
+    const calls: unknown[][] = [];
+    const inner: Renderer = {
+      ...twoStageRenderer(),
+      inspect: (...args) => {
+        calls.push(args);
+        return {} as ReturnType<Renderer['inspect']>;
+      },
+      colorize: (...args) => {
+        calls.push(args);
+        return {} as ReturnType<Renderer['colorize']>;
+      },
+    };
+    const gate = createCoarseGate(inner);
+    const stable = frame('stable');
+    gate.renderer.colorize(stable, 'period', 3, 5);
+    gate.renderer.inspect({ re: 0, im: 0 }, { maxIterations: 9 });
+    expect(calls).toEqual([
+      [stable, 'period', 3, 5],
+      [{ re: 0, im: 0 }, { maxIterations: 9 }],
+    ]);
+  });
+
   it('passes renders straight through when not held', async () => {
     const gate = createCoarseGate(twoStageRenderer());
     const { stages, done } = start(gate.renderer);
