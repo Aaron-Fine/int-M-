@@ -8,6 +8,7 @@ import {
   type SemanticFrame,
 } from '../render';
 import type { SemanticView } from '../domain';
+import { computeDynamicsPortrait } from '../domain/dynamics-portrait';
 import { validIsolatedPeriod } from '../render/colorize';
 import type {
   FrameProvenance,
@@ -121,6 +122,14 @@ export class RenderWorkerRuntime {
             requestId: message.requestId,
             result: { point: message.point, orbit },
           });
+          if (message.portrait === true) {
+            // Posted after the evidence so the inspector never waits for the picture.
+            const portrait = computeDynamicsPortrait(message.point, orbit);
+            this.#port.postMessage(
+              { type: 'portrait', requestId: message.requestId, point: message.point, portrait },
+              [portrait.rgba.buffer, portrait.orbit.buffer, portrait.cycle.buffer],
+            );
+          }
         } catch (error: unknown) {
           this.#port.postMessage(errorMessage(message.requestId, error));
         }

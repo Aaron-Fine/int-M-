@@ -122,6 +122,40 @@ class InspectOnlyRenderer implements Renderer {
 }
 
 describe('RenderWorkerRuntime', () => {
+  it('posts a portrait after the inspection only when one is requested', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const transfers: (readonly ArrayBuffer[] | undefined)[] = [];
+    const port: WorkerMessagePort = {
+      postMessage: (message, transfer) => {
+        messages.push(message);
+        transfers.push(transfer);
+      },
+    };
+    const runtime = new RenderWorkerRuntime(port, new InspectOnlyRenderer());
+
+    await runtime.handle({ type: 'inspect', requestId: 1, point: { re: 0.25, im: 0 } });
+    expect(messages.map((message) => message.type)).toEqual(['inspection']);
+
+    await runtime.handle({
+      type: 'inspect',
+      requestId: 2,
+      point: { re: 0.25, im: 0 },
+      portrait: true,
+    });
+    expect(messages.map((message) => message.type)).toEqual([
+      'inspection',
+      'inspection',
+      'portrait',
+    ]);
+    const portrait = messages[2];
+    if (portrait?.type !== 'portrait') throw new Error('expected a portrait');
+    expect(portrait.requestId).toBe(2);
+    expect(portrait.point).toEqual({ re: 0.25, im: 0 });
+    // The raster and both point lists are transferred, not copied.
+    expect(transfers[2]).toHaveLength(3);
+    expect(portrait.portrait.rgba.length).toBe(4 * portrait.portrait.size ** 2);
+  });
+
   it('returns structured inspection evidence', async () => {
     const messages: WorkerToMainMessage[] = [];
     const port: WorkerMessagePort = {

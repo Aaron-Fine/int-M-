@@ -922,12 +922,21 @@ button:disabled {
   font-variant-numeric: tabular-nums;
 }
 
+.portrait,
 .lens {
   margin: 1rem 0 0;
   padding-top: 0.9rem;
   display: grid;
   gap: 0.5rem;
   border-top: 1px solid var(--line);
+}
+
+.portrait__canvas {
+  width: 100%;
+  max-width: 20rem;
+  aspect-ratio: 1;
+  background: var(--canvas);
+  border-radius: var(--radius-md);
 }
 
 .lens__disk {
@@ -977,6 +986,7 @@ button:disabled {
   stroke-width: 2;
 }
 
+.portrait__caption,
 .lens__caption {
   color: var(--ink-muted);
   font-size: 0.78rem;

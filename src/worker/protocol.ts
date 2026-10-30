@@ -7,6 +7,7 @@ import type {
   SemanticView,
   Viewport,
 } from '../domain';
+import type { DynamicsPortrait } from '../domain/dynamics-portrait';
 import type { RenderStage } from '../render';
 
 export type RequestId = string | number;
@@ -30,6 +31,8 @@ export interface InspectMessage {
   readonly requestId: RequestId;
   readonly point: Complex;
   readonly quality?: Partial<RenderQuality>;
+  /** Also post a dynamical-plane portrait after the inspection (inspector companion). */
+  readonly portrait?: boolean;
 }
 
 export interface CancelMessage {
@@ -116,6 +119,14 @@ export interface InspectionMessage {
   readonly result: InspectionResult;
 }
 
+/** Display-only companion of an inspection: the filled Julia set, critical orbit and cycle. */
+export interface PortraitMessage {
+  readonly type: 'portrait';
+  readonly requestId: RequestId;
+  readonly point: Complex;
+  readonly portrait: DynamicsPortrait;
+}
+
 /**
  * The runtime accepted a cancel request: the active computation for
  * `requestId` is aborted (or nothing was running for it). Posted on receipt
@@ -144,4 +155,9 @@ export interface WorkerErrorMessage {
 }
 
 export type WorkerToMainMessage =
-  FrameMessage | InspectionMessage | CancelAckMessage | CancelledMessage | WorkerErrorMessage;
+  | FrameMessage
+  | InspectionMessage
+  | PortraitMessage
+  | CancelAckMessage
+  | CancelledMessage
+  | WorkerErrorMessage;
