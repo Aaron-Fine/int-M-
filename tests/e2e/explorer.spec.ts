@@ -1520,29 +1520,36 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const legend = page.getByRole('region', { name: 'Semantic legend' });
     const periodOne = legend.locator('.legend__entry[data-period="1"]');
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
-    await expect(legend.getByText(/^Hover, focus or select a period/)).toBeVisible();
+    await expect(legend.getByText(/^Hover or focus a period to outline it/)).toBeVisible();
     // The hint explains the buttons to assistive technology.
     const hintId = await legend.locator('.legend__hint').getAttribute('id');
     expect(hintId).toBeTruthy();
     await expect(periodOne).toHaveAttribute('aria-describedby', hintId ?? '');
     await expect(legend.locator('.legend__dropped')).toBeEmpty();
 
-    // Keyboard focus previews the isolation.
+    // Keyboard focus previews the period with an outline; nothing is dimmed.
     await periodOne.focus();
+    await expect(explorer).toHaveAttribute('data-outlined-period', '1');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    expect((await isolationPixels(page, 1)).undimmed).toBeGreaterThan(0);
+
+    // Activation isolates it, with a chip that says so; Escape restores the full view.
+    await page.keyboard.press('Enter');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
     await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).not.toHaveAttribute('data-outlined-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     const isolated = await isolationPixels(page, 1);
     expect(isolated.kept).toBeGreaterThan(0);
     expect(isolated.undimmed).toBe(0);
-
-    // Activation keeps it; Escape restores the full view.
-    await page.keyboard.press('Enter');
-    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+    await expect(explorer.locator('.isolation-chip')).toContainText('Showing period 1 only');
     await page.keyboard.press('Escape');
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
     await expect(explorer).not.toHaveAttribute('data-isolated-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     expect((await isolationPixels(page, 1)).undimmed).toBeGreaterThan(0);
+    await expect(explorer.locator('.isolation-chip')).toBeHidden();
 
     // A second activation also restores it.
     await page.keyboard.press('Enter');
@@ -1564,8 +1571,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
     );
     await expect(explorer).not.toHaveAttribute('data-isolated-period');
 
-    // Mouse hover previews another period while it lasts, without touching
-    // the render status live region (no announcement per hover).
+    // Mouse hover outlines another period while it lasts, dims nothing, and
+    // leaves the render status live region alone (no announcement per hover).
     const renderStatus = page.getByRole('status', { name: 'Render status' });
     const statusBefore = await renderStatus.textContent();
     await renderStatus.evaluate((element) => {
@@ -1577,10 +1584,11 @@ test.describe('Mandelbrot Interiority explorer', () => {
     });
     const periodTwo = legend.locator('.legend__entry[data-period="2"]');
     await periodTwo.hover();
-    await expect(explorer).toHaveAttribute('data-isolated-period', '2');
+    await expect(explorer).toHaveAttribute('data-outlined-period', '2');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     await page.mouse.move(0, 0);
-    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).not.toHaveAttribute('data-outlined-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     expect(await renderStatus.textContent()).toBe(statusBefore);
     expect(
@@ -1637,7 +1645,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const requestId = async (): Promise<number> =>
       Number(await explorer.getAttribute('data-render-request-id'));
     const settled = async (period: string): Promise<void> => {
-      await expect(explorer).toHaveAttribute('data-isolated-period', period);
+      await expect(explorer).toHaveAttribute('data-outlined-period', period);
       await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     };
 
@@ -1658,7 +1666,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const explorer = page.locator('#explorer');
     const periodOne = page.locator('.legend__entry[data-period="1"]');
     await periodOne.focus();
-    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).toHaveAttribute('data-outlined-period', '1');
     const before = Number(await explorer.getAttribute('data-render-request-id'));
 
     // A wheel zoom re-renders (coarse, then stable) without moving focus.
@@ -1671,7 +1679,22 @@ test.describe('Mandelbrot Interiority explorer', () => {
       .toBeGreaterThan(before);
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
     await expect(periodOne).toBeFocused();
-    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).toHaveAttribute('data-outlined-period', '1');
+  });
+
+  test('ends an isolation from the chip on the image', async ({ page }) => {
+    await openPeriodView(page);
+    const explorer = page.locator('#explorer');
+    const periodTwo = page.locator('.legend__entry[data-period="2"]');
+    await periodTwo.click();
+    await page.mouse.move(0, 0);
+    await expect(explorer).toHaveAttribute('data-isolated-period', '2');
+    const chip = explorer.locator('.isolation-chip');
+    await expect(chip).toContainText('Showing period 2 only');
+    await chip.getByRole('button', { name: 'Show all' }).click();
+    await expect(periodTwo).toHaveAttribute('aria-pressed', 'false');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(chip).toBeHidden();
   });
 
   test.describe('touch', () => {

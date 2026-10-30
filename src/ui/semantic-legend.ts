@@ -12,11 +12,18 @@ import {
   nextDroppedPeriod,
   NO_ISOLATION,
   nextIsolation,
+  outlinedPeriodOf,
   type IsolationEvent,
 } from './period-isolation';
 import type { SemanticView } from './view-state';
 
-export type IsolationListener = (period: number | undefined) => void;
+/** The legend's palette inputs: the period isolated (pressed) and the period outlined (previewed). */
+export interface PeriodEmphasis {
+  readonly isolated: number | undefined;
+  readonly outlined: number | undefined;
+}
+
+export type IsolationListener = (emphasis: PeriodEmphasis) => void;
 
 /** The stage of the frame whose key the legend shows. */
 export type LegendFrameStage = 'coarse' | 'stable';
@@ -29,14 +36,14 @@ export interface SemanticLegend {
    * isolation).
    */
   readonly update: (view: SemanticView, periodKey?: PeriodKey, stage?: LegendFrameStage) => void;
-  /** Called with the period to isolate (undefined: none) whenever it changes. */
+  /** Called with the periods to isolate and to outline whenever either changes. */
   readonly onIsolate: (listener: IsolationListener) => void;
   /** Ends a pressed isolation (Escape outside the legend); a no-op without one. */
   readonly restore: () => void;
 }
 
 const ISOLATION_HINT =
-  'Hover, focus or select a period to show only its pixels; Escape or selecting it again restores the view.';
+  'Hover or focus a period to outline it; select it to show only that period. Escape or selecting it again shows all periods.';
 
 const waitingHint = (period: number): string =>
   `Period ${period} stays isolated until the stable frame arrives; this preview does not rank it among the five largest.`;
@@ -183,7 +190,7 @@ export function createSemanticLegend(): SemanticLegend {
   root.append(heading, definition, list, hint, dropped);
 
   let isolation = NO_ISOLATION;
-  let notified: number | undefined;
+  let notified: PeriodEmphasis = { isolated: undefined, outlined: undefined };
   let listener: IsolationListener | undefined;
   let shownView: SemanticView | undefined;
   let shown: string | undefined;
@@ -214,10 +221,13 @@ export function createSemanticLegend(): SemanticLegend {
       control.setAttribute('aria-pressed', String(pressed));
     }
     refreshHint();
-    const period = isolatedPeriodOf(isolation);
-    if (period === notified) return;
-    notified = period;
-    listener?.(period);
+    const emphasis: PeriodEmphasis = {
+      isolated: isolatedPeriodOf(isolation),
+      outlined: outlinedPeriodOf(isolation),
+    };
+    if (emphasis.isolated === notified.isolated && emphasis.outlined === notified.outlined) return;
+    notified = emphasis;
+    listener?.(emphasis);
   };
 
   const onPeriodEvent =
@@ -265,7 +275,10 @@ export function createSemanticLegend(): SemanticLegend {
     // Focus parked on the list by an earlier redraw is still waiting for its entry.
     const focusedPeriod = activePeriod ?? (document.activeElement === list ? lostFocus : undefined);
     const model = legendModel(view, periodKey);
-    definition.textContent = model.definition;
+    definition.replaceChildren(model.definition);
+    if (model.formula !== undefined) {
+      definition.append(element('span', { className: 'legend__formula', text: model.formula }));
+    }
     redrawing = true;
     try {
       replaceChildren(list, model.items.map(renderItem));

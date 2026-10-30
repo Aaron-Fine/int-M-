@@ -73,6 +73,8 @@ interface ApplicationState {
   semanticView: SemanticView;
   /** Period isolated from the legend (MI-UX-018): a palette input, never in the cache key. */
   isolatedPeriod?: number | undefined;
+  /** Period outlined by a legend preview (hover or focus): a palette input too. */
+  outlinedPeriod?: number | undefined;
   catalogVisible: boolean;
   requestId: number;
   activeRequestId: number;
@@ -440,6 +442,24 @@ export function mountApplication(host: HTMLElement): () => void {
     text: 'Mandelbrot explorer',
     attributes: { id: 'explorer-heading' },
   });
+  // Says why the image is dimmed while a legend isolation is on, and ends it.
+  const isolationChipText = element('span', { className: 'isolation-chip__text' });
+  const showAllButton = button('Show all', { className: 'isolation-chip__action' });
+  const isolationChip = element('div', { className: 'isolation-chip' });
+  isolationChip.append(
+    isolationChipText,
+    element('span', { text: '·', attributes: { 'aria-hidden': 'true' } }),
+    showAllButton,
+  );
+  isolationChip.hidden = true;
+  showAllButton.addEventListener('click', () => legend.restore());
+
+  /** Shows the chip for the isolation of the frame on screen, or hides it. */
+  function showIsolationChip(period: number | undefined): void {
+    isolationChip.hidden = period === undefined;
+    if (period !== undefined) isolationChipText.textContent = `Showing period ${period} only`;
+  }
+
   const canvasStack = element('div', { className: 'explorer__stack' });
   const interactionHint = element('p', {
     className: 'explorer__hint',
@@ -453,6 +473,7 @@ export function mountApplication(host: HTMLElement): () => void {
     selectedPointMarker,
     zoomSelection,
     interactionHint,
+    isolationChip,
     selectedPointStatus,
     feedback,
   );
@@ -741,6 +762,9 @@ export function mountApplication(host: HTMLElement): () => void {
       ...(state.semanticView === 'period' && state.isolatedPeriod !== undefined
         ? { isolatedPeriod: state.isolatedPeriod }
         : {}),
+      ...(state.semanticView === 'period' && state.outlinedPeriod !== undefined
+        ? { outlinedPeriod: state.outlinedPeriod }
+        : {}),
     } satisfies MainToWorkerMessage);
     renderTraces.beginRequest({
       requestId: state.activeRequestId,
@@ -774,6 +798,11 @@ export function mountApplication(host: HTMLElement): () => void {
     if (frame.isolatedPeriod !== undefined) {
       canvasShell.dataset['isolatedPeriod'] = String(frame.isolatedPeriod);
     }
+    canvasShell.toggleAttribute('data-outlined-period', frame.outlinedPeriod !== undefined);
+    if (frame.outlinedPeriod !== undefined) {
+      canvasShell.dataset['outlinedPeriod'] = String(frame.outlinedPeriod);
+    }
+    showIsolationChip(frame.isolatedPeriod);
     canvasShell.dataset['renderStage'] = frame.stage;
     canvasShell.dataset['renderRequestId'] = String(frame.requestId);
     retryRendererButton.hidden = true;
@@ -1199,8 +1228,9 @@ export function mountApplication(host: HTMLElement): () => void {
   // is a live region, and the legend's aria-pressed state is the
   // announcement. The legend resets isolation on a view change before the
   // new view is requested.
-  legend.onIsolate((period) => {
-    state.isolatedPeriod = period;
+  legend.onIsolate(({ isolated, outlined }) => {
+    state.isolatedPeriod = isolated;
+    state.outlinedPeriod = outlined;
     if (state.semanticView !== 'period') return;
     if (renderTimer !== undefined) clearTimeout(renderTimer);
     requestRender();

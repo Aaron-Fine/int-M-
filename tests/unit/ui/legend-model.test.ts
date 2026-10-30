@@ -37,6 +37,7 @@ describe('legend model', () => {
     const [scale] = scales(model.items);
 
     expect(model.definition).toBe(DEFINITIONS.stability);
+    expect(model.formula).toBe('κ = −ln|λ| / p');
     expect(labels(model.items)).toEqual(['Stability κ', 'Escaped', 'Unresolved']);
     expect(scale?.ticks.map((tick) => tick.label)).toEqual(['0', '0.5', '1', '2', '∞']);
     expect(scale?.ticks[2]?.position).toBeCloseTo(stabilityPosition(1), 12);

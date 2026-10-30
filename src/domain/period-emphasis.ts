@@ -108,6 +108,18 @@ export const ISOLATION_DIM_FACTOR = 0.12;
 /** One dimmed channel value. */
 export const dimChannel = (value: number): number => Math.round(value * ISOLATION_DIM_FACTOR);
 
+/**
+ * Previewing a period from the legend (hover or focus, UI review finding 5)
+ * outlines its pixels without dimming anything: a ring OUTLINE_RING_WIDTH
+ * pixels wide of this colour just outside every region of the period, with a
+ * one-pixel halo of OUTLINE_HALO_COLOR outside the ring, so the ring reads on
+ * light and dark neighbours alike. Neither colour is a period colour.
+ */
+export const OUTLINE_RING_COLOR: Rgba = [255, 255, 255, 255];
+export const OUTLINE_HALO_COLOR: Rgba = [17, 21, 24, 255];
+/** Raster pixels: one pixel is lost against small components at device scale 1. */
+export const OUTLINE_RING_WIDTH = 2;
+
 /** A colour as it is drawn around an isolated period. */
 export const dimColor = (color: Rgba): Rgba => [
   dimChannel(color[0]),

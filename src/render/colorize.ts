@@ -9,6 +9,9 @@ import {
   MULTIPLIER_STRIPE_FREQUENCY,
   multiplierStripeWeight,
   OTHER_PERIODS_COLOR,
+  OUTLINE_HALO_COLOR,
+  OUTLINE_RING_COLOR,
+  OUTLINE_RING_WIDTH,
   unresolvedTextureColors,
   type PeriodKey,
   type Rgba,
@@ -220,6 +223,49 @@ const dimPixel = (rgba: Uint8ClampedArray, offset: number): void => {
   rgba[offset + 2] = dimChannel(rgba[offset + 2] ?? 0);
 };
 
+const writeColor = (rgba: Uint8ClampedArray, offset: number, color: Rgba): void => {
+  rgba[offset] = color[0];
+  rgba[offset + 1] = color[1];
+  rgba[offset + 2] = color[2];
+};
+
+/**
+ * Outlines every region whose packed word is `target` (a legend preview): the
+ * pixels outside the region within OUTLINE_RING_WIDTH steps of it
+ * (4-neighbourhood) take OUTLINE_RING_COLOR, and those one step further take
+ * OUTLINE_HALO_COLOR. The region's own pixels keep their colours.
+ */
+const outlineRegions = (
+  rgba: Uint8ClampedArray,
+  words: Int32Array,
+  width: number,
+  height: number,
+  target: number,
+): void => {
+  const count = width * height;
+  // Steps from the region: 0 inside it, 255 not reached yet.
+  const steps = new Uint8Array(count).fill(255);
+  for (let index = 0; index < count; index += 1) if (words[index] === target) steps[index] = 0;
+  const reaches = (index: number, step: number): boolean => {
+    const x = index % width;
+    return (
+      (x > 0 && steps[index - 1] === step) ||
+      (x < width - 1 && steps[index + 1] === step) ||
+      (index >= width && steps[index - width] === step) ||
+      (index + width < count && steps[index + width] === step)
+    );
+  };
+  for (let step = 1; step <= OUTLINE_RING_WIDTH + 1; step += 1) {
+    const color = step <= OUTLINE_RING_WIDTH ? OUTLINE_RING_COLOR : OUTLINE_HALO_COLOR;
+    for (let index = 0; index < count; index += 1) {
+      if (steps[index] === 255 && reaches(index, step - 1)) {
+        steps[index] = step;
+        writeColor(rgba, index * 4, color);
+      }
+    }
+  }
+};
+
 /**
  * Neighbourhood pass of the multiplier view: the stripe fade and the contours
  * compare each attracting pixel with its left neighbour and the one above,
@@ -309,10 +355,21 @@ const shadeContour = (rgba: Uint8ClampedArray, offset: number): void => {
 };
 
 /**
+ * The packed word of an attracting cycle of `period`, which the period view
+ * isolates or outlines; -1, which never matches a packed word, for none.
+ */
+const emphasisWord = (view: SemanticView, period: number | undefined): number => {
+  const valid = view === 'period' ? validIsolatedPeriod(period) : undefined;
+  return valid === undefined ? -1 : (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | valid;
+};
+
+/**
  * Colorizes `frame` in `view`. The period view draws with `periodKey`, which
  * defaults to the frame's own ranking; pass the key you report so the legend
  * and the raster cannot disagree. With `isolatedPeriod` (period view only)
- * every pixel that is not an attracting cycle of that period is dimmed.
+ * every pixel that is not an attracting cycle of that period is dimmed. With
+ * `outlinedPeriod` (period view only) that period's regions are outlined
+ * (outlineRegions); nothing is dimmed for it.
  */
 export const colorizeFrame = (
   frame: SemanticFrame,
@@ -321,17 +378,16 @@ export const colorizeFrame = (
     ? buildPeriodKey(periodHistogram(frame))
     : EMPTY_PERIOD_KEY,
   isolatedPeriod?: number,
+  outlinedPeriod?: number,
 ): Uint8ClampedArray<ArrayBuffer> => {
   const { width } = frame.size;
   const rgba = new Uint8ClampedArray(width * frame.size.height * 4);
   const stride = frame.sampleStride;
   const periodColors = periodColorLookup(periodKey);
-  // -1 never matches a packed word: no isolation.
-  const validIsolated = validIsolatedPeriod(isolatedPeriod);
-  const isolatedWord =
-    view === 'period' && validIsolated !== undefined
-      ? (PACK_STATUS_CODES.attracting << PACK_PERIOD_BITS) | validIsolated
-      : -1;
+  const isolatedWord = emphasisWord(view, isolatedPeriod);
+  const outlinedWord = emphasisWord(view, outlinedPeriod);
+  // Every pixel's word, for the outline's neighbourhood test: only when outlining.
+  const words = outlinedWord === -1 ? undefined : new Int32Array(width * frame.size.height);
   const neighbours = view === 'multiplier' ? new MultiplierNeighbours(width) : undefined;
   // Bands partition the raster rows exactly, so iterating bands in order
   // covers every pixel once.
@@ -378,6 +434,7 @@ export const colorizeFrame = (
         writeUnresolved(rgba, offset, x, y, stride);
       }
       if (isolatedWord !== -1 && word !== isolatedWord) dimPixel(rgba, offset);
+      if (words !== undefined) words[y * width + x] = word;
       neighbours?.record(x, word);
       x += 1;
       if (x === width) {
@@ -386,5 +443,6 @@ export const colorizeFrame = (
       }
     }
   }
+  if (words !== undefined) outlineRegions(rgba, words, width, frame.size.height, outlinedWord);
   return rgba;
 };

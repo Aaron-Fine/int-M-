@@ -74,15 +74,22 @@ export type LegendItem = LegendScale | LegendSwatch | LegendNote;
 
 export interface LegendModel {
   readonly definition: string;
+  /** A formula the definition introduces, shown on its own line. */
+  readonly formula?: string;
   readonly items: readonly LegendItem[];
 }
 
 export const DEFINITIONS: Readonly<Record<SemanticView, string>> = {
-  stability: 'Lighter regions settle faster. κ = −ln|λ| / p measures attraction per iteration.',
+  stability: 'Lighter regions settle faster. Stability κ measures attraction per iteration:',
   multiplier:
     'Hue and oriented stripes show rotation (arg λ); lightness shows attraction strength through |λ|.',
   period:
     'Up to five periods covering the most area in this view get a color, in ascending period order; all other periods share one gray. Colors can change when the view changes or refines, so this key always shows the current mapping.',
+};
+
+/** Formulas the definitions introduce, set on their own line. */
+export const FORMULAS: Readonly<Partial<Record<SemanticView, string>>> = {
+  stability: 'κ = −ln|λ| / p',
 };
 
 /** CSS colour of a palette colour (alpha is always 255 in the raster). */
@@ -113,8 +120,7 @@ const STABILITY_TICKS: readonly LegendTick[] = [
 const stabilityScale = (): LegendScale => ({
   kind: 'scale',
   label: 'Stability κ',
-  detail:
-    'κ = −ln|λ| / p from 0 (dark, weakly attracting) to ∞ (light, a cycle center); ticks at κ = 0.5, 1, 2',
+  detail: 'From 0 (dark, weakly attracting) to ∞ (light, a cycle center); ticks at κ = 0.5, 1, 2',
   // Position n is κ = −ln(1 − n) for period 1, i.e. |λ| = 1 − n.
   background: gradient((position) => colorForAttracting(1, 1 - position, 0, 'stability')),
   ticks: STABILITY_TICKS,
@@ -287,7 +293,11 @@ const viewItems = (view: SemanticView, key: PeriodKey | undefined): readonly Leg
  * The legend for `view`. In the period view `periodKey` is the key of the
  * frame on screen; before one arrives the key is a pending note.
  */
-export const legendModel = (view: SemanticView, periodKey?: PeriodKey): LegendModel => ({
-  definition: DEFINITIONS[view],
-  items: [...viewItems(view, periodKey), escapedSwatch(view), unresolvedSwatch()],
-});
+export const legendModel = (view: SemanticView, periodKey?: PeriodKey): LegendModel => {
+  const formula = FORMULAS[view];
+  return {
+    definition: DEFINITIONS[view],
+    ...(formula === undefined ? {} : { formula }),
+    items: [...viewItems(view, periodKey), escapedSwatch(view), unresolvedSwatch()],
+  };
+};
