@@ -232,6 +232,19 @@ describe('catalog marker collisions', () => {
     ]);
   });
 
+  it('sizes label boxes by the measured width when the caller measures it', () => {
+    const beta = testComponent(3, 1, 2, at(150, 0), 'Beta component');
+    const index = createCatalogIndex([alpha, beta]);
+    const labelsShown = (labelWidthPx?: (label: string) => number): boolean[] =>
+      planMarkers({ index, viewport: view, ...WIDE, remPx: REM, labelWidthPx }).markers.map(
+        (m) => m.labelVisible,
+      );
+    // Estimated, Alpha's label (23.6 px out, 112 px wide) reaches Beta's hit box at 128 px.
+    expect(labelsShown()).toEqual([false, true]);
+    expect(labelsShown(() => 60)).toEqual([true, true]);
+    expect(labelsShown(() => 105)).toEqual([false, true]);
+  });
+
   it('puts labels on the left of markers near the right edge', () => {
     const right = testComponent(3, 1, 2, at(360, 0), 'Right component');
     const result = plan(view, {}, createCatalogIndex([alpha, right]));

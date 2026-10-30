@@ -2782,6 +2782,54 @@ test.describe('Catalog core (ADR 0014)', () => {
     );
   });
 
+  test('keeps labels whole and apart when the host substitutes a wider face', async ({ page }) => {
+    // Monospace is wider than the sans faces hosts substitute for system-ui: the longest
+    // generated label is about 16rem in it, past the fixed 14rem maximum labels once had.
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent =
+          ':root { font-family: "Liberation Mono", "DejaVu Sans Mono", monospace; }';
+        document.head.append(style);
+      });
+    });
+    const id = 'mi-p12-2047-2048';
+    await page.goto(`/?v=1&c=-0.75,0&s=2.5&sel=${id}`);
+    await waitForCatalogCore(page);
+    const label = page.locator(`.catalog-marker[data-catalog-id="${id}"] .catalog-marker__label`);
+    await expect(label).toHaveText('Period 12, rays 2047/4095 and 2048/4095');
+    expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
+      true,
+    );
+
+    // The density policy measures labels in the face they get, so the labels it shows never
+    // cover each other.
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    await expect(page.locator('#explorer')).toHaveClass(/explorer--expanded-labels/);
+    await page.mouse.move(0, 0);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const boxes = [...document.querySelectorAll('.catalog-marker__label')]
+            .filter((shown) => getComputedStyle(shown).display !== 'none')
+            .map((shown) => shown.getBoundingClientRect());
+          const apart = boxes.every((a, i) =>
+            boxes.every(
+              (b, j) =>
+                i === j ||
+                a.right <= b.left + 0.5 ||
+                b.right <= a.left + 0.5 ||
+                a.bottom <= b.top + 0.5 ||
+                b.bottom <= a.top + 0.5,
+            ),
+          );
+          return boxes.length > 1 && apart;
+        }),
+      )
+      .toBe(true);
+  });
+
   test('finds entries by rays, id or name, counts them politely and clears on Escape', async ({
     page,
   }) => {

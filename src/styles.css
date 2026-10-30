@@ -748,17 +748,15 @@ button:disabled {
   top: 50%;
   left: 2.85rem;
   display: none;
+  /* No maximum: labels are short catalog strings, and the density policy
+     (marker-density.ts) measures each in this font, whatever face the host substitutes. */
   width: max-content;
-  /* The longest generated label, "Period 12, rays 2047/4095 and 2048/4095", is 13.7rem (ADR 0014). */
-  max-width: 14rem;
   padding: 0.18rem 0.35rem;
-  overflow: hidden;
   color: white;
   background: rgb(6 9 10 / 78%);
   border-radius: 0.25rem;
   font-size: 0.67rem;
   line-height: 1.25;
-  text-overflow: ellipsis;
   white-space: nowrap;
   transform: translateY(-50%);
 }
