@@ -136,8 +136,8 @@ and `pilot-firefox`, served by the Vite dev server like the period-two pilot)
 loads `perturbation-tile.ts` into the page and audits the 16x16 tiles
 `seahorse-step-2^-31` and `misiurewicz-i-step-2^-60` in the browser, with the
 BigInt checker running in the page. The page fetches
-`fixtures/perturbation-tiles.v1.json` and applies the Node test's checks
-(`perturbation-browser-check.ts`): no certified verdict or iteration differs
+`fixtures/perturbation-tiles.v1.json` and applies the checks it shares with the Node test
+(`perturbation-oracle-check.ts`): no certified verdict or iteration differs
 from the oracle, the only unresolved pixel is the `c = i` reference pixel, each
 audited disk meets its oracle box exactly, and each delta budget is below
 `2^-24` of the delta. There is no numeric tolerance: all comparisons are exact

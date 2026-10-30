@@ -140,8 +140,8 @@ dominated by the exact checker. No performance claim is made.
 `tests/e2e/perturbation-pilots.spec.ts` (Playwright projects `pilot-chromium`
 and `pilot-firefox`) runs `classifyPerturbationInteriorTile` in the page on
 the 16x16 tiles `minibrot-p25-step-2^-24` and `minibrot-p34-step-2^-33`, and
-compares with `fixtures/perturbation-interior.v1.json` using the Node test's
-rule (`perturbation-browser-check.ts`): every escaped pixel has the oracle's
+compares with `fixtures/perturbation-interior.v1.json` using the check it shares with the Node test
+(`perturbation-oracle-check.ts`): every escaped pixel has the oracle's
 iteration, every frame code that both sides certify is identical, and no frame
 is uncertified. The comparison is exact (string codes), with no tolerance.
 Result: both tiles agree in Chromium and Firefox, with nothing differing from

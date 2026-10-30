@@ -4,7 +4,7 @@ import type {
   checkInteriorTile,
   OracleTile,
   TileReport,
-} from '../../poc/performance/src/numerics/perturbation-browser-check';
+} from '../../poc/performance/src/numerics/perturbation-oracle-check';
 
 // Runs the Phase 3 perturbation pilots (binary64 backend and certified V0
 // verifier) inside the browser page and compares them with the committed
@@ -25,7 +25,7 @@ test('perturbation backend pilot agrees with its oracle fixture in the browser',
   await page.goto('/');
   const reports = await page.evaluate(
     async ({ ids }) => {
-      const modulePath = '/poc/performance/src/numerics/perturbation-browser-check.ts';
+      const modulePath = '/poc/performance/src/numerics/perturbation-oracle-check.ts';
       const { checkBackendTile: check } = (await import(modulePath)) as {
         checkBackendTile: typeof checkBackendTile;
       };
@@ -54,7 +54,7 @@ test('perturbation verifier pilot agrees with its oracle fixture in the browser'
   await page.goto('/');
   const reports = await page.evaluate(
     async ({ ids }) => {
-      const modulePath = '/poc/performance/src/numerics/perturbation-browser-check.ts';
+      const modulePath = '/poc/performance/src/numerics/perturbation-oracle-check.ts';
       const { checkInteriorTile: check } = (await import(modulePath)) as {
         checkInteriorTile: typeof checkInteriorTile;
       };
