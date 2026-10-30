@@ -1,3 +1,4 @@
+import type { ChildLocation } from '../domain/child-component';
 import type {
   Complex,
   OrbitResult,
@@ -41,7 +42,24 @@ export interface CancelMessage {
   readonly requestId: RequestId;
 }
 
-export type MainToWorkerMessage = RenderMessage | InspectMessage | CancelMessage;
+/** The component lens: locate the p/q child of the component holding `point`. */
+export interface LocateChildMessage {
+  readonly type: 'locate-child';
+  readonly requestId: RequestId;
+  /** An attracting parameter of the parent component: the inspected point. */
+  readonly point: Complex;
+  /** The parent's period, as the inspection reported it. */
+  readonly period: number;
+  readonly rotation: ChildRotation;
+}
+
+export interface ChildRotation {
+  readonly numerator: number;
+  readonly denominator: number;
+}
+
+export type MainToWorkerMessage =
+  RenderMessage | InspectMessage | LocateChildMessage | CancelMessage;
 
 /**
  * Worker timing of one delivery. `colorizeMs` is present on every delivery
@@ -127,6 +145,14 @@ export interface PortraitMessage {
   readonly portrait: DynamicsPortrait;
 }
 
+/** The located child, or why it was refused (locateChildComponent). */
+export interface ChildComponentMessage {
+  readonly type: 'child-component';
+  readonly requestId: RequestId;
+  readonly rotation: ChildRotation;
+  readonly location: ChildLocation;
+}
+
 /**
  * The runtime accepted a cancel request: the active computation for
  * `requestId` is aborted (or nothing was running for it). Posted on receipt
@@ -158,6 +184,7 @@ export type WorkerToMainMessage =
   | FrameMessage
   | InspectionMessage
   | PortraitMessage
+  | ChildComponentMessage
   | CancelAckMessage
   | CancelledMessage
   | WorkerErrorMessage;

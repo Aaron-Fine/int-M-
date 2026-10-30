@@ -156,6 +156,43 @@ describe('RenderWorkerRuntime', () => {
     expect(portrait.portrait.rgba.length).toBe(4 * portrait.portrait.size ** 2);
   });
 
+  it('locates a lens child in the worker, or says why not', async () => {
+    const messages: WorkerToMainMessage[] = [];
+    const port: WorkerMessagePort = { postMessage: (message) => messages.push(message) };
+    const runtime = new RenderWorkerRuntime(port, new InspectOnlyRenderer());
+
+    await runtime.handle({
+      type: 'locate-child',
+      requestId: 4,
+      point: { re: 0.1, im: 0.1 },
+      period: 1,
+      rotation: { numerator: 1, denominator: 3 },
+    });
+    await runtime.handle({
+      type: 'locate-child',
+      requestId: 5,
+      point: { re: 0.5, im: 0.5 },
+      period: 1,
+      rotation: { numerator: 1, denominator: 3 },
+    });
+
+    const [rabbit, refused] = messages;
+    if (rabbit?.type !== 'child-component' || !rabbit.location.found) {
+      throw new Error('expected the 1/3 child');
+    }
+    expect(rabbit.requestId).toBe(4);
+    expect(rabbit.rotation).toEqual({ numerator: 1, denominator: 3 });
+    expect(rabbit.location.child.period).toBe(3);
+    expect(rabbit.location.child.center.re).toBeCloseTo(-0.1225611668766536, 14);
+    expect(rabbit.location.child.center.im).toBeCloseTo(0.7448617666197442, 14);
+    expect(refused).toEqual({
+      type: 'child-component',
+      requestId: 5,
+      rotation: { numerator: 1, denominator: 3 },
+      location: { found: false, reason: 'no attracting cycle of period 1 was found here' },
+    });
+  });
+
   it('returns structured inspection evidence', async () => {
     const messages: WorkerToMainMessage[] = [];
     const port: WorkerMessagePort = {

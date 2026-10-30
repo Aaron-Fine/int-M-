@@ -1,6 +1,8 @@
 import type { Complex, EvidenceFlag, EvidenceSource, OrbitResult } from '../domain';
 import { DYNAMICS_PORTRAIT_SIZE, type DynamicsPortrait } from '../domain/dynamics-portrait';
 import type {
+  ChildComponentMessage,
+  ChildRotation,
   FrameMessage,
   InspectionResult,
   MainToWorkerMessage,
@@ -22,7 +24,7 @@ import {
   type CatalogComponent,
 } from '../catalog/components';
 import { mergeCatalog } from '../catalog/core';
-import { catalogGroups, zoomSpanFor } from '../catalog/navigation';
+import { catalogGroups, zoomSpanFor, zoomSpanForSize } from '../catalog/navigation';
 import { createCatalogIndex } from '../catalog/viewport-index';
 import { loadCatalogCore } from './catalog-core-client';
 import { createCatalogPanel } from './catalog-panel';
@@ -81,6 +83,8 @@ interface ApplicationState {
   /** Viewport of the frame on screen: the overlay is planned from it, not from the target. */
   presentedViewport?: Viewport | undefined;
   activeInspectionRequestId: number;
+  /** The component lens's pending child request (locate-child), or 0. */
+  activeChildRequestId: number;
   frameStage: 'none' | 'coarse' | 'stable';
   dragging: boolean;
   interactionMode: InteractionMode;
@@ -165,6 +169,7 @@ export function mountApplication(host: HTMLElement): () => void {
     requestId: 0,
     activeRequestId: 0,
     activeInspectionRequestId: 0,
+    activeChildRequestId: 0,
     frameStage: 'none',
     dragging: false,
     interactionMode: 'pan',
@@ -347,7 +352,7 @@ export function mountApplication(host: HTMLElement): () => void {
   });
 
   const guidance = createGuidance();
-  const inspector = createInspector();
+  const inspector = createInspector((rotation, period) => locateChild(rotation, period));
   const legend = createSemanticLegend();
   legend.update(state.semanticView);
   const catalogPanel = createCatalogPanel({
@@ -849,6 +854,7 @@ export function mountApplication(host: HTMLElement): () => void {
     delete state.pendingCatalogId;
     // A reply for the point just cleared must not re-select it (ids start at 1).
     state.activeInspectionRequestId = 0;
+    state.activeChildRequestId = 0;
     inspector.clear();
     selectedPointStatus.textContent = 'No point selected.';
     clearPresentationPreview();
@@ -943,6 +949,8 @@ export function mountApplication(host: HTMLElement): () => void {
     )}. Computing evidence.`;
     state.requestId += 1;
     state.activeInspectionRequestId = state.requestId;
+    // A new selection supersedes a child the lens was still locating.
+    state.activeChildRequestId = 0;
     workerClient.post({
       type: 'inspect',
       requestId: state.activeInspectionRequestId,
@@ -953,6 +961,51 @@ export function mountApplication(host: HTMLElement): () => void {
     updateCatalogOverlay();
     updateSelectedPointMarker();
     scheduleUrlWrite();
+  }
+
+  /** The component lens's p/q tick: asks the worker for that child of the inspected component. */
+  function locateChild(rotation: ChildRotation, period: number): void {
+    const point = state.selectedPoint;
+    if (point === undefined) return;
+    state.requestId += 1;
+    state.activeChildRequestId = state.requestId;
+    showFeedback(`Locating the ${rotation.numerator}/${rotation.denominator} child…`);
+    workerClient.post({
+      type: 'locate-child',
+      requestId: state.activeChildRequestId,
+      point,
+      period,
+      rotation,
+    } satisfies MainToWorkerMessage);
+  }
+
+  /** Zooms to a located child and selects its centre, naming it when the catalog has it. */
+  function showChild(message: ChildComponentMessage): void {
+    state.activeChildRequestId = 0;
+    const angle = `${message.rotation.numerator}/${message.rotation.denominator}`;
+    const { location } = message;
+    if (!location.found) {
+      showFeedback(`Could not locate the ${angle} child: ${location.reason}.`);
+      return;
+    }
+    const { child } = location;
+    const listed = catalogIndex.entries.find(
+      ({ component }) =>
+        component.period === child.period &&
+        Math.hypot(component.center.re - child.center.re, component.center.im - child.center.im) <=
+          1e-6 * child.size,
+    )?.component;
+    if (listed !== undefined) {
+      activateCatalogEntry(listed);
+      return;
+    }
+    cancelPointerSession(false);
+    clearPresentationPreview();
+    state.viewport = { center: { ...child.center }, spanY: zoomSpanForSize(child.size) };
+    updateCoordinateReadout();
+    inspectPoint(child.center);
+    showFeedback(`Zoomed to the ${angle} child, period ${child.period}.`);
+    scheduleRender(true);
   }
 
   /** Zooms to a catalog entry and selects it: the catalog panel's action (MI-UX-020). */
@@ -1431,6 +1484,10 @@ export function mountApplication(host: HTMLElement): () => void {
         if (message.requestId !== state.activeInspectionRequestId) break;
         inspector.showPortrait(message.portrait);
         break;
+      case 'child-component':
+        if (message.requestId !== state.activeChildRequestId) break;
+        showChild(message);
+        break;
       case 'cancel-ack':
         performance.mark('mi:cancellation-acknowledged', {
           detail: { requestId: message.requestId },
@@ -1578,7 +1635,7 @@ function createGuidance(): {
   };
 }
 
-function createInspector(): {
+function createInspector(onChild: (rotation: ChildRotation, period: number) => void): {
   readonly element: HTMLElement;
   readonly loading: (coordinate: string, component?: CatalogComponent) => void;
   readonly show: (
@@ -1736,7 +1793,7 @@ function createInspector(): {
       badge,
       facts,
       orbit.status === 'attracting-cycle'
-        ? componentLens(orbit.period, orbit.multiplierMagnitude, orbit.multiplierAngle)
+        ? componentLens(orbit.period, orbit.multiplierMagnitude, orbit.multiplierAngle, onChild)
         : undefined,
       portrait.element,
     ]);
@@ -1858,7 +1915,12 @@ const LENS_TICKS: readonly (readonly [number, number])[] = [
  * points where child components attach, and the inspected point's λ. Built
  * from the inspection's |λ| and arg λ only; no orbit work on this thread.
  */
-function componentLens(period: number, magnitude: number, angle: number): HTMLElement {
+function componentLens(
+  period: number,
+  magnitude: number,
+  angle: number,
+  onChild: (rotation: ChildRotation, period: number) => void,
+): HTMLElement {
   const svgElement = (name: string, attributes: Record<string, string>): SVGElement => {
     const node = document.createElementNS(SVG_NS, name);
     for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
@@ -1880,6 +1942,8 @@ function componentLens(period: number, magnitude: number, angle: number): HTMLEl
     r * Math.cos(theta),
     -r * Math.sin(theta),
   ];
+  // The labelled ticks are buttons, laid over the disk, that zoom to that child.
+  const plane = element('div', { className: 'lens__plane' });
   for (const [p, q] of LENS_TICKS) {
     const theta = (2 * Math.PI * p) / q;
     const [x, y] = point(radius, theta);
@@ -1887,6 +1951,12 @@ function componentLens(period: number, magnitude: number, angle: number): HTMLEl
       svgElement('circle', { class: 'lens__tick', cx: x.toFixed(2), cy: y.toFixed(2), r: '2.5' }),
     );
     if (q <= 4) {
+      const child = button('', { className: 'lens__child' });
+      child.setAttribute('aria-label', `Zoom to the ${p}/${q} child, period ${q * period}`);
+      child.style.left = `${((x + 100) / 2).toFixed(2)}%`;
+      child.style.top = `${((y + 100) / 2).toFixed(2)}%`;
+      child.addEventListener('click', () => onChild({ numerator: p, denominator: q }, period));
+      plane.append(child);
       const [lx, ly] = point(radius + 16, theta);
       const label = svgElement('text', {
         class: 'lens__label',
@@ -1925,13 +1995,14 @@ function componentLens(period: number, magnitude: number, angle: number): HTMLEl
     }),
   );
 
+  plane.prepend(svg);
   const figure = element('figure', { className: 'lens' });
   figure.append(
     element('h3', { className: 'eyebrow', text: 'Component lens' }),
-    svg,
+    plane,
     element('figcaption', {
       className: 'lens__caption',
-      text: 'This component as the disk of its multiplier λ: the dot is this point; rings are |λ| = ¼, ½, ¾; p/q marks where child components attach. The multiplier view draws the same rings and rays.',
+      text: 'This component as the disk of its multiplier λ: the dot is this point; rings are |λ| = ¼, ½, ¾; p/q marks where child components attach; select one to zoom to that child. The multiplier view draws the same rings and rays.',
     }),
   );
   return figure;
