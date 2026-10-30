@@ -1,4 +1,5 @@
 import { CpuRenderer } from '../render';
+import { createCoarseGate, isCoarseGateMessage } from './coarse-gate';
 import type { MainToWorkerMessage, WorkerToMainMessage } from './protocol';
 import { RenderWorkerRuntime, type WorkerMessagePort } from './runtime';
 import { clampTileWorkers, createTilePool } from './tile-pool';
@@ -51,8 +52,18 @@ const pool = createTilePool({
   workerCount: clampTileWorkers(hardwareConcurrency),
   factory: createTileWorker,
 });
-const runtime = new RenderWorkerRuntime(port, new CpuRenderer(pool));
+const renderer = new CpuRenderer(pool);
+// Dev and e2e builds only: browser tests hold renders after their coarse frame (coarse-gate.ts).
+const gate =
+  import.meta.env.DEV || import.meta.env.MODE === 'e2e' ? createCoarseGate(renderer) : undefined;
+const runtime = new RenderWorkerRuntime(port, gate?.renderer ?? renderer);
 
 workerScope.addEventListener('message', (event: MessageEvent<MainToWorkerMessage>) => {
+  const data: unknown = event.data;
+  if (gate !== undefined && isCoarseGateMessage(data)) {
+    if (data.hold) gate.hold();
+    else gate.release();
+    return;
+  }
   void runtime.handle(event.data);
 });

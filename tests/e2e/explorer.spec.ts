@@ -81,6 +81,80 @@ const failRenderer = async (page: Page, count = 1): Promise<void> => {
   }, count);
 };
 
+/** The render request on screen (`data-render-request-id`), or 0 before the first. */
+const renderRequestIdOf = async (page: Page): Promise<number> =>
+  Number((await page.locator('#explorer').getAttribute('data-render-request-id')) ?? 0);
+
+/**
+ * Waits for a presentation mark (`mi:coarse-presented` or `mi:stable-presented`) of a render
+ * request later than `after` and returns the latest such request and stage. The marks persist,
+ * unlike `data-render-stage`, whose coarse value can come and go between two locator polls.
+ */
+const presentedAfter = async (
+  page: Page,
+  after: number,
+  stages: readonly ('coarse' | 'stable')[] = ['coarse', 'stable'],
+): Promise<{ requestId: number; stage: 'coarse' | 'stable' }> => {
+  const handle = await page.waitForFunction(
+    ([previous, wanted]) => {
+      let latest: { requestId: number; stage: 'coarse' | 'stable' } | undefined;
+      for (const stage of wanted) {
+        for (const entry of performance.getEntriesByName(`mi:${stage}-presented`)) {
+          const detail = (entry as PerformanceMark).detail as { requestId?: unknown } | null;
+          const requestId = detail?.requestId;
+          if (typeof requestId !== 'number' || requestId <= previous) continue;
+          if (
+            latest === undefined ||
+            requestId > latest.requestId ||
+            (requestId === latest.requestId && stage === 'stable')
+          ) {
+            latest = { requestId, stage };
+          }
+        }
+      }
+      return latest ?? false;
+    },
+    [after, stages] as const,
+    { timeout: 20_000 },
+  );
+  return (await handle.jsonValue()) as { requestId: number; stage: 'coarse' | 'stable' };
+};
+
+interface RenderGate {
+  /** From now on the worker holds every render after its coarse frame. */
+  readonly hold: () => Promise<void>;
+  /** Lets held renders go on to their stable frames; later renders are not held. */
+  readonly release: () => Promise<void>;
+}
+
+type RenderWorkerGlobal = typeof globalThis & { __miRenderWorker?: Worker };
+
+/**
+ * Drives the render worker's coarse gate (src/worker/coarse-gate.ts, dev and e2e builds only),
+ * so a test acts while a computation is in flight on events, not by racing its stable frame.
+ * Call before the page loads: it records the render worker as the page creates it.
+ */
+const gateRenders = async (page: Page): Promise<RenderGate> => {
+  await page.addInitScript(() => {
+    const PageWorker = Worker;
+    globalThis.Worker = class extends PageWorker {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        if (options?.name === 'mandelbrot-renderer') {
+          (globalThis as RenderWorkerGlobal).__miRenderWorker = this;
+        }
+      }
+    };
+  });
+  const post = (hold: boolean): Promise<void> =>
+    page.evaluate((holding) => {
+      const worker = (globalThis as RenderWorkerGlobal).__miRenderWorker;
+      if (worker === undefined) throw new Error('the render worker has not started');
+      worker.postMessage({ type: 'e2e-coarse-gate', hold: holding });
+    }, hold);
+  return { hold: () => post(true), release: () => post(false) };
+};
+
 const expectNoHorizontalOverflow = async (page: Page, context: string): Promise<void> => {
   const pageWidth = await page.evaluate(() => ({
     client: document.documentElement.clientWidth,
@@ -207,9 +281,6 @@ const renderTraces = (page: Page): Promise<TraceView[]> =>
     }));
   });
 
-const tracesWith = async (page: Page, outcome: string): Promise<TraceView | undefined> =>
-  (await renderTraces(page)).find((trace) => trace.outcome === outcome);
-
 /**
  * Waits until nothing is in flight: the newest closed trace is the request on
  * screen, it completed, and its last frame is stable. Returns that trace's
@@ -271,27 +342,27 @@ const expectRecolorOf = async (page: Page, originComputeId: number | undefined):
 /**
  * In-flight replay: change the interior view while a coarse frame is the active
  * computation. The worker replays the retained coarse frame and the same
- * computation delivers the stable frame. The stable frame can win the race, so
- * retry (bounded) until a trace opens with an inflight-replay frame. Each attempt
- * picks a view that differs from the previous one.
+ * computation delivers the stable frame. The gate holds the computation after
+ * its coarse frame, so the view change always finds it in flight.
  */
-const findInflightReplayTrace = async (page: Page): Promise<TraceView | undefined> => {
-  const replayViews = ['period', 'stability'] as const;
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    await page.getByLabel('Interactive Mandelbrot set').press(attempt % 2 === 0 ? '+' : '-');
-    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'coarse', {
-      timeout: 10_000,
-    });
-    await page.getByLabel('Interior view').selectOption(replayViews[attempt % 2] ?? 'period');
-    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
-      timeout: 10_000,
-    });
-    const replayTrace = (await renderTraces(page)).find(
-      (trace) => trace.frames[0]?.source === 'inflight-replay',
-    );
-    if (replayTrace !== undefined) return replayTrace;
-  }
-  return undefined;
+const findInflightReplayTrace = async (
+  page: Page,
+  gate: RenderGate,
+  view: 'period' | 'stability',
+): Promise<TraceView | undefined> => {
+  await gate.hold();
+  const before = await renderRequestIdOf(page);
+  await page.getByLabel('Interactive Mandelbrot set').press('+');
+  const held = await presentedAfter(page, before, ['coarse']);
+  await page.getByLabel('Interior view').selectOption(view);
+  const replay = await presentedAfter(page, held.requestId, ['coarse']);
+  await gate.release();
+  await presentedAfter(page, replay.requestId - 1, ['stable']);
+  await expect(page.locator('#explorer')).toHaveAttribute(
+    'data-render-request-id',
+    String(replay.requestId),
+  );
+  return (await renderTraces(page)).find((trace) => trace.frames[0]?.source === 'inflight-replay');
 };
 
 /** The replay trace is one completed request: a coarse replay of the active computation, then its stable frame. */
@@ -316,9 +387,10 @@ const expectInflightReplay = (
 };
 
 /**
- * The period legend lists at most five periods in ascending order plus "Other
- * periods", and every listed swatch is a colour the canvas actually drew
- * (the legend and the raster share one palette, MI-UX-018/MI-UX-021).
+ * The period legend ranks at most five periods by area (spectrum bars never
+ * grow down the list) plus "Other periods", and every listed swatch is a
+ * colour the canvas actually drew (the legend and the raster share one
+ * palette, MI-UX-018/MI-UX-021).
  */
 const expectPeriodLegendMatchesRaster = async (page: Page): Promise<void> => {
   const legend = page.getByRole('region', { name: 'Semantic legend' });
@@ -333,7 +405,11 @@ const expectPeriodLegendMatchesRaster = async (page: Page): Promise<void> => {
     .map(Number);
   expect(periods.length).toBeGreaterThanOrEqual(1);
   expect(periods.length).toBeLessThanOrEqual(5);
-  expect(periods).toEqual([...periods].sort((a, b) => a - b));
+  const widths = await legend
+    .locator('.legend__item--period:not([data-period="other"]) .legend__share-bar')
+    .evaluateAll((bars) => bars.map((bar) => parseFloat((bar as HTMLElement).style.width)));
+  expect(widths).toHaveLength(periods.length);
+  expect(widths).toEqual([...widths].sort((a, b) => b - a));
 
   const missing = await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>('.explorer__canvas');
@@ -1091,30 +1167,15 @@ test.describe('Mandelbrot Interiority explorer', () => {
 
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     const explorer = page.locator('#explorer');
+    const startup = await renderRequestIdOf(page);
     await canvas.focus();
     await canvas.press('+');
-    await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', {
-      timeout: 20_000,
-    });
-    const coarseRequestId = await explorer.getAttribute('data-render-request-id');
-    expect(coarseRequestId).not.toBeNull();
-    await expect(explorer).toHaveAttribute('data-render-stage', 'stable', {
-      timeout: 20_000,
-    });
-    await expect(explorer).toHaveAttribute('data-render-request-id', coarseRequestId ?? '');
-
-    // The stable mark is written a frame after the dataset changes; wait for this request's.
-    await page.waitForFunction(
-      (id) =>
-        performance
-          .getEntriesByName('mi:stable-presented')
-          .some(
-            (entry) =>
-              ((entry as PerformanceMark).detail as { requestId?: number } | null)?.requestId ===
-              id,
-          ),
-      Number(coarseRequestId),
-    );
+    // Wait for the request's stable mark rather than catching data-render-stage=coarse, which
+    // can be shorter than a locator poll; the marks below show its coarse frame came first.
+    const stable = await presentedAfter(page, startup, ['stable']);
+    const coarseRequestId = String(stable.requestId);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    await expect(explorer).toHaveAttribute('data-render-request-id', coarseRequestId);
 
     const marks = await page.evaluate(() =>
       performance
@@ -1165,6 +1226,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
   test('render traces carry delivery provenance and two-event cancellation timing', async ({
     page,
   }) => {
+    const gate = await gateRenders(page);
     await page.goto(
       '/?perf=1&view=-0.158902249,-1.034028,0.019841269841269841269&quality=detailed',
     );
@@ -1173,17 +1235,22 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const canvas = page.getByLabel('Interactive Mandelbrot set');
     await canvas.focus();
 
-    // Cancel: press during a coarse frame; the stable frame can win the race,
-    // so retry until a trace closes as cancelled.
-    let cancelledTrace: TraceView | undefined;
-    for (let attempt = 0; attempt < 5 && cancelledTrace === undefined; attempt += 1) {
-      await canvas.press(attempt % 2 === 0 ? '+' : '-');
-      await expect(explorer).toHaveAttribute('data-render-stage', 'coarse', { timeout: 10_000 });
-      await canvas.press(attempt % 2 === 0 ? '-' : '+');
-      await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 10_000 });
-      cancelledTrace = await tracesWith(page, 'cancelled');
-    }
-    expect(cancelledTrace).toBeDefined();
+    // Cancel: the gate holds the zoom's computation after its coarse frame, so zooming back
+    // always cancels a computation in flight.
+    await gate.hold();
+    const before = await renderRequestIdOf(page);
+    await canvas.press('+');
+    const held = await presentedAfter(page, before, ['coarse']);
+    await canvas.press('-');
+    const heldTrace = async (): Promise<TraceView | undefined> =>
+      (await renderTraces(page)).find((trace) => trace.requestId === held.requestId);
+    await expect
+      .poll(async () => (await heldTrace())?.outcome, { timeout: 20_000 })
+      .toBe('cancelled');
+    await gate.release();
+    await presentedAfter(page, held.requestId, ['stable']);
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    const cancelledTrace = await heldTrace();
     expect(cancelledTrace?.childQuiescenceMs).toBeGreaterThanOrEqual(
       cancelledTrace?.cancelAckMs ?? Number.POSITIVE_INFINITY,
     );
@@ -1202,7 +1269,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await page.getByLabel('Interior view').selectOption('multiplier');
     await expectRecolorOf(page, settledOrigin);
 
-    const replayTrace = await findInflightReplayTrace(page);
+    const replayTrace = await findInflightReplayTrace(page, gate, 'period');
     expectInflightReplay(replayTrace, await renderTraces(page));
   });
   test('preserves focus and non-color state cues in forced colors', async ({ page }) => {
@@ -1356,6 +1423,41 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expectNoAccessibilityViolations(page);
   });
 
+  test('zooms from a component lens tick to that child, by pointer and by keyboard', async ({
+    page,
+  }) => {
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=multiplier&q=balanced&sel=-0.4,0.3');
+    const lens = page.locator('.inspector .lens');
+    await expect(lens).toBeVisible();
+    await expect(lens.locator('.lens__child')).toHaveCount(5);
+    await expectNoAccessibilityViolations(page);
+
+    // The 1/3 child of the main cardioid is the rabbit, which the catalog names.
+    await lens.getByRole('button', { name: 'Zoom to the 1/3 child, period 3' }).click();
+    const evidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(evidence.getByRole('heading', { name: '1/3-bulb (Douady rabbit)' })).toBeVisible();
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
+      .toBe('mi-p3-1-2');
+
+    // From the rabbit, Enter on the 1/4 tick goes to its period-12 child.
+    const quarter = page
+      .locator('.inspector .lens')
+      .getByRole('button', { name: 'Zoom to the 1/4 child, period 12' });
+    await quarter.focus();
+    await page.keyboard.press('Enter');
+    await expect(
+      evidence.getByRole('heading', { name: /^Period 12, rays \d+\/4095 and \d+\/4095$/ }),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(page.locator('.inspector .lens').getByRole('img')).toHaveAttribute(
+      'aria-label',
+      /period-12 component/,
+    );
+  });
+
   test('frames the explorer to a tall desktop window and keeps 16:10 on a short one', async ({
     page,
   }) => {
@@ -1495,9 +1597,13 @@ test.describe('Mandelbrot Interiority explorer', () => {
           await page.locator('.legend__item--period').count(),
           'period view lists at least two period entries',
         ).toBeGreaterThanOrEqual(2);
+        // The listed tail of "Other periods" must fit too.
+        await page.locator('.legend__tail-toggle').click();
+        await expect(page.locator('#legend-tail')).toBeVisible();
+        await expectNoHorizontalOverflow(page, '320px period legend with its tail listed');
       }
       const parts = await page
-        .locator('.legend__tick, .legend__bar, .legend__swatch')
+        .locator('.legend__tick, .legend__bar, .legend__swatch, .legend__share')
         .evaluateAll((elements) =>
           elements.map((element) => {
             const rect = element.getBoundingClientRect();
@@ -1512,6 +1618,59 @@ test.describe('Mandelbrot Interiority explorer', () => {
     }
   });
 
+  test('lists the periods lumped into Other periods and isolates one of them', async ({ page }) => {
+    await openPeriodView(page);
+    const explorer = page.locator('#explorer');
+    const legend = page.getByRole('region', { name: 'Semantic legend' });
+    const toggle = legend.locator('.legend__tail-toggle');
+    const tail = legend.locator('#legend-tail');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(tail).toBeHidden();
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(tail).toBeVisible();
+    const entries = tail.locator('.legend__entry');
+    expect(await entries.count()).toBeGreaterThan(0);
+    // Tail periods share the gray class, ranked most pixels first like the colored ones.
+    const grey = await legend
+      .locator('.legend__other > .legend__swatch')
+      .evaluate((swatch) => getComputedStyle(swatch).backgroundColor);
+    const tailSwatches = await tail
+      .locator('.legend__swatch')
+      .evaluateAll((swatches) =>
+        swatches.map((swatch) => getComputedStyle(swatch).backgroundColor),
+      );
+    expect(new Set(tailSwatches)).toEqual(new Set([grey]));
+    const widths = await tail
+      .locator('.legend__share-bar')
+      .evaluateAll((bars) => bars.map((bar) => parseFloat((bar as HTMLElement).style.width)));
+    expect(widths).toEqual([...widths].sort((a, b) => b - a));
+    await expectNoAccessibilityViolations(page);
+
+    // A gray period isolates like a colored one: its pixels stay, the rest dims.
+    const first = entries.first();
+    const period = Number(await first.getAttribute('data-period'));
+    expect(period).toBeGreaterThan(0);
+    await first.click();
+    await expect(first).toHaveAttribute('aria-pressed', 'true');
+    await expect(explorer).toHaveAttribute('data-isolated-period', String(period));
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    const isolated = await isolationPixels(page, period);
+    expect(isolated.kept).toBeGreaterThan(0);
+    expect(isolated.undimmed).toBe(0);
+    await expect(explorer.locator('.isolation-chip')).toContainText(
+      `Showing period ${period} only`,
+    );
+    // The list stays open through the recolor, and closes again from its toggle.
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(tail).toBeHidden();
+  });
+
   test('isolates a period from the legend by keyboard and restores it (MI-UX-018)', async ({
     page,
   }) => {
@@ -1520,29 +1679,36 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const legend = page.getByRole('region', { name: 'Semantic legend' });
     const periodOne = legend.locator('.legend__entry[data-period="1"]');
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
-    await expect(legend.getByText(/^Hover, focus or select a period/)).toBeVisible();
+    await expect(legend.getByText(/^Hover or focus a period to outline it/)).toBeVisible();
     // The hint explains the buttons to assistive technology.
     const hintId = await legend.locator('.legend__hint').getAttribute('id');
     expect(hintId).toBeTruthy();
     await expect(periodOne).toHaveAttribute('aria-describedby', hintId ?? '');
     await expect(legend.locator('.legend__dropped')).toBeEmpty();
 
-    // Keyboard focus previews the isolation.
+    // Keyboard focus previews the period with an outline; nothing is dimmed.
     await periodOne.focus();
+    await expect(explorer).toHaveAttribute('data-outlined-period', '1');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
+    expect((await isolationPixels(page, 1)).undimmed).toBeGreaterThan(0);
+
+    // Activation isolates it, with a chip that says so; Escape restores the full view.
+    await page.keyboard.press('Enter');
+    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
     await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).not.toHaveAttribute('data-outlined-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     const isolated = await isolationPixels(page, 1);
     expect(isolated.kept).toBeGreaterThan(0);
     expect(isolated.undimmed).toBe(0);
-
-    // Activation keeps it; Escape restores the full view.
-    await page.keyboard.press('Enter');
-    await expect(periodOne).toHaveAttribute('aria-pressed', 'true');
+    await expect(explorer.locator('.isolation-chip')).toContainText('Showing period 1 only');
     await page.keyboard.press('Escape');
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
     await expect(explorer).not.toHaveAttribute('data-isolated-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     expect((await isolationPixels(page, 1)).undimmed).toBeGreaterThan(0);
+    await expect(explorer.locator('.isolation-chip')).toBeHidden();
 
     // A second activation also restores it.
     await page.keyboard.press('Enter');
@@ -1564,8 +1730,8 @@ test.describe('Mandelbrot Interiority explorer', () => {
     );
     await expect(explorer).not.toHaveAttribute('data-isolated-period');
 
-    // Mouse hover previews another period while it lasts, without touching
-    // the render status live region (no announcement per hover).
+    // Mouse hover outlines another period while it lasts, dims nothing, and
+    // leaves the render status live region alone (no announcement per hover).
     const renderStatus = page.getByRole('status', { name: 'Render status' });
     const statusBefore = await renderStatus.textContent();
     await renderStatus.evaluate((element) => {
@@ -1577,10 +1743,11 @@ test.describe('Mandelbrot Interiority explorer', () => {
     });
     const periodTwo = legend.locator('.legend__entry[data-period="2"]');
     await periodTwo.hover();
-    await expect(explorer).toHaveAttribute('data-isolated-period', '2');
+    await expect(explorer).toHaveAttribute('data-outlined-period', '2');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     await page.mouse.move(0, 0);
-    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(explorer).not.toHaveAttribute('data-outlined-period');
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     expect(await renderStatus.textContent()).toBe(statusBefore);
     expect(
@@ -1637,7 +1804,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const requestId = async (): Promise<number> =>
       Number(await explorer.getAttribute('data-render-request-id'));
     const settled = async (period: string): Promise<void> => {
-      await expect(explorer).toHaveAttribute('data-isolated-period', period);
+      await expect(explorer).toHaveAttribute('data-outlined-period', period);
       await expect(explorer).toHaveAttribute('data-render-stage', 'stable');
     };
 
@@ -1658,7 +1825,7 @@ test.describe('Mandelbrot Interiority explorer', () => {
     const explorer = page.locator('#explorer');
     const periodOne = page.locator('.legend__entry[data-period="1"]');
     await periodOne.focus();
-    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).toHaveAttribute('data-outlined-period', '1');
     const before = Number(await explorer.getAttribute('data-render-request-id'));
 
     // A wheel zoom re-renders (coarse, then stable) without moving focus.
@@ -1671,7 +1838,22 @@ test.describe('Mandelbrot Interiority explorer', () => {
       .toBeGreaterThan(before);
     await expect(explorer).toHaveAttribute('data-render-stage', 'stable', { timeout: 20_000 });
     await expect(periodOne).toBeFocused();
-    await expect(explorer).toHaveAttribute('data-isolated-period', '1');
+    await expect(explorer).toHaveAttribute('data-outlined-period', '1');
+  });
+
+  test('ends an isolation from the chip on the image', async ({ page }) => {
+    await openPeriodView(page);
+    const explorer = page.locator('#explorer');
+    const periodTwo = page.locator('.legend__entry[data-period="2"]');
+    await periodTwo.click();
+    await page.mouse.move(0, 0);
+    await expect(explorer).toHaveAttribute('data-isolated-period', '2');
+    const chip = explorer.locator('.isolation-chip');
+    await expect(chip).toContainText('Showing period 2 only');
+    await chip.getByRole('button', { name: 'Show all' }).click();
+    await expect(periodTwo).toHaveAttribute('aria-pressed', 'false');
+    await expect(explorer).not.toHaveAttribute('data-isolated-period');
+    await expect(chip).toBeHidden();
   });
 
   test.describe('touch', () => {
@@ -1835,6 +2017,12 @@ test.describe('Mandelbrot Interiority explorer', () => {
       { timeout: 20_000 },
     );
 
+    // Termination is asynchronous: the failed renderer's nested tile workers can still be listed
+    // after the new renderer's stable frame. Wait for the count to settle; a leaked worker never
+    // leaves, so a leak still fails here.
+    await expect
+      .poll(async () => (await countFromCdpTargets(page)).total, { timeout: 10_000 })
+      .toBe(before.total);
     const after = await countFromCdpTargets(page);
     expect(after.render, `after recovery: ${JSON.stringify({ before, after })}`).toBe(1);
     expect(after.tile, `after recovery: ${JSON.stringify({ before, after })}`).toBe(before.tile);
