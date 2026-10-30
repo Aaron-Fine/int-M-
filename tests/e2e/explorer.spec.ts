@@ -1423,6 +1423,41 @@ test.describe('Mandelbrot Interiority explorer', () => {
     await expectNoAccessibilityViolations(page);
   });
 
+  test('zooms from a component lens tick to that child, by pointer and by keyboard', async ({
+    page,
+  }) => {
+    await page.goto('/?v=1&c=-0.75,0&s=2.5&view=multiplier&q=balanced&sel=-0.4,0.3');
+    const lens = page.locator('.inspector .lens');
+    await expect(lens).toBeVisible();
+    await expect(lens.locator('.lens__child')).toHaveCount(5);
+    await expectNoAccessibilityViolations(page);
+
+    // The 1/3 child of the main cardioid is the rabbit, which the catalog names.
+    await lens.getByRole('button', { name: 'Zoom to the 1/3 child, period 3' }).click();
+    const evidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(evidence.getByRole('heading', { name: '1/3-bulb (Douady rabbit)' })).toBeVisible();
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get('sel'), { timeout: 10_000 })
+      .toBe('mi-p3-1-2');
+
+    // From the rabbit, Enter on the 1/4 tick goes to its period-12 child.
+    const quarter = page
+      .locator('.inspector .lens')
+      .getByRole('button', { name: 'Zoom to the 1/4 child, period 12' });
+    await quarter.focus();
+    await page.keyboard.press('Enter');
+    await expect(
+      evidence.getByRole('heading', { name: /^Period 12, rays \d+\/4095 and \d+\/4095$/ }),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    await expect(page.locator('.inspector .lens').getByRole('img')).toHaveAttribute(
+      'aria-label',
+      /period-12 component/,
+    );
+  });
+
   test('frames the explorer to a tall desktop window and keeps 16:10 on a short one', async ({
     page,
   }) => {

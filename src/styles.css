@@ -972,11 +972,35 @@ button:disabled {
   border-radius: var(--radius-md);
 }
 
-.lens__disk {
+/* The disk and the buttons on its p/q ticks share one square box. */
+.lens__plane {
+  position: relative;
   width: 100%;
   max-width: 14rem;
   justify-self: center;
+}
+
+.lens__disk {
+  display: block;
+  width: 100%;
   overflow: visible;
+}
+
+.lens__child {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.875rem 0 0 -0.875rem;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.lens__child:hover {
+  background: rgb(215 91 54 / 16%);
+  border-color: var(--accent);
 }
 
 .lens__fill {

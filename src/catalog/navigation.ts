@@ -1,3 +1,4 @@
+import { hyperbolicSizeEstimate } from '../domain/child-component';
 import { MAX_VIEWPORT_SPAN_Y, MIN_VIEWPORT_SPAN_Y } from '../domain/viewport';
 import type { CatalogComponent } from './schema';
 
@@ -21,52 +22,28 @@ export const compareCatalogOrder = (left: CatalogComponent, right: CatalogCompon
   left.period - right.period || lowerRayNumerator(left) - lowerRayNumerator(right);
 
 /**
- * Size estimate of a hyperbolic component from its period p and centre c
- * (Heiland-Allen, "Mandelbrot set component size estimates"): with
- * z_q = f_c^q(0), l_q = 2^q z_1 ⋯ z_q and b = 1 + Σ 1/l_q over q < p, the size
- * is 1 / |b l_{p−1}²|. It is about a bulb's diameter (0.5 for the period-2
- * disk) and 1 for the main cardioid. Evaluated at (Re c, |Im c|), so a
- * component and its conjugate get identical sizes; 0 if the orbit overflows.
+ * Size estimate of a catalog component (Heiland-Allen, "Mandelbrot set
+ * component size estimates"): hyperbolicSizeEstimate of its centre and
+ * period. About a bulb's diameter (0.5 for the period-2 disk) and 1 for the
+ * main cardioid; a component and its conjugate get identical sizes.
  */
-export const componentSizeEstimate = (component: CatalogComponent): number => {
-  const cRe = component.center.re;
-  const cIm = Math.abs(component.center.im);
-  let zRe = 0;
-  let zIm = 0;
-  let lRe = 1;
-  let lIm = 0;
-  let bRe = 1;
-  let bIm = 0;
-  for (let step = 1; step < component.period; step += 1) {
-    const nextZRe = zRe * zRe - zIm * zIm + cRe;
-    zIm = 2 * zRe * zIm + cIm;
-    zRe = nextZRe;
-    const nextLRe = 2 * (zRe * lRe - zIm * lIm);
-    lIm = 2 * (zRe * lIm + zIm * lRe);
-    lRe = nextLRe;
-    const norm = lRe * lRe + lIm * lIm;
-    bRe += lRe / norm;
-    bIm -= lIm / norm;
-  }
-  const squareRe = lRe * lRe - lIm * lIm;
-  const squareIm = 2 * lRe * lIm;
-  const size = 1 / Math.hypot(bRe * squareRe - bIm * squareIm, bRe * squareIm + bIm * squareRe);
-  return Number.isFinite(size) ? size : 0;
-};
+export const componentSizeEstimate = (component: CatalogComponent): number =>
+  hyperbolicSizeEstimate(component.center, component.period);
 
 /** A component fills about 40% of the view height when activated from the list. */
 export const ZOOM_SPAN_PER_SIZE = 2.5;
 
 /**
- * The view height (spanY) that frames a component: 2.5 times its size
- * estimate, within the zoom range, so never past the 6,000,000× ceiling
- * (ADR 0002). The main cardioid gets 2.5, the default view's height.
+ * The view height (spanY) that frames a component of size estimate `size`:
+ * 2.5 times it, within the zoom range, so never past the 6,000,000× ceiling
+ * (ADR 0002).
  */
+export const zoomSpanForSize = (size: number): number =>
+  Math.min(MAX_VIEWPORT_SPAN_Y, Math.max(MIN_VIEWPORT_SPAN_Y, ZOOM_SPAN_PER_SIZE * size));
+
+/** The view height that frames a catalog component; the main cardioid gets 2.5, the default view's. */
 export const zoomSpanFor = (component: CatalogComponent): number =>
-  Math.min(
-    MAX_VIEWPORT_SPAN_Y,
-    Math.max(MIN_VIEWPORT_SPAN_Y, ZOOM_SPAN_PER_SIZE * componentSizeEstimate(component)),
-  );
+  zoomSpanForSize(componentSizeEstimate(component));
 
 /** Groups with at most this many entries start expanded in the catalog panel. */
 export const GROUP_OPEN_LIMIT = 8;
