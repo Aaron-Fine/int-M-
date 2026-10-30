@@ -100,13 +100,12 @@ separate job that cannot fail the build (`continue-on-error`). A difference
 is a prompt to look at the report (`playwright-report-visual/`), not a
 failure. Commit new baselines with the change that explains them.
 
-Baselines regenerated 2026-10-20 (commit `5fe077d`): ten of the twelve baselines
-were rewritten in the container at `d3d0490`, in both engines (the two
-`period-four-126x-period.png` baselines were unchanged). The UI-state
-screenshots show the item 7 catalog (periods 5 to 12, the period-4 labels by
-their rays), the 2026-10-18 nomenclature and the references. The raster views
-moved because the canvas is one pixel shorter after the controls-bar
-wrap, so every raster pixel shifts.
+Baselines regenerated 2026-10-29: all twelve baselines were rewritten in the
+container at `ce87e58`, in both engines, after the UI pull requests #32 to #34.
+The canvas is framed to the window, so at 1280 by 800 the raster views are 430
+to 448 px tall instead of 577 to 578, and the explorer 502 instead of 631; the
+catalog markers are outlined; and the multiplier view fades its aliasing
+stripes and draws internal-coordinate contours.
 
 ## Orbit fixtures
 
