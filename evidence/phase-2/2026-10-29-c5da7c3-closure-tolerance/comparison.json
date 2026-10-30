@@ -1,0 +1,1556 @@
+{
+  "schemaVersion": 1,
+  "productionCommit": "c5da7c3",
+  "stride": 16,
+  "oracle": "tools/perturbation_oracle.py iterate_pixel, GRID_BITS ladder (1200, 4096)",
+  "attractingHorizonFactor": 4,
+  "totalsByKind": {
+    "corpus-view": {
+      "agree-interior": 5336,
+      "agree-escape": 6455,
+      "agree-unresolved-or-bounded": 1006,
+      "escape-not-confirmed": 1,
+      "shifted-escape": 2
+    },
+    "minibrot-tile": {
+      "agree-escape": 9109,
+      "agree-unresolved-or-bounded": 47,
+      "agree-interior": 53,
+      "shifted-escape": 7
+    },
+    "control-beyond-bound": {
+      "agree-escape": 2940,
+      "agree-unresolved-or-bounded": 25,
+      "agree-interior": 1080,
+      "false-interior": 9,
+      "shifted-escape": 42
+    }
+  },
+  "escapeIterationDifferenceByKind": {
+    "corpus-view": {
+      "-40": 1,
+      "-3": 1,
+      "0": 6455
+    },
+    "minibrot-tile": {
+      "-1": 1,
+      "0": 9109,
+      "1": 4,
+      "2": 1,
+      "4": 1
+    },
+    "control-beyond-bound": {
+      "-32": 1,
+      "-31": 1,
+      "-21": 1,
+      "-10": 1,
+      "-9": 1,
+      "-8": 1,
+      "-7": 1,
+      "-2": 2,
+      "-1": 10,
+      "0": 2940,
+      "1": 10,
+      "2": 4,
+      "4": 3,
+      "5": 1,
+      "7": 2,
+      "13": 1,
+      "19": 1,
+      "45": 1
+    }
+  },
+  "targets": [
+    {
+      "id": "mi-scale-6mx-basilica-rim",
+      "kind": "corpus-view",
+      "profile": "Balanced",
+      "maxIterations": 512,
+      "samples": 2560,
+      "production": {
+        "attracting": 2560
+      },
+      "categories": {
+        "agree-interior": 2560
+      },
+      "escapeIterationDifference": {}
+    },
+    {
+      "id": "mi-fallback-unknown-high-period",
+      "kind": "corpus-view",
+      "profile": "Balanced",
+      "maxIterations": 512,
+      "samples": 2560,
+      "production": {
+        "escaped": 2341,
+        "unresolved": 219
+      },
+      "categories": {
+        "agree-escape": 2339,
+        "agree-unresolved-or-bounded": 219,
+        "escape-not-confirmed": 1,
+        "shifted-escape": 1
+      },
+      "escapeIterationDifference": {
+        "-3": 1,
+        "0": 2339
+      }
+    },
+    {
+      "id": "mi-fallback-budget-exhaustion",
+      "kind": "corpus-view",
+      "profile": "Balanced",
+      "maxIterations": 512,
+      "samples": 2560,
+      "production": {
+        "escaped": 1699,
+        "unresolved": 775,
+        "attracting": 86
+      },
+      "categories": {
+        "agree-escape": 1698,
+        "agree-unresolved-or-bounded": 775,
+        "shifted-escape": 1,
+        "agree-interior": 86
+      },
+      "escapeIterationDifference": {
+        "-40": 1,
+        "0": 1698
+      }
+    },
+    {
+      "id": "mi-hard-supplied-609x",
+      "kind": "corpus-view",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 2560,
+      "production": {
+        "escaped": 2418,
+        "attracting": 130,
+        "unresolved": 12
+      },
+      "categories": {
+        "agree-escape": 2418,
+        "agree-interior": 130,
+        "agree-unresolved-or-bounded": 12
+      },
+      "escapeIterationDifference": {
+        "0": 2418
+      }
+    },
+    {
+      "id": "mi-fallback-weak-attraction",
+      "kind": "corpus-view",
+      "profile": "Balanced",
+      "maxIterations": 512,
+      "samples": 2560,
+      "production": {
+        "attracting": 2560
+      },
+      "categories": {
+        "agree-interior": 2560
+      },
+      "escapeIterationDifference": {}
+    },
+    {
+      "id": "tile-p34-step-2^-31",
+      "kind": "minibrot-tile",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 2304,
+      "production": {
+        "escaped": 2300,
+        "unresolved": 3,
+        "attracting": 1
+      },
+      "categories": {
+        "agree-escape": 2300,
+        "agree-unresolved-or-bounded": 3,
+        "agree-interior": 1
+      },
+      "escapeIterationDifference": {
+        "0": 2300
+      }
+    },
+    {
+      "id": "tile-p61-step-2^-31",
+      "kind": "minibrot-tile",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 2304,
+      "production": {
+        "escaped": 2303,
+        "attracting": 1
+      },
+      "categories": {
+        "agree-escape": 2296,
+        "shifted-escape": 7,
+        "agree-interior": 1
+      },
+      "escapeIterationDifference": {
+        "-1": 1,
+        "0": 2296,
+        "1": 4,
+        "2": 1,
+        "4": 1
+      }
+    },
+    {
+      "id": "tile-p25-step-2^-26",
+      "kind": "minibrot-tile",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 2304,
+      "production": {
+        "escaped": 2214,
+        "unresolved": 39,
+        "attracting": 51
+      },
+      "categories": {
+        "agree-escape": 2214,
+        "agree-unresolved-or-bounded": 39,
+        "agree-interior": 51
+      },
+      "escapeIterationDifference": {
+        "0": 2214
+      }
+    },
+    {
+      "id": "tile-p34-step-2^-31-balanced",
+      "kind": "minibrot-tile",
+      "profile": "Balanced",
+      "maxIterations": 512,
+      "samples": 2304,
+      "production": {
+        "escaped": 2299,
+        "unresolved": 5
+      },
+      "categories": {
+        "agree-escape": 2299,
+        "agree-unresolved-or-bounded": 5
+      },
+      "escapeIterationDifference": {
+        "0": 2299
+      }
+    },
+    {
+      "id": "control-p34-step-2^-33",
+      "kind": "control-beyond-bound",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 1024,
+      "production": {
+        "escaped": 966,
+        "unresolved": 24,
+        "attracting": 34
+      },
+      "categories": {
+        "agree-escape": 964,
+        "agree-unresolved-or-bounded": 24,
+        "agree-interior": 33,
+        "false-interior": 1,
+        "shifted-escape": 2
+      },
+      "escapeIterationDifference": {
+        "0": 964,
+        "1": 2
+      }
+    },
+    {
+      "id": "control-p61-step-2^-33",
+      "kind": "control-beyond-bound",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 1024,
+      "production": {
+        "escaped": 1023,
+        "attracting": 1
+      },
+      "categories": {
+        "agree-escape": 1019,
+        "shifted-escape": 4,
+        "agree-interior": 1
+      },
+      "escapeIterationDifference": {
+        "-32": 1,
+        "-8": 1,
+        "-1": 1,
+        "0": 1019,
+        "4": 1
+      }
+    },
+    {
+      "id": "control-p34-step-2^-40",
+      "kind": "control-beyond-bound",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 1024,
+      "production": {
+        "attracting": 1024
+      },
+      "categories": {
+        "agree-interior": 1024
+      },
+      "escapeIterationDifference": {}
+    },
+    {
+      "id": "control-p61-step-2^-40",
+      "kind": "control-beyond-bound",
+      "profile": "Detailed",
+      "maxIterations": 1024,
+      "samples": 1024,
+      "production": {
+        "escaped": 993,
+        "attracting": 30,
+        "unresolved": 1
+      },
+      "categories": {
+        "agree-escape": 957,
+        "shifted-escape": 36,
+        "agree-interior": 22,
+        "false-interior": 8,
+        "agree-unresolved-or-bounded": 1
+      },
+      "escapeIterationDifference": {
+        "-31": 1,
+        "-21": 1,
+        "-10": 1,
+        "-9": 1,
+        "-7": 1,
+        "-2": 2,
+        "-1": 9,
+        "0": 957,
+        "1": 8,
+        "2": 4,
+        "4": 2,
+        "5": 1,
+        "7": 2,
+        "13": 1,
+        "19": 1,
+        "45": 1
+      }
+    }
+  ],
+  "disagreements": [
+    {
+      "target": "mi-fallback-unknown-high-period",
+      "x": 344,
+      "y": 136,
+      "re": -0.7436465042246587,
+      "im": 0.1318287713928119,
+      "category": "escape-not-confirmed",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 423,
+        "iterations": 423,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "bounded",
+        "iteration": 512,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "mi-fallback-unknown-high-period",
+      "x": 312,
+      "y": 264,
+      "re": -0.7436470042246587,
+      "im": 0.1318267713928119,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 422,
+        "iterations": 422,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 425,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "mi-fallback-budget-exhaustion",
+      "x": 440,
+      "y": 72,
+      "re": -1.401266907842,
+      "im": 0.00038671875,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 456,
+        "iterations": 456,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 496,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 45,
+      "y": 13,
+      "re": 0.0016437317498931266,
+      "im": 0.8224676384205116,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 180,
+        "iterations": 180,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 178,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 13,
+      "y": 21,
+      "re": 0.0016437168487319328,
+      "im": 0.8224676346952213,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 180,
+        "iterations": 180,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 181,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 27,
+      "y": 26,
+      "re": 0.001643723367989955,
+      "im": 0.8224676323669149,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 195,
+        "iterations": 195,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 191,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 21,
+      "y": 29,
+      "re": 0.0016437205740222312,
+      "im": 0.822467630969931,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 199,
+        "iterations": 199,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 198,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 26,
+      "y": 35,
+      "re": 0.0016437229023286678,
+      "im": 0.8224676281759633,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 188,
+        "iterations": 188,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 187,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 23,
+      "y": 39,
+      "re": 0.0016437215053448058,
+      "im": 0.8224676263133182,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 172,
+        "iterations": 172,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 171,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "tile-p61-step-2^-31",
+      "x": 46,
+      "y": 42,
+      "re": 0.001643732215554414,
+      "im": 0.8224676249163343,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 184,
+        "iterations": 184,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 183,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p34-step-2^-33",
+      "x": 18,
+      "y": 15,
+      "re": -0.10111537290596401,
+      "im": 0.9562964986342074,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 34,
+        "escapeIteration": 0,
+        "iterations": 987,
+        "multiplierMagnitude": 0.9809070619352245
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 2687,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p34-step-2^-33",
+      "x": 11,
+      "y": 18,
+      "re": -0.10111537372087126,
+      "im": 0.9562964982849614,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 535,
+        "iterations": 535,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 534,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p34-step-2^-33",
+      "x": 19,
+      "y": 20,
+      "re": -0.10111537278954869,
+      "im": 0.9562964980521308,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 528,
+        "iterations": 528,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 527,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-33",
+      "x": 25,
+      "y": 8,
+      "re": 0.0016437230187439896,
+      "im": 0.82246763422956,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 195,
+        "iterations": 195,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 227,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-33",
+      "x": 25,
+      "y": 11,
+      "re": 0.0016437230187439896,
+      "im": 0.8224676338803141,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 217,
+        "iterations": 217,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 225,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-33",
+      "x": 3,
+      "y": 24,
+      "re": 0.0016437204576069094,
+      "im": 0.8224676323669149,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 200,
+        "iterations": 200,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 201,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-33",
+      "x": 28,
+      "y": 24,
+      "re": 0.001643723367989955,
+      "im": 0.8224676323669149,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 195,
+        "iterations": 195,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 191,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 10,
+      "y": 0,
+      "re": 0.001643721965549125,
+      "im": 0.8224676333127894,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 272,
+        "iterations": 272,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 273,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 23,
+      "y": 1,
+      "re": 0.001643721977372556,
+      "im": 0.8224676333118799,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 306,
+        "iterations": 306,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 301,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 8,
+      "y": 4,
+      "re": 0.0016437219637301355,
+      "im": 0.8224676333091514,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 322,
+        "iterations": 322,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 318,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 23,
+      "y": 6,
+      "re": 0.001643721977372556,
+      "im": 0.8224676333073324,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 313,
+        "iterations": 313,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 334,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 24,
+      "y": 7,
+      "re": 0.0016437219782820508,
+      "im": 0.8224676333064229,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 338,
+        "iterations": 338,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 337,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 18,
+      "y": 8,
+      "re": 0.0016437219728250825,
+      "im": 0.8224676333055134,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 351,
+        "iterations": 351,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 350,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 24,
+      "y": 8,
+      "re": 0.0016437219782820508,
+      "im": 0.8224676333055134,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 326,
+        "iterations": 326,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 327,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 13,
+      "y": 9,
+      "re": 0.001643721968277609,
+      "im": 0.8224676333046039,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 350,
+        "iterations": 350,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 348,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 21,
+      "y": 9,
+      "re": 0.0016437219755535666,
+      "im": 0.8224676333046039,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 364,
+        "iterations": 364,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 362,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 18,
+      "y": 12,
+      "re": 0.0016437219728250825,
+      "im": 0.8224676333018754,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 499,
+        "iterations": 499,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 498,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 21,
+      "y": 12,
+      "re": 0.0016437219755535666,
+      "im": 0.8224676333018754,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 544,
+        "iterations": 544,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 525,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 24,
+      "y": 12,
+      "re": 0.0016437219782820508,
+      "im": 0.8224676333018754,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 407,
+        "iterations": 407,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 409,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 11,
+      "y": 13,
+      "re": 0.0016437219664586196,
+      "im": 0.822467633300966,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 350,
+        "iterations": 350,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 351,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 18,
+      "y": 13,
+      "re": 0.0016437219728250825,
+      "im": 0.822467633300966,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 72,
+        "multiplierMagnitude": 0.8117241975432293
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 658,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 19,
+      "y": 13,
+      "re": 0.0016437219737345772,
+      "im": 0.822467633300966,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 184,
+        "multiplierMagnitude": 0.8320007009738197
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 1279,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 20,
+      "y": 13,
+      "re": 0.001643721974644072,
+      "im": 0.822467633300966,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 184,
+        "multiplierMagnitude": 0.5092604075742487
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 894,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 21,
+      "y": 13,
+      "re": 0.0016437219755535666,
+      "im": 0.822467633300966,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 950,
+        "iterations": 950,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 937,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 27,
+      "y": 13,
+      "re": 0.0016437219810105349,
+      "im": 0.822467633300966,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 339,
+        "iterations": 339,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 341,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 11,
+      "y": 14,
+      "re": 0.0016437219664586196,
+      "im": 0.8224676333000565,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 351,
+        "iterations": 351,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 352,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 7,
+      "y": 15,
+      "re": 0.0016437219628206408,
+      "im": 0.822467633299147,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 325,
+        "iterations": 325,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 323,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 13,
+      "y": 15,
+      "re": 0.001643721968277609,
+      "im": 0.822467633299147,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 478,
+        "iterations": 478,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 509,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 14,
+      "y": 15,
+      "re": 0.0016437219691871037,
+      "im": 0.822467633299147,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 184,
+        "multiplierMagnitude": 0.34072269120590826
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 3916,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 19,
+      "y": 16,
+      "re": 0.0016437219737345772,
+      "im": 0.8224676332982375,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 72,
+        "multiplierMagnitude": 0.8272345814877274
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 1044,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 24,
+      "y": 16,
+      "re": 0.0016437219782820508,
+      "im": 0.8224676332982375,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 372,
+        "iterations": 372,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 371,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 30,
+      "y": 16,
+      "re": 0.001643721983739019,
+      "im": 0.8224676332982375,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 317,
+        "iterations": 317,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 310,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 15,
+      "y": 17,
+      "re": 0.0016437219700965984,
+      "im": 0.822467633297328,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 428,
+        "multiplierMagnitude": 0.6288383586220089
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 2425,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 19,
+      "y": 17,
+      "re": 0.0016437219737345772,
+      "im": 0.822467633297328,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 245,
+        "multiplierMagnitude": 0.8654055594065225
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 1440,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 27,
+      "y": 17,
+      "re": 0.0016437219810105349,
+      "im": 0.822467633297328,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 336,
+        "iterations": 336,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 346,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 15,
+      "y": 18,
+      "re": 0.0016437219700965984,
+      "im": 0.8224676332964185,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 583,
+        "iterations": 583,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 590,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 19,
+      "y": 18,
+      "re": 0.0016437219737345772,
+      "im": 0.8224676332964185,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 563,
+        "iterations": 563,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 561,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 30,
+      "y": 18,
+      "re": 0.001643721983739019,
+      "im": 0.8224676332964185,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 347,
+        "iterations": 347,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 302,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 18,
+      "y": 19,
+      "re": 0.0016437219728250825,
+      "im": 0.822467633295509,
+      "category": "false-interior",
+      "production": {
+        "status": "attracting",
+        "period": 61,
+        "escapeIteration": 0,
+        "iterations": 245,
+        "multiplierMagnitude": 0.9393854286792896
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 781,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 19,
+      "y": 19,
+      "re": 0.0016437219737345772,
+      "im": 0.822467633295509,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 558,
+        "iterations": 558,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 551,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 20,
+      "y": 19,
+      "re": 0.001643721974644072,
+      "im": 0.822467633295509,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 427,
+        "iterations": 427,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 428,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 21,
+      "y": 20,
+      "re": 0.0016437219755535666,
+      "im": 0.8224676332945995,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 358,
+        "iterations": 358,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 357,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 10,
+      "y": 21,
+      "re": 0.001643721965549125,
+      "im": 0.82246763329369,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 323,
+        "iterations": 323,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 322,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 20,
+      "y": 23,
+      "re": 0.001643721974644072,
+      "im": 0.822467633291871,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 341,
+        "iterations": 341,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 340,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 16,
+      "y": 24,
+      "re": 0.0016437219710060931,
+      "im": 0.8224676332909615,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 337,
+        "iterations": 337,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 346,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 23,
+      "y": 26,
+      "re": 0.001643721977372556,
+      "im": 0.8224676332891425,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 314,
+        "iterations": 314,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 315,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 24,
+      "y": 26,
+      "re": 0.0016437219782820508,
+      "im": 0.8224676332891425,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 288,
+        "iterations": 288,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 287,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 10,
+      "y": 27,
+      "re": 0.001643721965549125,
+      "im": 0.822467633288233,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 299,
+        "iterations": 299,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 300,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 21,
+      "y": 28,
+      "re": 0.0016437219755535666,
+      "im": 0.8224676332873235,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 296,
+        "iterations": 296,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 292,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 17,
+      "y": 29,
+      "re": 0.0016437219719155878,
+      "im": 0.822467633286414,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 303,
+        "iterations": 303,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 304,
+        "gridBits": 1200
+      }
+    },
+    {
+      "target": "control-p61-step-2^-40",
+      "x": 27,
+      "y": 30,
+      "re": 0.0016437219810105349,
+      "im": 0.8224676332855045,
+      "category": "shifted-escape",
+      "production": {
+        "status": "escaped",
+        "period": 0,
+        "escapeIteration": 286,
+        "iterations": 286,
+        "multiplierMagnitude": 0
+      },
+      "oracle": {
+        "status": "escaped",
+        "iteration": 287,
+        "gridBits": 1200
+      }
+    }
+  ]
+}

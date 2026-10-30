@@ -51,6 +51,8 @@
     "kernel-bench": "vite build --ssr tools/benchmark/kernel-bench.ts --outDir .evidence-build/kernel-bench --emptyOutDir --logLevel warn && node .evidence-build/kernel-bench/kernel-bench.js",
     "fixtures:pixel-dump": "vite build --ssr tools/kernel_pixel_dump.ts --outDir .evidence-build/pixel-dump --emptyOutDir --logLevel warn && node .evidence-build/pixel-dump/kernel_pixel_dump.js",
     "evidence:period-three": "vite build --ssr tools/adjudicate_period_three.ts --outDir .evidence-build/period-three --emptyOutDir --logLevel warn && node .evidence-build/period-three/adjudicate_period_three.js",
+    "evidence:closure-tolerance": "vite build --ssr tools/closure_tolerance_production.ts --outDir .evidence-build/closure-tolerance --emptyOutDir --logLevel warn && node .evidence-build/closure-tolerance/closure_tolerance_production.js",
+    "evidence:closure-tolerance:compare": "python3 tools/closure_tolerance_compare.py",
     "evidence:period-four": "vite build --ssr tools/adjudicate_period_four.ts --outDir .evidence-build/period-four --emptyOutDir --logLevel warn && node .evidence-build/period-four/adjudicate_period_four.js",
     "coarse-budget-study": "vite build --ssr tools/benchmark/coarse-budget-study.ts --outDir .evidence-build/coarse-budget-study --emptyOutDir --logLevel warn && node .evidence-build/coarse-budget-study/coarse-budget-study.js"
   },

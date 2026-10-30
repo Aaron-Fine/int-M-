@@ -65,9 +65,23 @@ is V0's verdict on the exact frames. V0's `Frame.multiplierMagnitude` is
 rational while `|λ|` generally is not. Any rational witness on the same side
 of `attractUpper` gives the same `finish` branch, and one exists whenever the
 comparison is certified. Residual squares of the exact orbit are already
-rational, because the target parameter is dyadic. A Lean statement of "V0's
-verdict depends only on these predicate values" is a follow-up; Lean was not
-available in the authoring environment.
+rational, because the target parameter is dyadic.
+
+Lean checks the step from certified predicates to the verdict
+([VerifierModel.lean](../../proof/IntMProof/VerifierModel.lean)). Each
+comparison V0 can make is a `Comparison`, and `reached t frames p` lists the
+ones `reference` reaches, in order. `reference_verdict_eq_of_reached`: two
+runs, with possibly different thresholds, frames, payloads and old records,
+give the same verdict if every comparison the first run reaches has the same
+truth value in both. `reference_accepted_period_eq_of_reached` adds that both
+accepted records carry the same resolved period.
+`answerVerdict_eq_reference_of_reached` is the checker's form: V0's control
+flow run on any answers that equal the exact values on the reached
+comparisons (`answerVerdict`) returns V0's verdict on the exact frames.
+Answers to comparisons that are not reached do not matter. That the
+TypeScript checker evaluates `answerVerdict`'s control flow, and that each
+certified answer is the exact value, remains trusted and tested, not formally
+verified.
 
 **Candidate source.** The backend proposes the smallest `p ≤ maxPeriod`
 whose binary64 closure `|a_{m+p} − a_m|²` falls below `(tauCandidate·s)²`,

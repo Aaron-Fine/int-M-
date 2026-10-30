@@ -213,6 +213,149 @@ theorem reconstruction_error_le_budget
     (ref (k + 1)) (delta (k + 1)) offset (ρR k) (ρD k) (ρC k)
     (hR k hk) (hD k hk) (hC k hk)
 
+/-- Radii built from the approximation and its own running bound are justified
+prefix by prefix. Step `k` uses only bounds at indices up to `k`, so the radius
+premise of `inexactOrbit_error_le_budget` at `k` follows from the error bound
+on the shorter prefix. `bound` may be any upward-rounded evaluation of the
+error recurrence; the conclusion supplies both the radius premise on the whole
+prefix and the final error bound. -/
+theorem inexactOrbit_error_le_of_self_radius (c z : ℂ) (approx : ℕ → ℂ)
+    (radius forcing bound : ℕ → ℝ) (n : ℕ)
+    (h0 : ‖approx 0 - z‖ ≤ bound 0)
+    (hstep : ∀ k < n,
+      2 * radius k * bound k + bound k ^ 2 + forcing k ≤ bound (k + 1))
+    (hradius : ∀ k < n, ‖approx k‖ + bound k ≤ radius k)
+    (hf : ∀ k < n, ‖approx (k + 1) - quadratic c (approx k)‖ ≤ forcing k) :
+    (∀ k < n, ‖orbit c k z‖ ≤ radius k) ∧ ‖approx n - orbit c n z‖ ≤ bound n := by
+  induction n with
+  | zero =>
+    exact ⟨fun k hk => absurd hk (Nat.not_lt_zero k),
+      by simpa only [orbit_zero] using h0⟩
+  | succ n ih =>
+    obtain ⟨hr, he⟩ := ih (fun k hk => hstep k (Nat.lt_succ_of_lt hk))
+      (fun k hk => hradius k (Nat.lt_succ_of_lt hk))
+      (fun k hk => hf k (Nat.lt_succ_of_lt hk))
+    have hn := Nat.lt_succ_self n
+    have hrn : ‖orbit c n z‖ ≤ radius n :=
+      calc
+        ‖orbit c n z‖ = ‖approx n - (approx n - orbit c n z)‖ := by rw [sub_sub_cancel]
+        _ ≤ ‖approx n‖ + ‖approx n - orbit c n z‖ := norm_sub_le _ _
+        _ ≤ ‖approx n‖ + bound n := add_le_add le_rfl he
+        _ ≤ radius n := hradius n hn
+    refine ⟨fun k hk => ?_, ?_⟩
+    · rcases Nat.lt_succ_iff_lt_or_eq.mp hk with hk | rfl
+      · exact hr k hk
+      · exact hrn
+    · calc
+        _ ≤ 2 * ‖orbit c n z‖ * ‖approx n - orbit c n z‖
+            + ‖approx n - orbit c n z‖ ^ 2
+            + ‖approx (n + 1) - quadratic c (approx n)‖ :=
+          inexactOrbit_error_succ c z approx n
+        _ ≤ 2 * radius n * bound n + bound n ^ 2 + forcing n :=
+          add_le_add (errorStep_mono ((norm_nonneg _).trans hrn) (norm_nonneg _) he hrn)
+            (hf n hn)
+        _ ≤ bound (n + 1) := hstep n hn
+
+/-- The exact `errorBudget` form: if every radius covers the approximation plus
+the budget at its own index, the radius premise holds on the whole prefix. -/
+theorem inexactOrbit_error_le_budget_of_self_radius (c z : ℂ) (approx : ℕ → ℂ)
+    (ε : ℝ) (radius forcing : ℕ → ℝ) (n : ℕ)
+    (hε : ‖approx 0 - z‖ ≤ ε)
+    (hradius : ∀ k < n, ‖approx k‖ + errorBudget ε radius forcing k ≤ radius k)
+    (hf : ∀ k < n, ‖approx (k + 1) - quadratic c (approx k)‖ ≤ forcing k) :
+    (∀ k < n, ‖orbit c k z‖ ≤ radius k) ∧
+      ‖approx n - orbit c n z‖ ≤ errorBudget ε radius forcing n :=
+  inexactOrbit_error_le_of_self_radius c z approx radius forcing
+    (errorBudget ε radius forcing) n hε
+    (fun k _ => (errorBudget_succ ε radius forcing k).ge) hradius hf
+
+/-- The budget whose radius at each step is a caller size plus the budget
+itself, `radius k = size k + b k`, written without the circular reference. -/
+def selfRadiusBudget (ε : ℝ) (size forcing : ℕ → ℝ) : ℕ → ℝ
+  | 0 => ε
+  | n + 1 =>
+      2 * (size n + selfRadiusBudget ε size forcing n) * selfRadiusBudget ε size forcing n
+        + selfRadiusBudget ε size forcing n ^ 2 + forcing n
+
+/-- `selfRadiusBudget` is `errorBudget` with radii `size k + b k`. -/
+theorem errorBudget_selfRadius (ε : ℝ) (size forcing : ℕ → ℝ) (n : ℕ) :
+    errorBudget ε (fun k => size k + selfRadiusBudget ε size forcing k) forcing n =
+      selfRadiusBudget ε size forcing n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [errorBudget_succ, ih]; rfl
+
+/-- With `radius k = size k + b k` and `size k ≥ ‖approx k‖`, the varying-radius
+comparison needs no separate radius assumption. -/
+theorem inexactOrbit_error_le_selfRadiusBudget (c z : ℂ) (approx : ℕ → ℂ)
+    (ε : ℝ) (size forcing : ℕ → ℝ) (n : ℕ)
+    (hε : ‖approx 0 - z‖ ≤ ε)
+    (hsize : ∀ k < n, ‖approx k‖ ≤ size k)
+    (hf : ∀ k < n, ‖approx (k + 1) - quadratic c (approx k)‖ ≤ forcing k) :
+    (∀ k < n, ‖orbit c k z‖ ≤ size k + selfRadiusBudget ε size forcing k) ∧
+      ‖approx n - orbit c n z‖ ≤ selfRadiusBudget ε size forcing n := by
+  have h := inexactOrbit_error_le_budget_of_self_radius c z approx ε
+    (fun k => size k + selfRadiusBudget ε size forcing k) forcing n hε
+    (fun k hk => by
+      rw [errorBudget_selfRadius]
+      exact add_le_add (hsize k hk) le_rfl) hf
+  rwa [errorBudget_selfRadius] at h
+
+/-- `reconstruction_error_le_budget` with its radius premise discharged: radii
+covering `‖ref k + delta k‖` plus the budget at index `k` suffice. -/
+theorem reconstruction_error_le_budget_of_self_radius
+    (c cRef z offset : ℂ) (ref delta : ℕ → ℂ) (ε : ℝ)
+    (radius ρR ρD ρC : ℕ → ℝ) (n : ℕ)
+    (hε : ‖ref 0 + delta 0 - z‖ ≤ ε)
+    (hradius : ∀ k < n, ‖ref k + delta k‖
+      + errorBudget ε radius (fun k => ρR k + ρD k + ρC k) k ≤ radius k)
+    (hR : ∀ k < n, ‖ref (k + 1) - quadratic cRef (ref k)‖ ≤ ρR k)
+    (hD : ∀ k < n,
+      ‖delta (k + 1) - (2 * ref k * delta k + delta k ^ 2 + offset)‖ ≤ ρD k)
+    (hC : ∀ k < n, ‖offset - (c - cRef)‖ ≤ ρC k) :
+    (∀ k < n, ‖orbit c k z‖ ≤ radius k) ∧
+      ‖ref n + delta n - orbit c n z‖ ≤
+        errorBudget ε radius (fun k => ρR k + ρD k + ρC k) n := by
+  have h := inexactOrbit_error_le_budget_of_self_radius c z (fun k => ref k + delta k)
+    ε radius (fun k => ρR k + ρD k + ρC k) n hε hradius
+    (fun k hk => reconstruction_residual_norm_le c cRef (ref k) (delta k)
+      (ref (k + 1)) (delta (k + 1)) offset (ρR k) (ρD k) (ρC k)
+      (hR k hk) (hD k hk) (hC k hk))
+  exact ⟨h.1, (reconstruction_error_le_budget c cRef z offset ref delta ε radius
+    ρR ρD ρC n hε h.1 hR hD hC)⟩
+
+/-- The perturbation backend's form: the exact reference `ref` is known only
+through stored values within `storage k`, the radius is
+`‖stored k + delta k‖ + storage k + bound k` (or any upper bound of it), and
+`bound` is the error recurrence evaluated with upward rounding. -/
+theorem reconstruction_error_le_of_stored_radius
+    (c cRef z offset : ℂ) (ref stored delta : ℕ → ℂ)
+    (radius storage bound ρR ρD ρC : ℕ → ℝ) (n : ℕ)
+    (h0 : ‖ref 0 + delta 0 - z‖ ≤ bound 0)
+    (hstored : ∀ k < n, ‖ref k - stored k‖ ≤ storage k)
+    (hstep : ∀ k < n, 2 * radius k * bound k + bound k ^ 2
+      + (ρR k + ρD k + ρC k) ≤ bound (k + 1))
+    (hradius : ∀ k < n, ‖stored k + delta k‖ + storage k + bound k ≤ radius k)
+    (hR : ∀ k < n, ‖ref (k + 1) - quadratic cRef (ref k)‖ ≤ ρR k)
+    (hD : ∀ k < n,
+      ‖delta (k + 1) - (2 * ref k * delta k + delta k ^ 2 + offset)‖ ≤ ρD k)
+    (hC : ∀ k < n, ‖offset - (c - cRef)‖ ≤ ρC k) :
+    (∀ k < n, ‖orbit c k z‖ ≤ radius k) ∧ ‖ref n + delta n - orbit c n z‖ ≤ bound n := by
+  refine inexactOrbit_error_le_of_self_radius c z (fun k => ref k + delta k)
+    radius (fun k => ρR k + ρD k + ρC k) bound n h0 hstep (fun k hk => ?_)
+    (fun k hk => reconstruction_residual_norm_le c cRef (ref k) (delta k)
+      (ref (k + 1)) (delta (k + 1)) offset (ρR k) (ρD k) (ρC k)
+      (hR k hk) (hD k hk) (hC k hk))
+  have hsplit : ref k + delta k = (stored k + delta k) + (ref k - stored k) := by ring
+  calc
+    ‖ref k + delta k‖ + bound k
+        ≤ (‖stored k + delta k‖ + ‖ref k - stored k‖) + bound k := by
+          rw [hsplit]
+          exact add_le_add (norm_add_le _ _) le_rfl
+    _ ≤ ‖stored k + delta k‖ + storage k + bound k :=
+          add_le_add (add_le_add le_rfl (hstored k hk)) le_rfl
+    _ ≤ radius k := hradius k hk
+
 /-- A post-rebase segment retains its absolute index. Supply its updated
 initial error (including rebase rounding) and the remaining local budgets. -/
 theorem inexactOrbit_error_le_budget_from (c z : ℂ) (approx : ℕ → ℂ)

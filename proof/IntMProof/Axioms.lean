@@ -164,6 +164,46 @@ import IntMProof.GuardPolicyCounterexample
 #guard_msgs in
 #print axioms IntMProof.Verifier.referenceReduction_reduced_least
 
+/-- info: 'IntMProof.Verifier.referenceReduction_eq_answerReduction' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.referenceReduction_eq_answerReduction
+
+/-- info: 'IntMProof.Verifier.reference_verdict_eq_answerVerdict' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.reference_verdict_eq_answerVerdict
+
+/-- info: 'IntMProof.Verifier.answerReduction_congr' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.answerReduction_congr
+
+/-- info: 'IntMProof.Verifier.answerVerdict_congr' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.answerVerdict_congr
+
+/-- info: 'IntMProof.Verifier.reference_verdict_eq_of_reached' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.reference_verdict_eq_of_reached
+
+/-- info: 'IntMProof.Verifier.reached_eq_of_reached' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.reached_eq_of_reached
+
+/-- info: 'IntMProof.Verifier.answerVerdict_eq_reference_of_reached' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.answerVerdict_eq_reference_of_reached
+
+/-- info: 'IntMProof.Verifier.reference_accepted_period' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.reference_accepted_period
+
+/-- info: 'IntMProof.Verifier.answerPeriod_congr' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.answerPeriod_congr
+
+/-- info: 'IntMProof.Verifier.reference_accepted_period_eq_of_reached' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.Verifier.reference_accepted_period_eq_of_reached
+
 /-- info: 'IntMProof.period1_fixedPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.period1_fixedPoint
@@ -368,6 +408,30 @@ import IntMProof.GuardPolicyCounterexample
 /-- info: 'IntMProof.reconstruction_error_le_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms IntMProof.reconstruction_error_le_budget
+
+/-- info: 'IntMProof.inexactOrbit_error_le_of_self_radius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.inexactOrbit_error_le_of_self_radius
+
+/-- info: 'IntMProof.inexactOrbit_error_le_budget_of_self_radius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.inexactOrbit_error_le_budget_of_self_radius
+
+/-- info: 'IntMProof.errorBudget_selfRadius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.errorBudget_selfRadius
+
+/-- info: 'IntMProof.inexactOrbit_error_le_selfRadiusBudget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.inexactOrbit_error_le_selfRadiusBudget
+
+/-- info: 'IntMProof.reconstruction_error_le_budget_of_self_radius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.reconstruction_error_le_budget_of_self_radius
+
+/-- info: 'IntMProof.reconstruction_error_le_of_stored_radius' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms IntMProof.reconstruction_error_le_of_stored_radius
 
 /-- info: 'IntMProof.inexactOrbit_error_le_budget_from' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in

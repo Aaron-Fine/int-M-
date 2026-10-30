@@ -12,11 +12,18 @@ import {
   nextDroppedPeriod,
   NO_ISOLATION,
   nextIsolation,
+  outlinedPeriodOf,
   type IsolationEvent,
 } from './period-isolation';
 import type { SemanticView } from './view-state';
 
-export type IsolationListener = (period: number | undefined) => void;
+/** The legend's palette inputs: the period isolated (pressed) and the period outlined (previewed). */
+export interface PeriodEmphasis {
+  readonly isolated: number | undefined;
+  readonly outlined: number | undefined;
+}
+
+export type IsolationListener = (emphasis: PeriodEmphasis) => void;
 
 /** The stage of the frame whose key the legend shows. */
 export type LegendFrameStage = 'coarse' | 'stable';
@@ -29,14 +36,14 @@ export interface SemanticLegend {
    * isolation).
    */
   readonly update: (view: SemanticView, periodKey?: PeriodKey, stage?: LegendFrameStage) => void;
-  /** Called with the period to isolate (undefined: none) whenever it changes. */
+  /** Called with the periods to isolate and to outline whenever either changes. */
   readonly onIsolate: (listener: IsolationListener) => void;
   /** Ends a pressed isolation (Escape outside the legend); a no-op without one. */
   readonly restore: () => void;
 }
 
 const ISOLATION_HINT =
-  'Hover, focus or select a period to show only its pixels; Escape or selecting it again restores the view.';
+  'Hover or focus a period to outline it; select it to show only that period. Escape or selecting it again shows all periods.';
 
 const waitingHint = (period: number): string =>
   `Period ${period} stays isolated until the stable frame arrives; this preview does not rank it among the five largest.`;
@@ -103,10 +110,36 @@ const swatchOf = (entry: LegendSwatch): HTMLElement => {
   return swatch;
 };
 
-/** An emphasized period: a toggle button that isolates the period (MI-UX-018). */
-const renderPeriodControl = (entry: LegendSwatch, period: number): HTMLLIElement => {
+/** A period's spectrum bar: its share of attracting-cycle pixels on the log scale. */
+const shareBar = (entry: LegendSwatch): HTMLElement | undefined => {
+  if (entry.share === undefined) return undefined;
+  const track = element('span', {
+    className: 'legend__share',
+    attributes: { 'aria-hidden': 'true' },
+  });
+  const bar = element('span', { className: 'legend__share-bar' });
+  bar.style.width = `${(entry.share * 100).toFixed(1)}%`;
+  bar.style.background = entry.background;
+  track.append(bar);
+  return track;
+};
+
+const copyWithBar = (entry: LegendSwatch): HTMLElement => {
+  const copy = copyOf(entry.label, entry.detail);
+  const bar = shareBar(entry);
+  if (bar !== undefined) copy.append(bar);
+  return copy;
+};
+
+/**
+ * A period of the spectrum: a toggle button that isolates the period
+ * (MI-UX-018). `tail` marks a period drawn in the shared grey.
+ */
+const renderPeriodControl = (entry: LegendSwatch, period: number, tail = false): HTMLLIElement => {
   const item = element('li', {
-    className: 'legend__item legend__item--period legend__item--control',
+    className: tail
+      ? 'legend__item legend__item--tail legend__item--control'
+      : 'legend__item legend__item--period legend__item--control',
   });
   item.dataset['period'] = String(period);
   const control = element('button', {
@@ -121,27 +154,72 @@ const renderPeriodControl = (entry: LegendSwatch, period: number): HTMLLIElement
     text: 'Isolated',
     attributes: { 'aria-hidden': 'true' },
   });
-  control.append(swatchOf(entry), copyOf(entry.label, entry.detail), state);
+  control.append(swatchOf(entry), copyWithBar(entry), state);
   item.append(control);
   return item;
 };
 
-const renderSwatch = (entry: LegendSwatch): HTMLLIElement => {
-  if (typeof entry.period === 'number') return renderPeriodControl(entry, entry.period);
-  const item = element('li', {
-    className: entry.period === undefined ? 'legend__item' : 'legend__item legend__item--period',
+/** Whether the spectrum lists the periods lumped into "Other periods". */
+interface TailDisclosure {
+  open: boolean;
+}
+
+const TAIL_ID = 'legend-tail';
+
+const tailToggleState = (toggle: HTMLElement, count: number, open: boolean): void => {
+  toggle.textContent = open ? 'Hide' : `Show ${count}`;
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute(
+    'aria-label',
+    open ? 'Hide the other periods' : `Show ${count} other ${count === 1 ? 'period' : 'periods'}`,
+  );
+};
+
+/**
+ * "Other periods": the grey class as one bar, and a disclosure that lists
+ * each of its periods with its own bar and isolation control.
+ */
+const renderOther = (entry: LegendSwatch, disclosure: TailDisclosure): HTMLLIElement => {
+  const item = element('li', { className: 'legend__item legend__item--period legend__other' });
+  item.dataset['period'] = 'other';
+  item.append(swatchOf(entry), copyWithBar(entry));
+  const tail = entry.tail ?? [];
+  if (tail.length === 0) return item;
+  const toggle = element('button', {
+    className: 'legend__tail-toggle',
+    attributes: { type: 'button', 'aria-controls': TAIL_ID },
   });
-  if (entry.period !== undefined) item.dataset['period'] = entry.period;
+  tailToggleState(toggle, tail.length, disclosure.open);
+  const list = element('ul', { className: 'legend__tail', attributes: { id: TAIL_ID } });
+  list.hidden = !disclosure.open;
+  for (const period of tail) {
+    if (typeof period.period === 'number') {
+      list.append(renderPeriodControl(period, period.period, true));
+    }
+  }
+  toggle.addEventListener('click', () => {
+    disclosure.open = !disclosure.open;
+    list.hidden = !disclosure.open;
+    tailToggleState(toggle, tail.length, disclosure.open);
+  });
+  item.append(toggle, list);
+  return item;
+};
+
+const renderSwatch = (entry: LegendSwatch, disclosure: TailDisclosure): HTMLLIElement => {
+  if (typeof entry.period === 'number') return renderPeriodControl(entry, entry.period);
+  if (entry.period === 'other') return renderOther(entry, disclosure);
+  const item = element('li', { className: 'legend__item' });
   item.append(swatchOf(entry), copyOf(entry.label, entry.detail));
   return item;
 };
 
-const renderItem = (entry: LegendItem): HTMLLIElement => {
+const renderItem = (entry: LegendItem, disclosure: TailDisclosure): HTMLLIElement => {
   switch (entry.kind) {
     case 'scale':
       return renderScale(entry);
     case 'swatch':
-      return renderSwatch(entry);
+      return renderSwatch(entry, disclosure);
     case 'note':
       return element('li', { className: 'legend__item legend__note', text: entry.text });
   }
@@ -183,7 +261,7 @@ export function createSemanticLegend(): SemanticLegend {
   root.append(heading, definition, list, hint, dropped);
 
   let isolation = NO_ISOLATION;
-  let notified: number | undefined;
+  let notified: PeriodEmphasis = { isolated: undefined, outlined: undefined };
   let listener: IsolationListener | undefined;
   let shownView: SemanticView | undefined;
   let shown: string | undefined;
@@ -192,6 +270,8 @@ export function createSemanticLegend(): SemanticLegend {
   // The period whose entry a coarse frame took the focus from, until a later
   // frame lists it again (or focus goes elsewhere).
   let droppedPeriod: number | undefined;
+  // Survives redraws, so the list stays open while the view refines.
+  const tailDisclosure: TailDisclosure = { open: false };
   let lostFocus: number | undefined;
   list.tabIndex = -1;
 
@@ -214,10 +294,13 @@ export function createSemanticLegend(): SemanticLegend {
       control.setAttribute('aria-pressed', String(pressed));
     }
     refreshHint();
-    const period = isolatedPeriodOf(isolation);
-    if (period === notified) return;
-    notified = period;
-    listener?.(period);
+    const emphasis: PeriodEmphasis = {
+      isolated: isolatedPeriodOf(isolation),
+      outlined: outlinedPeriodOf(isolation),
+    };
+    if (emphasis.isolated === notified.isolated && emphasis.outlined === notified.outlined) return;
+    notified = emphasis;
+    listener?.(emphasis);
   };
 
   const onPeriodEvent =
@@ -262,14 +345,26 @@ export function createSemanticLegend(): SemanticLegend {
     }
     shownView = view;
     const activePeriod = periodOf(document.activeElement);
+    const toggleFocused =
+      document.activeElement instanceof HTMLElement &&
+      document.activeElement.classList.contains('legend__tail-toggle');
     // Focus parked on the list by an earlier redraw is still waiting for its entry.
     const focusedPeriod = activePeriod ?? (document.activeElement === list ? lostFocus : undefined);
     const model = legendModel(view, periodKey);
-    definition.textContent = model.definition;
+    definition.replaceChildren(model.definition);
+    if (model.formula !== undefined) {
+      definition.append(element('span', { className: 'legend__formula', text: model.formula }));
+    }
     redrawing = true;
     try {
-      replaceChildren(list, model.items.map(renderItem));
-      listed = periodKey?.emphasized.map((entry) => entry.period) ?? [];
+      replaceChildren(
+        list,
+        model.items.map((item) => renderItem(item, tailDisclosure)),
+      );
+      listed =
+        periodKey === undefined
+          ? []
+          : [...periodKey.emphasized, ...periodKey.others].map((entry) => entry.period);
       apply({ type: 'available', periods: listed, final: false });
       const refocus = controls().find(
         (control) => Number(control.dataset['period']) === focusedPeriod,
@@ -279,6 +374,8 @@ export function createSemanticLegend(): SemanticLegend {
       if (focusedPeriod !== undefined) {
         lostFocus = refocus === undefined ? focusedPeriod : undefined;
         (refocus ?? list).focus();
+      } else if (toggleFocused) {
+        (list.querySelector<HTMLElement>('.legend__tail-toggle') ?? list).focus();
       }
     } finally {
       redrawing = false;

@@ -43,6 +43,8 @@ export interface RasterFrame {
   readonly periodKey?: PeriodKey;
   /** Period view only: the period left undimmed (legend isolation, MI-UX-018). */
   readonly isolatedPeriod?: number;
+  /** Period view only: the period outlined (legend preview). */
+  readonly outlinedPeriod?: number;
 }
 
 export interface DynamicsRenderRequest {
@@ -116,10 +118,16 @@ export interface Renderer {
 
   /**
    * Maps a semantic frame to RGBA. `isolatedPeriod` (period view only) dims
-   * every pixel not of that period; it is a palette input, so it never
-   * enters the semantic cache key.
+   * every pixel not of that period, and `outlinedPeriod` outlines that
+   * period's regions; both are palette inputs, so they never enter the
+   * semantic cache key.
    */
-  colorize(frame: SemanticFrame, view: SemanticView, isolatedPeriod?: number): RasterFrame;
+  colorize(
+    frame: SemanticFrame,
+    view: SemanticView,
+    isolatedPeriod?: number,
+    outlinedPeriod?: number,
+  ): RasterFrame;
 
   /**
    * Resolves once no work of a cancelled render is still running anywhere,

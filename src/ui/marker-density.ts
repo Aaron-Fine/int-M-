@@ -39,11 +39,14 @@ export const MARKER_HIT_REM = 2.75;
 export const COMPACT_HIT_REM = 1.5;
 /** A label starts this far from its marker's centre (`.catalog-marker__label`). */
 const LABEL_OFFSET_REM = 1.475;
-/** Label box estimate: 0.67rem text, 0.35rem side padding, at most 14rem wide (styles.css). */
+/**
+ * Label box: 0.67rem text with 0.35rem side padding (styles.css). The width
+ * comes from `labelWidthPx` when the caller measures it; otherwise from a
+ * per-character estimate that is wider than the text in common sans faces.
+ */
 const LABEL_HEIGHT_REM = 1.2;
 const LABEL_CHARACTER_REM = 0.42;
 const LABEL_PADDING_REM = 0.7;
-const LABEL_MAX_REM = 14;
 /** Markers right of this fraction of the width put their label on their left. */
 const LEFT_FACING_FROM = 0.76;
 
@@ -56,6 +59,12 @@ export interface MarkerPlanInput {
   /** CSS pixels per rem (the root font size). */
   readonly remPx: number;
   readonly selectedId?: string | undefined;
+  /**
+   * The rendered width of a label, padding included, in CSS pixels. The UI
+   * measures the text in the label's font, so the boxes hold whatever face
+   * the host substitutes; without it the width is estimated.
+   */
+  readonly labelWidthPx?: ((label: string) => number) | undefined;
   /** Defaults to MARKER_CAP. */
   readonly cap?: number;
 }
@@ -143,9 +152,10 @@ const place = (
 };
 
 const labelBox = (placement: Placement, input: MarkerPlanInput, leftFacing: boolean): Box => {
-  const characters = Array.from(placement.entry.component.label).length;
+  const { label } = placement.entry.component;
   const width =
-    Math.min(LABEL_MAX_REM, LABEL_PADDING_REM + LABEL_CHARACTER_REM * characters) * input.remPx;
+    input.labelWidthPx?.(label) ??
+    (LABEL_PADDING_REM + LABEL_CHARACTER_REM * Array.from(label).length) * input.remPx;
   const offset = LABEL_OFFSET_REM * input.remPx;
   const left = leftFacing ? placement.x - offset - width : placement.x + offset;
   const half = (LABEL_HEIGHT_REM * input.remPx) / 2;
