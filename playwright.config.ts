@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const devServer = Boolean(process.env['PLAYWRIGHT_DEV_SERVER']);
 const previewURL = 'http://127.0.0.1:4174';
 const devURL = 'http://127.0.0.1:5173';
-const pilotSpec = /numerical-verifier-pilot\.spec\.ts/;
+const pilotSpec = /(numerical-verifier-pilot|perturbation-pilots)\.spec\.ts/;
 
 const engines = [
   { name: 'chromium', device: devices['Desktop Chrome'] },
@@ -12,7 +12,7 @@ const engines = [
 
 // Dev mode runs every spec against the dev server. The default run serves the
 // production preview build for the suite and the dev server only for the
-// numerical verifier pilot, which needs the /poc research module.
+// research pilot specs, which need the /poc modules and /fixtures files.
 const projects = devServer
   ? engines.map(({ name, device }) => ({
       name,
