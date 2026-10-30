@@ -5,11 +5,15 @@ import {
   colorForAttracting,
   colorForEscaped,
   colorForUnresolved,
+  crossesMultiplierContour,
   dimColor,
   EMPTY_PERIOD_KEY,
   modulateForMultiplierAngle,
+  multiplierStripePhase,
+  multiplierStripeWeight,
   OTHER_PERIODS_COLOR,
   PERIOD_EMPHASIS_PALETTE,
+  shadeForMultiplierContour,
   type PeriodKey,
   type Rgba,
   type SemanticView,
@@ -62,6 +66,57 @@ const referenceHistogram = (frame: SemanticFrame): Map<number, number> => {
   return counts;
 };
 
+interface ReferenceSample {
+  readonly word: number;
+  readonly magnitude: number;
+  readonly angle: number;
+}
+
+/**
+ * Reference multiplier pixel with the neighbourhood rules of semantic.ts,
+ * from a whole-frame lookup rather than colorizeFrame's streaming buffers.
+ */
+const referenceMultiplierPixel = (
+  samples: readonly ReferenceSample[],
+  width: number,
+  x: number,
+  y: number,
+  periodKey: PeriodKey,
+): Rgba => {
+  const here = samples[y * width + x];
+  if (here === undefined) throw new Error('sample out of range');
+  const phase = (sample: ReferenceSample, px: number, py: number): number =>
+    multiplierStripePhase(px, py, Math.cos(sample.angle), Math.sin(sample.angle));
+  const neighbours = [
+    x > 0 ? { sample: samples[y * width + x - 1], px: x - 1, py: y } : undefined,
+    y > 0 ? { sample: samples[(y - 1) * width + x], px: x, py: y - 1 } : undefined,
+  ].filter(
+    (entry): entry is { sample: ReferenceSample; px: number; py: number } =>
+      entry?.sample?.word === here.word,
+  );
+  const step = Math.max(
+    0,
+    ...neighbours.map(({ sample, px, py }) => Math.abs(phase(here, x, y) - phase(sample, px, py))),
+  );
+  const color = modulateForMultiplierAngle(
+    colorForAttracting(
+      unpackPeriod(here.word),
+      here.magnitude,
+      here.angle,
+      'multiplier',
+      periodKey,
+    ),
+    x,
+    y,
+    here.angle,
+    multiplierStripeWeight(step),
+  );
+  const onContour = neighbours.some(({ sample }) =>
+    crossesMultiplierContour(here.magnitude, here.angle, sample.magnitude, sample.angle),
+  );
+  return onContour ? shadeForMultiplierContour(color) : color;
+};
+
 const referenceColorize = (
   frame: SemanticFrame,
   view: SemanticView,
@@ -69,6 +124,16 @@ const referenceColorize = (
 ): Uint8ClampedArray => {
   const { width } = frame.size;
   const rgba = new Uint8ClampedArray(width * frame.size.height * 4);
+  const samples: ReferenceSample[] = [];
+  for (const band of frame.bands) {
+    for (let index = 0; index < band.packedStatusPeriod.length; index += 1) {
+      samples[band.y0 * width + index] = {
+        word: band.packedStatusPeriod[index] ?? 0,
+        magnitude: band.smoothIterationOrMultiplierMagnitude[index] ?? 0,
+        angle: band.multiplierAngle[index] ?? 0,
+      };
+    }
+  }
   const periodKey =
     view === 'period' ? buildPeriodKey(referenceHistogram(frame)) : EMPTY_PERIOD_KEY;
   for (const band of frame.bands) {
@@ -76,17 +141,20 @@ const referenceColorize = (
       const word = band.packedStatusPeriod[index] ?? 0;
       const x = index % width;
       const y = band.y0 + Math.floor(index / width);
-      const color = referencePixel(
-        unpackStatus(word),
-        unpackPeriod(word),
-        band.smoothIterationOrMultiplierMagnitude[index] ?? 0,
-        band.multiplierAngle[index] ?? 0,
-        x,
-        y,
-        frame.sampleStride,
-        view,
-        periodKey,
-      );
+      const color =
+        view === 'multiplier' && unpackStatus(word) === 2
+          ? referenceMultiplierPixel(samples, width, x, y, periodKey)
+          : referencePixel(
+              unpackStatus(word),
+              unpackPeriod(word),
+              band.smoothIterationOrMultiplierMagnitude[index] ?? 0,
+              band.multiplierAngle[index] ?? 0,
+              x,
+              y,
+              frame.sampleStride,
+              view,
+              periodKey,
+            );
       const dimmed =
         view === 'period' &&
         isolatedPeriod !== undefined &&
