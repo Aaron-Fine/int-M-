@@ -187,6 +187,10 @@ export function checkInteriorTile(oracle: OracleTile): TileReport {
       }
       return;
     }
+    if (expected.status === 'escaped') {
+      failures.push(`pixel ${index}: not escaped vs escaped@${expected.iteration}`);
+      return;
+    }
     if (pixel.codes === null || expected.codes === undefined) return;
     const oracleCodes = expected.codes.split(',');
     if (pixel.codes.length !== oracleCodes.length) {

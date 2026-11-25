@@ -3401,4 +3401,30 @@ test.describe('Nesting trail (UI review Proposal C)', () => {
     expect(current.left).toBeGreaterThanOrEqual(trailBox.left);
     expect(current.right).toBeLessThanOrEqual(trailBox.right);
   });
+  test('keeps the current location in view when a wide image narrows under the same trail', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/?v=1&c=-1.9374941337951477,0&s=1.4426981485124484e-6&view=period');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await waitForCatalogCore(page);
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(
+      ['1', '2', '3', '5', '6', '7', '9', '10', '11'],
+      { timeout: 10_000 },
+    );
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const pill = document.querySelector('.nesting-trail')?.getBoundingClientRect();
+          const current = document
+            .querySelector('.nesting-trail [aria-current="location"]')
+            ?.getBoundingClientRect();
+          return pill !== undefined && current !== undefined && current.right <= pill.right + 0.5;
+        }),
+      )
+      .toBe(true);
+  });
 });

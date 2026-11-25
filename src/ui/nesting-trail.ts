@@ -67,6 +67,16 @@ export function createNestingTrail(onSelect: (component: CatalogComponent) => vo
     return item;
   };
 
+  // When the image narrows under an unchanged trail, the current location stays in view.
+  if (typeof ResizeObserver !== 'undefined') {
+    let width = 0;
+    new ResizeObserver(() => {
+      const next = root.clientWidth;
+      if (next < width) root.scrollLeft = root.scrollWidth;
+      width = next;
+    }).observe(root);
+  }
+
   return {
     element: root,
     show: (steps) => {
