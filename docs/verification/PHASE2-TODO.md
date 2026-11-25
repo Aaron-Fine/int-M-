@@ -25,10 +25,9 @@ bundled engines are the same (`@playwright/test` is still 1.64.1). Three
 smaller owner items sit outside this checklist: the screen-reader checks and
 the review of the first container screenshot baselines listed as remaining
 evidence in [REQUIREMENTS.md](REQUIREMENTS.md#phase-2-ux-requirements), and a
-regeneration of the advisory screenshot baselines in the container. They date
-from 2026-10-29, and the non-gating CI job reports differences for the nesting
-trail, the sized marker glyphs and the side-panel fix
-([fixtures/README.md](../../fixtures/README.md#advisory-screenshots)). The
+review of the three advisory screenshot baselines regenerated in the container
+on 2026-11-25 for the nesting trail, the sized marker glyphs and the side-panel
+fix ([fixtures/README.md](../../fixtures/README.md#advisory-screenshots)). The
 explorer work after item 8 is traced in
 [REQUIREMENTS.md](REQUIREMENTS.md#explorer-refinements-after-the-core-atlas).
 

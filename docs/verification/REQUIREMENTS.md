@@ -91,8 +91,8 @@ browser names are scenarios in `tests/e2e/explorer.spec.ts`.
 | Catalog markers: outlined glyphs drawn at the component's size on screen (10 to 40 px), a ring round a satellite that outgrows its glyph, and label boxes from the measured text width                    | `markerScale` and `labelWidthPx` in `src/ui/marker-density.ts`; `src/ui/application.ts`                                    | `marker glyphs sized to their components (handoff item 3)`; `sizes label boxes by the measured width when the caller measures it`; `draws catalog markers as outlines that leave the component visible`; `sizes marker glyphs to their components and rings a bulb that outgrows its glyph`; `shows the longest generated labels in full on a desktop canvas`; `keeps labels whole and apart when the host substitutes a wider face` | `MI-UX-020`, `MI-PERF-008`                    |
 
 Checked 2026-11-25 with every row present: `npm run check` passes (992 unit
-tests) and the Chromium browser suite passes (95 of 95). Firefox was not run
-locally that day. No manual accessibility record covers these features yet.
+tests), the Chromium browser suite passes (96 of 96), and the Firefox suite
+passes in the pinned Playwright container (95 passed, 1 skipped). No manual accessibility record covers these features yet.
 
 **`MI-UX-018` wording (open, owner):** since 2026-10-29 the implementation
 differs from the requirement text above and in the SysML model in two places.

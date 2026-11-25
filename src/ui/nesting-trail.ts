@@ -83,6 +83,8 @@ export function createNestingTrail(onSelect: (component: CatalogComponent) => vo
         steps.map((step, index) => renderStep(step, index === steps.length - 1)),
       );
       root.dataset['period'] = String(steps.at(-1)?.period ?? 1);
+      // A trail wider than the image scrolls; it opens at its end, on the current location.
+      root.scrollLeft = root.scrollWidth;
       if (focusedId !== undefined) {
         const buttons = [...list.querySelectorAll<HTMLElement>('button')];
         // If the focused step left the trail, the focus stays in it, on the deepest step.

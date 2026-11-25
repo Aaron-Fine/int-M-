@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- a one-off evidence script that prints its results */
 // Paired median of the per-repetition stable-pass wall-time ratio arm/reference,
 // with a 95% percentile bootstrap interval of that median (5,000 resamples,
 // mulberry32 seed 1), for cold-workers.ts JSON output.

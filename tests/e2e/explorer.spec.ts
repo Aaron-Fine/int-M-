@@ -3359,4 +3359,46 @@ test.describe('Nesting trail (UI review Proposal C)', () => {
       trail.getByRole('button', { name: 'Zoom to Main cardioid, period 1' }),
     ).toBeFocused();
   });
+
+  test('keeps a long trail inside a narrow image with the current location in view', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    // Nine steps, 1 to 11 along the real axis: far wider than the image at this width.
+    await page.goto('/?v=1&c=-1.9374941337951477,0&s=1.4426981485124484e-6&view=period');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await waitForCatalogCore(page);
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(
+      ['1', '2', '3', '5', '6', '7', '9', '10', '11'],
+      { timeout: 10_000 },
+    );
+    // With a legend period isolated, the chip stacks under the trail, both inside the image.
+    await page.locator('.legend__entry').first().click();
+    const chip = page.locator('.isolation-chip');
+    await expect(chip).toBeVisible();
+
+    const boxes = await page.evaluate(() => {
+      const rect = (selector: string): DOMRect | undefined =>
+        document.querySelector(selector)?.getBoundingClientRect();
+      return {
+        stack: rect('.explorer__stack'),
+        trail: rect('.nesting-trail'),
+        chip: rect('.isolation-chip'),
+        current: rect('.nesting-trail [aria-current="location"]'),
+      };
+    });
+    const { stack, trail: trailBox, chip: chipBox, current } = boxes;
+    expect(stack && trailBox && chipBox && current).toBeTruthy();
+    if (!stack || !trailBox || !chipBox || !current) return;
+    expect(trailBox.left).toBeGreaterThanOrEqual(stack.left);
+    expect(trailBox.right).toBeLessThanOrEqual(stack.right);
+    expect(chipBox.right).toBeLessThanOrEqual(stack.right);
+    expect(chipBox.top).toBeGreaterThanOrEqual(trailBox.bottom);
+    expect(chipBox.bottom).toBeLessThanOrEqual(stack.bottom);
+    // The trail scrolls inside its pill; where the view is must not start out clipped.
+    expect(current.left).toBeGreaterThanOrEqual(trailBox.left);
+    expect(current.right).toBeLessThanOrEqual(trailBox.right);
+  });
 });

@@ -107,11 +107,14 @@ to 448 px tall instead of 577 to 578, and the explorer 502 instead of 631; the
 catalog markers are outlined; and the multiplier view fades its aliasing
 stripes and draws internal-coordinate contours.
 
-Status 2026-11-25: the baselines do not yet include the nesting trail, the
-sized marker glyphs and rings, or the side-panel fix. The advisory CI job
-reported differences for each of those changes (all ten screenshots, the two
-UI states, and the selected-marker state respectively, in both engines) and
-will keep reporting them until the baselines are regenerated in the container.
+Baselines regenerated 2026-11-25: `catalog-overlay`, `selected-marker` and
+`selected-marker-evidence` were rewritten in the container, in both engines,
+for the nesting trail, the sized marker glyphs and rings, and the side-panel
+fix. The raster shots now hide the nesting trail (`tests/visual/raster-only.css`)
+and match their earlier baselines unchanged. Owner review is pending. One to
+look at: with the side-panel fix the evidence card is as tall as its content,
+so `selected-marker-evidence` is now about 1,640 px tall and mostly blank below
+the visible part of the panel; that test may want to shoot differently.
 
 ## Orbit fixtures
 
