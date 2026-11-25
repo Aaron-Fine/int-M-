@@ -1,0 +1,11 @@
+--- a/tools/benchmark/cold-workers.ts
++++ scratch copy (not committed)
+@@ -115,7 +115,7 @@
+ if (load > 1.5)
+   process.stderr.write(`warning: 1-minute load average ${load.toFixed(2)}; expect noise\n`);
+ 
+-const browser = await (engine === 'firefox' ? firefox : chromium).launch({ headless: true });
++const browser = await (engine === 'firefox' ? firefox : chromium).launch({ headless: true, executablePath: process.env.COLD_WORKERS_EXECUTABLE, args: ['--no-sandbox'] });
+ const page = await browser.newPage();
+ await page.goto(`http://127.0.0.1:${String(port)}/index.html`);
+ const result = await page.evaluate(

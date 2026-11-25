@@ -139,6 +139,12 @@ Estimates are engineering days. They are planning figures and may overlap.
       stays a diagnostic and the only measurement of the coarse pass. Last
       run: 2026-10-21 on `f97dd6a`, pass
       ([evidence](../../evidence/phase-2/2026-10-21-f97dd6a-browser-overhead-gate/summary.md)).
+      Checked 2026-11-25 on `7d0d4d5`: the kernel sources and the pinned
+      engines are unchanged since `f97dd6a`, so no rerun is due. A
+      Chromium-only directional rerun in a loaded cloud container (Chromium
+      158, not the bundled 156; Firefox not measured) was inconclusive and is
+      not a gate run
+      ([evidence](../../evidence/phase-2/2026-11-25-7d0d4d5-browser-overhead-gate-chromium/summary.md)).
 - [x] **Node fallback-overhead gate (owner):** far-exterior +7.0% [+5.9%,
       +9.9%] and weak attraction +3.7% in Node after the 2026-10-20 kernel
       change, while both browsers measured the far-exterior view faster and
