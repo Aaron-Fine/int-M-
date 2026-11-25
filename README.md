@@ -35,7 +35,7 @@ See [the project plan](docs/PLAN.md), [the research notes](docs/RESEARCH.md), [t
 
 ## Run locally
 
-Node.js 24.21.0 LTS and npm 12.1.0 are required.
+Node.js 24 and npm 12 (12.1.0 or later) are required (`engines` in `package.json`). `.nvmrc` pins Node.js 24.21.0 LTS, which CI uses with npm 12.1.0.
 
 ```sh
 npm ci
@@ -46,6 +46,14 @@ Run `npm run check` before submitting a pull request. It checks formatting, lint
 
 ## Status
 
-Phase 0 is closed. The Phase 2 core atlas is delivered: progressive worker CPU rendering, bounded pan and zoom through `6,000,000×`, stability/multiplier/period views, an evidence-aware inspector, shareable versioned links, and a 4,016-entry catalog of exact period 1 to 12 with a list, find field and bounded markers. PR #25 is merged and PR #26 is open; the remaining owner items are in [PHASE2-TODO](docs/verification/PHASE2-TODO.md). Direct WebGPU and perturbation are intentionally deferred rather than missing Phase 0 work.
+As of 2026-11-25:
+
+- **Phases 0 and 1 are closed** ([closeout evidence](docs/verification/PHASE-0-1-CLOSEOUT.md)).
+- **The Phase 2 core atlas is delivered:** progressive worker CPU rendering, bounded pan and zoom through `6,000,000×`, stability/multiplier/period views, an evidence-aware inspector, shareable versioned links, and a 4,016-entry catalog of exact period 1 to 12 with a list, find field and bounded markers.
+- **Explorer refinements since then:** the period legend ranks the periods of the view by area and outlines one on hover or focus (a press isolates it); the multiplier view draws internal-coordinate contours; the inspector shows the dynamical plane of the inspected point and a component lens whose p/q ticks zoom to that child component; a nesting trail above the image spells the view's angled internal address; and catalog markers are outlines sized to their components.
+- **Open owner items:** two headed release-browser measurements and the "Phase 2 performance closed" approval. They are listed in [PHASE2-TODO](docs/verification/PHASE2-TODO.md) and the [Phase 2 closeout](docs/verification/PHASE-2-CLOSEOUT.md#approval).
+- **Phase 3 is research only.** Perturbation backend and verifier pilots exist under `poc/` and are checked against independent interval oracles; no renderer imports them, the product-need gate is open, and the zoom ceiling is unchanged ([proof program](docs/verification/PHASE-3-PROOF-PROGRAM.md), [ADR 0015](docs/decisions/0015-verifier-closure-tolerance-and-zoom-bound.md)).
+
+Direct WebGPU and perturbation are intentionally deferred rather than missing Phase 0 work.
 
 Application code and documentation are licensed under GPL-3.0-only. Independently generated catalog data and numerical fixtures are dedicated to the public domain under CC0-1.0. External catalog data will not be imported without an explicit compatible data license.

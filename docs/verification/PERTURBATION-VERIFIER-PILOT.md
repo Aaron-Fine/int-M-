@@ -207,6 +207,7 @@ which considered and rejected a depth-scaled tolerance.
   stay unresolved.
 - No dynamical claim: an accepted verdict is V0's policy verdict on the exact
   frames, not a proof that the parameter is interior (see above).
-- No browser run, no general candidate policy (one cycle start per pixel),
-  and no formal TypeScript refinement.
+- No browser evidence beyond the two engines and two tiles in
+  [Browser runs](#browser-runs), no general candidate policy (one cycle start
+  per pixel), and no formal TypeScript refinement.
 - The product-need gate, release evidence and any zoom change are untouched.
