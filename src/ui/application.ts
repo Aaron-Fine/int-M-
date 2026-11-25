@@ -25,6 +25,7 @@ import {
 } from '../catalog/components';
 import { mergeCatalog } from '../catalog/core';
 import { catalogGroups, zoomSpanFor, zoomSpanForSize } from '../catalog/navigation';
+import { createNestingLookup } from '../catalog/nesting';
 import { createCatalogIndex } from '../catalog/viewport-index';
 import { loadCatalogCore } from './catalog-core-client';
 import { createCatalogPanel } from './catalog-panel';
@@ -33,6 +34,7 @@ import { referencesLine } from './references';
 import { button, element, replaceChildren } from './dom';
 import { setIcon } from './icons';
 import { planMarkers } from './marker-density';
+import { createNestingTrail } from './nesting-trail';
 import { createSemanticLegend } from './semantic-legend';
 import {
   addressBarSearch,
@@ -471,6 +473,11 @@ export function mountApplication(host: HTMLElement): () => void {
     text: 'Drag to pan · Shift-drag to zoom area · click to inspect',
     attributes: { id: 'explorer-interaction-hint' },
   });
+  // Its steps zoom out to an ancestor, like choosing it in the catalog panel.
+  const nestingTrail = createNestingTrail((component) => activateCatalogEntry(component));
+  // The image's top-left corner: where the view sits, then why it is dimmed.
+  const canvasCorner = element('div', { className: 'explorer__corner' });
+  canvasCorner.append(nestingTrail.element, isolationChip);
   // Never shown: it carries the marker label's font and padding for measuring (labelWidthPx).
   const labelProbe = element('span', {
     className: 'catalog-marker__label',
@@ -478,6 +485,7 @@ export function mountApplication(host: HTMLElement): () => void {
   });
   labelProbe.style.display = 'none';
   canvasStack.append(
+    canvasCorner,
     presentationCanvas,
     renderCanvas,
     catalogOverlay,
@@ -485,7 +493,6 @@ export function mountApplication(host: HTMLElement): () => void {
     selectedPointMarker,
     zoomSelection,
     interactionHint,
-    isolationChip,
     selectedPointStatus,
     feedback,
   );
@@ -1063,6 +1070,7 @@ export function mountApplication(host: HTMLElement): () => void {
    * the curated entries until the core arrives, then all 4,016 (ADR 0014).
    */
   let catalogIndex = createCatalogIndex(COMPONENT_CATALOG);
+  let nestingLookup = createNestingLookup(catalogIndex);
   let catalogByName = catalogNames(COMPONENT_CATALOG);
   let catalogCoreRequested = false;
 
@@ -1096,6 +1104,7 @@ export function mountApplication(host: HTMLElement): () => void {
     }
     const { index, names, groups } = built;
     catalogIndex = index;
+    nestingLookup = createNestingLookup(index);
     catalogByName = names;
     catalogPanel.addGroups(groups);
     catalogPanel.setCoreState('ready');
@@ -1245,6 +1254,9 @@ export function mountApplication(host: HTMLElement): () => void {
   function updateCatalogOverlay(): void {
     // The panel's mark must follow the selection even while the markers are hidden.
     catalogPanel.setSelected(state.selectedCatalogId);
+    // The trail follows the frame on screen, like the markers, shown or not.
+    const shownViewport = state.presentedViewport ?? state.viewport;
+    nestingTrail.show(nestingLookup.trail(shownViewport.center, shownViewport.spanY));
     if (!state.catalogVisible) {
       catalogMarkers.clear();
       catalogOverlay.replaceChildren();
