@@ -47,8 +47,9 @@ export const createCoarseGate = (inner: Renderer): CoarseGate => {
         await onFrame(frame);
         if (frame.stage === 'coarse') await waitWhileHeld(signal);
       }),
-    inspect: (point, quality) => inner.inspect(point, quality),
-    colorize: (frame, view, isolatedPeriod) => inner.colorize(frame, view, isolatedPeriod),
+    // Every argument passes through, so a parameter added to Renderer is never dropped here.
+    inspect: (...args) => inner.inspect(...args),
+    colorize: (...args) => inner.colorize(...args),
     quiesce: async () => {
       await inner.quiesce?.();
     },

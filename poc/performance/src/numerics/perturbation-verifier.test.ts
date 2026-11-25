@@ -10,61 +10,30 @@ import {
   properDivisors,
   verdictCode,
   type InteriorPixel,
-  type InteriorTileSpec,
 } from './perturbation-verifier';
-
-interface OracleInteriorTile {
-  readonly id: string;
-  readonly reference: { readonly re: string; readonly im: string; readonly exponent?: number };
-  readonly stepExponent: number;
-  readonly width: number;
-  readonly height: number;
-  readonly maxIterations: number;
-  readonly maxPeriod: number;
-  readonly pixels: readonly {
-    readonly status: 'escaped' | 'bounded' | 'unresolved';
-    readonly iteration: number;
-    readonly codes?: string;
-  }[];
-}
+import { checkInteriorTile, interiorSpec, type OracleTile } from './perturbation-oracle-check';
 
 const fixture = JSON.parse(
   readFileSync(
     new URL('../../../../fixtures/perturbation-interior.v1.json', import.meta.url),
     'utf8',
   ),
-) as { readonly tiles: readonly OracleInteriorTile[] };
+) as { readonly tiles: readonly OracleTile[] };
 
-const specOf = (tile: OracleInteriorTile): InteriorTileSpec => ({
-  reference:
-    tile.reference.exponent === undefined
-      ? { re: Number(tile.reference.re), im: Number(tile.reference.im) }
-      : {
-          re: BigInt(tile.reference.re),
-          im: BigInt(tile.reference.im),
-          exponent: tile.reference.exponent,
-        },
-  stepExponent: tile.stepExponent,
-  width: tile.width,
-  height: tile.height,
-  maxIterations: tile.maxIterations,
-  maxPeriod: tile.maxPeriod,
-});
-
-function classified(tile: OracleInteriorTile): readonly InteriorPixel[] {
-  const result = classifyPerturbationInteriorTile(specOf(tile));
+function classified(tile: OracleTile): readonly InteriorPixel[] {
+  const result = classifyPerturbationInteriorTile(interiorSpec(tile));
   if (result.status !== 'audited') throw new Error(`tile refused: ${result.reason}`);
   return result.pixels;
 }
 
 const cache = new Map<string, readonly InteriorPixel[]>();
-const pixelsOf = (tile: OracleInteriorTile): readonly InteriorPixel[] => {
+const pixelsOf = (tile: OracleTile): readonly InteriorPixel[] => {
   const cached = cache.get(tile.id) ?? classified(tile);
   cache.set(tile.id, cached);
   return cached;
 };
 
-const tile = (id: string): OracleInteriorTile => {
+const tile = (id: string): OracleTile => {
   const found = fixture.tiles.find((candidate) => candidate.id === id);
   if (found === undefined) throw new Error(`missing fixture tile ${id}`);
   return found;
@@ -93,29 +62,9 @@ describe('certified V0 verifier on perturbation enclosures (Phase 3 packet 3)', 
   it.each(fixture.tiles.map((oracle) => [oracle.id, oracle] as const))(
     'matches the independent interval V0 oracle on every certified frame of %s',
     (_id, oracle) => {
-      const pixels = pixelsOf(oracle);
-      let compared = 0;
-      let uncertified = 0;
-      pixels.forEach((pixel, index) => {
-        const expected = oracle.pixels[index];
-        if (expected === undefined) throw new Error('fixture size');
-        if (pixel.status === 'escaped') {
-          expect(expected).toMatchObject({ status: 'escaped', iteration: pixel.iteration });
-          return;
-        }
-        if (pixel.codes === null || expected.codes === undefined) return;
-        const oracleCodes = expected.codes.split(',');
-        expect(pixel.codes).toHaveLength(oracleCodes.length);
-        pixel.codes.forEach((code, p) => {
-          if (code === 'U') uncertified += 1;
-          if (code === 'U' || oracleCodes[p] === 'U') return;
-          compared += 1;
-          expect(`p=${p + 1}:${code}`).toBe(`p=${p + 1}:${oracleCodes[p]}`);
-        });
-      });
-      expect(compared).toBeGreaterThan(0);
-      // The enclosures are tight enough to certify every reached comparison.
-      expect(uncertified).toBe(0);
+      const report = checkInteriorTile(oracle);
+      expect(report.failures).toEqual([]);
+      expect(report.compared).toBeGreaterThan(0);
     },
     120_000,
   );
@@ -140,7 +89,7 @@ describe('certified V0 verifier on perturbation enclosures (Phase 3 packet 3)', 
 
   it('classifies a minibrot interior below binary64 parameter resolution', () => {
     const oracle = tile('minibrot-p349-step-2^-58');
-    const spec = specOf(oracle);
+    const spec = interiorSpec(oracle);
     const reference = approximateReference(spec.reference);
     // Every row's parameters round to one binary64 value...
     for (let y = 0; y < oracle.height; y += 1) {
@@ -175,7 +124,7 @@ describe('certified V0 verifier on perturbation enclosures (Phase 3 packet 3)', 
     'agrees with the production classifier inside the zoom bound on %s',
     (id) => {
       const oracle = tile(id);
-      const spec = specOf(oracle);
+      const spec = interiorSpec(oracle);
       const reference = approximateReference(spec.reference);
       let compared = 0;
       pixelsOf(oracle).forEach((pixel, index) => {
@@ -188,7 +137,7 @@ describe('certified V0 verifier on perturbation enclosures (Phase 3 packet 3)', 
         expect(c.im - reference.im).toBe(offset.im);
         const production = classifyOrbit(c, {
           maxIterations: oracle.maxIterations,
-          maxPeriod: oracle.maxPeriod,
+          maxPeriod: spec.maxPeriod,
         });
         if (pixel.status === 'escaped') {
           compared += 1;
@@ -260,7 +209,7 @@ describe('certified V0 verifier on perturbation enclosures (Phase 3 packet 3)', 
   });
 
   it('refuses unsupported interior tiles', () => {
-    const base = specOf(tile('minibrot-p34-step-2^-33'));
+    const base = interiorSpec(tile('minibrot-p34-step-2^-33'));
     for (const spec of [
       { ...base, maxPeriod: 0 },
       { ...base, maxPeriod: 513 },

@@ -137,14 +137,32 @@ The audit costs about 3.5 s for the 1024-iteration seahorse tile and under
 0.6 s for each `c = i` tile in Node. That is the cost of the exact BigInt
 checker, not of the kernel. **No performance claim is made.**
 
+## Browser runs
+
+`tests/e2e/perturbation-pilots.spec.ts` (Playwright projects `pilot-chromium`
+and `pilot-firefox`, served by the Vite dev server like the period-two pilot)
+loads `perturbation-tile.ts` into the page and audits the 16x16 tiles
+`seahorse-step-2^-31` and `misiurewicz-i-step-2^-60` in the browser, with the
+BigInt checker running in the page. The page fetches
+`fixtures/perturbation-tiles.v1.json` and applies the checks it shares with the Node test
+(`perturbation-oracle-check.ts`): no certified verdict or iteration differs
+from the oracle, the only unresolved pixel is the `c = i` reference pixel, each
+audited disk meets its oracle box exactly, and each delta budget is below
+`2^-24` of the delta. There is no numeric tolerance: all comparisons are exact
+BigInt. Result: both tiles agree in Chromium and Firefox (all 256 pixels each),
+with nothing differing from Node. Each engine takes about 4 to 6 s for both
+tiles. The `2^-200` tile and the kernel-fault tests were not repeated in the
+browser. Timing is not a performance claim.
+
 ## What this does not establish
 
 - No period, multiplier, interior or V0/V1 refinement (packet 3). `bounded`
   means only "no escape through `N`".
 - No glitch repair, rebasing, tile subdivision, cancellation or memory bound
   (packet 4). Ambiguous pixels are just reported.
-- No browser-engine evidence. The kernel is plain ECMAScript Number
-  arithmetic, but it has run only in Node here.
+- No evidence beyond the two engines and two tiles in
+  [Browser runs](#browser-runs). The kernel is plain ECMAScript Number
+  arithmetic.
 - No product-need record, release comparison or zoom-bound change (packet 5
   and the gates in the [proof program](PHASE-3-PROOF-PROGRAM.md)).
 
@@ -153,8 +171,7 @@ checker, not of the kernel. **No performance claim is made.**
 1. Lean: the inductive radius lemma is done
    (`reconstruction_error_le_of_stored_radius`, above). A concrete-tile
    wrapper with `ρ_R = ρ_C = 0` remains optional.
-2. Run the same tiles in Chromium and Firefox through Vite, as the
-   period-two pilot does.
+2. Done for two tiles: see [Browser runs](#browser-runs).
 3. Packet 3: done in the [verifier pilot](PERTURBATION-VERIFIER-PILOT.md).
 4. Packet 4: use the `escape-ambiguous` band as the glitch trigger, and add
    rebasing (`rebase_error_norm_le`) and authoritative repair.

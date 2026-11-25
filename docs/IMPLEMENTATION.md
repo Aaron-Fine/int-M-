@@ -53,7 +53,7 @@ Vite serves the application at `http://127.0.0.1:5173`. The other common command
 | `npm run poc:bench:pr2`          | Run the pr2 allocation microbench (directional evidence) |
 | `node tools/measure_ui_path.mjs` | Collect target-device UI-path presentation marks         |
 | `npm run test:unit`              | Run deterministic unit and worker tests                  |
-| `npm run test:browser`           | Run end-to-end tests in Chromium and Firefox             |
+| `npm run test:browser`           | Run end-to-end and pilot tests in Chromium and Firefox   |
 | `npm run build`                  | Type-check and create production assets in `dist/`       |
 | `npm run build:assets`           | Create assets after an already-successful type-check     |
 | `npm run preview`                | Serve the production build at `http://127.0.0.1:4173`    |
@@ -157,6 +157,36 @@ to the panel and the viewport index asynchronously; if it cannot load, the curat
 Markers are bounded by `src/ui/marker-density.ts` and the lookup by `src/catalog/viewport-index.ts`;
 the list and find field are `src/ui/catalog-panel.ts` and `src/catalog/find.ts`.
 
+The marker policy also sizes what it places. `markerScale` in `src/ui/marker-density.ts` draws each
+glyph at its component's size on screen, clamped to 10 to 40 CSS px; a satellite larger than that
+keeps a small glyph at its centre and gets a ring of its estimated diameter. Hit boxes and
+collisions do not depend on the glyph size. Label boxes use the text width that the UI measures in
+the label's own font (`labelWidthPx`), with the per-character estimate only as the fallback; this
+replaced the fixed 14rem maximum recorded in ADR 0014.
+
+The explorer work that followed the core atlas keeps the same boundaries (recorded 2026-11-25; the
+tests are listed in
+[REQUIREMENTS.md](verification/REQUIREMENTS.md#explorer-refinements-after-the-core-atlas)):
+
+- **Dynamics portrait** (`src/domain/dynamics-portrait.ts`). An `inspect` request with
+  `portrait: true` makes the worker post a `portrait` message after the `inspection`: the filled
+  Julia set of the inspected point, its critical orbit and, only when the inspection reported an
+  attracting cycle, that cycle refined by Newton. It is display only and never changes a
+  classification.
+- **Component lens** (`componentLens` in `src/ui/application.ts`). The lens is drawn on the main
+  thread from the inspection's |λ| and arg λ alone. Selecting a p/q tick posts `locate-child`; the
+  worker continues the multiplier to the root and solves for the child's centre
+  (`src/domain/child-component.ts`), then answers `child-component` with the child or a reason for
+  refusing. The UI zooms to a located child and names it when the catalog lists it.
+- **Nesting trail** (`src/catalog/nesting.ts`, `src/ui/nesting-trail.ts`). Above the canvas, the
+  angled internal address of the deepest catalog component around the view's centre, each period a
+  button that zooms to that ancestor. It uses catalog data and size estimates on the main thread,
+  runs no orbit iteration, and is a navigation guide, not a classification.
+- **Period spectrum** (`src/ui/legend-model.ts`, `src/ui/semantic-legend.ts`). The period legend
+  lists the emphasized periods by area with bars on a four-decade log scale, and the periods behind
+  "Other periods" in a list of their own. It reads the period key that already arrives with each
+  frame.
+
 ## Testing boundaries
 
 - Verification is layered. Pure domain mathematics uses deterministic inputs
@@ -178,6 +208,15 @@ the list and find field are `src/ui/catalog-panel.ts` and `src/catalog/find.ts`.
   computed transforms. Record immediate pointer-pan feedback and Escape/pointer-cancel rollback in
   the manual release-browser evidence because CI's synthetic pointer path does not expose that
   intermediate state reliably.
+- Tests that must act while a computation is in flight use the coarse gate
+  (`src/worker/coarse-gate.ts`): in dev and `e2e`-mode builds only, a test message makes each render
+  wait after its coarse frame until released or cancelled. The gate wraps the `Renderer` and passes
+  every argument through. The production build does not construct it.
+- The research pilots (`tests/e2e/numerical-verifier-pilot.spec.ts`,
+  `tests/e2e/perturbation-pilots.spec.ts`) run in their own Playwright projects, `pilot-chromium`
+  and `pilot-firefox`, against the Vite dev server, because they load `/poc` modules and
+  `/fixtures` files that the production build does not serve. The application suite runs against
+  the `e2e`-mode preview build. `npm run test:browser` runs all four projects.
 - Phone-layout checks should cover 320, 375, and 430 CSS-pixel viewports, assert no horizontal
   document overflow, keep the canvas at its compact aspect ratio, bound the first-use guide to the
   visual viewport, and enforce 44 CSS-pixel primary control targets. The 320 CSS-pixel state check
@@ -280,7 +319,10 @@ workstream and gate.
 - Legend isolation ([`MI-UX-018`](verification/REQUIREMENTS.md#phase-2-ux-requirements))
   recolors the current frame and never reclassifies: its frame is a `recolor`,
   or an `inflight-replay` during a computation. It is outside the semantic
-  cache key and is not in the URL.
+  cache key and is not in the URL. Since 2026-10-29 hover and focus send
+  `outlinedPeriod` (an outline preview that dims nothing) and only a press
+  sends `isolatedPeriod` (`src/ui/period-isolation.ts`); both are palette
+  inputs handled the same way.
 - Browser evidence comes from one release harness, `tools/benchmark/run-release.ts`
   (`npm run evidence:release`); `--release` runs the plan §9 protocol (branded
   stable browsers, headed, ≥22 repetitions, BCa intervals). `--compare` adds
@@ -300,7 +342,7 @@ This foundation directly supports:
 | MI-UX-014                   | OBE WebGPU-first fallback requirement retained for identifier continuity                                                                                                                    |
 | MI-UX-015 and MI-UX-016     | Firefox/Chromium coverage plus keyboard/accessibility test boundary                                                                                                                         |
 | MI-UX-017                   | Replaceable Worker lifecycle, bounded recovery, manual retry, and future CPU fallback                                                                                                       |
-| MI-UX-018                   | Period emphasis key ranked per frame, palette-derived legend, and legend isolation recolored outside the cache key                                                                          |
+| MI-UX-018                   | Period emphasis key ranked per frame, palette-derived legend, and legend outline and isolation recolored outside the cache key                                                              |
 | MI-UX-019                   | Versioned share-link codec, settled-view `replaceState`, copy link, and visible notices                                                                                                     |
 | MI-UX-020                   | Catalog panel, find field and bounded markers over the curated layer and the worker-loaded generated core; the core's SHA-256 check and fallback to the curated layer                       |
 | MI-UX-021                   | Palette floors set from the simulated minima of the Phase 1 palette (which passed the Phase 1 colour-vision sign-off), checked by Node unit tests; legend colors from the colorizer palette |

@@ -149,6 +149,20 @@ the extra bits.
 The p34, p61 and p349 tiles take about 1.6 s, 2.0 s and 10 s in Node,
 dominated by the exact checker. No performance claim is made.
 
+## Browser runs
+
+`tests/e2e/perturbation-pilots.spec.ts` (Playwright projects `pilot-chromium`
+and `pilot-firefox`) runs `classifyPerturbationInteriorTile` in the page on
+the 16x16 tiles `minibrot-p25-step-2^-24` and `minibrot-p34-step-2^-33`, and
+compares with `fixtures/perturbation-interior.v1.json` using the check it shares with the Node test
+(`perturbation-oracle-check.ts`): every escaped pixel has the oracle's
+iteration, every frame code that both sides certify is identical, and no frame
+is uncertified. The comparison is exact (string codes), with no tolerance.
+Result: both tiles agree in Chromium and Firefox, with nothing differing from
+Node. Each engine takes about 3 to 4 s. The p61 and p349 tiles, the synthetic
+cycle cases and the production-classifier comparison were not repeated in the
+browser.
+
 ## Production beyond the zoom bound (directional)
 
 The supported bound is a minimum span of `2.5 / 6,000,000`, about `2^-31` per
@@ -193,6 +207,7 @@ which considered and rejected a depth-scaled tolerance.
   stay unresolved.
 - No dynamical claim: an accepted verdict is V0's policy verdict on the exact
   frames, not a proof that the parameter is interior (see above).
-- No browser run, no general candidate policy (one cycle start per pixel),
-  and no formal TypeScript refinement.
+- No browser evidence beyond the two engines and two tiles in
+  [Browser runs](#browser-runs), no general candidate policy (one cycle start
+  per pixel), and no formal TypeScript refinement.
 - The product-need gate, release evidence and any zoom change are untouched.

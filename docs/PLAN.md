@@ -397,6 +397,14 @@ remaining owner items are in
 assessed in [PHASE-2-CLOSEOUT.md](verification/PHASE-2-CLOSEOUT.md), whose
 approval is still open.
 
+**Status (2026-11-25):** unchanged for the items above; the approval is still
+open. Explorer refinements from a UI review landed after the core atlas
+without changing its scope: the period legend's spectrum and outline preview,
+the multiplier view's internal-coordinate contours, the inspector's
+dynamical-plane portrait and component lens, the nesting trail, and catalog
+markers sized to their components. They are traced in
+[REQUIREMENTS.md](verification/REQUIREMENTS.md#explorer-refinements-after-the-core-atlas).
+
 ### Phase 3 — measured numerical extension
 
 Only if real use demonstrates a meaningful gap within the Phase 0-selected

@@ -1,0 +1,35 @@
+diff --git a/src/domain/orbit-triggered.ts b/src/domain/orbit-triggered.ts
+index 6ea614f..1d37d44 100644
+--- a/src/domain/orbit-triggered.ts
++++ b/src/domain/orbit-triggered.ts
+@@ -138,7 +138,7 @@ export const classifyTriggeredOrbitInto = (
+     if (iteration === scanStart) {
+       spill[SPILL_Z_RE] = zRe;
+       spill[SPILL_Z_IM] = zIm;
+-      if (classifyGatedAnalyticInto(cRe, cIm, out)) {
++      if (false as boolean) {
+         return;
+       }
+       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+diff --git a/src/render/triggered-rows.ts b/src/render/triggered-rows.ts
+index 77c9aaa..a1f8eb3 100644
+--- a/src/render/triggered-rows.ts
++++ b/src/render/triggered-rows.ts
+@@ -356,7 +356,7 @@ export class TriggeredRowKernel {
+           spill[S_ZB_IM] = zbIm;
+           spill[S_CA] = cA;
+           spill[S_CB] = cB;
+-          acceptedA = classifyGatedAnalyticInto(cA, cIm, out);
++          acceptedA = false;
+           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+           zaRe = spill[S_ZA_RE]!;
+           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+@@ -476,7 +476,7 @@ export class TriggeredRowKernel {
+           spill[S_ZB_IM] = zbIm;
+           spill[S_CA] = cA;
+           spill[S_CB] = cB;
+-          acceptedB = classifyGatedAnalyticInto(cB, cIm, out);
++          acceptedB = false;
+           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill
+           zaRe = spill[S_ZA_RE]!;
+           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fixed-size spill

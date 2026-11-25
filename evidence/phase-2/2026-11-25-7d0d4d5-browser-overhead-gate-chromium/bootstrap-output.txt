@@ -1,0 +1,67 @@
+chromium-headless-shell-no-analytic-vs-current.json  load 0.88  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.8127.36 Safari/537.36
+  mi-easy-default-full            cand     144.8 → 118.7 ms  −16.3% [−22.1%, −5.3%]  output differs
+  mi-easy-exterior-heavy          cand     43.9 → 42.6 ms  +5.3% [−8.8%, +15.7%]  output same
+  mi-fallback-ambiguous-boundary  cand     216.9 → 240.9 ms  +7.0% [+1.4%, +14.4%]  output same
+  mi-fallback-weak-attraction     cand     665.2 → 104.8 ms  −84.2% [−86.4%, −83.9%]  output differs
+  mi-hard-supplied-126x           cand     309.9 → 253.7 ms  −15.4% [−20.2%, −9.6%]  output differs
+  mi-hard-supplied-13x            cand     342.4 → 283.9 ms  −12.5% [−20.9%, −7.7%]  output differs
+  mi-hard-rabbit-boundary         cand     419.4 → 346.3 ms  −20.0% [−29.1%, +1.0%]  output differs
+  mi-scale-6mx-basilica-rim       cand     374.9 → 137.7 ms  −64.5% [−65.8%, −61.6%]  output differs
+chromium-headless-shell-no-analytic-vs-current-run2.json  load 6.87  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.8127.36 Safari/537.36
+  mi-easy-default-full            cand     134.4 → 121.6 ms  −6.4% [−15.0%, +0.4%]  output differs
+  mi-easy-exterior-heavy          cand     46.2 → 41.4 ms  −8.6% [−15.9%, −3.8%]  output same
+  mi-fallback-ambiguous-boundary  cand     207.4 → 225.7 ms  +13.8% [+1.2%, +18.2%]  output same
+  mi-fallback-weak-attraction     cand     672.2 → 109.7 ms  −84.8% [−85.1%, −83.6%]  output differs
+  mi-hard-supplied-126x           cand     318.4 → 278.5 ms  −12.0% [−20.1%, −5.7%]  output differs
+  mi-hard-supplied-13x            cand     343.0 → 291.0 ms  −12.6% [−19.9%, −3.2%]  output differs
+  mi-hard-rabbit-boundary         cand     410.4 → 349.7 ms  −17.8% [−21.0%, −8.2%]  output differs
+  mi-scale-6mx-basilica-rim       cand     384.7 → 138.5 ms  −65.2% [−66.2%, −59.3%]  output differs
+chromium-headless-shell-no-analytic-vs-current-run3.json  load 7.09  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.8127.36 Safari/537.36
+  mi-easy-default-full            cand     119.4 → 115.0 ms  −4.8% [−11.2%, −1.7%]  output differs
+  mi-easy-exterior-heavy          cand     37.7 → 38.1 ms  +0.1% [−7.1%, +8.7%]  output same
+  mi-fallback-ambiguous-boundary  cand     195.1 → 195.3 ms  +0.7% [−4.0%, +3.7%]  output same
+chromium-no-analytic-vs-current.json  load 6.89  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36
+  mi-easy-default-full            cand     134.0 → 120.7 ms  −9.3% [−12.8%, −0.9%]  output differs
+  mi-easy-exterior-heavy          cand     42.4 → 44.5 ms  +2.2% [−3.4%, +6.9%]  output same
+  mi-fallback-ambiguous-boundary  cand     208.2 → 209.5 ms  +2.6% [−1.5%, +8.3%]  output same
+  mi-fallback-weak-attraction     cand     692.9 → 114.4 ms  −83.2% [−83.7%, −82.7%]  output differs
+  mi-hard-supplied-126x           cand     322.6 → 265.3 ms  −16.4% [−25.2%, −9.2%]  output differs
+  mi-hard-supplied-13x            cand     340.8 → 290.0 ms  −19.7% [−27.3%, −5.9%]  output differs
+  mi-hard-rabbit-boundary         cand     390.9 → 342.5 ms  −12.2% [−16.8%, −6.7%]  output differs
+  mi-scale-6mx-basilica-rim       cand     383.7 → 126.6 ms  −66.8% [−67.8%, −65.3%]  output differs
+chromium-no-analytic-vs-current-run2.json  load 7.19  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36
+  mi-easy-default-full            cand     123.4 → 114.6 ms  −7.0% [−16.2%, +2.4%]  output differs
+  mi-easy-exterior-heavy          cand     39.7 → 39.7 ms  +2.2% [−5.8%, +5.7%]  output same
+  mi-fallback-ambiguous-boundary  cand     196.8 → 213.9 ms  +6.5% [−0.1%, +10.0%]  output same
+  mi-fallback-weak-attraction     cand     634.3 → 107.1 ms  −83.2% [−84.3%, −82.7%]  output differs
+  mi-hard-supplied-126x           cand     289.8 → 236.0 ms  −17.3% [−25.4%, −10.6%]  output differs
+  mi-hard-supplied-13x            cand     314.4 → 266.1 ms  −17.1% [−20.8%, −11.8%]  output differs
+  mi-hard-rabbit-boundary         cand     349.2 → 316.7 ms  −9.6% [−14.3%, −5.2%]  output differs
+  mi-scale-6mx-basilica-rim       cand     372.7 → 128.2 ms  −66.2% [−67.6%, −63.0%]  output differs
+chromium-headless-shell-three-arm-63.json  load 5.49  reps 63  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.8127.36 Safari/537.36
+  mi-easy-default-full            cand     171.4 → 154.4 ms  −8.8% [−13.9%, −6.4%]  output differs
+  mi-easy-default-full            control  171.4 → 155.1 ms  −9.5% [−14.5%, −3.9%]  output differs
+  mi-easy-exterior-heavy          cand     53.6 → 56.6 ms  −4.2% [−10.5%, +6.3%]  output same
+  mi-easy-exterior-heavy          control  53.6 → 53.2 ms  −2.4% [−9.6%, +2.5%]  output same
+  mi-fallback-ambiguous-boundary  cand     264.8 → 270.7 ms  +4.5% [+1.1%, +9.2%]  output same
+  mi-fallback-ambiguous-boundary  control  264.8 → 274.9 ms  +2.4% [−0.5%, +7.3%]  output same
+chromium-three-arm-63.json  load 9.46  reps 63  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36
+  mi-easy-default-full            cand     157.7 → 139.6 ms  −11.2% [−16.2%, −8.7%]  output differs
+  mi-easy-default-full            control  157.7 → 136.1 ms  −12.5% [−16.3%, −9.9%]  output differs
+  mi-easy-exterior-heavy          cand     48.6 → 48.1 ms  +3.4% [−0.4%, +6.8%]  output same
+  mi-easy-exterior-heavy          control  48.6 → 48.7 ms  +3.7% [−2.0%, +7.4%]  output same
+  mi-fallback-ambiguous-boundary  cand     238.2 → 248.5 ms  +3.7% [+2.2%, +7.4%]  output same
+  mi-fallback-ambiguous-boundary  control  238.2 → 249.4 ms  +2.3% [−1.9%, +5.0%]  output same
+chromium-headless-shell-control-same-bundle.json  load 6.98  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.8127.36 Safari/537.36
+  mi-easy-default-full            cand     113.1 → 109.1 ms  −0.5% [−7.9%, +2.1%]  output same
+  mi-easy-exterior-heavy          cand     38.4 → 38.2 ms  −0.1% [−3.5%, +2.4%]  output same
+  mi-fallback-ambiguous-boundary  cand     206.2 → 189.7 ms  −6.5% [−9.2%, −2.9%]  output same
+chromium-headless-shell-f97dd6a-vs-current.json  load 7.65  reps 21  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.8127.36 Safari/537.36
+  mi-easy-default-full            cand     130.9 → 125.6 ms  −2.0% [−8.5%, +5.5%]  output same
+  mi-easy-exterior-heavy          cand     42.7 → 40.5 ms  −4.5% [−7.4%, +4.2%]  output same
+  mi-fallback-ambiguous-boundary  cand     230.0 → 225.8 ms  +2.6% [−10.2%, +17.4%]  output same
+  mi-fallback-weak-attraction     cand     115.0 → 115.3 ms  −0.3% [−4.6%, +1.0%]  output same
+  mi-hard-supplied-126x           cand     259.2 → 265.7 ms  +1.3% [−3.8%, +7.3%]  output same
+  mi-hard-supplied-13x            cand     267.0 → 275.1 ms  −0.8% [−6.3%, +3.7%]  output same
+  mi-hard-rabbit-boundary         cand     342.4 → 348.2 ms  −2.5% [−8.7%, +5.7%]  output same
+  mi-scale-6mx-basilica-rim       cand     132.9 → 132.7 ms  −0.0% [−4.6%, +8.3%]  output same

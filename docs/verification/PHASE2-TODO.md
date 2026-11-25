@@ -14,6 +14,23 @@ only after a kernel change or a browser engine upgrade; last pass on `f97dd6a`),
 and the owner's approval of "Phase 2 performance closed"
 ([closeout](PHASE-2-CLOSEOUT.md#approval)).
 
+**Status (2026-11-25):** no item has changed state since 2026-10-21. The same
+three are open, all with the owner: the headed Chrome re-measure of the
+default view ("Easy default view in Chrome", item 0), the pre-release overhead
+rerun (item 0), and the approval of "Phase 2 performance closed"
+([closeout](PHASE-2-CLOSEOUT.md#approval)). Neither rerun trigger has occurred
+since the last pass on `f97dd6a`: the files that hold the three named functions
+are unchanged apart from added exports in `src/domain/index.ts`, and the
+bundled engines are the same (`@playwright/test` is still 1.64.1). Three
+smaller owner items sit outside this checklist: the screen-reader checks and
+the review of the first container screenshot baselines listed as remaining
+evidence in [REQUIREMENTS.md](REQUIREMENTS.md#phase-2-ux-requirements), and a
+review of the three advisory screenshot baselines regenerated in the container
+on 2026-11-25 for the nesting trail, the sized marker glyphs and the side-panel
+fix ([fixtures/README.md](../../fixtures/README.md#advisory-screenshots)). The
+explorer work after item 8 is traced in
+[REQUIREMENTS.md](REQUIREMENTS.md#explorer-refinements-after-the-core-atlas).
+
 The owner's direction (2026-10-16): the Phase 1 performance regression is
 resolved; the remaining Phase 2 work is done with subagents. Items with
 user-visible choices get a short design for owner approval first, and
@@ -121,6 +138,12 @@ Estimates are engineering days. They are planning figures and may overlap.
       stays a diagnostic and the only measurement of the coarse pass. Last
       run: 2026-10-21 on `f97dd6a`, pass
       ([evidence](../../evidence/phase-2/2026-10-21-f97dd6a-browser-overhead-gate/summary.md)).
+      Checked 2026-11-25 on `7d0d4d5`: the kernel sources and the pinned
+      engines are unchanged since `f97dd6a`, so no rerun is due. A
+      Chromium-only directional rerun in a loaded cloud container (Chromium
+      158, not the bundled 156; Firefox not measured) was inconclusive and is
+      not a gate run
+      ([evidence](../../evidence/phase-2/2026-11-25-7d0d4d5-browser-overhead-gate-chromium/summary.md)).
 - [x] **Node fallback-overhead gate (owner):** far-exterior +7.0% [+5.9%,
       +9.9%] and weak attraction +3.7% in Node after the 2026-10-20 kernel
       change, while both browsers measured the far-exterior view faster and

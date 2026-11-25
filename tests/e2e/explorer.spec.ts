@@ -1489,6 +1489,61 @@ test.describe('Mandelbrot Interiority explorer', () => {
     if (stack) expect(stack.width / stack.height).toBeCloseTo(1.6, 2);
   });
 
+  test('keeps the point evidence inside its card and in view when a new point is inspected', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    const rabbit = page.getByRole('button', { name: 'Inspect 1/3-bulb (Douady rabbit), period 3' });
+    await expect(rabbit).toBeVisible({ timeout: 20_000 });
+    await rabbit.focus();
+    await rabbit.press('Enter');
+    const pointEvidence = page.getByRole('region', { name: 'Point evidence' });
+    await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
+      'Attracting cycle',
+      { timeout: 10_000 },
+    );
+
+    // The framed side panel scrolls; the inspector grows with its evidence instead of
+    // spilling it over the legend below.
+    const layout = () =>
+      page.evaluate(() => {
+        const side = document.querySelector('.side-panel');
+        const inspector = document.querySelector('.inspector');
+        const legend = document.querySelector('.legend');
+        return {
+          scrollTop: side?.scrollTop ?? -1,
+          overflow: inspector ? inspector.scrollHeight - inspector.clientHeight : 1,
+          gap:
+            inspector && legend
+              ? legend.getBoundingClientRect().top - inspector.getBoundingClientRect().bottom
+              : -1,
+        };
+      });
+    const inspected = await layout();
+    expect(inspected.overflow).toBeLessThanOrEqual(1);
+    expect(inspected.gap).toBeGreaterThan(0);
+
+    // Reading the evidence partway down, a new inspection keeps the panel where it was.
+    await page.locator('.side-panel').evaluate((side) => {
+      side.scrollTop = 600;
+    });
+    const stack = await page.locator('.explorer__stack').boundingBox();
+    expect(stack).not.toBeNull();
+    if (stack) await page.mouse.click(stack.x + stack.width / 2, stack.y + stack.height / 2);
+    await expect(
+      pointEvidence.getByRole('heading', { name: '1/3-bulb (Douady rabbit)' }),
+    ).toBeHidden();
+    await expect(pointEvidence.locator('.inspector__classification')).toHaveText(
+      'Attracting cycle',
+      { timeout: 10_000 },
+    );
+    const reinspected = await layout();
+    expect(reinspected.scrollTop).toBe(600);
+    expect(reinspected.overflow).toBeLessThanOrEqual(1);
+  });
+
   test('draws catalog markers as outlines that leave the component visible', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.catalog-marker').first()).toBeVisible();
@@ -2970,6 +3025,61 @@ test.describe('Catalog core (ADR 0014)', () => {
     );
   });
 
+  test('sizes marker glyphs to their components and rings a bulb that outgrows its glyph', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 20_000,
+    });
+    const canvasHeight = (await page.locator('.explorer__stack').boundingBox())?.height ?? 0;
+    const glyphWidth = (id: string) =>
+      page
+        .locator(`.catalog-marker[data-catalog-id="${id}"] .catalog-marker__dot`)
+        .evaluate((dot) => dot.getBoundingClientRect().width);
+
+    // The 1/2-bulb (size estimate 0.5) spans 0.5/2.5 of the view height: a ring of that diameter.
+    const ring = page.locator('.catalog-marker[data-catalog-id="mi-p2-1-2"] .catalog-marker__ring');
+    await expect(ring).toHaveCount(1);
+    const ringWidth = await ring.evaluate((element) => element.getBoundingClientRect().width);
+    expect(Math.abs(ringWidth - (0.5 * canvasHeight) / 2.5)).toBeLessThan(2);
+    // The main cardioid is not a disk: a small glyph, no ring.
+    await expect(
+      page.locator('.catalog-marker[data-catalog-id="mi-p1-0-1"] .catalog-marker__ring'),
+    ).toHaveCount(0);
+
+    // The 1/4-bulb is under 40 px here; closer, its glyph grows, then a ring replaces it.
+    const quarter = 'mi-p4-1-2';
+    const stable = () =>
+      expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+        timeout: 20_000,
+      });
+    const before = await glyphWidth(quarter);
+    expect(before).toBeGreaterThanOrEqual(10);
+    expect(before).toBeLessThan(40);
+    await page.goto('/?v=1&c=0.2822713907669139,0.5300606175785253&s=1.6');
+    await stable();
+    const closer = await glyphWidth(quarter);
+    expect(closer).toBeGreaterThan(before);
+    expect(closer).toBeLessThanOrEqual(40);
+    await expect(
+      page.locator(`.catalog-marker[data-catalog-id="${quarter}"] .catalog-marker__ring`),
+    ).toHaveCount(0);
+    await page.goto('/?v=1&c=0.2822713907669139,0.5300606175785253&s=0.5');
+    await stable();
+    expect(await glyphWidth(quarter)).toBeLessThan(closer);
+    const quarterRing = await page
+      .locator(`.catalog-marker[data-catalog-id="${quarter}"] .catalog-marker__ring`)
+      .evaluate((element) => element.getBoundingClientRect().width);
+    expect(quarterRing).toBeGreaterThan(40);
+    // The hit box stays the 44 px target (or the 24 px compact one) whatever the glyph.
+    const hit = await page
+      .locator(`.catalog-marker[data-catalog-id="${quarter}"]`)
+      .evaluate((marker) => marker.getBoundingClientRect().width);
+    expect([24, 44]).toContain(Math.round(hit));
+  });
+
   test('keeps labels whole and apart when the host substitutes a wider face', async ({ page }) => {
     // Monospace is wider than the sans faces hosts substitute for system-ui: the longest
     // generated label is about 16rem in it, past the fixed 14rem maximum labels once had.
@@ -3190,5 +3300,131 @@ test.describe('Catalog core (ADR 0014)', () => {
     await expect(page.locator('#explorer')).toHaveAttribute('data-isolated-period', '1');
     await find.press('Escape');
     await expect(periodOne).toHaveAttribute('aria-pressed', 'false');
+  });
+});
+
+test.describe('Nesting trail (UI review Proposal C)', () => {
+  const waitForStable = async (page: Page): Promise<void> => {
+    await expect(page.locator('#explorer')).toHaveAttribute('data-render-stage', 'stable', {
+      timeout: 30_000,
+    });
+  };
+  const searchParam = (page: Page, key: string): string | null =>
+    new URL(page.url()).searchParams.get(key);
+  const trailOf = (page: Page) =>
+    page.getByRole('navigation', { name: 'Angled internal address of the view' });
+
+  test('shows only the main cardioid at the default view', async ({ page }) => {
+    await page.goto('/');
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1']);
+    await expect(
+      trail.getByRole('button', { name: 'Zoom to Main cardioid, period 1' }),
+    ).toHaveAttribute('aria-current', 'location');
+  });
+
+  test('spells the address of a deep view and zooms back out step by step', async ({ page }) => {
+    // The period-12 child at the 1/2 point of the rabbit's 1/2 child, framed as the catalog would.
+    await page.goto('/?v=1&c=-0.11026826739331091,0.887461814882336&s=0.025');
+    await waitForCatalogCore(page);
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1', '3', '6', '12']);
+    await expect(trail.locator('.nesting-trail__edge')).toHaveText(['→1/3', '→1/2', '→1/2']);
+    await expect(trail.locator('[aria-current="location"]')).toHaveText('12');
+    await expect(trail).toContainText('at angle 1/3,');
+    await expectNoAccessibilityViolations(page);
+
+    // A step zooms to that ancestor and selects it; the trail ends there, focus stays on it.
+    const rabbit = trail.getByRole('button', {
+      name: 'Zoom to 1/3-bulb (Douady rabbit), period 3',
+    });
+    await rabbit.click();
+    // The trail changes only when the new view's frame is on screen.
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1', '3']);
+    await expect(rabbit).toHaveAttribute('aria-current', 'location');
+    await expect(rabbit).toBeFocused();
+    await expect(
+      page
+        .getByRole('region', { name: 'Point evidence' })
+        .getByRole('heading', { name: '1/3-bulb (Douady rabbit)' }),
+    ).toBeVisible();
+    await expect.poll(() => searchParam(page, 'sel'), { timeout: 10_000 }).toBe('mi-p3-1-2');
+
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Enter');
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(['1']);
+    await expect(
+      trail.getByRole('button', { name: 'Zoom to Main cardioid, period 1' }),
+    ).toBeFocused();
+  });
+
+  test('keeps a long trail inside a narrow image with the current location in view', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    // Nine steps, 1 to 11 along the real axis: far wider than the image at this width.
+    await page.goto('/?v=1&c=-1.9374941337951477,0&s=1.4426981485124484e-6&view=period');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await waitForCatalogCore(page);
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(
+      ['1', '2', '3', '5', '6', '7', '9', '10', '11'],
+      { timeout: 10_000 },
+    );
+    // With a legend period isolated, the chip stacks under the trail, both inside the image.
+    await page.locator('.legend__entry').first().click();
+    const chip = page.locator('.isolation-chip');
+    await expect(chip).toBeVisible();
+
+    const boxes = await page.evaluate(() => {
+      const rect = (selector: string): DOMRect | undefined =>
+        document.querySelector(selector)?.getBoundingClientRect();
+      return {
+        stack: rect('.explorer__stack'),
+        trail: rect('.nesting-trail'),
+        chip: rect('.isolation-chip'),
+        current: rect('.nesting-trail [aria-current="location"]'),
+      };
+    });
+    const { stack, trail: trailBox, chip: chipBox, current } = boxes;
+    expect(stack && trailBox && chipBox && current).toBeTruthy();
+    if (!stack || !trailBox || !chipBox || !current) return;
+    expect(trailBox.left).toBeGreaterThanOrEqual(stack.left);
+    expect(trailBox.right).toBeLessThanOrEqual(stack.right);
+    expect(chipBox.right).toBeLessThanOrEqual(stack.right);
+    expect(chipBox.top).toBeGreaterThanOrEqual(trailBox.bottom);
+    expect(chipBox.bottom).toBeLessThanOrEqual(stack.bottom);
+    // The trail scrolls inside its pill; where the view is must not start out clipped.
+    expect(current.left).toBeGreaterThanOrEqual(trailBox.left);
+    expect(current.right).toBeLessThanOrEqual(trailBox.right);
+  });
+  test('keeps the current location in view when a wide image narrows under the same trail', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/?v=1&c=-1.9374941337951477,0&s=1.4426981485124484e-6&view=period');
+    await page.getByRole('button', { name: 'Explore', exact: true }).click();
+    await waitForCatalogCore(page);
+    await waitForStable(page);
+    const trail = trailOf(page);
+    await expect(trail.locator('.nesting-trail__node')).toHaveText(
+      ['1', '2', '3', '5', '6', '7', '9', '10', '11'],
+      { timeout: 10_000 },
+    );
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const pill = document.querySelector('.nesting-trail')?.getBoundingClientRect();
+          const current = document
+            .querySelector('.nesting-trail [aria-current="location"]')
+            ?.getBoundingClientRect();
+          return pill !== undefined && current !== undefined && current.right <= pill.right + 0.5;
+        }),
+      )
+      .toBe(true);
   });
 });
