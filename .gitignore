@@ -12,6 +12,7 @@ test-results/
 
 # Isolated worktrees and agent scratch
 .worktrees/
+.claude/worktrees/
 .superpowers/
 
 # Tool caches
